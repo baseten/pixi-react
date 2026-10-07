@@ -9,12 +9,12 @@ const config: Config = {
     favicon: 'img/favicon.png',
 
     // Set the production url of your site here
-    url: 'https://react.pixijs.io',
-    baseUrl: '/',
+    url: 'https://baseten.github.io',
+    baseUrl: '/pixi-react/',
 
     // GitHub pages deployment config.
     // If you aren't using GitHub pages, you don't need these.
-    organizationName: 'pixijs', // Usually your GitHub org/user name.
+    organizationName: 'baseten', // Usually your GitHub org/user name.
     projectName: 'pixi-react', // Usually your repo name.
     deploymentBranch: 'gh-pages', // Branch that GitHub pages will deploy to.
     trailingSlash: true,
@@ -43,7 +43,7 @@ const config: Config = {
                     routeBasePath: '/',
                     sidebarPath: './sidebars.ts',
                     editUrl:
-                        'https://github.com/pixijs/pixi-react/tree/main/docs/',
+                        'https://github.com/baseten/pixi-react/tree/main/docs/',
                     lastVersion: 'current',
                     versions: {
                         '7.x': {
@@ -64,7 +64,7 @@ const config: Config = {
                 blog: {
                     showReadingTime: true,
                     editUrl:
-                        'https://github.com/pixijs/pixi-react/tree/main/docs/',
+                        'https://github.com/baseten/pixi-react/tree/main/docs/',
                 },
                 theme: {
                     customCss: './src/css/custom.css',
@@ -118,7 +118,7 @@ const config: Config = {
                     'aria-label': 'Discord server',
                 },
                 {
-                    href: 'https://github.com/pixijs/pixi-react',
+                    href: 'https://github.com/baseten/pixi-react',
                     position: 'right',
                     className: 'header-link header-github-link',
                     'aria-label': 'GitHub repository',

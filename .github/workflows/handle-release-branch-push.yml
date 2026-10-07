@@ -4,11 +4,30 @@ on:
   merge_group:
   pull_request:
   push:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: Publish a configured fork release (false only reviews configuration)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FORK_RELEASE_ENABLED: ${{ vars.FORK_RELEASE_ENABLED }}
+  FORK_PREVIEW_ENABLED: ${{ vars.FORK_PREVIEW_ENABLED }}
+  FORK_PACKAGE_NAME: ${{ vars.FORK_PACKAGE_NAME }}
 
 jobs:
   verify:
     name: Verify
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       matrix:
         script:
@@ -32,6 +51,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -43,89 +63,53 @@ jobs:
       - name: ${{ matrix.script.name }}
         run: npm run ${{ matrix.script.command }}
 
+  review-destinations:
+    name: Review publication destinations
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: node .github/actions/fork-safety/check.cjs review
+
   preview:
     name: 'Publish: Preview'
-    needs:
-      - verify
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' }}
+    needs: verify
+    if: ${{ vars.FORK_PREVIEW_ENABLED == 'true' && github.repository == 'baseten/pixi-react' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.base.ref == 'main' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate fork package destination
+        run: node .github/actions/fork-safety/check.cjs preview
+      - uses: ./.github/actions/setup
+      - run: npm run build
+      - name: Publish configured fork preview
+        run: npx pkg-pr-new@0.0.54 publish --no-template
 
-      - name: Setup project
-        uses: ./.github/actions/setup
-
-      - name: Build Project
-        run: npm run build
-        shell: bash
-
-      - name: Publish
-        run: npx pkg-pr-new@latest publish --no-template
   publish:
     name: 'Publish: Release'
-    needs:
-      - verify
-    if: contains(fromJson('["refs/heads/alpha", "refs/heads/beta", "refs/heads/main"]'), github.ref)
+    needs: verify
+    if: ${{ vars.FORK_RELEASE_ENABLED == 'true' && github.repository == 'baseten/pixi-react' && github.event_name == 'workflow_dispatch' && inputs.publish_release && contains(fromJson('["refs/heads/alpha", "refs/heads/beta", "refs/heads/main"]'), github.ref) }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup project
-        uses: ./.github/actions/setup
-
-      - name: Build Project
-        run: npm run build
-        shell: bash
-
-      - name: Semantic release
+          persist-credentials: false
+      - name: Validate fork package destination
+        run: node .github/actions/fork-safety/check.cjs release
+      - uses: ./.github/actions/setup
+      - run: npm run build
+      - name: Publish configured fork release
+        run: npx semantic-release@24
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        id: release
-        run: |
-          export NEXT_TAG_VERSION=$(npx semantic-release | tee >(cat >&2) | grep 'The next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/')
-          echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
-        shell: bash
-
-      - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        if: ${{ steps.release.outputs.new_tag_version != '' }}
-        run: npm publish ./dist/*.tgz --tag ${{ (github.head_ref || github.ref_name) == 'main' && 'latest' || github.head_ref || github.ref_name }}
-        shell: bash
-
-  # dev-publish:
-  #   name: 'Publish: Dev'
-  #   needs:
-  #     - verify
-  #   if: contains(fromJson('["refs/heads/alpha", "refs/heads/beta", "refs/heads/main"]'), github.ref) == 'false'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-
-  #     - name: Setup project
-  #       uses: ./.github/actions/setup
-
-  #     - name: Build project
-  #       run: npm run build
-  #       shell: bash
-
-  #     - name: Get current version
-  #       run: echo "PACKAGE_VERSION=$(npm pkg get version | tr -d '"')" >> $GITHUB_ENV
-
-  #     - name: Setup dev version
-  #       run: echo "BRANCH_VERSION=$PACKAGE_VERSION-$BRANCH_NAME.${GITHUB_SHA::7}" >> $GITHUB_ENV
-
-  #     - name: Bump version
-  #       run: npm version $BRANCH_VERSION --no-git-tag-version --force
-
-  #     - name: Publish a dev release
-  #       run: npm publish --tag dev
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
