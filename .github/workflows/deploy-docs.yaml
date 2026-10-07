@@ -16,6 +16,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  FORK_RELEASE_ENABLED: ${{ vars.FORK_RELEASE_ENABLED }}
+  FORK_PREVIEW_ENABLED: ${{ vars.FORK_PREVIEW_ENABLED }}
+  FORK_PACKAGE_NAME: ${{ vars.FORK_PACKAGE_NAME }}
   FORK_DOCS_ENABLED: ${{ vars.FORK_DOCS_ENABLED }}
   FORK_DOCS_REPOSITORY: ${{ vars.FORK_DOCS_REPOSITORY }}
 
