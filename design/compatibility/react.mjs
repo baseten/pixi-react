@@ -78,4 +78,12 @@ if (!legacy) {
     errors.length = 0;
 }
 
+if (!legacy && Number(React.version.split('.')[1]) >= 3) {
+    flush(React.createElement(React.Fragment, { ref: React.createRef() }, React.createElement('node')));
+    features.fragmentRef = errors.length ? { status: 'missing-host-capability', errors: [...errors] } : 'rendered';
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /createFragmentInstance/);
+    errors.length = 0;
+    flush(null);
+}
 console.log(JSON.stringify({ react: React.version, reconciler: pkg.version, peers: pkg.peerDependencies, hostKeys, exports: Object.keys(reconciler).sort(), features, createContainerArity: reconciler.createContainer.length }));
