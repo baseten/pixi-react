@@ -44,9 +44,10 @@ for the invocation; an implementation assignment does not otherwise grant it.
 ## Publication is opt-in
 
 Ordinary pushes and PRs retain all five verification jobs, without path filters.
-They do not release packages or deploy docs. PR runs cancel an older run for the
-same PR; publication runs have timeouts and are not cancelled mid-publication.
-The repository starts with all publication variables unset.
+By default, neither publishes packages nor deploys docs. PR runs cancel an older
+run for the same PR, including an opted-in preview. Manual release and deployment
+runs have timeouts and are not cancelled by newer PR runs. Unset publication
+variables disable their respective publication paths.
 
 In Actions, manually run **Handle Release Branch Push** with `publish_release`
 left false, or **Deploy Docs** with `deploy` left false, to inspect configuration
