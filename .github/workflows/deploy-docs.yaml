@@ -51,10 +51,9 @@ jobs:
         run: node .github/actions/fork-safety/check.cjs docs
       - uses: ./.github/actions/setup
       - name: Deploy to this fork
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          npm run deploy
+        run: npm run deploy
         env:
           GIT_USER: ${{ github.actor }}
+          GIT_USER_NAME: ${{ github.actor }}
+          GIT_USER_EMAIL: ${{ github.actor }}@users.noreply.github.com
           GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
