@@ -1,0 +1,1363 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-07",
+  "issue": "https://github.com/baseten/pixi-react/issues/3",
+  "baseline": "30cf1f86a590a1d8bb183a36b1887fa30e908d4e",
+  "status": "audit-seed-not-support-certificate",
+  "floors": {
+    "react": "18.3.1",
+    "pixi.js": "7.4.2",
+    "pixi8": "8.2.6"
+  },
+  "advertisedRanges": [],
+  "excluded": [
+    "React <=17",
+    "Pixi <=6",
+    "React canary/experimental",
+    "unprobed render backends"
+  ],
+  "registry": {
+    "react": {
+      "distTags": {
+        "beta": "19.0.0-beta-26f2496093-20240514",
+        "rc": "19.0.0-rc.1",
+        "next": "19.3.0-canary-d5736f09-20260507",
+        "backport": "19.0.8",
+        "latest": "19.3.0",
+        "experimental": "0.0.0-experimental-d75b0697-20261006",
+        "canary": "19.3.0-canary-d75b0697-20261006"
+      },
+      "selected": {
+        "18.3.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0"
+          },
+          "gitHead": "a87edf62d7d69705ddbcec9a24f0780b3db7535f",
+          "integrity": "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==",
+          "publishedAt": "2024-04-26T16:42:26.496Z"
+        },
+        "19.0.0": {
+          "peerDependencies": {},
+          "dependencies": {},
+          "gitHead": "63cde684f5340b1ca73f6244501aac1c3d2c92a8",
+          "integrity": "sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==",
+          "publishedAt": "2024-12-05T18:10:21.804Z"
+        },
+        "19.0.8": {
+          "peerDependencies": {},
+          "dependencies": {},
+          "gitHead": "dec2f1b17e5853e62c9041760158899895062ecc",
+          "integrity": "sha512-0AdV74MDFG2T5TolFNYvgSqhbH26yUAe2yUErKArC8ehNHb84bwXE0dS68EvEJNBt01eSVNdhL0U6N60JKrFjw==",
+          "publishedAt": "2026-07-21T15:43:22.261Z"
+        },
+        "19.1.0": {
+          "peerDependencies": {},
+          "dependencies": {},
+          "gitHead": "1825990c5608f0ab0c1475b4292218a508a171c9",
+          "integrity": "sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==",
+          "publishedAt": "2025-03-28T19:59:42.053Z"
+        },
+        "19.1.9": {
+          "peerDependencies": {},
+          "dependencies": {},
+          "gitHead": "642ce6de910fe651c6f75517095e9881635098c0",
+          "integrity": "sha512-vcH++wcuFsbaGkMBoghOSs7Caq9Xg4KbdGwNEC8hWXye9NbV/ryKpxuElvsQxj6/38TmVUw2BofUb7shrdQogA==",
+          "publishedAt": "2026-07-21T15:41:58.570Z"
+        },
+        "19.2.0": {
+          "peerDependencies": {},
+          "dependencies": {},
+          "gitHead": "861811347b8fa936b4a114fc022db9b8253b3d86",
+          "integrity": "sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==",
+          "publishedAt": "2025-10-01T21:38:32.757Z"
+        },
+        "19.2.8": {
+          "peerDependencies": {},
+          "dependencies": {},
+          "gitHead": "1dd4ecbdabf826f527fc9a58c05ea70375b7d170",
+          "integrity": "sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==",
+          "publishedAt": "2026-07-21T15:41:28.716Z"
+        },
+        "19.3.0": {
+          "peerDependencies": {},
+          "dependencies": {},
+          "gitHead": "1d34f91dfde6bba84d08b683aaba164c7194dacb",
+          "integrity": "sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog==",
+          "publishedAt": "2026-09-09T17:21:30.071Z"
+        }
+      }
+    },
+    "react-reconciler": {
+      "distTags": {
+        "beta": "0.31.0-beta-26f2496093-20240514",
+        "rc": "0.31.0-rc.1",
+        "next": "0.34.0-canary-d5736f09-20260507",
+        "latest": "0.34.0",
+        "canary": "0.34.0-canary-d75b0697-20261006",
+        "experimental": "0.0.0-experimental-d75b0697-20261006"
+      },
+      "selected": {
+        "0.29.2": {
+          "peerDependencies": {
+            "react": "^18.3.1"
+          },
+          "dependencies": {
+            "scheduler": "^0.23.2",
+            "loose-envify": "^1.1.0"
+          },
+          "gitHead": "a87edf62d7d69705ddbcec9a24f0780b3db7535f",
+          "integrity": "sha512-zZQqIiYgDCTP/f1N/mAR10nJGrPD2ZR+jDSEsKWJHYC7Cm2wodlwbR3upZRdC3cjIjSlTLNVyO7Iu0Yy7t2AYg==",
+          "publishedAt": "2024-04-26T16:43:54.921Z"
+        },
+        "0.31.0": {
+          "peerDependencies": {
+            "react": "^19.0.0"
+          },
+          "dependencies": {
+            "scheduler": "^0.25.0"
+          },
+          "gitHead": "63cde684f5340b1ca73f6244501aac1c3d2c92a8",
+          "integrity": "sha512-7Ob7Z+URmesIsIVRjnLoDGwBEG/tVitidU0nMsqX/eeJaLY89RISO/10ERe0MqmzuKUUB1rmY+h1itMbUHg9BQ==",
+          "publishedAt": "2024-12-05T18:10:45.020Z"
+        },
+        "0.32.0": {
+          "peerDependencies": {
+            "react": "^19.1.0"
+          },
+          "dependencies": {
+            "scheduler": "^0.26.0"
+          },
+          "gitHead": "1825990c5608f0ab0c1475b4292218a508a171c9",
+          "integrity": "sha512-2NPMOzgTlG0ZWdIf3qG+dcbLSoAc/uLfOwckc3ofy5sSK0pLJqnQLpUFxvGcN2rlXSjnVtGeeFLNimCQEj5gOQ==",
+          "publishedAt": "2025-03-28T20:00:17.734Z"
+        },
+        "0.33.0": {
+          "peerDependencies": {
+            "react": "^19.2.0"
+          },
+          "dependencies": {
+            "scheduler": "^0.27.0"
+          },
+          "gitHead": "861811347b8fa936b4a114fc022db9b8253b3d86",
+          "integrity": "sha512-KetWRytFv1epdpJc3J4G75I4WrplZE5jOL7Yq0p34+OVOKF4Se7WrdIdVC45XsSSmUTlht2FM/fM1FZb1mfQeA==",
+          "publishedAt": "2025-10-01T21:39:00.081Z"
+        },
+        "0.34.0": {
+          "peerDependencies": {
+            "react": "^19.3.0"
+          },
+          "dependencies": {
+            "scheduler": "^0.28.0"
+          },
+          "gitHead": "1d34f91dfde6bba84d08b683aaba164c7194dacb",
+          "integrity": "sha512-eVibvB1fc9j5Qf1KRkiM3GzRPBdjg2P6G6QV2f3P6Eb3OGMxRBhdg2rrUwjbV5JrQaJj8nOa8uajmmJA5tJWjQ==",
+          "publishedAt": "2026-09-09T17:20:13.783Z"
+        }
+      }
+    },
+    "pixi.js": {
+      "distTags": {
+        "latest-4.x": "4.8.9",
+        "legacy": "4.8.9",
+        "latest-5.1.x": "5.1.6",
+        "latest-4.4.x": "4.4.5",
+        "latest-5.2.x": "5.2.5",
+        "latest-5.3.x": "5.3.12",
+        "latest-6.x": "6.5.10",
+        "prerelease": "7.3.0-rc.2",
+        "latest-7.x": "7.4.3",
+        "prerelease-v8": "8.15.0-rc",
+        "latest": "8.22.0",
+        "main": "8.22.0-main.5b41ee3",
+        "dev": "8.22.0-dev.3910339"
+      },
+      "selected": {
+        "7.4.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "7.4.2",
+            "@pixi/core": "7.4.2",
+            "@pixi/mesh": "7.4.2",
+            "@pixi/text": "7.4.2",
+            "@pixi/assets": "7.4.2",
+            "@pixi/events": "7.4.2",
+            "@pixi/sprite": "7.4.2",
+            "@pixi/display": "7.4.2",
+            "@pixi/extract": "7.4.2",
+            "@pixi/prepare": "7.4.2",
+            "@pixi/graphics": "7.4.2",
+            "@pixi/text-html": "7.4.2",
+            "@pixi/extensions": "7.4.2",
+            "@pixi/filter-blur": "7.4.2",
+            "@pixi/filter-fxaa": "7.4.2",
+            "@pixi/mesh-extras": "7.4.2",
+            "@pixi/spritesheet": "7.4.2",
+            "@pixi/text-bitmap": "7.4.2",
+            "@pixi/filter-alpha": "7.4.2",
+            "@pixi/filter-noise": "7.4.2",
+            "@pixi/accessibility": "7.4.2",
+            "@pixi/sprite-tiling": "7.4.2",
+            "@pixi/sprite-animated": "7.4.2",
+            "@pixi/particle-container": "7.4.2",
+            "@pixi/compressed-textures": "7.4.2",
+            "@pixi/filter-color-matrix": "7.4.2",
+            "@pixi/filter-displacement": "7.4.2",
+            "@pixi/mixin-cache-as-bitmap": "7.4.2",
+            "@pixi/mixin-get-child-by-name": "7.4.2",
+            "@pixi/mixin-get-global-position": "7.4.2"
+          },
+          "gitHead": "9104ebd911ac97cd58928d476b588061fa2ad680",
+          "integrity": "sha512-TifqgHGNofO7UCEbdZJOpUu7dUnpu4YZ0o76kfCqxDa4RS8ITc9zjECCbtalmuNXkVhSEZmBKQvE7qhHMqw/xg==",
+          "publishedAt": "2024-03-20T19:57:01.264Z"
+        },
+        "7.4.3": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "7.4.3",
+            "@pixi/core": "7.4.3",
+            "@pixi/mesh": "7.4.3",
+            "@pixi/text": "7.4.3",
+            "@pixi/assets": "7.4.3",
+            "@pixi/events": "7.4.3",
+            "@pixi/sprite": "7.4.3",
+            "@pixi/display": "7.4.3",
+            "@pixi/extract": "7.4.3",
+            "@pixi/prepare": "7.4.3",
+            "@pixi/graphics": "7.4.3",
+            "@pixi/text-html": "7.4.3",
+            "@pixi/extensions": "7.4.3",
+            "@pixi/filter-blur": "7.4.3",
+            "@pixi/filter-fxaa": "7.4.3",
+            "@pixi/mesh-extras": "7.4.3",
+            "@pixi/spritesheet": "7.4.3",
+            "@pixi/text-bitmap": "7.4.3",
+            "@pixi/filter-alpha": "7.4.3",
+            "@pixi/filter-noise": "7.4.3",
+            "@pixi/accessibility": "7.4.3",
+            "@pixi/sprite-tiling": "7.4.3",
+            "@pixi/sprite-animated": "7.4.3",
+            "@pixi/particle-container": "7.4.3",
+            "@pixi/compressed-textures": "7.4.3",
+            "@pixi/filter-color-matrix": "7.4.3",
+            "@pixi/filter-displacement": "7.4.3",
+            "@pixi/mixin-cache-as-bitmap": "7.4.3",
+            "@pixi/mixin-get-child-by-name": "7.4.3",
+            "@pixi/mixin-get-global-position": "7.4.3"
+          },
+          "gitHead": "07f7fc11546cdd4d54398f034dc5da628f8d47dd",
+          "integrity": "sha512-uIWdH0EI2dVgNoqN9aFaHCmR0V65OEhMkXs2sek3c/QP2ItV6UoM+ouX9esSv3ibo20F+J5D1XwnQhUZI6wqeQ==",
+          "publishedAt": "2025-03-06T15:00:18.351Z"
+        },
+        "8.10.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.1",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "40dbf2442d11cc1016a61c17b3e0163168186991",
+          "integrity": "sha512-iDuJ9YpSTjXZZlJ6Dy87aS0kL2OPcpPcGyeTX1b5nM+nbqnksX37DPYrh7m3KGIrxUsMjnG1i4bh8NL2ToJydg==",
+          "publishedAt": "2025-06-03T19:03:48.451Z"
+        },
+        "8.10.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.1",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "0b2b4fbcce0de0fa4cc4daa0e84b842206268e9f",
+          "integrity": "sha512-utRKxzTwNsIhaxOikxIBxKPfxuOyVkPvdYipY23ZEyWSYhONosrQlcB9nymeIcbsrsuSdwExX0eTnHTDjTN3UQ==",
+          "publishedAt": "2025-06-24T08:49:18.678Z"
+        },
+        "8.11.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.1",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "efa7feb51f8fd7feb1762be278481c849bcebdd9",
+          "integrity": "sha512-dyuThzncsgEgJZnvd/A/5x6IkUERbK+phXqUQrI+0C6WE+8xqGH5VChRTLecemhgZF0kQ+gZOM3tJTX9937xpg==",
+          "publishedAt": "2025-07-03T15:08:53.002Z"
+        },
+        "8.12.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "cd6b0d28877bcbd240760eb5f447c93291acfa6d",
+          "integrity": "sha512-or7vrH7WajLevu/JnGMdD80JaSpTlXfjwCLtzhg2BL60LWPf1pF0w08Qleiqr1Saj012gevguM//+6HzzVlnfA==",
+          "publishedAt": "2025-08-05T08:54:38.179Z"
+        },
+        "8.13.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.5",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "2094ca58851418ba500fb4a0bf14e98b8c298905",
+          "integrity": "sha512-xAfU3ljyixs8cUH9E9Nqf9YVukP82rIKVpPvLdj9mqRkdhkt/8iQJnJ7O+1p3Y/kA6Am+GvsWr0M12cYwq7r9A==",
+          "publishedAt": "2025-09-02T13:16:31.607Z"
+        },
+        "8.13.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.5",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "8eee29cd4ceb3b5f402e3ddce3679e96e8c6cf5f",
+          "integrity": "sha512-9KVGZ4a99TA5SwUEWs9m5gliX6XUCS1aGc/DOPsXxpqLMDRa+FhzpT5ao9z1UwLYJkSvt3rcQs+aZXECBHSSHg==",
+          "publishedAt": "2025-09-10T07:45:54.851Z"
+        },
+        "8.14.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.5",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "4cfcbc08446c1cc2480f00124474e892dd6a4e4b",
+          "integrity": "sha512-ituDiEBb1Oqx56RYwTtC6MjPUhPfF/i15fpUv5oEqmzC/ce3SaSumulJcOjKG7+y0J0Ekl9Rl4XTxaUw+MVFZw==",
+          "publishedAt": "2025-10-06T21:33:40.724Z"
+        },
+        "8.14.3": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.5",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "e17c886f6f184c2bb93686e454bddf224e0cfa37",
+          "integrity": "sha512-6xGYARV8D9E/fO1c2NmYn+k2dQ5oZldVm5tNlLQJ8obTlOQXdL5QpMc217qTpRyHVDFaw5eoFCLF1gr6p5ZcjQ==",
+          "publishedAt": "2025-11-20T12:40:06.343Z"
+        },
+        "8.15.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.5",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "d7e9a5d440fccb49efe54d3fa0f63d10b4aefa21",
+          "integrity": "sha512-J/Ghze/K9fjHRlfwC2EMZ7vnMIhGo4ByKCsKMcS0AB12iT79nf9zzWKUTzMJ8QAQFqQfDOl5ULwmHMUdeih2zQ==",
+          "publishedAt": "2026-01-05T10:12:37.054Z"
+        },
+        "8.16.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.11",
+            "parse-svg-path": "^0.1.2"
+          },
+          "gitHead": "94156d33426f74df3b8f9ea83eb7f18252d5436b",
+          "integrity": "sha512-gu2xw3sZGAn3cWBtk0HqTQT+v19YAfiaYXwUGgWoJl5NKz4cEZJUgWrwkmdfDszGyYBAGqOvJNbd2M9+vzLLMg==",
+          "publishedAt": "2026-02-03T16:57:19.865Z"
+        },
+        "8.17.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.11",
+            "parse-svg-path": "^0.1.2"
+          },
+          "gitHead": "4806c3bcd3b078637e3092d00d7841ef771a1b73",
+          "integrity": "sha512-A6AhxbNG8Abo5xyNRJx//ETefTCcwWx2sw9e/E57YCGQ8MuvS5o2mbofBOPCdf1J+z6VKd7MZjictS9EkMXiuw==",
+          "publishedAt": "2026-03-09T15:31:22.129Z"
+        },
+        "8.17.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.11",
+            "parse-svg-path": "^0.1.2"
+          },
+          "gitHead": "6e59c6fd0fb031f661f4d7db99dd44f45f5e4ef1",
+          "integrity": "sha512-OB4TpZHrP5RYy+7FqmFrAc0IHRhfOoNIfF4sVeinvK3aG1r2pYrSMneJAKi9+WvGKC70Dj7GEpZ2OZGB6o/xdg==",
+          "publishedAt": "2026-03-16T09:26:48.268Z"
+        },
+        "8.18.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.12",
+            "parse-svg-path": "^0.1.2"
+          },
+          "gitHead": "2c5818b0e75b835ba5980844136b10cbdc3982a9",
+          "integrity": "sha512-zSA1SH8NiBkgyPeg8bWjdddBMOlXHE5ZNS5yoi3e/acAcBwLRM72hIS6IqVjvlTTBGOBFq72mRYtzt/haxL9Tw==",
+          "publishedAt": "2026-04-14T15:01:09.000Z"
+        },
+        "8.18.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.12",
+            "parse-svg-path": "^0.1.2"
+          },
+          "gitHead": "8f42bb760872ed6652775d00a4de448ac277e783",
+          "integrity": "sha512-6LUPWYgulZhp/w4kam2XHXB0QedISZIqrJbRdHLLQ3csn5a38uzKxAp6B5j6s89QFYaIJbg95kvgTRcbgpO1ow==",
+          "publishedAt": "2026-04-14T20:04:50.609Z"
+        },
+        "8.19.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.13",
+            "parse-svg-path": "^0.2.0"
+          },
+          "gitHead": "d93c5d3e4fb3bc7e33fde9d6f843e6bfc5b80d82",
+          "integrity": "sha512-pq1O6emA/GFjjeF+8d3Pb5t7knD8FsnfWGqQcRjYjsqFZ7QdzG1XgjLDUu0DFJRbafjV5+g8iNLFBx0b9649lg==",
+          "publishedAt": "2026-06-04T08:25:25.501Z"
+        },
+        "8.2.6": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "f2ad295aabec2bc69c2c2b4b72c286b0d06ec2c4",
+          "integrity": "sha512-CNfr7CmjIEWJ06e3TBrXBKFpcTPMGUaFdtP4RlMOgNOTkDD6+Bhm728I/EkGAo2vsOVO1YwNFsuORQyD3MngZg==",
+          "publishedAt": "2024-07-29T08:15:10.417Z"
+        },
+        "8.20.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.13",
+            "parse-svg-path": "^0.2.0"
+          },
+          "gitHead": "e4228cec9e6b432f81b7face6d7dd21ecf58e6dd",
+          "integrity": "sha512-WL7+yhxgNnI87AbucMR2X7yXmi/XhhYA25w2wV1QaNv6WMByM02kSX2ryreSq38OavHytFD0zY0bX6Nqgj/WAA==",
+          "publishedAt": "2026-08-20T18:50:52.035Z"
+        },
+        "8.20.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.15",
+            "parse-svg-path": "^0.2.0"
+          },
+          "gitHead": "3b6b5635deb9edd09f3eafd548b1e82685853ea7",
+          "integrity": "sha512-akLVBMLvQbaEViqsmVraK0Njer1q4Q4lm4iNKuzvBiFrV8q+6/+HluJN3sWIwO663IBeQtUUS/CaXFJZs6ffXQ==",
+          "publishedAt": "2026-08-26T15:11:35.469Z"
+        },
+        "8.21.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.15",
+            "parse-svg-path": "^0.2.0"
+          },
+          "gitHead": "ecd3797cf9b57766b045f3eea8388db9677744f8",
+          "integrity": "sha512-GJ/KqBtUuWDBPMQu2D0ZHsRCYOcWRjjKrpyC+3jPQI5JTqHMC5dH8l9sSyvoUT4qJidvRzs1fwFWRWceno2Ltw==",
+          "publishedAt": "2026-09-17T07:56:15.402Z"
+        },
+        "8.22.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^3.0.2",
+            "tiny-lru": "^11.4.7",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^3.0.0",
+            "@webgpu/types": "^0.1.69",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.15",
+            "parse-svg-path": "^0.2.0"
+          },
+          "gitHead": "5b41ee37fd36c61e089113345a8f12cf1c3323cf",
+          "integrity": "sha512-QbTANHMZ751MIjLiLSUSM8a7LNMWwMIf0KbRCqlW+SPS9hNLfSVS+cl1O2SEp9g1K/wyLzj/OJHv+1TUfiPr/w==",
+          "publishedAt": "2026-10-01T21:58:04.868Z"
+        },
+        "8.3.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "c92b1c6cdca8ddf8f9be84ad3d8250db97380f52",
+          "integrity": "sha512-aY8UqhYwTYETGA68/pWqORpeNRi1eT0l1tSLV6WTUQkwcKPyMlZTLUpc8ZzdsWHqDJ3Sx9Z/BZ1kQfRiQa0dQg==",
+          "publishedAt": "2024-08-06T14:21:45.667Z"
+        },
+        "8.3.4": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "b74ec8214da0ca90d870adb7b71efd876a86b1f1",
+          "integrity": "sha512-b5qdoHMQy79JjTiOOAH/fDiK9dLKGAoxfBwkHIdsK5XKNxsFuII2MBbktvR9pVaAmTDobDkMPDoIBFKYYpDeOg==",
+          "publishedAt": "2024-08-23T12:33:33.447Z"
+        },
+        "8.4.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "f5902eb955d7a5b31bdd9cd7f4df1810b50f54f4",
+          "integrity": "sha512-IM0YDv7G9XATtD/sPgbEi6FoLg82+XSqejzeCWg575vEyuQGs4RrdVFSV/K/i2PeXr/sLxiHRJDOGuotBUlldA==",
+          "publishedAt": "2024-09-11T16:07:39.571Z"
+        },
+        "8.4.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "6cbee5075c748345e3a6b020624780938cfcc7c2",
+          "integrity": "sha512-3ZbEIkLYYi602UB5wuN7kPz3VsGHoJa6nxD8ustvMLRySxHAR9Z8tCAYY8ISgNplpPbaDw03B0yTD4/k9f6cAQ==",
+          "publishedAt": "2024-09-19T10:31:09.698Z"
+        },
+        "8.5.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "abcd2e38a28738045e99ac6bae2f2f4f4d6de090",
+          "integrity": "sha512-C3UouBCqZZskKAkI63JrROUDUZF27avtmzq5udyVHJNRK/noZsS38YfQgx6SMANOIuuMSQ3jWnqD07mtCPmpeA==",
+          "publishedAt": "2024-10-10T13:11:03.417Z"
+        },
+        "8.5.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "a544f84bcd96ebb01a2d9b0894004a67af4e70e3",
+          "integrity": "sha512-TOt9g8ifOj4R9DN9ST1M8t2nvnuhr5oWL5YW9ywFLbnOVgFMDcEz+Xek5Mo8Xr64D+QU3qre3IFgreBlsHxTNw==",
+          "publishedAt": "2024-10-23T08:25:16.716Z"
+        },
+        "8.6.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "c7fcb28d4df8bdd2dabcc3e9f1449a4fc3cc8b50",
+          "integrity": "sha512-+FI/bThCCw9mHMlIQNAg54x2/HFOIEm7TVk8QwOCslrwXvNzzflZFfDYZwqkam/NAzdfKxZVJGWDxRr+dSGPYQ==",
+          "publishedAt": "2024-11-26T19:49:18.418Z"
+        },
+        "8.6.6": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "6f453df5e78fec090294eb57649a8aa9cbdc3825",
+          "integrity": "sha512-o5pw7G2yuIrnBx0G4npBlmFp+XGNcapI/Ufs62rRj/4XKxc1Zo74YJr/BtEXcXTraTKd+pQvYOLvnfxRjxBMvQ==",
+          "publishedAt": "2024-12-18T12:48:39.610Z"
+        },
+        "8.7.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "a1af945cef57f5996ecbee40abf1db91b2b01dcb",
+          "integrity": "sha512-IZrPf5umqLGPlDC6Oxwe6BEiHLA2dugG+Q0O9TAouz02AyVw4VeTZRiPAo41UW+bdFtCUVPRDuHurl9dpH9YOQ==",
+          "publishedAt": "2025-01-23T15:06:56.991Z"
+        },
+        "8.7.3": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "a0a0dd420ed0ac1ed2e88eaef267b640b1b85db8",
+          "integrity": "sha512-wfWlhJYnGx1s4f2yoouevQjaeacbJ12LTkJGa+n9AIYNIjOnmJylBtZ2mARX7iFk3mr2xv0wuo//XPe2hk5OBw==",
+          "publishedAt": "2025-01-29T13:27:48.450Z"
+        },
+        "8.8.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "8c04fba2ea211193380b9b67e8a235edc90fee18",
+          "integrity": "sha512-0xW8tKa+uF28mi1SwvnNscMpYJSQrqLN7jJs6Ore37FZoXmIRzQNrGA6drpHDVTuEmoqJlSiGLCk5cUgz3ODgQ==",
+          "publishedAt": "2025-02-11T15:47:51.413Z"
+        },
+        "8.8.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "931d8832747bc36ee3d7aba7ff6d10080f54f118",
+          "integrity": "sha512-Zmox3Vy52Kl6X/uxknKlxJWPVEFiP63nsX8soqB4butTkIOK3y7c9C204wcDfAgkwO1OlwYxscWtHv+ef4gqgA==",
+          "publishedAt": "2025-02-26T09:55:24.795Z"
+        },
+        "8.9.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "58321a2774886b911b49155d982601c49f2a2629",
+          "integrity": "sha512-uhXZKbus1C4nHu2ZHDCHE7m9BSsGOAuR+rj31VPyN6O8L8TEFs/q5+/43sMBC89EjPahIhvYOSNtY9nnrrY7BA==",
+          "publishedAt": "2025-03-20T16:31:18.726Z"
+        },
+        "8.9.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "earcut": "^2.2.4",
+            "gifuct-js": "^2.1.2",
+            "ismobilejs": "^1.1.1",
+            "@pixi/colord": "^2.9.6",
+            "@types/earcut": "^2.1.4",
+            "@webgpu/types": "^0.1.40",
+            "eventemitter3": "^5.0.1",
+            "@xmldom/xmldom": "^0.8.10",
+            "parse-svg-path": "^0.1.2",
+            "@types/css-font-loading-module": "^0.0.12"
+          },
+          "gitHead": "2c0f2e5c4fd949192ef1c7a14e7e4b7f3e18129d",
+          "integrity": "sha512-oLFBkOOA/O6OpT5T8o05AxgZB9x9yWNzEQ+WTNZZFoCvfU2GdT4sFTjpVFuHQzgZPmAm/1IFhKdNiXVnlL8PRw==",
+          "publishedAt": "2025-04-29T11:40:14.140Z"
+        }
+      }
+    },
+    "@types/react": {
+      "distTags": {
+        "ts2.0": "15.0.1",
+        "ts2.1": "15.0.20",
+        "ts2.2": "15.0.30",
+        "ts2.4": "16.0.36",
+        "ts2.3": "16.0.36",
+        "ts2.5": "16.0.36",
+        "ts2.7": "16.4.7",
+        "ts2.6": "16.4.7",
+        "ts2.8": "16.9.34",
+        "ts2.9": "16.9.35",
+        "ts3.0": "16.9.46",
+        "ts3.1": "16.9.49",
+        "ts3.2": "16.9.56",
+        "ts3.3": "17.0.0",
+        "ts3.4": "17.0.2",
+        "ts3.5": "17.0.8",
+        "ts3.6": "17.0.19",
+        "ts3.7": "17.0.35",
+        "ts3.8": "17.0.39",
+        "ts3.9": "18.0.12",
+        "ts4.0": "18.0.18",
+        "ts4.1": "18.0.25",
+        "ts4.2": "18.0.28",
+        "ts4.3": "18.2.21",
+        "ts4.4": "18.2.21",
+        "ts4.5": "18.2.39",
+        "ts4.6": "18.2.64",
+        "ts4.7": "18.3.3",
+        "ts4.9": "18.3.12",
+        "ts4.8": "18.3.12",
+        "ts5.0": "19.0.12",
+        "ts5.1": "19.1.9",
+        "ts5.2": "19.2.14",
+        "ts5.4": "19.2.17",
+        "ts5.3": "19.2.17",
+        "ts5.5": "19.2.17",
+        "ts5.9": "19.3.0",
+        "ts5.6": "19.3.0",
+        "ts5.8": "19.3.0",
+        "ts7.0": "19.3.0",
+        "ts5.7": "19.3.0",
+        "ts6.0": "19.3.0",
+        "latest": "19.3.0",
+        "ts7.1": "19.3.0"
+      },
+      "selected": {
+        "18.3.31": {
+          "peerDependencies": {},
+          "dependencies": {
+            "csstype": "^3.2.2",
+            "@types/prop-types": "*"
+          },
+          "gitHead": null,
+          "integrity": "sha512-vfEqpXTvwT91yhmwdfouStN2hSKwTvyRs8qpLfADyrq/kxDw0hZM7Wk9Ug1FELj8hIby+S/+kQCSRFF32nv2Qw==",
+          "publishedAt": "2026-06-05T20:10:34.637Z"
+        },
+        "19.0.14": {
+          "peerDependencies": {},
+          "dependencies": {
+            "csstype": "^3.0.2"
+          },
+          "gitHead": null,
+          "integrity": "sha512-ixLZ7zG7j1fM0DijL9hDArwhwcCb4vqmePgwtV0GfnkHRSCUEv4LvzarcTdhoqgyMznUx/EhoTUv31CKZzkQlw==",
+          "publishedAt": "2025-04-02T07:02:13.136Z"
+        },
+        "19.1.17": {
+          "peerDependencies": {},
+          "dependencies": {
+            "csstype": "^3.0.2"
+          },
+          "gitHead": null,
+          "integrity": "sha512-Qec1E3mhALmaspIrhWt9jkQMNdw6bReVu64mjvhbhq2NFPftLPVr+l1SZgmw/66WwBNpDh7ao5AT6gF5v41PFA==",
+          "publishedAt": "2025-10-01T17:02:26.663Z"
+        },
+        "19.2.18": {
+          "peerDependencies": {},
+          "dependencies": {
+            "csstype": "^3.2.2"
+          },
+          "gitHead": null,
+          "integrity": "sha512-AnzbBERsrLKtk2XSfTbYRLjQPdy116Sty4q+T+Bp3IC4l6jNBvreVPAHmpq9qhXQM7CXZPjLVmGMw9sy+hxQ3w==",
+          "publishedAt": "2026-07-30T21:54:03.456Z"
+        },
+        "19.3.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "csstype": "^3.2.2"
+          },
+          "gitHead": null,
+          "integrity": "sha512-N0rFCuH9YoxG9/m61l9MfpJKfmLOVU0em7ipIz6TRgSSkvReLB9vL85GB+yr8Bs5leqpvg96JSwF4ZS1s4viQg==",
+          "publishedAt": "2026-09-09T18:08:49.750Z"
+        }
+      }
+    },
+    "its-fine": {
+      "distTags": {
+        "latest": "2.1.1"
+      },
+      "selected": {
+        "1.2.5": {
+          "peerDependencies": {
+            "react": ">=18.0"
+          },
+          "dependencies": {
+            "@types/react-reconciler": "^0.28.0"
+          },
+          "gitHead": null,
+          "integrity": "sha512-fXtDA0X0t0eBYAGLVM5YsgJGsJ5jEmqZEPrGbzdf5awjv0xE7nqv3TVnvtUF060Tkes15DbDAKW/I48vsb6SyA==",
+          "publishedAt": "2024-04-10T20:47:53.516Z"
+        },
+        "2.1.1": {
+          "peerDependencies": {
+            "react": "^19.0.0"
+          },
+          "dependencies": {
+            "@types/react-reconciler": "^0.28.9"
+          },
+          "gitHead": "89201ca28eda53e1718346b65313e9fe4f5904b9",
+          "integrity": "sha512-C5ZoVkeqSt0Aje0tzESO+iT/EQpNFNL39GkP7mCACtoZUFD6GcyerFCr6kp0ZtiII4W9HoYkY48Soy5xE/uHKw==",
+          "publishedAt": "2026-09-24T21:33:51.976Z"
+        }
+      }
+    }
+  },
+  "probes": [
+    {
+      "id": "react-18.3.1",
+      "kind": "react",
+      "packages": {
+        "react": "18.3.1",
+        "react-reconciler": "0.29.2",
+        "@types/react": "18.3.31",
+        "its-fine": "1.2.5",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-19.0.0",
+      "kind": "react",
+      "packages": {
+        "react": "19.0.0",
+        "react-reconciler": "0.31.0",
+        "@types/react": "19.0.14",
+        "its-fine": "2.1.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-19.0.8",
+      "kind": "react",
+      "packages": {
+        "react": "19.0.8",
+        "react-reconciler": "0.31.0",
+        "@types/react": "19.0.14",
+        "its-fine": "2.1.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-19.1.0",
+      "kind": "react",
+      "packages": {
+        "react": "19.1.0",
+        "react-reconciler": "0.32.0",
+        "@types/react": "19.1.17",
+        "its-fine": "2.1.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-19.1.9",
+      "kind": "react",
+      "packages": {
+        "react": "19.1.9",
+        "react-reconciler": "0.32.0",
+        "@types/react": "19.1.17",
+        "its-fine": "2.1.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-19.2.0",
+      "kind": "react",
+      "packages": {
+        "react": "19.2.0",
+        "react-reconciler": "0.33.0",
+        "@types/react": "19.2.18",
+        "its-fine": "2.1.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-19.2.8",
+      "kind": "react",
+      "packages": {
+        "react": "19.2.8",
+        "react-reconciler": "0.33.0",
+        "@types/react": "19.2.18",
+        "its-fine": "2.1.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-19.3.0",
+      "kind": "react",
+      "packages": {
+        "react": "19.3.0",
+        "react-reconciler": "0.34.0",
+        "@types/react": "19.3.0",
+        "its-fine": "2.1.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-7.4.2",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "7.4.2",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-7.4.3",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "7.4.3",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.2.6",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.2.6",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.3.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.3.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.3.4",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.3.4",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.4.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.4.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.4.1",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.4.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.5.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.5.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.5.2",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.5.2",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.6.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.6.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.6.6",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.6.6",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.7.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.7.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.7.3",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.7.3",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.8.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.8.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.8.1",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.8.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.9.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.9.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.9.2",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.9.2",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.10.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.10.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.10.2",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.10.2",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.11.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.11.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.12.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.12.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.13.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.13.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.13.2",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.13.2",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.14.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.14.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.14.3",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.14.3",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.15.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.15.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.16.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.16.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.17.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.17.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.17.1",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.17.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.18.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.18.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.18.1",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.18.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.19.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.19.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.20.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.20.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.20.1",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.20.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.21.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.21.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-8.22.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "8.22.0",
+        "typescript": "5.6.3"
+      }
+    }
+  ]
+}
