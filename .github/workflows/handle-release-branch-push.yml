@@ -53,6 +53,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Check publication guards
+        run: node --test .github/actions/fork-safety/check.test.cjs
+
       - name: Setup
         uses: ./.github/actions/setup
 
