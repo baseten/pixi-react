@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import Reconciler from 'react-reconciler';
 import React from 'react';
+import { FiberProvider, useContextBridge } from 'its-fine';
 const pkg = JSON.parse(readFileSync('node_modules/react-reconciler/package.json'));
 const source = readFileSync('node_modules/react-reconciler/cjs/react-reconciler.development.js', 'utf8');
-const hostKeys = [...new Set([...source.matchAll(/\$\$\$config\.([A-Za-z0-9_]+)/g)].map(m => m[1]))].sort();
+const hostKeys = [...new Set([...source.matchAll(/(?:\$\$\$config|\$\$\$hostConfig)\.([A-Za-z0-9_]+)/g)].map(m => m[1]))].sort();
 const legacy = React.version.startsWith('18.');
 const noop = () => {};
 let priority = 0;
@@ -31,10 +32,11 @@ const reconciler = Reconciler(config);
 const root = { children: [] };
 const errors = [];
 const onError = e => errors.push(String(e));
-const container = legacy ? reconciler.createContainer(root, 0, null, false, null, '', onError, null) : reconciler.createContainer(root, 1, null, false, null, '', onError, onError, onError, null);
-const flush = element => {
-    if (legacy) reconciler.flushSync(() => reconciler.updateContainer(element, container, null, null));
-    else { reconciler.updateContainerSync(element, container, null, null); reconciler.flushSyncWork(); }
+const makeRoot = target => legacy ? reconciler.createContainer(target, 0, null, false, null, '', onError, null) : reconciler.createContainer(target, 1, null, false, null, '', onError, onError, onError, ...(Number(React.version.split('.')[1]) >= 2 ? [noop, null] : [null]));
+const container = makeRoot(root);
+const flush = (element, target = container) => {
+    if (legacy) reconciler.flushSync(() => reconciler.updateContainer(element, target, null, null));
+    else { reconciler.updateContainerSync(element, target, null, null); reconciler.flushSyncWork(); }
 };
 flush(React.createElement('node', { label: 'first' }));
 assert.equal(root.children[0]?.props.label, 'first');
@@ -43,4 +45,37 @@ assert.equal(root.children[0]?.props.label, 'updated');
 flush(null);
 assert.equal(root.children.length, 0);
 assert.deepEqual(errors, []);
-console.log(JSON.stringify({ react: React.version, reconciler: pkg.version, peers: pkg.peerDependencies, hostKeys, exports: Object.keys(reconciler).sort(), createContainerArity: reconciler.createContainer.length }));
+const Context = React.createContext('default');
+let Bridge;
+function Capture() { Bridge = useContextBridge(); return null; }
+function Consumer() { return React.createElement('context', { value: React.useContext(Context) }); }
+const secondary = { children: [] };
+const secondaryRoot = makeRoot(secondary);
+for (const value of ['outer', 'changed']) {
+    flush(React.createElement(Context.Provider, { value }, React.createElement(FiberProvider, null, React.createElement(Capture))));
+    assert.equal(typeof Bridge, 'function');
+    flush(React.createElement(Bridge, null, React.createElement(Consumer)), secondaryRoot);
+    assert.equal(secondary.children[0]?.props.value, value);
+}
+flush(null, secondaryRoot);
+flush(null);
+const features = { contextBridge: 'mount-update-unmount', activity: 'not-available', fragmentRef: 'not-available' };
+if (React.Activity) {
+    flush(React.createElement(React.Activity, { mode: 'visible' }, React.createElement('node')));
+    flush(React.createElement(React.Activity, { mode: 'hidden' }, React.createElement('node')));
+    assert.equal(root.children[0]?.hidden, true);
+    flush(React.createElement(React.Activity, { mode: 'visible' }, React.createElement('node')));
+    assert.equal(root.children[0]?.hidden, false);
+    features.activity = 'hide-restore';
+    flush(null);
+}
+// Error callbacks are real root arguments; only the intentional error may arrive.
+function Broken() { throw new Error('audit-intentional-error'); }
+if (!legacy) {
+    flush(React.createElement(Broken));
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /audit-intentional-error/);
+    errors.length = 0;
+}
+
+console.log(JSON.stringify({ react: React.version, reconciler: pkg.version, peers: pkg.peerDependencies, hostKeys, exports: Object.keys(reconciler).sort(), features, createContainerArity: reconciler.createContainer.length }));
