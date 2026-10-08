@@ -3264,6 +3264,62 @@
             "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
             "destroy(): void;"
           ]
+        },
+        "@pixi/app/lib/Application.d.ts": {
+          "before": [
+            "init(options: Partial<IApplicationOptions>): void;",
+            "destroy(): void;",
+            "constructor(options?: Partial<IApplicationOptions>);",
+            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;"
+          ],
+          "after": null
+        },
+        "@pixi/display/lib/Container.d.ts": {
+          "before": [
+            "parent: Container;",
+            "constructor();",
+            "addChild<U extends T[]>(...children: U): U[0];",
+            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ],
+          "after": null
+        },
+        "@pixi/sprite/lib/Sprite.d.ts": {
+          "before": [
+            "constructor(texture?: Texture);",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ],
+          "after": null
+        },
+        "@pixi/text/lib/Text.d.ts": {
+          "before": [
+            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: ICanvas);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ],
+          "after": null
+        },
+        "@pixi/ticker/lib/Ticker.d.ts": {
+          "before": [
+            "constructor();",
+            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
+            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
+            "destroy(): void;"
+          ],
+          "after": null
+        },
+        "@pixi/events/lib/FederatedPointerEvent.d.ts": {
+          "before": [],
+          "after": null
+        },
+        "@pixi/particle-container/lib/ParticleContainer.d.ts": {
+          "before": [
+            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ],
+          "after": null
         }
       }
     },
