@@ -215,3 +215,36 @@ test('retained evidence includes the extension declaration for every Pixi tuple'
         assert.ok(surface.declarations.some((declaration) => declaration.startsWith('remove(')), row.id);
     }
 });
+
+for (const probe of ['runtime', 'types'])
+{
+    for (const [name, processResult] of [
+        ['timeout', { status: null, signal: 'SIGTERM', error: 'spawnSync node ETIMEDOUT', stdout: 'partial output', stderr: 'timeout stderr' }],
+        ['signal', { status: null, signal: 'SIGKILL', stdout: '', stderr: 'terminated stderr' }],
+        ['spawn failure', { status: null, signal: null, error: 'spawnSync node ENOENT', stdout: null, stderr: null }],
+        ['nonzero', { status: 2, signal: null, stdout: 'failure output', stderr: 'failure stderr' }],
+    ])
+    {
+        test(`retains complete ${probe} ${name} diagnostics`, (t) =>
+        {
+            const row = installed('diagnostic', { react: '19.2.0' });
+
+            row[probe] = processResult;
+            const [result] = summarize(t, [row]);
+            const field = probe === 'runtime' ? 'runtimeDiagnostics' : 'typeProcessDiagnostics';
+
+            assert.deepEqual(result[field], processResult);
+        });
+    }
+}
+
+test('retains partial JSON when a runtime terminates during output', (t) =>
+{
+    const row = installed('diagnostic', { react: '19.2.0' });
+
+    row.runtime = { status: null, signal: 'SIGTERM', error: 'ETIMEDOUT', stdout: '{"hostKeys":[', stderr: 'timeout' };
+    const [result] = summarize(t, [row]);
+
+    assert.equal(result.observation, null);
+    assert.deepEqual(result.runtimeDiagnostics, row.runtime);
+});

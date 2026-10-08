@@ -30,7 +30,11 @@ When intentionally accepting new dependency resolutions, regenerate each seed tu
 
 Each tuple also pins `surfacesSha256` from the selected raw surface captures. This digest covers sorted `[path, sha256, declarations-or-null]` arrays, including declaration order. Refresh it from the raw capture using the same retained-path filter and `surfaceMapSha256` from `surface-map.mjs`; verify the captured hashes against the installed files before accepting changed metadata. The compact evidence is compared against that independently pinned digest, including known runtime failures.
 
+React tuples additionally pin `reactAbiSha256`: the canonical JSON pair of sorted host-key and exported-method arrays. Derive the keys from the captured installed reconciler source and the exports from its loaded factory; compare with the recorded observation before accepting a refreshed seed. This anchors the ABI independently of the derived boundary deltas.
+
 Failed installs retain their exit status, signal, spawn error, and output in `installDiagnostics`; runtime and type exits are `null` because those probes did not run. Such rows do not participate in boundary deltas and do not pass validation. Each known failure declares its expected runtime exit; a negative observation inside a successful probe also names its observation path, whose status and diagnostic signature must match. Run the audit-tool regression fixtures without network access with `node --test design/compatibility/*.test.mjs`.
+
+Failed runtime and type probes likewise retain full process diagnostics, including signal, spawn error, stdout and stderr. Interrupted partial JSON is retained as diagnostic output without becoming an observation.
 
 The runner records each tuple's canonical `workdir` in raw results. Summarization replaces that directory in diagnostic paths and file URLs with `<tuple>/`, including copied probes and dependency files. Older raw results without `workdir` must be summarized from their original audit directory so the tuple path can be derived from the input location.
 
