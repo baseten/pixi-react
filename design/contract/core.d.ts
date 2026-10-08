@@ -21,6 +21,34 @@ export interface AdapterManifest {
     readonly requires: Readonly<Record<string, number>>;
     readonly certification: string;
 }
+/** ABI-owned codes; adapters may add codes in their own dotted namespace. */
+export type BuiltinCompatibilityErrorCode =
+    | 'ABI_MISMATCH' | 'CAPABILITY_MISSING' | 'UNSUPPORTED_TUPLE'
+    | 'UNKNOWN_ELEMENT' | 'UNSUPPORTED_NODE' | 'REGISTRY_CONFLICT'
+    | 'ROOT_DISPOSED' | 'INIT_FAILED';
+export type CompatibilityErrorCode = BuiltinCompatibilityErrorCode | `${string}.${string}`;
+/** Named diagnostic values: protocol versions are numbers, package versions/ranges are strings. */
+export type CompatibilityErrorValues = Readonly<Record<string, string | number | boolean | null>>;
+export interface CompatibilityErrorDetails {
+    readonly code: CompatibilityErrorCode;
+    /** Manifest IDs of the adapters involved, not package-version objects. */
+    readonly adapterIds: readonly string[];
+    readonly capability?: string;
+    readonly expected?: CompatibilityErrorValues;
+    readonly actual?: CompatibilityErrorValues;
+    readonly cause?: unknown;
+}
+/** One shared Error class for core and adapters; message is human-readable, code is stable. */
+export declare class CompatibilityError extends Error implements CompatibilityErrorDetails {
+    constructor(message: string, details: CompatibilityErrorDetails);
+    readonly name: 'CompatibilityError';
+    readonly code: CompatibilityErrorCode;
+    readonly adapterIds: readonly string[];
+    readonly capability?: string;
+    readonly expected?: CompatibilityErrorValues;
+    readonly actual?: CompatibilityErrorValues;
+    readonly cause?: unknown;
+}
 export interface NodeDefinition<I extends object, P> {
     readonly kind: string;
     create(props: P): I;
