@@ -8,8 +8,9 @@
       "name": "Debug Current Test File",
       "autoAttachChildProcesses": true,
       "skipFiles": ["<node_internals>/**", "**/node_modules/tinyspy/**", "**/node_modules/@vitest/**"],
-      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
-      "args": ["run", "${relativeFile}"],
+      "cwd": "${workspaceRoot}/packages/react",
+      "program": "${workspaceRoot}/packages/react/node_modules/vitest/vitest.mjs",
+      "args": ["run", "${file}"],
       "smartStep": true,
       "console": "integratedTerminal"
     }

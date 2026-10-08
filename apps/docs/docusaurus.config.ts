@@ -43,7 +43,7 @@ const config: Config = {
                     routeBasePath: '/',
                     sidebarPath: './sidebars.ts',
                     editUrl:
-                        'https://github.com/baseten/pixi-react/tree/main/docs/',
+                        'https://github.com/baseten/pixi-react/tree/main/apps/docs/',
                     lastVersion: 'current',
                     versions: {
                         '7.x': {
@@ -64,7 +64,7 @@ const config: Config = {
                 blog: {
                     showReadingTime: true,
                     editUrl:
-                        'https://github.com/baseten/pixi-react/tree/main/docs/',
+                        'https://github.com/baseten/pixi-react/tree/main/apps/docs/',
                 },
                 theme: {
                     customCss: './src/css/custom.css',
