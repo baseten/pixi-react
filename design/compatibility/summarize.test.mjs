@@ -122,3 +122,50 @@ test('retains all seven removed v7 declaration paths at the installed v8 boundar
         assert.deepEqual(after.declarationDelta[path], expected);
     }
 });
+
+test('Windows and Unix captures retain identical Pixi and React surfaces and boundary deltas', (t) =>
+{
+    const evidence = JSON.parse(readFileSync(new URL('evidence.json', import.meta.url)));
+    const unix = evidence.results.map((row) => ({ ...installed(row.id, row.packages), surfaces: row.surfaces }));
+    const windows = unix.map((row) => ({
+        ...row,
+        surfaces: Object.fromEntries(Object.entries(row.surfaces).map(([path, surface]) => [path.replaceAll('/', '\\'), surface])),
+    }));
+
+    assert.ok(windows.every((row) => Object.keys(row.surfaces).length > 0 && Object.keys(row.surfaces).every((path) => path.includes('\\') && !path.includes('/'))));
+    const unixRows = summarize(t, unix);
+    const windowsRows = summarize(t, windows);
+
+    for (const [index, row] of evidence.results.entries())
+    {
+        assert.deepEqual(unixRows[index].surfaces, row.surfaces, row.id);
+        assert.deepEqual(windowsRows[index].surfaces, row.surfaces, row.id);
+        if (!row.packages.react)
+        {
+            assert.deepEqual(unixRows[index].declarationDelta, row.declarationDelta, row.id);
+            assert.deepEqual(windowsRows[index].declarationDelta, row.declarationDelta, row.id);
+        }
+    }
+    assert.deepEqual(windowsRows, unixRows);
+});
+
+test('separator-only changes do not appear as declaration additions or removals', (t) =>
+{
+    const before = installed('before', { 'pixi.js': '8.2.6' });
+
+    before.surfaces = {
+        'pixi.js\\lib\\Container.d.ts': { declarations: ['destroy(): void;'] },
+        'pixi.js\\lib\\Application.d.ts': { declarations: ['init(): Promise<void>;'] },
+        'pixi.js\\lib\\Unselected.d.ts': { declarations: ['ignored(): void;'] },
+    };
+    const selected = {
+        'pixi.js/lib/Container.d.ts': { declarations: ['destroy(): void;'] },
+        'pixi.js/lib/Application.d.ts': { declarations: ['init(): Promise<void>;'] },
+    };
+    const after = { ...installed('after', before.packages), surfaces: selected };
+    const rows = summarize(t, [before, after]);
+
+    assert.deepEqual(rows[0].surfaces, selected);
+    assert.deepEqual(rows[1].surfaces, selected);
+    assert.deepEqual(rows[1].declarationDelta, {});
+});
