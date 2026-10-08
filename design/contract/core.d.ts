@@ -73,6 +73,8 @@ export declare abstract class SceneAdapter<S extends SceneTypes> {
 export interface BindingFamily { readonly scene: SceneTypes; readonly type: unknown }
 export type Bind<F extends BindingFamily, S extends SceneTypes> = (F & { readonly scene: S })['type'];
 export declare abstract class FrameworkAdapter<F extends BindingFamily> {
+    /** Type-only witness; concrete implementations use declare, emitting no field. */
+    readonly bindingFamily: F;
     abstract readonly manifest: AdapterManifest;
     abstract bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<F, S>;
 }
