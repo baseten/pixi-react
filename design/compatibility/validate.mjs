@@ -61,6 +61,13 @@ for (const tuple of seed.probes)
             assert.ok(nonemptyObject(observation.features), `${row.id}: observation.features`);
             const features = observation.features;
             const [major, minor] = tuple.packages.react.split('.').map(Number);
+            const reconcilerVersion = tuple.packages['react-reconciler'];
+            const expectedPeers = seed.registry['react-reconciler'].selected[reconcilerVersion].peerDependencies;
+
+            assert.ok(nonemptyObject(expectedPeers), `registry.react-reconciler.${reconcilerVersion}.peerDependencies`);
+            assert.deepEqual(observation.peers, expectedPeers, `${row.id}: observation.peers`);
+            // Published React 19.2/19.3 builds omit the tagged source's eleventh parameter.
+            assert.equal(observation.createContainerArity, major === 18 ? 8 : 10, `${row.id}: observation.createContainerArity`);
 
             assert.equal(features.contextBridge, 'mount-update-unmount', `${row.id}: observation.features.contextBridge`);
             assert.equal(features.activity, major === 19 && minor >= 2 ? 'hide-restore' : 'not-available', `${row.id}: observation.features.activity`);
