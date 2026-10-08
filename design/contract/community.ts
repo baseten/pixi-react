@@ -13,7 +13,7 @@ interface CommunityScene extends SceneTypes {
     readonly node: { particleIndex: number };
 }
 declare const community: SceneAdapter<CommunityScene>;
-const inspector = createRenderer({ react: new Inspector(), pixi: community });
+const inspector = createRenderer({ framework: new Inspector(), scene: community });
 export const label: string = inspector.inspect().label;
 export const particleIndex: number = inspector.node.particleIndex;
 // @ts-expect-error A non-Container node has no invented addChild operation.
