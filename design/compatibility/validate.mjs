@@ -22,9 +22,21 @@ for (const tuple of seed.probes)
     assert.equal(row.certification, 'not-certified');
     assert.equal(row.installExit, 0);
     assert.equal(row.typeExit, 0);
+    for (const field of ['surfaces', 'resolvedPackages']) assert.ok(nonemptyObject(row[field]), `${row.id}: ${field}`);
+    for (const [path, surface] of Object.entries(row.surfaces))
+    {
+        assert.ok((/^[a-f0-9]{64}$/).test(surface?.sha256), `${row.id}: surfaces.${path}.sha256`);
+        if (path.endsWith('.d.ts')) assert.ok(strings(surface.declarations), `${row.id}: surfaces.${path}.declarations`);
+    }
+    for (const [name, version] of Object.entries(tuple.packages)) assert.equal(row.resolvedPackages[name]?.version, version, `${row.id}: resolvedPackages.${name}`);
+    for (const [name, pkg] of Object.entries(row.resolvedPackages))
+    {
+        assert.ok(typeof pkg?.version === 'string' && pkg.version.length > 0, `${row.id}: resolvedPackages.${name}.version`);
+        assert.ok(typeof pkg?.integrity === 'string' && pkg.integrity.length > 0, `${row.id}: resolvedPackages.${name}.integrity`);
+    }
     if (row.runtimeExit === 0)
     {
-        for (const field of ['observation', 'surfaces', 'resolvedPackages']) assert.ok(nonemptyObject(row[field]), `${row.id}: ${field}`);
+        assert.ok(nonemptyObject(row.observation), `${row.id}: observation`);
         const observation = row.observation;
 
         if (tuple.kind === 'react')
@@ -40,17 +52,6 @@ for (const tuple of seed.probes)
             assert.ok(nonemptyObject(observation.capabilities), `${row.id}: observation.capabilities`);
             for (const key of ['asyncInit', 'particle', 'particleContainer', 'cacheAsTexture', 'renderLayer', 'domContainer', 'canvasRenderer']) assert.equal(typeof observation.capabilities[key], 'boolean', `${row.id}: observation.capabilities.${key}`);
             assert.ok(nonemptyObject(observation.observations), `${row.id}: observation.observations`);
-        }
-        for (const [path, surface] of Object.entries(row.surfaces))
-        {
-            assert.ok((/^[a-f0-9]{64}$/).test(surface?.sha256), `${row.id}: surfaces.${path}.sha256`);
-            if (path.endsWith('.d.ts')) assert.ok(strings(surface.declarations), `${row.id}: surfaces.${path}.declarations`);
-        }
-        for (const [name, version] of Object.entries(tuple.packages)) assert.equal(row.resolvedPackages[name]?.version, version, `${row.id}: resolvedPackages.${name}`);
-        for (const [name, pkg] of Object.entries(row.resolvedPackages))
-        {
-            assert.ok(typeof pkg?.version === 'string' && pkg.version.length > 0, `${row.id}: resolvedPackages.${name}.version`);
-            assert.ok(typeof pkg?.integrity === 'string' && pkg.integrity.length > 0, `${row.id}: resolvedPackages.${name}.integrity`);
         }
     }
     if (row.runtimeExit !== 0) assert.ok(seed.knownFailures.some((f) => f.tupleId === row.id && f.expectedRuntimeExit === row.runtimeExit && row.failure?.includes(f.signature)), row.id);
