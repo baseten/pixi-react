@@ -935,7 +935,8 @@
           "signature": "has no exported member"
         }
       ],
-      "resolvedPackagesSha256": "99f8de8c7ca549be977cf23097b572cb201efd7b747797a84cb4066a3b7d458a"
+      "resolvedPackagesSha256": "99f8de8c7ca549be977cf23097b572cb201efd7b747797a84cb4066a3b7d458a",
+      "surfacesSha256": "8ca4d38d43fb67f225a7ec6a59e6677726a20aa1f558c423c26fcb6b3f10eb62"
     },
     {
       "id": "react-17.0.0-bridge-1.2.2",
@@ -967,7 +968,8 @@
           "signature": "has no exported member"
         }
       ],
-      "resolvedPackagesSha256": "edab2c80ac717c6edcee06d67f9514bd802f1e61157b5e96898362783b3fd5d4"
+      "resolvedPackagesSha256": "edab2c80ac717c6edcee06d67f9514bd802f1e61157b5e96898362783b3fd5d4",
+      "surfacesSha256": "ad9573b328bcd39ee608b3f2a395580d551df9a09640bac895c9c2a59f8482ed"
     },
     {
       "id": "react-17.0.1-bridge-1.2.0",
@@ -999,7 +1001,8 @@
           "signature": "has no exported member"
         }
       ],
-      "resolvedPackagesSha256": "8cddfdcfb446e280527bd2198db280dbca463460bb5b23873ba9b12d6df993e2"
+      "resolvedPackagesSha256": "8cddfdcfb446e280527bd2198db280dbca463460bb5b23873ba9b12d6df993e2",
+      "surfacesSha256": "19b31326b08becf4b21f77100fda7ef9817807fee292d07ff3838d6fe0ce8031"
     },
     {
       "id": "react-17.0.1-bridge-1.2.2",
@@ -1031,7 +1034,8 @@
           "signature": "has no exported member"
         }
       ],
-      "resolvedPackagesSha256": "0872112b616ae94acbf039dbd6b2fa5e55e45b1480750bafa8ee4a765124ff21"
+      "resolvedPackagesSha256": "0872112b616ae94acbf039dbd6b2fa5e55e45b1480750bafa8ee4a765124ff21",
+      "surfacesSha256": "700f9d17107ee8471f642dc979f15891cb6982a4edc72a67813d8a84527131bb"
     },
     {
       "id": "react-17.0.2-bridge-1.2.0",
@@ -1063,7 +1067,8 @@
           "signature": "has no exported member"
         }
       ],
-      "resolvedPackagesSha256": "e19f8019b944649cb1785659c8f2b4a420bd7fee361c3736fd1ba8a5df45df83"
+      "resolvedPackagesSha256": "e19f8019b944649cb1785659c8f2b4a420bd7fee361c3736fd1ba8a5df45df83",
+      "surfacesSha256": "74081a09474cf5e37b7478fbe82c07f6b6b4fe669b9b5db778d30c6a6d599ed7"
     },
     {
       "id": "react-17.0.2-bridge-1.2.2",
@@ -1095,7 +1100,8 @@
           "signature": "has no exported member"
         }
       ],
-      "resolvedPackagesSha256": "b10bffc448a9e2b7d8efbd218174a41058fc586e6cd863623d50faf2f62c604a"
+      "resolvedPackagesSha256": "b10bffc448a9e2b7d8efbd218174a41058fc586e6cd863623d50faf2f62c604a",
+      "surfacesSha256": "98cf7dd6e930c5187e5eee14ba9e96d8d8859210ad1c520d3176d37dc30167ba"
     },
     {
       "id": "pixi-6.0.0",
@@ -1120,7 +1126,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "e4d8c52c2e250f2f5ccbcd63f1dcc47e6c92de18776e8672e137851ec2e90034"
+      "resolvedPackagesSha256": "e4d8c52c2e250f2f5ccbcd63f1dcc47e6c92de18776e8672e137851ec2e90034",
+      "surfacesSha256": "fb14b3ffce0f59a9f7e8821432c017961659248ee72c97efc2cbe233df5aa272"
     },
     {
       "id": "pixi-6.0.4",
@@ -1145,7 +1152,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "38a5818def0afe8fec573594fa41a4eed5db16df11dffff61334d7243d8bed7d"
+      "resolvedPackagesSha256": "38a5818def0afe8fec573594fa41a4eed5db16df11dffff61334d7243d8bed7d",
+      "surfacesSha256": "a628287528ee5acb839f16eaae3a26520a40362c3591c1a4b2f8adf0730434d6"
     },
     {
       "id": "pixi-6.1.0",
@@ -1170,7 +1178,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "ebf41d139319723ed2bfecab8ee7878d6a164408dbe6af721aa767b1482ea32e"
+      "resolvedPackagesSha256": "ebf41d139319723ed2bfecab8ee7878d6a164408dbe6af721aa767b1482ea32e",
+      "surfacesSha256": "d0340e6fad23cb77f72587e6f7f408d42b22192c3d477005de478547e2af4bf3"
     },
     {
       "id": "pixi-6.1.3",
@@ -1195,7 +1204,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "062581c0de62366721b0de6038758fa5a74ff3d52883330204c42836b699d4fa"
+      "resolvedPackagesSha256": "062581c0de62366721b0de6038758fa5a74ff3d52883330204c42836b699d4fa",
+      "surfacesSha256": "e4aafaada27fd3dab0d837a3cd482d92a0568b66f3fe31e1083b11c726cfbb39"
     },
     {
       "id": "pixi-6.2.0",
@@ -1220,7 +1230,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "dd99dcea2bdb9343c479960413b6b959348b2db750ddef04c78a5f09fc2181e2"
+      "resolvedPackagesSha256": "dd99dcea2bdb9343c479960413b6b959348b2db750ddef04c78a5f09fc2181e2",
+      "surfacesSha256": "3ff216e5c2c977d1ca6e3ef363e54ddf6c598e00ba4bce4ed38415b66364b527"
     },
     {
       "id": "pixi-6.2.2",
@@ -1245,7 +1256,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "b15e7318b712b1c88ead0e3f95f3f16022dce71b9fa40d156f43b68a0819214d"
+      "resolvedPackagesSha256": "b15e7318b712b1c88ead0e3f95f3f16022dce71b9fa40d156f43b68a0819214d",
+      "surfacesSha256": "05b1cbbb4f47470ee434f0ef025359709aaad29c14bae50281e4e5041e072c76"
     },
     {
       "id": "pixi-6.3.0",
@@ -1270,7 +1282,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "7d244e98b8381ad0edf007417f429c207b459a34ff9795d8e7cbd3593cdf8412"
+      "resolvedPackagesSha256": "7d244e98b8381ad0edf007417f429c207b459a34ff9795d8e7cbd3593cdf8412",
+      "surfacesSha256": "b021c5ef426bdeeff31800d0b11ddd8dabfdfa12ea7ec1f9ecbe0912a48e8ce3"
     },
     {
       "id": "pixi-6.3.2",
@@ -1295,7 +1308,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "f95bc0c98a00e023301e411f02ccdcdde1bd6c50a24b2d2604d6ca035297f052"
+      "resolvedPackagesSha256": "f95bc0c98a00e023301e411f02ccdcdde1bd6c50a24b2d2604d6ca035297f052",
+      "surfacesSha256": "b319957b8a5f310dd68c11dc9d8891b3dbe6da36a0d2981c66c9feead5216892"
     },
     {
       "id": "pixi-6.4.0",
@@ -1320,7 +1334,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "694414ba4ea312cab08578b945514d11aa6c02f21cc5632fddbb8a7168a68233"
+      "resolvedPackagesSha256": "694414ba4ea312cab08578b945514d11aa6c02f21cc5632fddbb8a7168a68233",
+      "surfacesSha256": "10fd9df3f8342adfdadb79a4b6295c8d0c0d51a0860713fc2c1052230b1d0ff8"
     },
     {
       "id": "pixi-6.4.2",
@@ -1345,7 +1360,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "8d4f673f6aaaa0449f54d220a19ad0e1b6f8a8db59ae79c0344845d99023bf7e"
+      "resolvedPackagesSha256": "8d4f673f6aaaa0449f54d220a19ad0e1b6f8a8db59ae79c0344845d99023bf7e",
+      "surfacesSha256": "7d748f663dd8c4521cb1de569e80feda8885c37136cb6df9423e6fc199b7c0e4"
     },
     {
       "id": "pixi-6.5.0",
@@ -1371,7 +1387,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "376b02b3ba1b4ed618c3cf08304f36ad83bb8efc2c298e3bd7ed38ce1f3d7508"
+      "resolvedPackagesSha256": "376b02b3ba1b4ed618c3cf08304f36ad83bb8efc2c298e3bd7ed38ce1f3d7508",
+      "surfacesSha256": "4dd480273cc1fa85a669d6e515c4a26d87105dc773571cf0ce2bb506ec51411b"
     },
     {
       "id": "pixi-6.5.1",
@@ -1398,7 +1415,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "1290f77ad38ed91da8e25171ad67bc2f6e9ca0031e7c28d03cbcea1bcc6d8c5d"
+      "resolvedPackagesSha256": "1290f77ad38ed91da8e25171ad67bc2f6e9ca0031e7c28d03cbcea1bcc6d8c5d",
+      "surfacesSha256": "4c6e0cd8151557a8f6810c79bb7e5f99d2e3f476600dd3b8a47f8a4a5aba4b06"
     },
     {
       "id": "pixi-6.5.10",
@@ -1425,7 +1443,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-baseline",
-      "resolvedPackagesSha256": "1a3d0d9edfb208d2102531b4651b05af06f07e761dd22ccb788c3f3669ae5025"
+      "resolvedPackagesSha256": "1a3d0d9edfb208d2102531b4651b05af06f07e761dd22ccb788c3f3669ae5025",
+      "surfacesSha256": "3cc8f8aed8b527ca294c7080c8c24c6f621d7d09e420ddc53a34ac6ab442f7be"
     },
     {
       "id": "pixi-6.1.0-federated",
@@ -1452,7 +1471,8 @@
         "@pixi/events": "6.1.0"
       },
       "declarationSeries": "pixi6-federated",
-      "resolvedPackagesSha256": "f3573df90eb629b9edb36fe668a2edfc141a982bea5e98297059087acad3fe32"
+      "resolvedPackagesSha256": "f3573df90eb629b9edb36fe668a2edfc141a982bea5e98297059087acad3fe32",
+      "surfacesSha256": "d7106cd24addd985763cb349e4946db7b5d7075a071e6bb8d4cf0bb8e36bfdeb"
     },
     {
       "id": "pixi-6.3.0-federated",
@@ -1479,7 +1499,8 @@
         "@pixi/events": "6.3.0"
       },
       "declarationSeries": "pixi6-federated",
-      "resolvedPackagesSha256": "060b9a3a5f795765e5dba2f1703356a037ab0b2e06268c7856fb7f12729e0a73"
+      "resolvedPackagesSha256": "060b9a3a5f795765e5dba2f1703356a037ab0b2e06268c7856fb7f12729e0a73",
+      "surfacesSha256": "6f2bd5c4de0880c3eebd8f2f3d15972c7a199128648df7627e1a10b517d3d210"
     },
     {
       "id": "pixi-6.5.1-federated",
@@ -1506,7 +1527,8 @@
         "@pixi/events": "6.5.1"
       },
       "declarationSeries": "pixi6-federated",
-      "resolvedPackagesSha256": "d43a44ea148d6e8d00f2fa3097767da100a0bfcb8a4b18a8f70ed4624e9fc45e"
+      "resolvedPackagesSha256": "d43a44ea148d6e8d00f2fa3097767da100a0bfcb8a4b18a8f70ed4624e9fc45e",
+      "surfacesSha256": "2424753ff4a7f05e3d0fc13935fe586edcaaddc67bd9fc0242a4995be7272b2a"
     },
     {
       "id": "pixi-6.5.10-federated",
@@ -1533,7 +1555,8 @@
         "@pixi/events": "6.5.10"
       },
       "declarationSeries": "pixi6-federated",
-      "resolvedPackagesSha256": "bda5ec981995274b2b15ad48f1ef0ed9393c167c9373492afaf532be547f6a90"
+      "resolvedPackagesSha256": "bda5ec981995274b2b15ad48f1ef0ed9393c167c9373492afaf532be547f6a90",
+      "surfacesSha256": "37af774f832f06864c751cfc3f3f938c4242cfd7c18e69dc3361d50b61d10595"
     },
     {
       "id": "pixi-6.5.0-assets",
@@ -1553,7 +1576,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-assets",
-      "resolvedPackagesSha256": "79f43e5ad373038a4eaaf2f657122b8087b9c0a25d8b38181cae582f4a65940c"
+      "resolvedPackagesSha256": "79f43e5ad373038a4eaaf2f657122b8087b9c0a25d8b38181cae582f4a65940c",
+      "surfacesSha256": "c9c5cba917efcd1580440edab857fcbfe31819ca85ac38069139869e8040ad6b"
     },
     {
       "id": "pixi-6.5.1-assets",
@@ -1573,7 +1597,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-assets",
-      "resolvedPackagesSha256": "d7b4a70063debcae7ff5389a07b98839311e77c311761bb714da90843c828eb3"
+      "resolvedPackagesSha256": "d7b4a70063debcae7ff5389a07b98839311e77c311761bb714da90843c828eb3",
+      "surfacesSha256": "c9c5cba917efcd1580440edab857fcbfe31819ca85ac38069139869e8040ad6b"
     },
     {
       "id": "pixi-6.5.10-assets",
@@ -1593,7 +1618,8 @@
         "typescript": "5.6.3"
       },
       "declarationSeries": "pixi6-assets",
-      "resolvedPackagesSha256": "a4bcba052d6a8a2806f4fbae50d49c431f539345faac7d51f8526b418ae2b1b5"
+      "resolvedPackagesSha256": "a4bcba052d6a8a2806f4fbae50d49c431f539345faac7d51f8526b418ae2b1b5",
+      "surfacesSha256": "0d405fa36a3aac95f105277720d7fe382dd188c3da7dbd5ef3395d45c56c6d6f"
     }
   ],
   "knownFailures": [

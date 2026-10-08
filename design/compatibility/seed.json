@@ -993,7 +993,8 @@
         "@types/react": "18.3.31",
         "its-fine": "1.2.5",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "436811cd5df6ac38ffeadac0e73ad42b81ebc36411f8784b98a28d2e07ac781c"
     },
     {
       "id": "react-19.0.0",
@@ -1005,7 +1006,8 @@
         "@types/react": "19.0.14",
         "its-fine": "2.1.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "280a18f9a25dbb893ea2a9ed99a9656afbb976e75f77a8f25b771884bad85871"
     },
     {
       "id": "react-19.0.8",
@@ -1017,7 +1019,8 @@
         "@types/react": "19.0.14",
         "its-fine": "2.1.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "280a18f9a25dbb893ea2a9ed99a9656afbb976e75f77a8f25b771884bad85871"
     },
     {
       "id": "react-19.1.0",
@@ -1029,7 +1032,8 @@
         "@types/react": "19.1.17",
         "its-fine": "2.1.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "a19710cd377072112d3d15bfa31983431a886d66f6afe1f1e74978dd3a285a67"
     },
     {
       "id": "react-19.1.9",
@@ -1041,7 +1045,8 @@
         "@types/react": "19.1.17",
         "its-fine": "2.1.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "a19710cd377072112d3d15bfa31983431a886d66f6afe1f1e74978dd3a285a67"
     },
     {
       "id": "react-19.2.0",
@@ -1053,7 +1058,8 @@
         "@types/react": "19.2.18",
         "its-fine": "2.1.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "f6bcca3e2ea2cf7f944d6d48eb34574158c7c5dcf8af3a26e9c19dc3b936a655"
     },
     {
       "id": "react-19.2.8",
@@ -1065,7 +1071,8 @@
         "@types/react": "19.2.18",
         "its-fine": "2.1.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "f6bcca3e2ea2cf7f944d6d48eb34574158c7c5dcf8af3a26e9c19dc3b936a655"
     },
     {
       "id": "react-19.3.0",
@@ -1077,7 +1084,8 @@
         "@types/react": "19.3.0",
         "its-fine": "2.1.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "0dd5169065f46cd6bfbe3e84a95702c88086839d44a42463d6ff2eefdf98433c"
     },
     {
       "id": "pixi-7.4.2",
@@ -1086,7 +1094,8 @@
       "packages": {
         "pixi.js": "7.4.2",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "c747666ef4cc61f23c5af1bb922906703370efb19a4cf2b4e813bdaa2b8e76ed"
     },
     {
       "id": "pixi-7.4.3",
@@ -1095,7 +1104,8 @@
       "packages": {
         "pixi.js": "7.4.3",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "f594c881a0a3d86dfd48260716e353f5f427859f55f602c0dec517f5cffb2a12"
     },
     {
       "id": "pixi-8.2.6",
@@ -1104,7 +1114,8 @@
       "packages": {
         "pixi.js": "8.2.6",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "26c425f5f5d0998f45874e430d5fb586f1e4401de5d61865ae7c2ad7281c8e9d"
     },
     {
       "id": "pixi-8.3.0",
@@ -1113,7 +1124,8 @@
       "packages": {
         "pixi.js": "8.3.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "4d67ba7f4b256cc94740dd537921eb93cf3cb5762c2525c7aab4adf959d01a0f"
     },
     {
       "id": "pixi-8.3.4",
@@ -1122,7 +1134,8 @@
       "packages": {
         "pixi.js": "8.3.4",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "4d67ba7f4b256cc94740dd537921eb93cf3cb5762c2525c7aab4adf959d01a0f"
     },
     {
       "id": "pixi-8.4.0",
@@ -1131,7 +1144,8 @@
       "packages": {
         "pixi.js": "8.4.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "f6189a99f06347e99705752e3872f673c9008e7dc1dc9009dd337ce16d3993eb"
     },
     {
       "id": "pixi-8.4.1",
@@ -1140,7 +1154,8 @@
       "packages": {
         "pixi.js": "8.4.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "f6189a99f06347e99705752e3872f673c9008e7dc1dc9009dd337ce16d3993eb"
     },
     {
       "id": "pixi-8.5.0",
@@ -1149,7 +1164,8 @@
       "packages": {
         "pixi.js": "8.5.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "4ee34e912b27e3350f9733709699d751807d639a130b8bb2a8e37970e9b5c17c"
     },
     {
       "id": "pixi-8.5.2",
@@ -1158,7 +1174,8 @@
       "packages": {
         "pixi.js": "8.5.2",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "0f73d92a588484b021ba916a002658a56fa84bc404abaeb22f646790c1ddfbf1"
     },
     {
       "id": "pixi-8.6.0",
@@ -1167,7 +1184,8 @@
       "packages": {
         "pixi.js": "8.6.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "9a46bc435c6bfc2e35aed840d2618bdf872538e325cbd4a295cdfb945f4ce5cf"
     },
     {
       "id": "pixi-8.6.6",
@@ -1176,7 +1194,8 @@
       "packages": {
         "pixi.js": "8.6.6",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "c9d7244e7c2ad5709adfc1af7e63f5c8a2327104c09aa0c6026baf2749557ecd"
     },
     {
       "id": "pixi-8.7.0",
@@ -1185,7 +1204,8 @@
       "packages": {
         "pixi.js": "8.7.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "36c6837003b447ebe368972359ab70a23c82e416e94e38703aafd18ed43bb11b"
     },
     {
       "id": "pixi-8.7.3",
@@ -1194,7 +1214,8 @@
       "packages": {
         "pixi.js": "8.7.3",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "36c6837003b447ebe368972359ab70a23c82e416e94e38703aafd18ed43bb11b"
     },
     {
       "id": "pixi-8.8.0",
@@ -1203,7 +1224,8 @@
       "packages": {
         "pixi.js": "8.8.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "8a400f6469c1a3b301075ad330aab2eacaeaed6c0442fcea9c5a7e82a8af3fe0"
     },
     {
       "id": "pixi-8.8.1",
@@ -1212,7 +1234,8 @@
       "packages": {
         "pixi.js": "8.8.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "8a400f6469c1a3b301075ad330aab2eacaeaed6c0442fcea9c5a7e82a8af3fe0"
     },
     {
       "id": "pixi-8.9.0",
@@ -1221,7 +1244,8 @@
       "packages": {
         "pixi.js": "8.9.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "8a400f6469c1a3b301075ad330aab2eacaeaed6c0442fcea9c5a7e82a8af3fe0"
     },
     {
       "id": "pixi-8.9.2",
@@ -1230,7 +1254,8 @@
       "packages": {
         "pixi.js": "8.9.2",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "8a400f6469c1a3b301075ad330aab2eacaeaed6c0442fcea9c5a7e82a8af3fe0"
     },
     {
       "id": "pixi-8.10.0",
@@ -1239,7 +1264,8 @@
       "packages": {
         "pixi.js": "8.10.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "59841fb97b6fa993839d4639934b99383aab687f8cce6adad2da4a0df77befba"
     },
     {
       "id": "pixi-8.10.2",
@@ -1248,7 +1274,8 @@
       "packages": {
         "pixi.js": "8.10.2",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "59841fb97b6fa993839d4639934b99383aab687f8cce6adad2da4a0df77befba"
     },
     {
       "id": "pixi-8.11.0",
@@ -1257,7 +1284,8 @@
       "packages": {
         "pixi.js": "8.11.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "3b9f0afca9c8f0616e9e368dbfc6b94e0b6a7457e3d6691797898fef650f4d31"
     },
     {
       "id": "pixi-8.12.0",
@@ -1266,7 +1294,8 @@
       "packages": {
         "pixi.js": "8.12.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "0ea84286188d3051991ba92ed0c291e0945052763b7d51b522a5cfeb7888ad4f"
     },
     {
       "id": "pixi-8.13.0",
@@ -1275,7 +1304,8 @@
       "packages": {
         "pixi.js": "8.13.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "d65a5bfb03478ca0e70cf0d3630a4cd0174a5cd0a36e2282d58a29a58809d494"
     },
     {
       "id": "pixi-8.13.2",
@@ -1284,7 +1314,8 @@
       "packages": {
         "pixi.js": "8.13.2",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "d65a5bfb03478ca0e70cf0d3630a4cd0174a5cd0a36e2282d58a29a58809d494"
     },
     {
       "id": "pixi-8.14.0",
@@ -1293,7 +1324,8 @@
       "packages": {
         "pixi.js": "8.14.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "8732757746b946d47fa88274f0847964975b23d1ee2839de7de13c27f3ad85d4"
     },
     {
       "id": "pixi-8.14.3",
@@ -1302,7 +1334,8 @@
       "packages": {
         "pixi.js": "8.14.3",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "c457fe26b13039b6231dbdfe03164296886673eb4d0c55c859f92e865534df27"
     },
     {
       "id": "pixi-8.15.0",
@@ -1311,7 +1344,8 @@
       "packages": {
         "pixi.js": "8.15.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "62d447ddf5fb3309712b82aa6e7b2e6b11d6829bdc7c3483fa630c1ced34d9dd"
     },
     {
       "id": "pixi-8.16.0",
@@ -1320,7 +1354,8 @@
       "packages": {
         "pixi.js": "8.16.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "94a15fa6b0082bd1e42b578eb48bdb77adad8b575f039e6c67fb7ffce0246aa1"
     },
     {
       "id": "pixi-8.17.0",
@@ -1329,7 +1364,8 @@
       "packages": {
         "pixi.js": "8.17.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "1de19dda0cd235ff72aaa05ed4f7dd5786c65de74c61fa35c3fda2825010dd88"
     },
     {
       "id": "pixi-8.17.1",
@@ -1338,7 +1374,8 @@
       "packages": {
         "pixi.js": "8.17.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "1de19dda0cd235ff72aaa05ed4f7dd5786c65de74c61fa35c3fda2825010dd88"
     },
     {
       "id": "pixi-8.18.0",
@@ -1347,7 +1384,8 @@
       "packages": {
         "pixi.js": "8.18.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "cd3f6c569b7d6bdbe46ee077a196c94cf2707200c84e90bec28f4cf9a06cfed2"
     },
     {
       "id": "pixi-8.18.1",
@@ -1356,7 +1394,8 @@
       "packages": {
         "pixi.js": "8.18.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "cd3f6c569b7d6bdbe46ee077a196c94cf2707200c84e90bec28f4cf9a06cfed2"
     },
     {
       "id": "pixi-8.19.0",
@@ -1365,7 +1404,8 @@
       "packages": {
         "pixi.js": "8.19.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "a3d0ec51388ea7ba42c92ca94ce6633eb0d69a0815d687c3b5743eaf0753b008"
     },
     {
       "id": "pixi-8.20.0",
@@ -1374,7 +1414,8 @@
       "packages": {
         "pixi.js": "8.20.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "394f83837df93911b9059a66c7005de237473385ba658f78644012bcf113303a"
     },
     {
       "id": "pixi-8.20.1",
@@ -1383,7 +1424,8 @@
       "packages": {
         "pixi.js": "8.20.1",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "394f83837df93911b9059a66c7005de237473385ba658f78644012bcf113303a"
     },
     {
       "id": "pixi-8.21.0",
@@ -1392,7 +1434,8 @@
       "packages": {
         "pixi.js": "8.21.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "57d79b1e7506300ed9f98c243b40bfdd91645ac79cfaa7532abfb2e70b26728d"
     },
     {
       "id": "pixi-8.22.0",
@@ -1401,7 +1444,8 @@
       "packages": {
         "pixi.js": "8.22.0",
         "typescript": "5.6.3"
-      }
+      },
+      "surfacesSha256": "57d79b1e7506300ed9f98c243b40bfdd91645ac79cfaa7532abfb2e70b26728d"
     }
   ],
   "reactEpochs": [
@@ -1510,7 +1554,10 @@
       "id": "react193-fragment-host",
       "tupleId": "react-19.3.0",
       "expectedRuntimeExit": 0,
-      "observationPath": ["features", "fragmentRef"],
+      "observationPath": [
+        "features",
+        "fragmentRef"
+      ],
       "probe": "react.mjs",
       "signature": "createFragmentInstance is not a function",
       "classification": "missing-host-capability",

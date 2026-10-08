@@ -18,6 +18,7 @@ function validate(t, mutate)
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
+    copyFileSync(new URL('surface-map.mjs', import.meta.url), join(root, 'surface-map.mjs'));
     writeFileSync(join(root, 'seed.json'), JSON.stringify(seed));
     writeFileSync(join(root, seed.evidence), JSON.stringify(evidence));
 
@@ -637,6 +638,64 @@ test('accepts equivalent package and value property order in resolved lock evide
         {
             row.resolvedPackages = Object.fromEntries(Object.entries(row.resolvedPackages).reverse().map(([name, pkg]) => [name, { integrity: pkg.integrity, version: pkg.version }]));
         }
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+});
+
+for (const id of ['react-19.2.0', 'pixi-7.4.2', 'pixi-8.5.0', 'pixi-8.22.0'])
+{
+    test(`rejects a corrupted captured surface fingerprint for ${id}`, (t) =>
+    {
+        const result = validate(t, (evidence) =>
+        {
+            const row = evidence.results.find((r) => r.id === id);
+
+            Object.values(row.surfaces)[0].sha256 = '0'.repeat(64);
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, new RegExp(`${id}: surfaces`));
+    });
+}
+
+for (const [name, mutate] of [
+    ['missing surface', (surfaces) => { delete surfaces['react-reconciler/cjs/react-reconciler.development.js']; }],
+    ['extra surface', (surfaces) => { surfaces['unexpected.js'] = { sha256: '1'.repeat(64) }; }],
+    ['changed declarations', (surfaces) => { surfaces['@types/react/index.d.ts'].declarations = ['fake();']; }],
+])
+{
+    test(`rejects a captured surface map with ${name}`, (t) =>
+    {
+        const result = validate(t, (evidence) => mutate(evidence.results.find((r) => r.id === 'react-19.2.0').surfaces));
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /react-19.2.0: surfaces/);
+    });
+}
+
+for (const digest of [undefined, '', 'malformed', '0'.repeat(64)])
+{
+    test(`rejects invalid captured surface metadata ${JSON.stringify(digest)}`, (t) =>
+    {
+        const result = validate(t, (_evidence, seed) =>
+        {
+            const tuple = seed.probes.find((r) => r.id === 'react-19.2.0');
+
+            if (digest === undefined) delete tuple.surfacesSha256;
+            else tuple.surfacesSha256 = digest;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /react-19.2.0: surfaces/);
+    });
+}
+
+test('accepts equivalent captured surface map ordering', (t) =>
+{
+    const result = validate(t, (evidence) =>
+    {
+        for (const row of evidence.results) row.surfaces = Object.fromEntries(Object.entries(row.surfaces).reverse());
     });
 
     assert.equal(result.status, 0, result.stderr);
