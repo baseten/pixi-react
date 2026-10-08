@@ -94,7 +94,7 @@ jobs:
       - uses: ./.github/actions/setup
       - run: npm run build
       - name: Publish configured fork preview
-        run: npx pkg-pr-new@0.0.54 publish --no-template
+        run: npm exec --no -- pkg-pr-new publish --no-template
 
   publish:
     name: 'Publish: Release'
