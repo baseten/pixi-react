@@ -32,9 +32,10 @@ for (const tuple of manifest.probes.filter(t => !filter || t.id.includes(filter)
         const [major, minor] = (tuple.packages.react || tuple.packages['pixi.js']).split('.').map(Number);
         const extras = tuple.typeFiles ? [] : tuple.kind === 'pixi' ? [major === 7 ? 'pixi7.tsx' : 'pixi8.tsx', ...(major === 8 && minor >= 5 ? ['particle.tsx'] : [])] : major === 19 ? ['react19.tsx', ...(minor >= 2 ? ['react192.tsx'] : []), ...(minor >= 3 ? ['react193.tsx'] : [])] : [];
         for (const file of extras) { copyFileSync(join(here, file), join(cwd, file)); typeFiles.push(file); }
-        writeFileSync(join(cwd, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true, noEmit: true, skipLibCheck: true, target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext', jsx: 'react-jsx', lib: ['ES2022', 'DOM'], types: tuple.kind === 'react' ? ['react'] : [] }, files: typeFiles }));
+        writeFileSync(join(cwd, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true, noEmit: true, skipLibCheck: true, target: 'ES2022', module: tuple.typeModule === 'Bundler' ? 'ESNext' : 'NodeNext', moduleResolution: tuple.typeModule || 'NodeNext', jsx: 'react-jsx', lib: ['ES2022', 'DOM'], types: tuple.kind === 'react' ? ['react'] : [] }, files: typeFiles }));
         row.runtime = run(process.execPath, [runtime]);
         row.types = run(process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'tsconfig.json']);
+        if (tuple.additionalTypeChecks) row.typeVariants = Object.fromEntries(tuple.additionalTypeChecks.map(check => [check.name, run(process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'tsconfig.json', ...check.args])]));
         // Keep the actual transitive resolutions/integrities alongside the result.
         row.surfaces = {};
         const roots = tuple.surfaceRoots || (tuple.kind === 'pixi' ? (major === 7 ? ['@pixi/app', '@pixi/display', '@pixi/sprite', '@pixi/text', '@pixi/ticker', '@pixi/events', '@pixi/particle-container', '@pixi/extensions'] : ['pixi.js']) : ['react-reconciler', '@types/react', 'its-fine']);

@@ -23,6 +23,11 @@ for (const tuple of seed.probes)
     assert.equal(row.certification, 'not-certified');
     assert.equal(row.installExit, 0);
     assert.equal(row.typeExit, 0);
+    for (const check of tuple.additionalTypeChecks || [])
+    {
+        assert.equal(row.typeVariants?.[check.name]?.status, check.expectedExit, `${row.id}: ${check.name}`);
+        assert.ok(row.typeVariants[check.name].stdout.includes(check.signature), `${row.id}: ${check.name} diagnostic`);
+    }
     for (const field of ['surfaces', 'resolvedPackages']) assert.ok(nonemptyObject(row[field]), `${row.id}: ${field}`);
     for (const [path, surface] of Object.entries(row.surfaces))
     {

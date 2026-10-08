@@ -12,7 +12,7 @@ let priority = 0;
 const append = (parent, child) => { parent.children.push(child); };
 const remove = (parent, child) => { parent.children.splice(parent.children.indexOf(child), 1); };
 const config = {
-    now: () => performance.now(), isPrimaryRenderer: false, supportsMutation: true, supportsPersistence: false, supportsHydration: false,
+    now: () => performance.now(), isPrimaryRenderer: true, supportsMutation: true, supportsPersistence: false, supportsHydration: false,
     noTimeout: -1, NotPendingTransition: null, getRootHostContext: () => ({}), getChildHostContext: () => ({}),
     getPublicInstance: x => x, prepareForCommit: () => null, resetAfterCommit: noop, shouldSetTextContent: () => false,
     createInstance: (type, props) => ({ type, props, children: [] }), createTextInstance: text => ({ text }),
@@ -32,11 +32,11 @@ const reconciler = Reconciler(config);
 const root = { children: [] };
 const errors = [];
 const onError = e => errors.push(String(e));
-const makeRoot = target => legacy ? reconciler.createContainer(target, 0, false, null) : reconciler.createContainer(target, 1, null, false, null, '', onError, onError, onError, ...(Number(React.version.split('.')[1]) >= 2 ? [noop, null] : [null]));
+const secondaryReconciler = Reconciler({ ...config, isPrimaryRenderer: false });
+const makeRoot = (target, engine = reconciler) => engine.createContainer(target, 0, false, null);
 const container = makeRoot(root);
-const flush = (element, target = container) => {
-    if (legacy) reconciler.flushSync(() => reconciler.updateContainer(element, target, null, null));
-    else { reconciler.updateContainerSync(element, target, null, null); reconciler.flushSyncWork(); }
+const flush = (element, target = container, engine = reconciler) => {
+    engine.flushSync(() => engine.updateContainer(element, target, null, null));
 };
 flush(React.createElement('node', { label: 'first' }));
 assert.equal(root.children[0]?.props.label, 'first');
@@ -50,14 +50,14 @@ let Bridge;
 function Capture() { Bridge = useContextBridge(); return null; }
 function Consumer() { return React.createElement('context', { value: React.useContext(Context) }); }
 const secondary = { children: [] };
-const secondaryRoot = makeRoot(secondary);
+const secondaryRoot = makeRoot(secondary, secondaryReconciler);
 for (const value of ['outer', 'changed']) {
     flush(React.createElement(Context.Provider, { value }, React.createElement(FiberProvider, null, React.createElement(Capture))));
     assert.equal(typeof Bridge, 'function');
-    flush(React.createElement(Bridge, null, React.createElement(Consumer)), secondaryRoot);
+    flush(React.createElement(Bridge, null, React.createElement(Consumer)), secondaryRoot, secondaryReconciler);
     assert.equal(secondary.children[0]?.props.value, value);
 }
-flush(null, secondaryRoot);
+flush(null, secondaryRoot, secondaryReconciler);
 flush(null);
 // Exercise real refs, effects, state and an error boundary in the legacy root.
 const ref = React.createRef();
@@ -92,31 +92,13 @@ flush(React.createElement(Boundary, null, React.createElement(IntentionalFailure
 assert.equal(caught, 'historical-intentional-error');
 assert.equal(root.children[0].type, 'fallback');
 flush(null);
-const features = { refs: 'attach-update-detach', effects, state: 'synchronous-update', errorBoundary: caught, contextBridge: 'mount-update-unmount', activity: 'not-available', fragmentRef: 'not-available' };
-if (React.Activity) {
-    flush(React.createElement(React.Activity, { mode: 'visible' }, React.createElement('node')));
-    flush(React.createElement(React.Activity, { mode: 'hidden' }, React.createElement('node')));
-    assert.equal(root.children[0]?.hidden, true);
-    flush(React.createElement(React.Activity, { mode: 'visible' }, React.createElement('node')));
-    assert.equal(root.children[0]?.hidden, false);
-    features.activity = 'hide-restore';
-    flush(null);
-}
-// Error callbacks are real root arguments; only the intentional error may arrive.
-function Broken() { throw new Error('audit-intentional-error'); }
-if (!legacy) {
-    flush(React.createElement(Broken));
-    assert.equal(errors.length, 1);
-    assert.match(errors[0], /audit-intentional-error/);
-    errors.length = 0;
-}
-
-if (!legacy && Number(React.version.split('.')[1]) >= 3) {
-    flush(React.createElement(React.Fragment, { ref: React.createRef() }, React.createElement('node')));
-    features.fragmentRef = errors.length ? { status: 'missing-host-capability', errors: [...errors] } : 'rendered';
-    assert.equal(errors.length, 1);
-    assert.match(errors[0], /createFragmentInstance/);
-    errors.length = 0;
-    flush(null);
-}
+// its-fine reads _currentValue: a secondary source root is a separate limitation.
+const secondarySource = makeRoot({ children: [] }, secondaryReconciler);
+flush(React.createElement(Context.Provider, { value: 'secondary-parent' }, React.createElement(FiberProvider, null, React.createElement(Capture))), secondarySource, secondaryReconciler);
+flush(React.createElement(Bridge, null, React.createElement(Consumer)), secondaryRoot, secondaryReconciler);
+const secondarySourceValue = secondary.children[0]?.props.value;
+assert.equal(secondarySourceValue, 'default');
+flush(null, secondaryRoot, secondaryReconciler);
+flush(null, secondarySource, secondaryReconciler);
+const features = { secondaryParentBridge: { status: 'missing-context-value', expected: 'secondary-parent', actual: secondarySourceValue }, refs: 'attach-update-detach', effects, state: 'synchronous-update', errorBoundary: caught, contextBridge: 'mount-update-unmount', activity: 'not-available', fragmentRef: 'not-available' };
 console.log(JSON.stringify({ react: React.version, scheduler: JSON.parse(readFileSync('node_modules/scheduler/package.json')).version, bridge: JSON.parse(readFileSync('node_modules/its-fine/package.json')).version, updateContainerArity: reconciler.updateContainer.length, reconciler: pkg.version, peers: pkg.peerDependencies, hostKeys, exports: Object.keys(reconciler).sort(), features, createContainerArity: reconciler.createContainer.length }));

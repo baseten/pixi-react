@@ -13,10 +13,12 @@ function Bridged(): React.ReactElement {
 }
 export const tree = <Context.Provider value="outer"><FiberProvider><Bridged /></FiberProvider></Context.Provider>;
 declare const reconciler: Reconciler.Reconciler<object, object, object, object, object>;
+// Published 0.26.7 types reject the installed runtime's four-argument API.
+// @ts-expect-error declaration/runtime mismatch retained as an explicit negative
 const root = reconciler.createContainer({}, 0, false, null);
 reconciler.updateContainer(tree, root, null, () => {});
-reconciler.flushSync(() => reconciler.updateContainer(null, root, null, null));
+reconciler.flushSync(() => reconciler.updateContainer(null, root, null, null), undefined);
 // @ts-expect-error React17 has no use API
 React.use(Promise.resolve('value'));
-// @ts-expect-error modern root error-callback signature is not the React17 root API
+// Published declarations accept this React18-style signature; runtime does not consume it.
 reconciler.createContainer({}, 0, null, false, null, '', () => {}, null);
