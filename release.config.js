@@ -23,10 +23,10 @@ module.exports = {
         ...(enabled ? [
             ['@semantic-release/npm', {
                 npmPublish: true,
-                tarballDir: 'dist',
+                tarballDir: 'release-artifacts',
             }],
             ['@semantic-release/github', {
-                assets: 'dist/*.tgz',
+                assets: 'release-artifacts/*.tgz',
                 successComment: false,
                 failComment: false,
                 releasedLabels: false,
