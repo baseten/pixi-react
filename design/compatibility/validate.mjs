@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolvedPackagesSha256 } from './resolved-packages.mjs';
+import { surfaceMapSha256 } from './surface-map.mjs';
 
 const read = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url)));
 const seed = read('seed.json');
@@ -138,6 +139,8 @@ for (const tuple of seed.probes)
         assert.deepEqual(row.declarationDelta, expected, `${row.id}: declarationDelta`);
         previousPixi = row.surfaces;
     }
+    assert.ok(typeof tuple.surfacesSha256 === 'string' && (/^[a-f0-9]{64}$/).test(tuple.surfacesSha256), `${row.id}: surfacesSha256`);
+    assert.equal(surfaceMapSha256(row.surfaces), tuple.surfacesSha256, `${row.id}: surfaces captured map digest`);
 }
 for (const failure of seed.knownFailures)
 {
