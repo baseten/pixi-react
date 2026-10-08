@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { declarationSeries } from './declaration-series.mjs';
+import { reactAbiSha256 } from './react-abi.mjs';
 import { resolvedPackagesSha256 } from './resolved-packages.mjs';
 import { surfaceMapSha256 } from './surface-map.mjs';
 import { validateHistoricalObservation } from './validate-historical.mjs';
@@ -141,6 +142,8 @@ for (const tuple of seed.probes)
 
         assert.deepEqual(row.hostDelta, expected, `${row.id}: hostDelta`);
         previousReact = keys;
+        assert.ok(typeof tuple.reactAbiSha256 === 'string' && (/^[a-f0-9]{64}$/).test(tuple.reactAbiSha256), `${row.id}: React ABI digest`);
+        assert.equal(reactAbiSha256(row.observation), tuple.reactAbiSha256, `${row.id}: React ABI captured contract`);
     }
     else
     {

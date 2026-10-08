@@ -15,6 +15,7 @@ function validate(t, mutate)
 
     mutate?.(evidence, seed);
     copyFileSync(new URL('declaration-series.mjs', import.meta.url), join(root, 'declaration-series.mjs'));
+    copyFileSync(new URL('react-abi.mjs', import.meta.url), join(root, 'react-abi.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
@@ -700,3 +701,38 @@ test('accepts equivalent captured surface map ordering', (t) =>
 
     assert.equal(result.status, 0, result.stderr);
 });
+
+for (const field of ['hostKeys', 'exports'])
+{
+    test(`rejects coordinated React ABI corruption in ${field}`, (t) =>
+    {
+        const result = validate(t, (evidence) =>
+        {
+            let previous = [];
+
+            for (const row of evidence.results.filter((r) => r.packages.react))
+            {
+                row.observation[field] = ['fake'];
+                const keys = row.observation.hostKeys;
+                const previousKeys = previous;
+
+                row.hostDelta = { added: keys.filter((key) => !previousKeys.includes(key)), removed: previousKeys.filter((key) => !keys.includes(key)) };
+                previous = keys;
+            }
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /React ABI/);
+    });
+}
+
+for (const digest of [undefined, '', '0'.repeat(64)])
+{
+    test(`rejects unpinned React ABI ${JSON.stringify(digest)}`, (t) =>
+    {
+        const result = validate(t, (_evidence, seed) => { seed.probes.find((p) => p.kind === 'react').reactAbiSha256 = digest; });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /React ABI/);
+    });
+}

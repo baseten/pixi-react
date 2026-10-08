@@ -936,7 +936,8 @@
         }
       ],
       "resolvedPackagesSha256": "99f8de8c7ca549be977cf23097b572cb201efd7b747797a84cb4066a3b7d458a",
-      "surfacesSha256": "8ca4d38d43fb67f225a7ec6a59e6677726a20aa1f558c423c26fcb6b3f10eb62"
+      "surfacesSha256": "8ca4d38d43fb67f225a7ec6a59e6677726a20aa1f558c423c26fcb6b3f10eb62",
+      "reactAbiSha256": "2e342a0eb760583fb5ad80e83be130db7c777539f2ff944c22fa8a82943e4964"
     },
     {
       "id": "react-17.0.0-bridge-1.2.2",
@@ -969,7 +970,8 @@
         }
       ],
       "resolvedPackagesSha256": "edab2c80ac717c6edcee06d67f9514bd802f1e61157b5e96898362783b3fd5d4",
-      "surfacesSha256": "ad9573b328bcd39ee608b3f2a395580d551df9a09640bac895c9c2a59f8482ed"
+      "surfacesSha256": "ad9573b328bcd39ee608b3f2a395580d551df9a09640bac895c9c2a59f8482ed",
+      "reactAbiSha256": "2e342a0eb760583fb5ad80e83be130db7c777539f2ff944c22fa8a82943e4964"
     },
     {
       "id": "react-17.0.1-bridge-1.2.0",
@@ -1002,7 +1004,8 @@
         }
       ],
       "resolvedPackagesSha256": "8cddfdcfb446e280527bd2198db280dbca463460bb5b23873ba9b12d6df993e2",
-      "surfacesSha256": "19b31326b08becf4b21f77100fda7ef9817807fee292d07ff3838d6fe0ce8031"
+      "surfacesSha256": "19b31326b08becf4b21f77100fda7ef9817807fee292d07ff3838d6fe0ce8031",
+      "reactAbiSha256": "2e342a0eb760583fb5ad80e83be130db7c777539f2ff944c22fa8a82943e4964"
     },
     {
       "id": "react-17.0.1-bridge-1.2.2",
@@ -1035,7 +1038,8 @@
         }
       ],
       "resolvedPackagesSha256": "0872112b616ae94acbf039dbd6b2fa5e55e45b1480750bafa8ee4a765124ff21",
-      "surfacesSha256": "700f9d17107ee8471f642dc979f15891cb6982a4edc72a67813d8a84527131bb"
+      "surfacesSha256": "700f9d17107ee8471f642dc979f15891cb6982a4edc72a67813d8a84527131bb",
+      "reactAbiSha256": "2e342a0eb760583fb5ad80e83be130db7c777539f2ff944c22fa8a82943e4964"
     },
     {
       "id": "react-17.0.2-bridge-1.2.0",
@@ -1068,7 +1072,8 @@
         }
       ],
       "resolvedPackagesSha256": "e19f8019b944649cb1785659c8f2b4a420bd7fee361c3736fd1ba8a5df45df83",
-      "surfacesSha256": "74081a09474cf5e37b7478fbe82c07f6b6b4fe669b9b5db778d30c6a6d599ed7"
+      "surfacesSha256": "74081a09474cf5e37b7478fbe82c07f6b6b4fe669b9b5db778d30c6a6d599ed7",
+      "reactAbiSha256": "2e342a0eb760583fb5ad80e83be130db7c777539f2ff944c22fa8a82943e4964"
     },
     {
       "id": "react-17.0.2-bridge-1.2.2",
@@ -1101,7 +1106,8 @@
         }
       ],
       "resolvedPackagesSha256": "b10bffc448a9e2b7d8efbd218174a41058fc586e6cd863623d50faf2f62c604a",
-      "surfacesSha256": "98cf7dd6e930c5187e5eee14ba9e96d8d8859210ad1c520d3176d37dc30167ba"
+      "surfacesSha256": "98cf7dd6e930c5187e5eee14ba9e96d8d8859210ad1c520d3176d37dc30167ba",
+      "reactAbiSha256": "2e342a0eb760583fb5ad80e83be130db7c777539f2ff944c22fa8a82943e4964"
     },
     {
       "id": "pixi-6.0.0",

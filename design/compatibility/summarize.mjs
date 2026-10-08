@@ -10,7 +10,7 @@ const results = input.results.map((row) =>
     declarationSeries(row);
     // Older runner output stays usable while it remains in its original audit directory.
     const workdir = row.workdir || join(dirname(realpathSync(process.argv[2])), row.id);
-    const normalize = (text) => text?.replaceAll(`${pathToFileURL(workdir).href}/`, '<tuple>/').replaceAll(`${workdir}${sep}`, '<tuple>/');
+    const normalize = (text) => (typeof text === 'string' ? text.replaceAll(`${pathToFileURL(workdir).href}/`, '<tuple>/').replaceAll(`${workdir}${sep}`, '<tuple>/') : text);
 
     if (row.install.status !== 0)
     {
@@ -18,13 +18,26 @@ const results = input.results.map((row) =>
 
         return { id: row.id, packages: row.packages, declarationSeries: row.declarationSeries, certification: row.certification, installExit: row.install.status, installDiagnostics, runtimeExit: null, typeExit: null, observation: null, resolvedPackages: {}, surfaces: {} };
     }
-    const runtime = row.runtime.stdout.trim().split('\n').findLast((line) => line.startsWith('{'));
-    const observation = runtime ? JSON.parse(runtime, (key, value) => (typeof value === 'string' ? normalize(value) : value)) : null;
+    const runtime = (row.runtime.stdout ?? '').trim().split('\n').findLast((line) => line.startsWith('{'));
+    let observation = null;
+
+    if (runtime)
+    {
+        try
+        {
+            observation = JSON.parse(runtime, (key, value) => (typeof value === 'string' ? normalize(value) : value));
+        }
+        catch (error)
+        {
+            if (row.runtime.status === 0) throw error;
+        }
+    }
+    const diagnostics = (result) => (result.status !== 0 ? { ...result, stdout: normalize(result.stdout), stderr: normalize(result.stderr), error: normalize(result.error) } : undefined);
 
     if (observation) delete observation.surfaces;
     const surfaces = Object.fromEntries(Object.entries(row.surfaces).map(([path, surface]) => [path.replaceAll('\\', '/'), surface]).filter(([path]) => (/\/(?:Application|Container|ParticleContainer|Particle|Ticker|FederatedPointerEvent|Sprite|Text|[Ee]xtensions)\.d\.ts$|@pixi\/extensions\/lib\/index\.d\.ts$|@pixi\/(?:extensions|app|display|sprite|text|ticker|interaction|events|assets|spritesheet|particles|particle-container|core)\/index.d.ts$|react-reconciler.development.js$|@types\/react\/index.d.ts$|its-fine\/dist\/index.js$/).test(path)));
 
-    return { id: row.id, packages: row.packages, declarationSeries: row.declarationSeries, certification: row.certification, installExit: row.install.status, runtimeExit: row.runtime.status, typeExit: row.types.status, observation, failure: row.runtime.status ? normalize(row.runtime.stderr).split('\n').slice(0, 12).join('\n') : undefined, typeDiagnostics: normalize(row.types.stdout) || undefined, typeVariants: row.typeVariants ? Object.fromEntries(Object.entries(row.typeVariants).map(([name, result]) => [name, { status: result.status, stdout: normalize(result.stdout), stderr: normalize(result.stderr) }])) : undefined, resolvedPackages: resolvedPackagesFromLock(row.lock), surfaces };
+    return { id: row.id, packages: row.packages, declarationSeries: row.declarationSeries, certification: row.certification, installExit: row.install.status, runtimeExit: row.runtime.status, typeExit: row.types.status, observation, runtimeDiagnostics: diagnostics(row.runtime), typeProcessDiagnostics: diagnostics(row.types), failure: row.runtime.status !== 0 ? (normalize(row.runtime.stderr) || '').split('\n').slice(0, 12).join('\n') : undefined, typeDiagnostics: normalize(row.types.stdout) || undefined, typeVariants: row.typeVariants ? Object.fromEntries(Object.entries(row.typeVariants).map(([name, result]) => [name, { status: result.status, stdout: normalize(result.stdout), stderr: normalize(result.stderr) }])) : undefined, resolvedPackages: resolvedPackagesFromLock(row.lock), surfaces };
 });
 let previousReact;
 const previousPixi = new Map();
