@@ -79,7 +79,22 @@ Each runtime owns catalog, roots, node metadata, pending cleanup and hook/provid
 
 Pixi owns process/module-global extensions, TextStyle defaults, Assets caches and shared ticker instances. Adapter isolation cannot isolate these objects. Within one loaded Pixi adapter module, maintain extension leases by extension identity: acquire before init, reference-count across apps, release only the adapter's acquisition on final use. Externally registered extensions are borrowed and never removed. A partially failed acquisition rolls back only new leases; a retry can acquire again. Detecting unrelated direct changes to Pixi's extension registry is not reliable: callers must coordinate those mutations, and separate package copies cannot promise cross-copy reference counting.
 
-Default text style preserves baseline global, non-retroactive behavior with **last explicit writer wins**, documented to affect subsequently created text in other applications using the same Pixi module. Removing that writer's setting restores its captured prior values only if they still equal its last writes; overlapping writers or external changes are not overwritten. No claim of per-root style isolation; explicit Text styles are the isolated alternative. Style/extension cleanup is best effort and reported if Pixi rejects it.
+Default text style preserves baseline global, non-retroactive behavior with **last explicit writer wins per property**, affecting subsequently created text in other applications using the same Pixi module. Within one loaded adapter module, share a writer registry across runtimes for each Pixi TextStyle defaults object. For each property, retain its baseline value (including whether the property existed), active writers' values and explicit-write order, and the last value the registry installed. An explicit setting update replaces that writer's entries and advances their order; removing a property, removing the setting, or disposing the session removes its entries. Cleanup never counts as a new explicit write. Recompute each affected property's newest surviving writer, or its baseline when none survive; never restore a departing writer's private snapshot. This handles both overlapping and disjoint partial styles.
+
+Cleanup may write only while the current property's presence/value still matches the registry's last installed presence/value. If a direct external change is observed before any update or cleanup, preserve it as the new baseline and retire all earlier writer entries for that property; those sessions may contribute again only through a subsequent explicit setting update. Removal still releases their ownership records, but cannot resurrect values from before the external change. A later explicit write may replace the external baseline and must restore it when its last surviving writer leaves. Identical external writes and mutations inside shared object values cannot be reliably detected; callers must coordinate them, as must independent adapter package copies. No claim of per-root style isolation; explicit Text styles are the isolated alternative. Style/extension cleanup is best effort and reported if Pixi rejects it.
+
+The Pixi implementation must demonstrate these obligations with real defaults and application cleanup; this design does not supply a production ownership algorithm:
+
+| Explicit operations on one property (initial baseline O) | Required current value |
+| --- | --- |
+| A writes X; B writes Y; A leaves; B leaves | Y after A leaves, then O; never restore defunct X |
+| A writes X; B writes Y; B leaves; A leaves | X after B leaves, then O |
+| A writes X; B writes Y; A updates to Z; A removes the property | Z after the update, then Y; B leaving restores O |
+| A writes X; external code writes E; A leaves | E remains |
+| A writes X; external code writes E; B writes Y; B leaves while A remains | E; A's retired X does not return |
+| A writes only fill; B writes only fontSize; either leaves | Restore only that writer's property; keep the other's current value |
+| A introduces a property absent from O; A leaves twice | Property absent again; repeated cleanup makes no write |
+
 
 Textures, Assets-loaded resources, shared ticker and other supplied objects are borrowed by default. Unmount destroys owned display objects/application resources but not shared texture sources or global asset caches. Explicit `destroyOptions`/`rendererDestroyOptions` may transfer destructive responsibility to the caller, including consequences for other apps; forward those options faithfully. Never call global Assets unload/reset to implement root cleanup. Resource ownership metadata distinguishes allocated, borrowed and explicitly transferred objects; callback errors do not alter ownership.
 
