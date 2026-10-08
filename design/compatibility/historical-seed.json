@@ -1373,7 +1373,8 @@
         "@pixi/interaction",
         "@pixi/particle-container",
         "@pixi/core",
-        "@pixi/spritesheet"
+        "@pixi/spritesheet",
+        "@pixi/extensions"
       ],
       "packages": {
         "pixi.js": "6.5.1",
@@ -1398,7 +1399,8 @@
         "@pixi/interaction",
         "@pixi/particle-container",
         "@pixi/core",
-        "@pixi/spritesheet"
+        "@pixi/spritesheet",
+        "@pixi/extensions"
       ],
       "packages": {
         "pixi.js": "6.5.10",

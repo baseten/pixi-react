@@ -206,3 +206,32 @@ for (const row of pixiEvidence.filter((item) => item.runtimeExit !== 0))
         });
     }
 }
+
+for (const version of ['6.5.0', '6.5.1', '6.5.10'])
+{
+    test(`historical extension evidence rejects missing registration declarations for ${version}`, (t) =>
+    {
+        const result = validate(t, (e) =>
+        {
+            const row = e.results.find((item) => item.id === `pixi-${version}`);
+
+            const path = version === '6.5.0' ? '@pixi/core/index.d.ts' : '@pixi/extensions/index.d.ts';
+
+            row.surfaces[path].declarations = [];
+            // Recompute consistent deltas so this tests the retained declaration contract.
+            let previous = null;
+
+            for (const item of e.results.filter((item) => item.declarationSeries === 'pixi6-baseline'))
+            {
+                const after = item.surfaces[path]?.declarations ?? null;
+
+                delete item.declarationDelta[path];
+                if (JSON.stringify(previous) !== JSON.stringify(after)) item.declarationDelta[path] = { before: previous, after };
+                previous = after;
+            }
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /(?:core|extensions).*declarations/);
+    });
+}

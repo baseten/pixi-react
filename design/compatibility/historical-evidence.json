@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "observedAt": "2026-10-08T16:44:48.681Z",
+  "observedAt": "2026-10-08T17:00:42.849Z",
   "node": "v22.17.1",
   "platform": "darwin",
   "limitations": [
@@ -11103,6 +11103,13 @@
             "destroy(destroyBase?: boolean): void;",
             "export declare class SpritesheetLoader {"
           ]
+        },
+        "@pixi/extensions/index.d.ts": {
+          "sha256": "0e6cd3b435f1d5ebd1dde03c75a6e21b88fa3e8a182492a3e8ef6aa513ea69eb",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
+          ]
         }
       },
       "declarationDelta": {
@@ -11348,6 +11355,13 @@
             "constructor(length: number);",
             "constructor(arrayBuffer: ArrayBuffer);",
             "destroy(): void;"
+          ]
+        },
+        "@pixi/extensions/index.d.ts": {
+          "before": null,
+          "after": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
           ]
         }
       }
@@ -11997,6 +12011,13 @@
             "parse(callback?: (textures?: Dict<Texture>) => void): void;",
             "destroy(destroyBase?: boolean): void;",
             "export declare class SpritesheetLoader {"
+          ]
+        },
+        "@pixi/extensions/index.d.ts": {
+          "sha256": "0e6cd3b435f1d5ebd1dde03c75a6e21b88fa3e8a182492a3e8ef6aa513ea69eb",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
           ]
         }
       },

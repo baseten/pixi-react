@@ -82,7 +82,7 @@ for (const tuple of manifest.probes.filter((t) => !filter || t.id.includes(filte
                 const path = join(dir, entry.name);
 
                 if (entry.isDirectory()) scan(path);
-                else if ((/\.(d\.ts|mjs|js)$/).test(path) && !path.endsWith('.production.js') && ((tuple.surfaceRoots && path.endsWith('index.d.ts')) || (/Application|Container|Particle|Ticker|Federated|Extension|Sprite|Text|global/).test(path) || (tuple.kind === 'react' && (/index\.d\.ts$|react-reconciler.development.js$|its-fine.*index.js$/).test(path))))
+                else if ((/\.(d\.ts|mjs|js)$/).test(path) && !path.endsWith('.production.js') && ((tuple.surfaceRoots && path.endsWith('index.d.ts')) || (/Application|Container|Particle|Ticker|Federated|Extension|Sprite|Text|global|@pixi[/\\]extensions[/\\]lib[/\\]index\.d\.ts$/).test(path) || (tuple.kind === 'react' && (/index\.d\.ts$|react-reconciler.development.js$|its-fine.*index.js$/).test(path))))
                 {
                     const text = readFileSync(path, 'utf8');
 

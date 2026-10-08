@@ -2670,6 +2670,13 @@
             "updateTransform(): void;",
             "destroy(options?: IDestroyOptions | boolean): void;"
           ]
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "sha256": "56041c363e6fb08e9ce877180d1d58140f8ca9a04c10130e561d95504070e89c",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
+          ]
         }
       },
       "declarationDelta": {
@@ -2727,6 +2734,13 @@
             "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
             "updateTransform(): void;",
             "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "before": null,
+          "after": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
           ]
         }
       }
@@ -3078,6 +3092,13 @@
             "updateTransform(): void;",
             "destroy(options?: IDestroyOptions | boolean): void;"
           ]
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "sha256": "56041c363e6fb08e9ce877180d1d58140f8ca9a04c10130e561d95504070e89c",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
+          ]
         }
       },
       "declarationDelta": {}
@@ -3178,6 +3199,13 @@
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "8cc3c21a1f5b5a41018e3a5834d4eb4b910dddd1ed7f878db4c596f998da0283",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "0097b6e13483082af395b1063f9250a890a521588862aaeae0c74199e1029cfb",
           "declarations": [
@@ -3229,6 +3257,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "before": null,
           "after": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "before": null,
+          "after": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "before": null,
@@ -3318,6 +3353,13 @@
             "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
             "updateTransform(): void;",
             "destroy(options?: IDestroyOptions | boolean): void;"
+          ],
+          "after": null
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "before": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
           ],
           "after": null
         }
@@ -3418,6 +3460,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "8cc3c21a1f5b5a41018e3a5834d4eb4b910dddd1ed7f878db4c596f998da0283",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "1ed528129180dd07a04507d88baf34b7f6c39deb772689e1cad3d23c81ef2a05",
@@ -3553,6 +3602,13 @@
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "8cc3c21a1f5b5a41018e3a5834d4eb4b910dddd1ed7f878db4c596f998da0283",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "1ed528129180dd07a04507d88baf34b7f6c39deb772689e1cad3d23c81ef2a05",
           "declarations": [
@@ -3686,6 +3742,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "da1f94c2e82d1b86b9073bc6e43c5f0b80269786083621f39873ba18f089a41b",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "1ed528129180dd07a04507d88baf34b7f6c39deb772689e1cad3d23c81ef2a05",
@@ -3821,6 +3884,13 @@
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "da1f94c2e82d1b86b9073bc6e43c5f0b80269786083621f39873ba18f089a41b",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "1ed528129180dd07a04507d88baf34b7f6c39deb772689e1cad3d23c81ef2a05",
           "declarations": [
@@ -3932,6 +4002,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "da1f94c2e82d1b86b9073bc6e43c5f0b80269786083621f39873ba18f089a41b",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "1ed528129180dd07a04507d88baf34b7f6c39deb772689e1cad3d23c81ef2a05",
@@ -4104,6 +4181,13 @@
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "da1f94c2e82d1b86b9073bc6e43c5f0b80269786083621f39873ba18f089a41b",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "1ed528129180dd07a04507d88baf34b7f6c39deb772689e1cad3d23c81ef2a05",
           "declarations": [
@@ -4256,6 +4340,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "da1f94c2e82d1b86b9073bc6e43c5f0b80269786083621f39873ba18f089a41b",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "1ed528129180dd07a04507d88baf34b7f6c39deb772689e1cad3d23c81ef2a05",
@@ -4410,6 +4501,13 @@
           "sha256": "79217ef8e4e4af9b86e0e05ad8f5c42f73070ee87badf6819795ed104570d4e8",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "da1f94c2e82d1b86b9073bc6e43c5f0b80269786083621f39873ba18f089a41b",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "1ed528129180dd07a04507d88baf34b7f6c39deb772689e1cad3d23c81ef2a05",
           "declarations": [
@@ -4562,6 +4660,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "1faae0c624f166dac58f27c7c2e9d0f4eda3bac78661d77997ff0563e8b74217",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "da1f94c2e82d1b86b9073bc6e43c5f0b80269786083621f39873ba18f089a41b",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "85640614ca104e7fc62fb4b0ebf9639a56e8ca1d02b60463b7bbbcb992b78c7d",
@@ -4755,6 +4860,13 @@
           "sha256": "1faae0c624f166dac58f27c7c2e9d0f4eda3bac78661d77997ff0563e8b74217",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "da1f94c2e82d1b86b9073bc6e43c5f0b80269786083621f39873ba18f089a41b",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "85640614ca104e7fc62fb4b0ebf9639a56e8ca1d02b60463b7bbbcb992b78c7d",
           "declarations": [
@@ -4907,6 +5019,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "1faae0c624f166dac58f27c7c2e9d0f4eda3bac78661d77997ff0563e8b74217",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "37326cb0f4775cda30f94520619ddf14f18eb2cadb09676208406c206c9e4c1c",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "ac4a547fff51e9c65b7844cf40d4504fc3e311f31d13a8b9091104d963f84447",
@@ -5069,6 +5188,13 @@
           "sha256": "1faae0c624f166dac58f27c7c2e9d0f4eda3bac78661d77997ff0563e8b74217",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "37326cb0f4775cda30f94520619ddf14f18eb2cadb09676208406c206c9e4c1c",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "ac4a547fff51e9c65b7844cf40d4504fc3e311f31d13a8b9091104d963f84447",
           "declarations": [
@@ -5229,6 +5355,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "1faae0c624f166dac58f27c7c2e9d0f4eda3bac78661d77997ff0563e8b74217",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "37326cb0f4775cda30f94520619ddf14f18eb2cadb09676208406c206c9e4c1c",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "ac4a547fff51e9c65b7844cf40d4504fc3e311f31d13a8b9091104d963f84447",
@@ -5391,6 +5524,13 @@
           "sha256": "1faae0c624f166dac58f27c7c2e9d0f4eda3bac78661d77997ff0563e8b74217",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "37326cb0f4775cda30f94520619ddf14f18eb2cadb09676208406c206c9e4c1c",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "ac4a547fff51e9c65b7844cf40d4504fc3e311f31d13a8b9091104d963f84447",
           "declarations": [
@@ -5551,6 +5691,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "b5eb5381878caceb7e1c4863b1051e8b789b9af67d635ead7cb76c1ceaa2c6d5",
@@ -5724,6 +5871,13 @@
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "b5eb5381878caceb7e1c4863b1051e8b789b9af67d635ead7cb76c1ceaa2c6d5",
           "declarations": [
@@ -5885,6 +6039,13 @@
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "d75e586566438340be15c365350eb08e1ccb15545acce77e95c9958321bffbb6",
           "declarations": [
@@ -6045,6 +6206,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "368792bc8cfa5cf9228fbee8aa6bfeb588b33bce971574a2f0df9a1b3eb375b9",
@@ -6232,6 +6400,13 @@
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "368792bc8cfa5cf9228fbee8aa6bfeb588b33bce971574a2f0df9a1b3eb375b9",
           "declarations": [
@@ -6397,6 +6572,13 @@
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "368792bc8cfa5cf9228fbee8aa6bfeb588b33bce971574a2f0df9a1b3eb375b9",
           "declarations": [
@@ -6561,6 +6743,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "7855a84138c465d2f99e634d382ab9f20809bb668c86cfc78c89c14aa538f668",
@@ -6766,6 +6955,13 @@
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "7855a84138c465d2f99e634d382ab9f20809bb668c86cfc78c89c14aa538f668",
           "declarations": [
@@ -6930,6 +7126,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "f56538a31ac9db8e98023b574514657d4b97a675076be56f2339e9c5a4cdba50",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "7855a84138c465d2f99e634d382ab9f20809bb668c86cfc78c89c14aa538f668",
@@ -7111,6 +7314,13 @@
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "0d59550b95d4d5a5ec871cd5e5acf487fab832928767eedd48b0a2af160366b4",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "7855a84138c465d2f99e634d382ab9f20809bb668c86cfc78c89c14aa538f668",
           "declarations": [
@@ -7164,7 +7374,18 @@
           ]
         }
       },
-      "declarationDelta": {}
+      "declarationDelta": {
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "before": [
+            "remove(...extensions: Array<ExtensionFormat | any>): any;",
+            "add(...extensions: Array<ExtensionFormat | any>): any;"
+          ],
+          "after": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
+        }
+      }
     },
     {
       "id": "pixi-8.17.0",
@@ -7271,6 +7492,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "0d59550b95d4d5a5ec871cd5e5acf487fab832928767eedd48b0a2af160366b4",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",
@@ -7433,6 +7661,13 @@
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "0d59550b95d4d5a5ec871cd5e5acf487fab832928767eedd48b0a2af160366b4",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",
           "declarations": [
@@ -7593,6 +7828,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "0d59550b95d4d5a5ec871cd5e5acf487fab832928767eedd48b0a2af160366b4",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",
@@ -7755,6 +7997,13 @@
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "0d59550b95d4d5a5ec871cd5e5acf487fab832928767eedd48b0a2af160366b4",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",
           "declarations": [
@@ -7915,6 +8164,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "06296310dc3c2289ccd4913884dd6c30f66954317744bc13325d75031babeb87",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "221cc13dd3adfd20040a33616370b7a645cea430770ed90568ea4e225175fd5e",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",
@@ -8077,6 +8333,13 @@
           "sha256": "381b8b45cc090efeaee0b12c65cba1126bcd81cd22be7425568a957d5771ff4a",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "221cc13dd3adfd20040a33616370b7a645cea430770ed90568ea4e225175fd5e",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",
           "declarations": [
@@ -8237,6 +8500,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "381b8b45cc090efeaee0b12c65cba1126bcd81cd22be7425568a957d5771ff4a",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "221cc13dd3adfd20040a33616370b7a645cea430770ed90568ea4e225175fd5e",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",
@@ -8399,6 +8669,13 @@
           "sha256": "381b8b45cc090efeaee0b12c65cba1126bcd81cd22be7425568a957d5771ff4a",
           "declarations": []
         },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "c63cd6cf874c5d58504de7d633f3b36759ba58bff1694537ef17722a78eb3032",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
+        },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",
           "declarations": [
@@ -8559,6 +8836,13 @@
         "pixi.js/lib/events/FederatedPointerEvent.d.ts": {
           "sha256": "381b8b45cc090efeaee0b12c65cba1126bcd81cd22be7425568a957d5771ff4a",
           "declarations": []
+        },
+        "pixi.js/lib/extensions/Extensions.d.ts": {
+          "sha256": "c63cd6cf874c5d58504de7d633f3b36759ba58bff1694537ef17722a78eb3032",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;",
+            "add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;"
+          ]
         },
         "pixi.js/lib/scene/container/Container.d.ts": {
           "sha256": "60c3622d5ae7134628d8adfabb51e1dbc78a89e8206874d02618b9a904fe8180",

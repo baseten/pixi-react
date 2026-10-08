@@ -101,6 +101,13 @@ export function validateHistoricalObservation(row, tuple)
 
         return;
     }
+    if (minor >= 5)
+    {
+        const extensionPath = version === '6.5.0' ? '@pixi/core/index.d.ts' : '@pixi/extensions/index.d.ts';
+        const extensionDeclarations = row.surfaces[extensionPath]?.declarations;
+
+        for (const method of ['add(', 'remove(']) assert.ok(extensionDeclarations?.some((line) => line.startsWith(method)), `${row.id}: surfaces.${extensionPath}.declarations.${method}`);
+    }
     const declarations = row.surfaces['@pixi/spritesheet/index.d.ts'];
 
     assert.ok(declarations, `${row.id}: observation.${prefix}.spritesheet source`);

@@ -101,14 +101,14 @@ test('records removed, added and changed declarations without repeating unchange
     assert.deepEqual(rows[2].declarationDelta, {});
 });
 
-test('retains all seven removed v7 declaration paths at the installed v8 boundary', (t) =>
+test('retains all eight removed v7 declaration paths at the installed v8 boundary', (t) =>
 {
     const evidence = JSON.parse(readFileSync(new URL('evidence.json', import.meta.url)));
     const before = evidence.results.find((row) => row.id === 'pixi-7.4.3');
     const after = evidence.results.find((row) => row.id === 'pixi-8.2.6');
     const removed = Object.keys(before.surfaces);
 
-    assert.equal(removed.length, 7);
+    assert.equal(removed.length, 8);
     assert.ok(removed.every((path) => path.startsWith('@pixi/') && !Object.hasOwn(after.surfaces, path)));
     const rows = summarize(t, [before, after].map((row) => ({
         ...installed(row.id, row.packages),
@@ -217,4 +217,50 @@ test('failed historical installs preserve their series without replacing its pre
 
     assert.equal(rows[1].declarationSeries, 'pixi6-baseline');
     assert.deepEqual(rows[2].declarationDelta, {});
+});
+
+for (const separator of ['/', '\\'])
+{
+    test(`retains actual extension paths and their v7/v8 boundary with ${JSON.stringify(separator)} separators`, (t) =>
+    {
+        const legacyPath = '@pixi/extensions/lib/index.d.ts';
+        const modernPath = 'pixi.js/lib/extensions/Extensions.d.ts';
+        const legacy = { sha256: 'a'.repeat(64), declarations: ['add(...extensions: Array<ExtensionFormatLoose | any>): any;'] };
+        const modern = { sha256: 'b'.repeat(64), declarations: ['add(...extensions: Array<ExtensionFormat | any>): /*elided*/ any;'] };
+        const before = { ...installed('pixi-7.4.3', { 'pixi.js': '7.4.3' }), surfaces: { [legacyPath.replaceAll('/', separator)]: legacy } };
+        const after = {
+            ...installed('pixi-8.2.6', { 'pixi.js': '8.2.6' }), surfaces: {
+                [modernPath.replaceAll('/', separator)]: modern,
+                ['pixi.js/lib/rendering/WebGLExtensions.d.ts'.replaceAll('/', separator)]: { declarations: [] },
+            }
+        };
+        const rows = summarize(t, [before, after, { ...after, id: 'unchanged' }]);
+
+        assert.deepEqual(rows[0].surfaces, { [legacyPath]: legacy });
+        assert.deepEqual(rows[1].surfaces, { [modernPath]: modern });
+        assert.deepEqual(rows[0].declarationDelta, { [legacyPath]: { before: null, after: legacy.declarations } });
+        assert.deepEqual(rows[1].declarationDelta, {
+            [legacyPath]: { before: legacy.declarations, after: null },
+            [modernPath]: { before: null, after: modern.declarations },
+        });
+        assert.deepEqual(rows[2].declarationDelta, {});
+    });
+}
+
+test('retained evidence includes the extension declaration for every Pixi tuple', () =>
+{
+    const evidence = JSON.parse(readFileSync(new URL('evidence.json', import.meta.url)));
+    const rows = evidence.results.filter((row) => row.packages['pixi.js']);
+
+    assert.equal(rows.length, 36);
+    for (const row of rows)
+    {
+        const path = row.packages['pixi.js'].startsWith('7.') ? '@pixi/extensions/lib/index.d.ts' : 'pixi.js/lib/extensions/Extensions.d.ts';
+        const surface = row.surfaces[path];
+
+        assert.ok(surface, `${row.id}: ${path}`);
+        assert.match(surface.sha256, /^[a-f0-9]{64}$/);
+        assert.ok(surface.declarations.some((declaration) => declaration.startsWith('add(')), row.id);
+        assert.ok(surface.declarations.some((declaration) => declaration.startsWith('remove(')), row.id);
+    }
 });

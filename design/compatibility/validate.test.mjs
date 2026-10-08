@@ -358,7 +358,7 @@ test('requires particle observations for a particle-era tuple even with an edite
     });
 
     assert.equal(result.status, 1, result.stdout);
-    assert.match(result.stderr, /pixi-8.10.0: observation.observations.particleIsContainer/);
+    assert.match(result.stderr, /pixi-8.10.0: observation.capabilities.particle/);
 });
 
 for (const id of ['react-18.3.1', 'react-19.0.0', 'react-19.0.8', 'react-19.1.0', 'react-19.1.9', 'react-19.2.0', 'react-19.2.8', 'react-19.3.0'])
@@ -440,4 +440,74 @@ for (const extra of [null, 42, 'another error'])
         assert.equal(result.status, 1, result.stdout);
         assert.match(result.stderr, /react-19.3.0: observation.features.fragmentRef.errors/);
     });
+}
+
+for (const [id, field, value] of [
+    ['pixi-7.4.2', 'visibleChanged', 1],
+    ['pixi-8.16.0', 'visibleChanged', 1],
+    ['pixi-8.17.0', 'visibleChanged', 0],
+    ['pixi-8.17.0', 'visibleChanged', 999],
+    ['pixi-8.5.2', 'particleIsContainer', true],
+    ['pixi-8.9.2', 'removeParticlesDefaultCount', 1],
+    ['pixi-8.10.0', 'removeParticlesDefaultCount', 0],
+    ['pixi-8.10.0', 'removeParticlesDefaultCount', 999],
+    ['pixi-8.18.1', 'zeroScale', [0, 0]],
+    ['pixi-8.19.0', 'zeroScale', [1, 1]],
+    ['pixi-8.19.0', 'zeroScale', [0, 999]],
+    ['pixi-8.20.1', 'mirroredTransform.rotation', -Math.PI / 6],
+    ['pixi-8.20.1', 'mirroredTransform.scaleX', -1],
+    ['pixi-8.20.1', 'mirroredTransform.skewX', 0],
+    ['pixi-8.21.0', 'mirroredTransform.rotation', 0],
+    ['pixi-8.21.0', 'mirroredTransform.scaleX', 1],
+    ['pixi-8.21.0', 'mirroredTransform.skewX', Math.PI / 6],
+])
+{
+    test(`rejects incorrect ${id} outcome ${field}: ${JSON.stringify(value)}`, (t) =>
+    {
+        const result = validate(t, (evidence) =>
+        {
+            const row = evidence.results.find((r) => r.id === id);
+            const keys = field.split('.');
+            const key = keys.pop();
+            const target = keys.reduce((object, part) => object[part], row.observation.observations);
+
+            assert.ok(Object.hasOwn(target, key));
+            assert.notDeepEqual(target[key], value);
+            target[key] = value;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.ok(result.stderr.includes(`${id}: observation.observations.${field}`), result.stderr);
+    });
+}
+
+for (const [id, fields] of [
+    ['pixi-7.4.2', ['asyncInit', 'particleContainer']],
+    ['pixi-8.2.6', ['asyncInit', 'particleContainer']],
+    ['pixi-8.4.1', ['particle']],
+    ['pixi-8.5.2', ['particle', 'particleContainer', 'cacheAsTexture']],
+    ['pixi-8.6.0', ['cacheAsTexture', 'renderLayer']],
+    ['pixi-8.7.0', ['renderLayer']],
+    ['pixi-8.8.1', ['domContainer']],
+    ['pixi-8.9.0', ['domContainer']],
+    ['pixi-8.15.0', ['canvasRenderer']],
+    ['pixi-8.16.0', ['canvasRenderer']],
+])
+{
+    for (const field of fields)
+    {
+        test(`rejects an inverted ${id} capability ${field}`, (t) =>
+        {
+            const result = validate(t, (evidence) =>
+            {
+                const capabilities = evidence.results.find((r) => r.id === id).observation.capabilities;
+
+                assert.equal(typeof capabilities[field], 'boolean');
+                capabilities[field] = !capabilities[field];
+            });
+
+            assert.equal(result.status, 1, result.stdout);
+            assert.ok(result.stderr.includes(`${id}: observation.capabilities.${field}`), result.stderr);
+        });
+    }
 }
