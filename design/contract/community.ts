@@ -1,18 +1,12 @@
-import { FrameworkAdapter, type BindingFamily, type Runtime, type SceneTypes, type AdapterManifest } from './core.js';
+import { FrameworkAdapter, type Bind, type BindingFamily, type Runtime, type SceneTypes, type AdapterManifest } from './core.js';
 import { createRenderer } from './renderer.js';
 import type { SceneAdapter } from './core.js';
 interface Inspection<S extends SceneTypes> { inspect(): S['app']; node: S['node'] }
 interface InspectionFamily extends BindingFamily { readonly type: Inspection<Extract<this['scene'], SceneTypes>> }
 // An external framework adds its own public API without a known-adapter union.
-class Inspector extends FrameworkAdapter<InspectionFamily> {
-    readonly manifest: AdapterManifest = {
-        id: 'community/inspector', packageVersion: '1.0.0', abi: { major: 1, minor: 0 },
-        provides: {}, requires: {}, certification: 'local-fixture',
-    };
-    bind<S extends SceneTypes>(runtime: Runtime<S>): Inspection<S> {
-        const session = runtime.scene.createSession(runtime, document.createElement('canvas'));
-        return { inspect: () => session.app, node: session.container };
-    }
+declare class Inspector extends FrameworkAdapter<InspectionFamily> {
+    readonly manifest: AdapterManifest;
+    bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<InspectionFamily, S>;
 }
 interface CommunityScene extends SceneTypes {
     readonly app: { label: string };

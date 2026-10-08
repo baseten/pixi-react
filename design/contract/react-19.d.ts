@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode, Ref, RefObject } from 'react';
-import type { AdapterManifest, ApplicationState, BindingFamily, Catalog, Constructor, PropsOf, Runtime, SceneTypes, TickOptions } from './core.js';
+import type { AdapterManifest, ApplicationState, Bind, BindingFamily, Catalog, Constructor, PropsOf, Runtime, SceneTypes, TickOptions } from './core.js';
 import { FrameworkAdapter } from './core.js';
 export interface RootErrors {
     onUncaughtError?: (error: unknown, info: { componentStack?: string | null }) => void;
@@ -44,5 +44,5 @@ export interface ReactBindings<S extends SceneTypes> {
 export interface React19Family extends BindingFamily { readonly type: ReactBindings<Extract<this['scene'], SceneTypes>> }
 export declare class React19Adapter extends FrameworkAdapter<React19Family> {
     readonly manifest: AdapterManifest;
-    bind<S extends SceneTypes>(runtime: Runtime<S>): ReactBindings<S>;
+    bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<React19Family, S>;
 }
