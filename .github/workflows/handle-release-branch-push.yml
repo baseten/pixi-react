@@ -24,6 +24,7 @@ env:
   FORK_PACKAGE_NAME: ${{ vars.FORK_PACKAGE_NAME }}
   FORK_DOCS_ENABLED: ${{ vars.FORK_DOCS_ENABLED }}
   FORK_DOCS_REPOSITORY: ${{ vars.FORK_DOCS_REPOSITORY }}
+  TURBO_TELEMETRY_DISABLED: 1
 
 jobs:
   verify:
@@ -61,12 +62,23 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
+      # Turbo restores a task only when its own input hash matches, so a stale
+      # entry cannot satisfy a changed task. Browser tests are never cached
+      # (`cache: false` in turbo.json), so results are not reused across cells.
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ runner.arch }}-${{ matrix.script.command }}-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ runner.arch }}-${{ matrix.script.command }}-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-
+
       - name: Install Playwright browsers
         if: ${{ matrix.script.installPlaywright }}
-        run: npx playwright install
+        run: pnpm --filter @pixi/react exec playwright install chromium
 
       - name: ${{ matrix.script.name }}
-        run: npm run ${{ matrix.script.command }}
+        run: pnpm run ${{ matrix.script.command }}
 
   review-destinations:
     name: Review publication destinations
@@ -92,9 +104,9 @@ jobs:
       - name: Validate fork package destination
         run: node .github/actions/fork-safety/check.cjs preview
       - uses: ./.github/actions/setup
-      - run: npm run build
+      - run: pnpm run build
       - name: Publish configured fork preview
-        run: npm exec --no -- pkg-pr-new publish --no-template
+        run: pnpm exec pkg-pr-new publish ./packages/react --no-template
 
   publish:
     name: 'Publish: Release'
@@ -112,7 +124,7 @@ jobs:
       - name: Validate fork package destination
         run: node .github/actions/fork-safety/check.cjs release
       - uses: ./.github/actions/setup
-      - run: npm run build
+      - run: pnpm run build
       - name: Publish configured fork release
         run: |
           rm -f "$NPM_CONFIG_USERCONFIG"
