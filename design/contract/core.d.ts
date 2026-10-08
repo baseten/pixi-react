@@ -1,7 +1,7 @@
 /** Normative ABI v1 proposal; declarations only, not an implemented package. */
 export type Constructor = new (...args: never[]) => object;
 export type Catalog = Readonly<Record<string, Constructor>>;
-export interface PropsFamily { readonly constructorType: Constructor; readonly type: unknown }
+export interface PropsFamily { readonly constructorType: unknown; readonly type: unknown }
 export type PropsOf<S extends SceneTypes, C extends Constructor> =
     (S['props'] & { readonly constructorType: C })['type'];
 export interface SceneTypes {

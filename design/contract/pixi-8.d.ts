@@ -8,7 +8,7 @@ export type Pixi8Props<C extends Constructor> = DataProps<Options<C>> & {
     onPointerDown?: (event: FederatedPointerEvent) => void;
     onWheel?: (event: FederatedWheelEvent) => void;
 } & (InstanceType<C> extends Graphics ? { draw: (graphics: InstanceType<C>) => void } : {});
-export interface Pixi8PropsFamily extends PropsFamily { readonly type: Pixi8Props<this['constructorType']> }
+export interface Pixi8PropsFamily extends PropsFamily { readonly type: Pixi8Props<Extract<this['constructorType'], Constructor>> }
 export interface Pixi8Types extends SceneTypes {
     readonly node: object;
     readonly app: Application;
