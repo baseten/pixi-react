@@ -1112,7 +1112,8 @@
       "packages": {
         "pixi.js": "6.0.0",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.0.4",
@@ -1135,7 +1136,8 @@
       "packages": {
         "pixi.js": "6.0.4",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.1.0",
@@ -1158,7 +1160,8 @@
       "packages": {
         "pixi.js": "6.1.0",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.1.3",
@@ -1181,7 +1184,8 @@
       "packages": {
         "pixi.js": "6.1.3",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.2.0",
@@ -1204,7 +1208,8 @@
       "packages": {
         "pixi.js": "6.2.0",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.2.2",
@@ -1227,7 +1232,8 @@
       "packages": {
         "pixi.js": "6.2.2",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.3.0",
@@ -1250,7 +1256,8 @@
       "packages": {
         "pixi.js": "6.3.0",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.3.2",
@@ -1273,7 +1280,8 @@
       "packages": {
         "pixi.js": "6.3.2",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.4.0",
@@ -1296,7 +1304,8 @@
       "packages": {
         "pixi.js": "6.4.0",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.4.2",
@@ -1319,7 +1328,8 @@
       "packages": {
         "pixi.js": "6.4.2",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.5.0",
@@ -1343,7 +1353,8 @@
       "packages": {
         "pixi.js": "6.5.0",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.5.1",
@@ -1367,7 +1378,8 @@
       "packages": {
         "pixi.js": "6.5.1",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.5.10",
@@ -1391,7 +1403,8 @@
       "packages": {
         "pixi.js": "6.5.10",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-baseline"
     },
     {
       "id": "pixi-6.1.0-federated",
@@ -1416,7 +1429,8 @@
         "pixi.js": "6.1.0",
         "typescript": "5.6.3",
         "@pixi/events": "6.1.0"
-      }
+      },
+      "declarationSeries": "pixi6-federated"
     },
     {
       "id": "pixi-6.3.0-federated",
@@ -1441,7 +1455,8 @@
         "pixi.js": "6.3.0",
         "typescript": "5.6.3",
         "@pixi/events": "6.3.0"
-      }
+      },
+      "declarationSeries": "pixi6-federated"
     },
     {
       "id": "pixi-6.5.1-federated",
@@ -1466,7 +1481,8 @@
         "pixi.js": "6.5.1",
         "typescript": "5.6.3",
         "@pixi/events": "6.5.1"
-      }
+      },
+      "declarationSeries": "pixi6-federated"
     },
     {
       "id": "pixi-6.5.10-federated",
@@ -1491,7 +1507,8 @@
         "pixi.js": "6.5.10",
         "typescript": "5.6.3",
         "@pixi/events": "6.5.10"
-      }
+      },
+      "declarationSeries": "pixi6-federated"
     },
     {
       "id": "pixi-6.5.0-assets",
@@ -1509,7 +1526,8 @@
         "pixi.js": "6.5.0",
         "@pixi/assets": "6.5.0",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-assets"
     },
     {
       "id": "pixi-6.5.1-assets",
@@ -1527,7 +1545,8 @@
         "pixi.js": "6.5.1",
         "@pixi/assets": "6.5.1",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-assets"
     },
     {
       "id": "pixi-6.5.10-assets",
@@ -1545,7 +1564,8 @@
         "pixi.js": "6.5.10",
         "@pixi/assets": "6.5.10",
         "typescript": "5.6.3"
-      }
+      },
+      "declarationSeries": "pixi6-assets"
     }
   ],
   "knownFailures": [

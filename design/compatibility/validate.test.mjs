@@ -14,6 +14,7 @@ function validate(t, mutate)
     const evidence = JSON.parse(readFileSync(new URL('evidence.json', import.meta.url)));
 
     mutate?.(evidence, seed);
+    copyFileSync(new URL('declaration-series.mjs', import.meta.url), join(root, 'declaration-series.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     writeFileSync(join(root, 'seed.json'), JSON.stringify(seed));

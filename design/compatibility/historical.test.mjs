@@ -14,6 +14,7 @@ function validate(t, mutate)
     const evidence = JSON.parse(readFileSync(new URL('historical-evidence.json', import.meta.url)));
 
     mutate?.(evidence, seed);
+    copyFileSync(new URL('declaration-series.mjs', import.meta.url), join(root, 'declaration-series.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     writeFileSync(join(root, 'historical-seed.json'), JSON.stringify(seed));
@@ -116,3 +117,44 @@ for (const [id, path, value] of historicalObservationCases)
         assert.ok(result.stderr.includes(`${id}: observation`), result.stderr);
     });
 }
+
+for (const [name, mutate] of [
+    ['missing row series', (e) => { delete e.results.find((r) => r.id === 'pixi-6.1.0-federated').declarationSeries; }],
+    ['wrong row series', (e) => { e.results.find((r) => r.id === 'pixi-6.1.0-federated').declarationSeries = 'pixi6-baseline'; }],
+    ['misassigned manifest and row series', (e, s) =>
+    {
+        for (const rows of [e.results, s.probes]) rows.find((r) => r.id === 'pixi-6.5.0-assets').declarationSeries = 'pixi6-federated';
+    }],
+    ['unknown manifest series', (e, s) => { s.probes.find((r) => r.id === 'pixi-6.0.0').declarationSeries = 'anything'; }],
+    ['cross-series initial delta', (e) =>
+    {
+        e.results.find((r) => r.id === 'pixi-6.1.0-federated').declarationDelta['@pixi/events/index.d.ts'].before = ['unrelated baseline'];
+    }],
+    ['missing within-series delta', (e) => { e.results.find((r) => r.id === 'pixi-6.5.1-federated').declarationDelta = {}; }],
+])
+{
+    test(`declaration history rejects ${name}`, (t) =>
+    {
+        const result = validate(t, mutate);
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /declarationSeries|declarationDelta/);
+    });
+}
+
+test('the evidence consumer accepts interleaved historical series with their own retained deltas', (t) =>
+{
+    const result = validate(t, (e, s) =>
+    {
+        const react = s.probes.filter((r) => r.kind === 'react');
+        const groups = ['pixi6-baseline', 'pixi6-federated', 'pixi6-assets'].map((series) => s.probes.filter((r) => r.declarationSeries === series));
+        const interleaved = [];
+
+        for (let i = 0; i < Math.max(...groups.map((g) => g.length)); i++)
+        { for (const group of groups) if (group[i]) interleaved.push(group[i]); }
+        s.probes = [...react, ...interleaved];
+        e.results = s.probes.map((tuple) => e.results.find((row) => row.id === tuple.id));
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+});

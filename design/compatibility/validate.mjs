@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { declarationSeries } from './declaration-series.mjs';
 import { validateHistoricalObservation } from './validate-historical.mjs';
 
 const read = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url)));
@@ -16,7 +17,7 @@ assert.equal(new Set(seed.probes.map((p) => p.id)).size, seed.probes.length);
 assert.equal(evidence.results.length, seed.probes.length);
 assert.deepEqual(evidence.results.map((row) => row.id), seed.probes.map((tuple) => tuple.id), 'evidence tuple order');
 let previousReact = [];
-let previousPixi = {};
+const previousPixi = new Map();
 
 for (const tuple of seed.probes)
 {
@@ -24,6 +25,9 @@ for (const tuple of seed.probes)
     const row = evidence.results.find((r) => r.id === tuple.id);
 
     assert.ok(row, tuple.id);
+    const series = declarationSeries(tuple);
+
+    assert.equal(declarationSeries(row), series, `${row.id}: declarationSeries`);
     assert.deepEqual(row.packages, tuple.packages);
     assert.equal(row.certification, 'not-certified');
     assert.equal(row.installExit, 0);
@@ -104,12 +108,12 @@ for (const tuple of seed.probes)
     }
     else
     {
-        const previousSurfaces = previousPixi;
+        const previousSurfaces = previousPixi.get(series) || {};
         const paths = new Set([...Object.keys(row.surfaces), ...Object.keys(previousSurfaces)]);
         const expected = Object.fromEntries([...paths].map((path) => [path, { before: previousSurfaces[path]?.declarations ?? null, after: row.surfaces[path]?.declarations ?? null }]).filter(([, delta]) => JSON.stringify(delta.before) !== JSON.stringify(delta.after)));
 
         assert.deepEqual(row.declarationDelta, expected, `${row.id}: declarationDelta`);
-        previousPixi = row.surfaces;
+        previousPixi.set(series, row.surfaces);
     }
 }
 for (const failure of seed.knownFailures)

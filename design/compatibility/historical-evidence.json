@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "observedAt": "2026-10-08T16:30:46.367Z",
+  "observedAt": "2026-10-08T16:44:48.681Z",
   "node": "v22.17.1",
   "platform": "darwin",
   "limitations": [
@@ -1691,6 +1691,7 @@
         "pixi.js": "6.0.0",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -2558,6 +2559,7 @@
         "pixi.js": "6.0.4",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -3436,6 +3438,7 @@
         "pixi.js": "6.1.0",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -4388,6 +4391,7 @@
         "pixi.js": "6.1.3",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -5066,6 +5070,7 @@
         "pixi.js": "6.2.0",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -6024,6 +6029,7 @@
         "pixi.js": "6.2.2",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -6719,6 +6725,7 @@
         "pixi.js": "6.3.0",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -7628,6 +7635,7 @@
         "pixi.js": "6.3.2",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -8274,6 +8282,7 @@
         "pixi.js": "6.4.0",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 1,
@@ -8883,6 +8892,7 @@
         "pixi.js": "6.4.2",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 1,
@@ -9474,6 +9484,7 @@
         "pixi.js": "6.5.0",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -10452,6 +10463,7 @@
         "pixi.js": "6.5.1",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -11346,6 +11358,7 @@
         "pixi.js": "6.5.10",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-baseline",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -11996,6 +12009,7 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.1.0"
       },
+      "declarationSeries": "pixi6-federated",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -12559,22 +12573,18 @@
         }
       },
       "declarationDelta": {
+        "@pixi/app/index.d.ts": {
+          "before": null,
+          "after": [
+            "export declare class Application {",
+            "constructor(options?: IApplicationOptions);",
+            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;",
+            "init(options: IApplicationOptions): void;",
+            "destroy(): void;"
+          ]
+        },
         "@pixi/display/index.d.ts": {
-          "before": [
-            "constructor();",
-            "export declare class Container<T extends DisplayObject = DisplayObject> extends DisplayObject {",
-            "parent: Container;",
-            "constructor();",
-            "addChild<U extends T[]>(...children: U): U[0];",
-            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
-            "updateTransform(): void;",
-            "destroy(options?: IDestroyOptions | boolean): void;",
-            "parent: Container;",
-            "visible: boolean;",
-            "constructor();",
-            "updateTransform(): void;",
-            "destroy(_options?: IDestroyOptions | boolean): void;"
-          ],
+          "before": null,
           "after": [
             "constructor();",
             "export declare class Container extends DisplayObject {",
@@ -12591,17 +12601,16 @@
             "destroy(_options?: IDestroyOptions | boolean): void;"
           ]
         },
+        "@pixi/sprite/index.d.ts": {
+          "before": null,
+          "after": [
+            "export declare class Sprite extends Container {",
+            "constructor(texture?: Texture);",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
         "@pixi/text/index.d.ts": {
-          "before": [
-            "declare class Text_2 extends Sprite {",
-            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: HTMLCanvasElement);",
-            "updateTransform(): void;",
-            "destroy(options?: IDestroyOptions | boolean): void;",
-            "declare class TextMetrics_2 {",
-            "constructor(text: string, style: TextStyle, width: number, height: number, lines: string[], lineWidths: number[], lineHeight: number, maxLineWidth: number, fontProperties: IFontMetrics);",
-            "export declare class TextStyle implements ITextStyle {",
-            "constructor(style?: Partial<ITextStyle>);"
-          ],
+          "before": null,
           "after": [
             "declare class Text_2 extends Sprite {",
             "constructor(text: string, style?: Partial<ITextStyle> | TextStyle, canvas?: HTMLCanvasElement);",
@@ -12612,17 +12621,28 @@
             "constructor(style?: Partial<ITextStyle>);"
           ]
         },
-        "@pixi/particle-container/index.d.ts": {
-          "before": [
-            "constructor(properties: IParticleRendererProperty[], dynamicPropertyFlags: boolean[], size: number);",
-            "destroy(): void;",
-            "export declare class ParticleContainer extends Container<Sprite> {",
-            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
-            "updateTransform(): void;",
-            "destroy(options?: IDestroyOptions | boolean): void;",
-            "constructor(renderer: Renderer);",
+        "@pixi/ticker/index.d.ts": {
+          "before": null,
+          "after": [
+            "constructor();",
+            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
+            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
             "destroy(): void;"
-          ],
+          ]
+        },
+        "@pixi/interaction/index.d.ts": {
+          "before": null,
+          "after": [
+            "constructor();",
+            "constructor();",
+            "constructor(renderer: AbstractRenderer, options?: InteractionManagerOptions);",
+            "destroy(): void;",
+            "constructor(pointerId: number);",
+            "constructor();"
+          ]
+        },
+        "@pixi/particle-container/index.d.ts": {
+          "before": null,
           "after": [
             "constructor(properties: IParticleRendererProperty[], dynamicPropertyFlags: boolean[], size: number);",
             "destroy(): void;",
@@ -12635,126 +12655,7 @@
           ]
         },
         "@pixi/core/index.d.ts": {
-          "before": [
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(length: number, options?: ISize);",
-            "load(): Promise<this>;",
-            "constructor(type?: RENDERER_TYPE, options?: IRendererOptions);",
-            "resize(desiredScreenWidth: number, desiredScreenHeight: number): void;",
-            "destroy(removeView?: boolean): void;",
-            "constructor(source: number | Array<any>, options?: ISize);",
-            "constructor(buffer: number, size?: number, normalized?: boolean, type?: TYPES, stride?: number, start?: number, instance?: boolean);",
-            "destroy(): void;",
-            "constructor(source: ImageSource);",
-            "constructor(options?: IBaseTextureOptions);",
-            "resize(desiredWidth: number, desiredHeight: number): void;",
-            "destroy(): void;",
-            "constructor(resource?: R | ImageSource | string | any, options?: IBaseTextureOptions<RO>);",
-            "destroy(): void;",
-            "constructor();",
-            "constructor(_static?: boolean);",
-            "constructor(vertexSrc: string, fragTemplate: string);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor();",
-            "constructor(data?: IArrayBuffer, _static?: boolean, index?: boolean);",
-            "destroy(): void;",
-            "constructor(source: Float32Array | Uint8Array | Uint16Array | Int32Array | Uint32Array, options: ISize);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(source: HTMLCanvasElement);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(source?: ArrayFixed<string | Resource, 6>, options?: ICubeResourceOptions);",
-            "constructor(vertexSrc?: string, fragmentSrc?: string, uniforms?: Dict<any>);",
-            "constructor();",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "resize(): void;",
-            "constructor(width: number, height: number);",
-            "resize(width: number, height: number): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(buffers?: Array<Buffer_2>, attributes?: {",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(buffer?: WebGLBuffer);",
-            "constructor(framebuffer: WebGLTexture);",
-            "constructor(program: WebGLProgram, uniformData: {",
-            "destroy(): void;",
-            "constructor(texture: WebGLTexture);",
-            "constructor(source: ImageBitmap);",
-            "constructor(source: HTMLImageElement | string, options?: IImageResourceOptions);",
-            "load(createBitmap?: boolean): Promise<ImageResource>;",
-            "parent: IRenderableContainer;",
-            "updateTransform(): void;",
-            "destroy(): void;",
-            "destroy(): void;",
-            "constructor(maskObject?: IMaskTarget);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(vertexSrc?: string, fragmentSrc?: string, name?: string);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor();",
-            "constructor();",
-            "constructor(options?: IRendererOptions);",
-            "resize(desiredScreenWidth: number, desiredScreenHeight: number): void;",
-            "destroy(removeView?: boolean): void;",
-            "constructor(baseRenderTexture: BaseRenderTexture, frame?: Rectangle);",
-            "resize(desiredWidth: number, desiredHeight: number, resizeBaseTexture?: boolean): void;",
-            "constructor(textureOptions?: IBaseTextureOptions);",
-            "constructor(renderer: Renderer);",
-            "resize(): void;",
-            "destroy(): void;",
-            "constructor(width?: number, height?: number);",
-            "resize(width: number, height: number): void;",
-            "load(): Promise<Resource>;",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "constructor(program: Program, uniforms?: Dict<any>);",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "export declare class SpriteMaskFilter extends Filter {",
-            "constructor(sprite: IMaskTarget);",
-            "constructor(vertexSrc?: string, fragmentSrc?: string, uniforms?: Dict<any>);",
-            "constructor();",
-            "constructor();",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "constructor(sourceBase64: string, options?: ISVGResourceOptions);",
-            "load(): Promise<SVGResource>;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "export declare class Texture<R extends Resource = Resource> extends EventEmitter {",
-            "constructor(baseTexture: BaseTexture<R>, frame?: Rectangle, orig?: Rectangle, trim?: Rectangle, rotate?: number, anchor?: IPointData);",
-            "destroy(destroyBase?: boolean): void;",
-            "export declare class TextureGCSystem implements ISystem {",
-            "constructor(renderer: Renderer);",
-            "unload(displayObject: IUnloadableTexture): void;",
-            "destroy(): void;",
-            "export declare class TextureMatrix {",
-            "constructor(texture: Texture, clampMargin?: number);",
-            "export declare class TextureSystem implements ISystem {",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "export declare class TextureUvs {",
-            "constructor();",
-            "constructor(uniforms: LAYOUT | Buffer_2, isStatic?: boolean, isUbo?: boolean);",
-            "add(name: string, uniforms: Dict<any>, _static?: boolean): void;",
-            "constructor(source?: HTMLVideoElement | Array<string | IVideoResourceOptionsElement> | string, options?: IVideoResourceOptions);",
-            "load(): Promise<VideoResource>;",
-            "constructor(length: number);",
-            "constructor(arrayBuffer: ArrayBuffer);",
-            "destroy(): void;"
-          ],
+          "before": null,
           "after": [
             "constructor(renderer: Renderer);",
             "destroy(): void;",
@@ -12883,17 +12784,6 @@
             "destroy(): void;",
             "constructor(manager: EventBoundary);"
           ]
-        },
-        "@pixi/spritesheet/index.d.ts": {
-          "before": [
-            "export declare class Spritesheet {",
-            "constructor(texture: BaseTexture | Texture, data: ISpritesheetData, resolutionFilename?: string);",
-            "parse(): Promise<Dict<Texture>>;",
-            "parse(callback?: (textures?: Dict<Texture>) => void): void;",
-            "destroy(destroyBase?: boolean): void;",
-            "export declare class SpritesheetLoader {"
-          ],
-          "after": null
         }
       }
     },
@@ -12904,6 +12794,7 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.3.0"
       },
+      "declarationSeries": "pixi6-federated",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -13740,6 +13631,7 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.5.1"
       },
+      "declarationSeries": "pixi6-federated",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -14369,6 +14261,7 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.5.10"
       },
+      "declarationSeries": "pixi6-federated",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -14922,6 +14815,7 @@
         "@pixi/assets": "6.5.0",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-assets",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -15314,191 +15208,33 @@
             "parse: (value: string) => ResolveAsset;"
           ]
         },
-        "@pixi/sprite/index.d.ts": {
-          "before": [
-            "export declare class Sprite extends Container {",
-            "constructor(texture?: Texture);",
-            "destroy(options?: IDestroyOptions | boolean): void;"
-          ],
-          "after": null
+        "@pixi/app/index.d.ts": {
+          "before": null,
+          "after": [
+            "export declare class Application {",
+            "constructor(options?: IApplicationOptions);",
+            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;",
+            "init(options: IApplicationOptions): void;",
+            "destroy(): void;"
+          ]
         },
-        "@pixi/text/index.d.ts": {
-          "before": [
-            "declare class Text_2 extends Sprite {",
-            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: HTMLCanvasElement);",
+        "@pixi/display/index.d.ts": {
+          "before": null,
+          "after": [
+            "constructor();",
+            "export declare class Container<T extends DisplayObject = DisplayObject> extends DisplayObject {",
+            "parent: Container;",
+            "constructor();",
+            "addChild<U extends T[]>(...children: U): U[0];",
+            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
             "updateTransform(): void;",
             "destroy(options?: IDestroyOptions | boolean): void;",
-            "declare class TextMetrics_2 {",
-            "constructor(text: string, style: TextStyle, width: number, height: number, lines: string[], lineWidths: number[], lineHeight: number, maxLineWidth: number, fontProperties: IFontMetrics);",
-            "export declare class TextStyle implements ITextStyle {",
-            "constructor(style?: Partial<ITextStyle>);"
-          ],
-          "after": null
-        },
-        "@pixi/ticker/index.d.ts": {
-          "before": [
+            "parent: Container;",
+            "visible: boolean;",
             "constructor();",
-            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
-            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
-            "destroy(): void;"
-          ],
-          "after": null
-        },
-        "@pixi/interaction/index.d.ts": {
-          "before": [
-            "constructor();",
-            "constructor();",
-            "constructor(renderer: AbstractRenderer, options?: InteractionManagerOptions);",
-            "destroy(): void;",
-            "constructor(pointerId: number);",
-            "constructor();"
-          ],
-          "after": null
-        },
-        "@pixi/particle-container/index.d.ts": {
-          "before": [
-            "constructor(properties: IParticleRendererProperty[], dynamicPropertyFlags: boolean[], size: number);",
-            "destroy(): void;",
-            "export declare class ParticleContainer extends Container<Sprite> {",
-            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
             "updateTransform(): void;",
-            "destroy(options?: IDestroyOptions | boolean): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;"
-          ],
-          "after": null
-        },
-        "@pixi/core/index.d.ts": {
-          "before": [
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(length: number, options?: ISize);",
-            "load(): Promise<this>;",
-            "constructor(type?: RENDERER_TYPE, options?: IRendererOptions);",
-            "resize(desiredScreenWidth: number, desiredScreenHeight: number): void;",
-            "destroy(removeView?: boolean): void;",
-            "constructor(source: number | Array<any>, options?: ISize);",
-            "constructor(buffer: number, size?: number, normalized?: boolean, type?: TYPES, stride?: number, start?: number, instance?: boolean);",
-            "destroy(): void;",
-            "constructor(source: ImageSource);",
-            "constructor(options?: IBaseTextureOptions);",
-            "resize(desiredWidth: number, desiredHeight: number): void;",
-            "destroy(): void;",
-            "constructor(resource?: R | ImageSource | string | any, options?: IBaseTextureOptions<RO>);",
-            "destroy(): void;",
-            "constructor();",
-            "constructor(_static?: boolean);",
-            "constructor(vertexSrc: string, fragTemplate: string);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor();",
-            "constructor(data?: IArrayBuffer, _static?: boolean, index?: boolean);",
-            "destroy(): void;",
-            "constructor(source: Float32Array | Uint8Array | Uint16Array | Int32Array | Uint32Array, options: ISize);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(source: HTMLCanvasElement);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(source?: ArrayFixed<string | Resource, 6>, options?: ICubeResourceOptions);",
-            "constructor(vertexSrc?: string, fragmentSrc?: string, uniforms?: Dict<any>);",
-            "constructor();",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "resize(): void;",
-            "constructor(width: number, height: number);",
-            "resize(width: number, height: number): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(buffers?: Array<Buffer_2>, attributes?: {",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(buffer?: WebGLBuffer);",
-            "constructor(framebuffer: WebGLTexture);",
-            "constructor(program: WebGLProgram, uniformData: {",
-            "destroy(): void;",
-            "constructor(texture: WebGLTexture);",
-            "constructor(source: ImageBitmap);",
-            "constructor(source: HTMLImageElement | string, options?: IImageResourceOptions);",
-            "load(createBitmap?: boolean): Promise<ImageResource>;",
-            "parent: IRenderableContainer;",
-            "updateTransform(): void;",
-            "destroy(): void;",
-            "destroy(): void;",
-            "constructor(maskObject?: IMaskTarget);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(vertexSrc?: string, fragmentSrc?: string, name?: string);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor();",
-            "constructor();",
-            "constructor(options?: IRendererOptions);",
-            "resize(desiredScreenWidth: number, desiredScreenHeight: number): void;",
-            "destroy(removeView?: boolean): void;",
-            "constructor(baseRenderTexture: BaseRenderTexture, frame?: Rectangle);",
-            "resize(desiredWidth: number, desiredHeight: number, resizeBaseTexture?: boolean): void;",
-            "constructor(textureOptions?: IBaseTextureOptions);",
-            "constructor(renderer: Renderer);",
-            "resize(): void;",
-            "destroy(): void;",
-            "constructor(width?: number, height?: number);",
-            "resize(width: number, height: number): void;",
-            "load(): Promise<Resource>;",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "constructor(program: Program, uniforms?: Dict<any>);",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "export declare class SpriteMaskFilter extends Filter {",
-            "constructor(sprite: IMaskTarget);",
-            "constructor(vertexSrc?: string, fragmentSrc?: string, uniforms?: Dict<any>);",
-            "constructor();",
-            "constructor();",
-            "destroy(): void;",
-            "constructor(renderer: Renderer);",
-            "constructor(sourceBase64: string, options?: ISVGResourceOptions);",
-            "load(): Promise<SVGResource>;",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "export declare class Texture<R extends Resource = Resource> extends EventEmitter {",
-            "constructor(baseTexture: BaseTexture<R>, frame?: Rectangle, orig?: Rectangle, trim?: Rectangle, rotate?: number, anchor?: IPointData);",
-            "destroy(destroyBase?: boolean): void;",
-            "export declare class TextureGCSystem implements ISystem {",
-            "constructor(renderer: Renderer);",
-            "unload(displayObject: IUnloadableTexture): void;",
-            "destroy(): void;",
-            "export declare class TextureMatrix {",
-            "constructor(texture: Texture, clampMargin?: number);",
-            "export declare class TextureSystem implements ISystem {",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "export declare class TextureUvs {",
-            "constructor();",
-            "constructor(uniforms: LAYOUT | Buffer_2, isStatic?: boolean, isUbo?: boolean);",
-            "add(name: string, uniforms: Dict<any>, _static?: boolean): void;",
-            "constructor(source?: HTMLVideoElement | Array<string | IVideoResourceOptionsElement> | string, options?: IVideoResourceOptions);",
-            "load(): Promise<VideoResource>;",
-            "constructor(length: number);",
-            "constructor(arrayBuffer: ArrayBuffer);",
-            "destroy(): void;"
-          ],
-          "after": null
-        },
-        "@pixi/events/index.d.ts": {
-          "before": [
-            "constructor(rootTarget?: DisplayObject);",
-            "constructor(renderer: Renderer);",
-            "destroy(): void;",
-            "constructor(manager: EventBoundary);"
-          ],
-          "after": null
+            "destroy(_options?: IDestroyOptions | boolean): void;"
+          ]
         }
       }
     },
@@ -15509,6 +15245,7 @@
         "@pixi/assets": "6.5.1",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-assets",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,
@@ -15892,6 +15629,7 @@
         "@pixi/assets": "6.5.10",
         "typescript": "5.6.3"
       },
+      "declarationSeries": "pixi6-assets",
       "certification": "not-certified",
       "installExit": 0,
       "runtimeExit": 0,

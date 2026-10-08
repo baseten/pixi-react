@@ -5,6 +5,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFile
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { declarationSeries } from './declaration-series.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const manifest = JSON.parse(readFileSync(process.env.AUDIT_MANIFEST || join(here, 'seed.json')));
@@ -16,6 +17,7 @@ const filter = process.argv[2];
 
 for (const tuple of manifest.probes.filter((t) => !filter || t.id.includes(filter)))
 {
+    declarationSeries(tuple);
     const cwd = join(root, tuple.id);
 
     mkdirSync(cwd, { recursive: true });
@@ -33,7 +35,7 @@ for (const tuple of manifest.probes.filter((t) => !filter || t.id.includes(filte
         return existsSync(path) && JSON.parse(readFileSync(path)).version === version;
     });
     const install = reuse ? { status: 0, reused: true } : run('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--cache', process.env.AUDIT_NPM_CACHE || join(root, 'cache')]);
-    const row = { id: tuple.id, packages: tuple.packages, workdir: realpathSync(cwd), install, certification: 'not-certified' };
+    const row = { id: tuple.id, packages: tuple.packages, declarationSeries: tuple.declarationSeries, workdir: realpathSync(cwd), install, certification: 'not-certified' };
 
     if (install.status === 0)
     {
