@@ -39,7 +39,18 @@ for (const tuple of seed.probes)
     for (const check of tuple.additionalTypeChecks || [])
     {
         assert.equal(row.typeVariants?.[check.name]?.status, check.expectedExit, `${row.id}: ${check.name}`);
-        assert.ok(row.typeVariants[check.name].stdout.includes(check.signature), `${row.id}: ${check.name} diagnostic`);
+        const stdout = row.typeVariants[check.name].stdout;
+        const signatures = check.signatures ?? [check.signature];
+
+        assert.ok(signatures.every((signature) => typeof signature === 'string' && signature.length > 0), `${row.id}: ${check.name} signatures`);
+        for (const signature of signatures) assert.ok(stdout.includes(signature), `${row.id}: ${check.name} diagnostic ${signature}`);
+        if (check.signatures)
+        {
+            const diagnostics = stdout.split('\n').filter((line) => line.includes('error TS'));
+
+            assert.equal(diagnostics.length, signatures.length, `${row.id}: ${check.name} unexpected diagnostics`);
+            for (const line of diagnostics) assert.ok(signatures.some((signature) => line.endsWith(signature)), `${row.id}: ${check.name} unexpected diagnostic ${line}`);
+        }
     }
     for (const field of ['surfaces', 'resolvedPackages']) assert.ok(nonemptyObject(row[field]), `${row.id}: ${field}`);
     for (const [path, surface] of Object.entries(row.surfaces))
