@@ -16,7 +16,21 @@ for (const tuple of seed.probes) {
     assert.equal(row.certification, 'not-certified');
     assert.equal(row.installExit, 0);
     assert.equal(row.typeExit, 0);
-    if (row.runtimeExit !== 0) assert.ok(seed.knownFailures.some(f => f.tupleId === row.id && row.failure.includes(f.signature)), row.id);
+    if (row.runtimeExit !== 0) assert.ok(seed.knownFailures.some(f => f.tupleId === row.id && f.expectedRuntimeExit === row.runtimeExit && row.failure?.includes(f.signature)), row.id);
+}
+for (const failure of seed.knownFailures) {
+    const row = evidence.results.find(r => r.id === failure.tupleId);
+    assert.ok(row, failure.id);
+    assert.ok(Number.isInteger(failure.expectedRuntimeExit), failure.id);
+    assert.equal(row.runtimeExit, failure.expectedRuntimeExit, failure.id);
+    if (failure.expectedRuntimeExit === 0) {
+        assert.ok(Array.isArray(failure.observationPath) && failure.observationPath.length > 0, failure.id);
+        const observation = failure.observationPath.reduce((value, key) => value?.[key], row.observation);
+        assert.equal(observation?.status, failure.classification, failure.id);
+        assert.ok(observation?.errors?.some(error => error.includes(failure.signature)), failure.id);
+    } else {
+        assert.ok(row.failure?.includes(failure.signature), failure.id);
+    }
 }
 for (let minor = 2; minor <= 22; minor++) assert.ok(seed.probes.some(p => p.packages['pixi.js']?.startsWith(`8.${minor}.`)));
 for (let minor = 0; minor <= 3; minor++) assert.ok(seed.probes.some(p => p.packages.react?.startsWith(`19.${minor}.`)));

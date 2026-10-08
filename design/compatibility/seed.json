@@ -1455,6 +1455,7 @@
     {
       "id": "pixi-850-particle-destroy",
       "tupleId": "pixi-8.5.0",
+      "expectedRuntimeExit": 1,
       "probe": "pixi.mjs",
       "signature": "ParticleContainer.removeChildren() is not available. Please use ParticleContainer.removeParticles()",
       "classification": "regression",
@@ -1464,6 +1465,8 @@
     {
       "id": "react193-fragment-host",
       "tupleId": "react-19.3.0",
+      "expectedRuntimeExit": 0,
+      "observationPath": ["features", "fragmentRef"],
       "probe": "react.mjs",
       "signature": "createFragmentInstance is not a function",
       "classification": "missing-host-capability",
