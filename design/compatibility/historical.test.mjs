@@ -15,6 +15,7 @@ function validate(t, mutate)
 
     mutate?.(evidence, seed);
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
+    copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     writeFileSync(join(root, 'historical-seed.json'), JSON.stringify(seed));
     writeFileSync(join(root, seed.evidence), JSON.stringify(evidence));
 
@@ -55,5 +56,63 @@ for (const [name, mutate] of cases)
 
         assert.equal(result.status, 1, result.stdout);
         assert.match(result.stderr, /AssertionError/);
+    });
+}
+
+const historicalObservationCases = [
+    ['react-17.0.0-bridge-1.2.0', 'features.contextBridge', undefined],
+    ['react-17.0.0-bridge-1.2.0', 'features.refs', 'not-run'],
+    ['react-17.0.0-bridge-1.2.0', 'features.effects', []],
+    ['react-17.0.0-bridge-1.2.0', 'features.state', false],
+    ['react-17.0.0-bridge-1.2.0', 'features.errorBoundary', undefined],
+    ['react-17.0.0-bridge-1.2.0', 'features.secondaryParentBridge.actual', 'secondary-parent'],
+    ['react-17.0.0-bridge-1.2.0', 'createContainerArity', '4'],
+    ['pixi-6.1.0', 'observations.scene', undefined],
+    ['pixi-6.1.0', 'observations.eventScope', undefined],
+    ['pixi-6.1.0', 'observations.ticker.samples', []],
+    ['pixi-6.1.0', 'observations.ticker.samples.0.argument', '6'],
+    ['pixi-6.1.0', 'observations.ticker.callback', 'Ticker'],
+    ['pixi-6.1.0', 'observations.application.initMethod', 'function'],
+    ['pixi-6.1.0', 'observations.application.registeredPlugins', []],
+    ['pixi-6.1.0', 'observations.application.runtimeConstruction', 'rendered'],
+    ['pixi-6.1.0', 'observations.destruction.events.0.publicDestroyedDuringEvent', true],
+    ['pixi-6.0.0', 'observations.destruction.publicDestroyedAfterDestroy', true],
+    ['pixi-6.5.1', 'observations.spritesheet.runtime.noArgumentReturn', 'undefined'],
+    ['pixi-6.5.1', 'observations.spritesheet.declarations.parseSignatures', []],
+    ['pixi-6.4.2', 'observations.spritesheet.commonjs.result.callbacks', 0],
+    ['pixi-6.4.2', 'observations.publishedBundles', {}],
+    ['pixi-6.5.1', 'observations.packaging', undefined],
+    ['pixi-6.5.1', 'observations.packaging.status', 'embedded-core-definitions'],
+    ['pixi-6.1.0', 'observations.bootstrap', []],
+    ['pixi-6.1.0', 'observations.unmodifiedNodeImport.exit', 0],
+    ['pixi-6.1.0-federated', 'observations.optionalEvents.version', '6.5.10'],
+    ['pixi-6.1.0-federated', 'observations.optionalEvents.received', ['target']],
+    ['pixi-6.1.0-federated', 'observations.optionalEvents.scope', undefined],
+    ['pixi-6.1.0-federated', 'observations.publishedBundles', {}],
+    ['pixi-6.5.0-assets', 'observations.assets.version', '6.5.1'],
+    ['pixi-6.5.0-assets', 'observations.assets.methods', ['load']],
+    ['pixi-6.5.0-assets', 'observations.assets.scope', undefined],
+    ['pixi-6.5.0-assets', 'observations.publishedSources', {}],
+];
+
+for (const [id, path, value] of historicalObservationCases)
+{
+    test(`historical observations reject ${id}: ${path}`, (t) =>
+    {
+        const result = validate(t, (evidence) =>
+        {
+            const row = evidence.results.find((r) => r.id === id);
+            const keys = path.split('.');
+            const field = keys.pop();
+            const target = keys.reduce((object, key) => object[key], row.observation);
+
+            assert.ok(Object.hasOwn(target, field));
+            if (value === undefined) delete target[field];
+            else target[field] = value;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /AssertionError/);
+        assert.ok(result.stderr.includes(`${id}: observation`), result.stderr);
     });
 }

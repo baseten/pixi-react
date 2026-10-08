@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { validateHistoricalObservation } from './validate-historical.mjs';
 
 const read = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url)));
 const historical = process.argv[2] === '--historical';
@@ -72,8 +73,25 @@ for (const tuple of seed.probes)
             assert.ok(nonemptyObject(observation.capabilities), `${row.id}: observation.capabilities`);
             for (const key of ['asyncInit', 'particle', 'particleContainer', 'cacheAsTexture', 'renderLayer', 'domContainer', 'canvasRenderer']) assert.equal(typeof observation.capabilities[key], 'boolean', `${row.id}: observation.capabilities.${key}`);
             assert.ok(nonemptyObject(observation.observations), `${row.id}: observation.observations`);
+            const observed = observation.observations;
+            const [major, minor] = tuple.packages['pixi.js'].split('.').map(Number);
+
+            if (major !== 6) assert.ok(Number.isSafeInteger(observed.visibleChanged) && observed.visibleChanged >= 0, `${row.id}: observation.observations.visibleChanged`);
+            // Version boundaries keep edited capability flags from hiding required observations.
+            if (major === 8 && minor >= 5)
+            {
+                assert.equal(typeof observed.particleIsContainer, 'boolean', `${row.id}: observation.observations.particleIsContainer`);
+                assert.ok(Number.isSafeInteger(observed.removeParticlesDefaultCount) && observed.removeParticlesDefaultCount >= 0, `${row.id}: observation.observations.removeParticlesDefaultCount`);
+            }
+            if (major === 8)
+            {
+                assert.ok(Array.isArray(observed.zeroScale) && observed.zeroScale.length === 2 && observed.zeroScale.every(Number.isFinite), `${row.id}: observation.observations.zeroScale`);
+                assert.ok(nonemptyObject(observed.mirroredTransform), `${row.id}: observation.observations.mirroredTransform`);
+                for (const key of ['rotation', 'scaleX', 'skewX']) assert.ok(Number.isFinite(observed.mirroredTransform[key]), `${row.id}: observation.observations.mirroredTransform.${key}`);
+            }
         }
     }
+    if (historical) validateHistoricalObservation(row, tuple);
     if (row.runtimeExit !== 0) assert.ok(seed.knownFailures.some((f) => f.tupleId === row.id && f.expectedRuntimeExit === row.runtimeExit && row.failure?.includes(f.signature)), row.id);
     if (tuple.kind === 'react')
     {
