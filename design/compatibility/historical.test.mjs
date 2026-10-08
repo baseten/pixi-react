@@ -43,6 +43,33 @@ const cases = [
     }],
     ['missing NodeNext outcome', (e) => { delete e.results[0].typeVariants; }],
     ['unrelated NodeNext failure', (e) => { e.results[0].typeVariants.NodeNext.stdout = 'unrelated failure'; }],
+    ['only one its-fine export failing under NodeNext', (e) =>
+    {
+        const v = e.results[0].typeVariants.NodeNext;
+
+        v.stdout = v.stdout.split('\n').filter((l) => !l.includes('useContextBridge')).join('\n');
+    }],
+    ['unrelated TS2305 replacing an its-fine diagnostic', (e) =>
+    {
+        const v = e.results[0].typeVariants.NodeNext;
+
+        v.stdout = v.stdout.replace("Module '\"its-fine\"' has no exported member 'useContextBridge'.", "Module 'unrelated' has no exported member 'Whatever'.");
+    }],
+    ['duplicated diagnostic with the other signature on a non-diagnostic line', (e) =>
+    {
+        const v = e.results[0].typeVariants.NodeNext;
+        const fiber = v.stdout.split('\n').find((l) => l.includes('error TS') && l.includes('FiberProvider'));
+
+        v.stdout = `${fiber}\n${fiber}\nnote: Module '"its-fine"' has no exported member 'useContextBridge'.\n`;
+    }],
+    ['extra unrelated TS2305 beside both its-fine diagnostics',(e) => { e.results[0].typeVariants.NodeNext.stdout += "react17.tsx(4,1): error TS2305: Module 'unrelated' has no exported member 'Whatever'.\n"; }],
+    ['generic seed signature that weakens the check', (e, s) =>
+    {
+        const check = s.probes.find((p) => p.id === e.results[0].id).additionalTypeChecks[0];
+
+        delete check.signatures;
+        check.signature = 'has no exported member';
+    }],
     ['silently passing NodeNext', (e) => { e.results[0].typeVariants.NodeNext.status = 0; }],
     ['lost secondary source limitation', (e) => { delete e.results[0].observation.features.secondaryParentBridge; }],
     ['lost Pixi 6.4 ESM failure', (e) => { e.results.find((r) => r.id === 'pixi-6.4.2').runtimeExit = 0; }],

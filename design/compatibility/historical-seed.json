@@ -932,7 +932,10 @@
             "NodeNext"
           ],
           "expectedExit": 2,
-          "signature": "has no exported member"
+          "signatures": [
+            "Module '\"its-fine\"' has no exported member 'FiberProvider'.",
+            "Module '\"its-fine\"' has no exported member 'useContextBridge'."
+          ]
         }
       ],
       "resolvedPackagesSha256": "99f8de8c7ca549be977cf23097b572cb201efd7b747797a84cb4066a3b7d458a",
@@ -966,7 +969,10 @@
             "NodeNext"
           ],
           "expectedExit": 2,
-          "signature": "has no exported member"
+          "signatures": [
+            "Module '\"its-fine\"' has no exported member 'FiberProvider'.",
+            "Module '\"its-fine\"' has no exported member 'useContextBridge'."
+          ]
         }
       ],
       "resolvedPackagesSha256": "edab2c80ac717c6edcee06d67f9514bd802f1e61157b5e96898362783b3fd5d4",
@@ -1000,7 +1006,10 @@
             "NodeNext"
           ],
           "expectedExit": 2,
-          "signature": "has no exported member"
+          "signatures": [
+            "Module '\"its-fine\"' has no exported member 'FiberProvider'.",
+            "Module '\"its-fine\"' has no exported member 'useContextBridge'."
+          ]
         }
       ],
       "resolvedPackagesSha256": "8cddfdcfb446e280527bd2198db280dbca463460bb5b23873ba9b12d6df993e2",
@@ -1034,7 +1043,10 @@
             "NodeNext"
           ],
           "expectedExit": 2,
-          "signature": "has no exported member"
+          "signatures": [
+            "Module '\"its-fine\"' has no exported member 'FiberProvider'.",
+            "Module '\"its-fine\"' has no exported member 'useContextBridge'."
+          ]
         }
       ],
       "resolvedPackagesSha256": "0872112b616ae94acbf039dbd6b2fa5e55e45b1480750bafa8ee4a765124ff21",
@@ -1068,7 +1080,10 @@
             "NodeNext"
           ],
           "expectedExit": 2,
-          "signature": "has no exported member"
+          "signatures": [
+            "Module '\"its-fine\"' has no exported member 'FiberProvider'.",
+            "Module '\"its-fine\"' has no exported member 'useContextBridge'."
+          ]
         }
       ],
       "resolvedPackagesSha256": "e19f8019b944649cb1785659c8f2b4a420bd7fee361c3736fd1ba8a5df45df83",
@@ -1102,7 +1117,10 @@
             "NodeNext"
           ],
           "expectedExit": 2,
-          "signature": "has no exported member"
+          "signatures": [
+            "Module '\"its-fine\"' has no exported member 'FiberProvider'.",
+            "Module '\"its-fine\"' has no exported member 'useContextBridge'."
+          ]
         }
       ],
       "resolvedPackagesSha256": "b10bffc448a9e2b7d8efbd218174a41058fc586e6cd863623d50faf2f62c604a",

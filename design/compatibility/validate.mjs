@@ -39,7 +39,32 @@ for (const tuple of seed.probes)
     for (const check of tuple.additionalTypeChecks || [])
     {
         assert.equal(row.typeVariants?.[check.name]?.status, check.expectedExit, `${row.id}: ${check.name}`);
-        assert.ok(row.typeVariants[check.name].stdout.includes(check.signature), `${row.id}: ${check.name} diagnostic`);
+        const stdout = row.typeVariants[check.name].stdout;
+        const signatures = check.signatures ?? [check.signature];
+
+        if (check.name === 'NodeNext' && tuple.packages['its-fine'])
+        {
+            assert.deepEqual(signatures, ['FiberProvider', 'useContextBridge'].map((name) => `Module '"its-fine"' has no exported member '${name}'.`), `${row.id}: NodeNext its-fine signatures`);
+        }
+
+        assert.ok(signatures.every((signature) => typeof signature === 'string' && signature.length > 0), `${row.id}: ${check.name} signatures`);
+        for (const signature of signatures) assert.ok(stdout.includes(signature), `${row.id}: ${check.name} diagnostic ${signature}`);
+        if (check.signatures)
+        {
+            const diagnostics = stdout.split('\n').filter((line) => line.includes('error TS'));
+
+            assert.equal(diagnostics.length, signatures.length, `${row.id}: ${check.name} unexpected diagnostics`);
+            const matched = diagnostics.map((line) =>
+            {
+                const signature = signatures.find((candidate) => line.endsWith(candidate));
+
+                assert.ok(signature, `${row.id}: ${check.name} unexpected diagnostic ${line}`);
+
+                return signature;
+            });
+
+            assert.deepEqual([...matched].sort(), [...signatures].sort(), `${row.id}: ${check.name} diagnostics must match signatures one-to-one`);
+        }
     }
     for (const field of ['surfaces', 'resolvedPackages']) assert.ok(nonemptyObject(row[field]), `${row.id}: ${field}`);
     for (const [path, surface] of Object.entries(row.surfaces))
