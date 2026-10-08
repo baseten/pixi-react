@@ -1,0 +1,7 @@
+packages:
+  - packages/*
+  - apps/*
+
+# Carried over from the npm `overrides` field of the single-package manifest.
+overrides:
+  rollup: ^4.18.0

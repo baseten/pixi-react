@@ -6,8 +6,9 @@ node_modules/
 dist/
 lib/
 types/
+.turbo/
 
 # Generated files
 .docusaurus
 .cache-loader
-docs/build
+apps/docs/build
