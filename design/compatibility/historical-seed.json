@@ -1,0 +1,1169 @@
+{
+  "schemaVersion": 1,
+  "issue": "https://github.com/baseten/pixi-react/issues/24",
+  "status": "historical-audit-not-support-certificate",
+  "floors": {
+    "react": "18.3.1",
+    "pixi.js": "7.4.2",
+    "pixi8": "8.2.6"
+  },
+  "advertisedRanges": [],
+  "evidence": "historical-evidence.json",
+  "registry": {
+    "@types/react": {
+      "source": "https://registry.npmjs.org/@types/react",
+      "selected": {
+        "17.0.93": {
+          "peerDependencies": {},
+          "dependencies": {
+            "csstype": "^3.2.2",
+            "@types/scheduler": "^0.16",
+            "@types/prop-types": "*"
+          },
+          "gitHead": {},
+          "integrity": "sha512-KM4Ty/ZTLZupiYxZVAlP+InNJS3De6uBMdq0ePa6/04+eG9Y7ftnWfst1xTLQ5rwAhgHwQ4momt/O4KepdGBTw==",
+          "publishedAt": "2026-06-01T18:00:39.863Z"
+        }
+      }
+    },
+    "@types/react-reconciler": {
+      "source": "https://registry.npmjs.org/@types/react-reconciler",
+      "selected": {
+        "0.26.7": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@types/react": "*"
+          },
+          "gitHead": {},
+          "integrity": "sha512-mBDYl8x+oyPX/VBb3E638N0B7xG+SPk/EAMcVPeexqus/5aTpTphQi0curhhshOqRrc9t6OPoJfEUkbymse/lQ==",
+          "publishedAt": "2022-05-14T13:02:02.775Z"
+        }
+      }
+    },
+    "its-fine": {
+      "source": "https://registry.npmjs.org/its-fine",
+      "selected": {
+        "1.2.0": {
+          "peerDependencies": {
+            "react": ">=16.8"
+          },
+          "dependencies": {
+            "@types/react": "*",
+            "@types/react-reconciler": "*"
+          },
+          "gitHead": {},
+          "integrity": "sha512-518vLgHK/dgGxyZj4MdLrDRryziqR1M+JbVtjw1tmdgvZQYsJvB2Leoe2qFOHPalZ5KiAOK18wTmIC0XszYc0w==",
+          "publishedAt": "2024-04-09T20:42:12.775Z"
+        },
+        "1.2.2": {
+          "peerDependencies": {
+            "react": ">=16.8"
+          },
+          "dependencies": {
+            "@types/react": "*",
+            "@types/react-reconciler": "*"
+          },
+          "gitHead": {},
+          "integrity": "sha512-XypfEXrJfZ4C6cui8lnVVGjU+/iLkH82/EC7HqImFutSTn/HZY2oWCBWlKqd4m+DjXMNZczNMYXbWoh+JxzKtA==",
+          "publishedAt": "2024-04-10T19:17:13.711Z"
+        }
+      }
+    },
+    "pixi.js": {
+      "source": "https://registry.npmjs.org/pixi.js",
+      "selected": {
+        "6.0.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.0.0",
+            "@pixi/core": "6.0.0",
+            "@pixi/math": "6.0.0",
+            "@pixi/mesh": "6.0.0",
+            "@pixi/text": "6.0.0",
+            "@pixi/utils": "6.0.0",
+            "@pixi/runner": "6.0.0",
+            "@pixi/sprite": "6.0.0",
+            "@pixi/ticker": "6.0.0",
+            "@pixi/display": "6.0.0",
+            "@pixi/extract": "6.0.0",
+            "@pixi/loaders": "6.0.0",
+            "@pixi/prepare": "6.0.0",
+            "@pixi/graphics": "6.0.0",
+            "@pixi/polyfill": "6.0.0",
+            "@pixi/settings": "6.0.0",
+            "@pixi/constants": "6.0.0",
+            "@pixi/particles": "6.0.0",
+            "@pixi/filter-blur": "6.0.0",
+            "@pixi/filter-fxaa": "6.0.0",
+            "@pixi/interaction": "6.0.0",
+            "@pixi/mesh-extras": "6.0.0",
+            "@pixi/spritesheet": "6.0.0",
+            "@pixi/text-bitmap": "6.0.0",
+            "@pixi/filter-alpha": "6.0.0",
+            "@pixi/filter-noise": "6.0.0",
+            "@pixi/accessibility": "6.0.0",
+            "@pixi/sprite-tiling": "6.0.0",
+            "@pixi/sprite-animated": "6.0.0",
+            "@pixi/compressed-textures": "6.0.0",
+            "@pixi/filter-color-matrix": "6.0.0",
+            "@pixi/filter-displacement": "6.0.0",
+            "@pixi/mixin-cache-as-bitmap": "6.0.0",
+            "@pixi/mixin-get-child-by-name": "6.0.0",
+            "@pixi/mixin-get-global-position": "6.0.0"
+          },
+          "gitHead": "40b8c8d7d1a3e99df059b5d5c582975eb536b30a",
+          "integrity": "sha512-dnbLWGxlA5LBoIW85uJQ2HiPQAkDFwp3bHs3OmXX+lJON9Lh4ZgVv2TAwgcO9j0UV5Wkbm+9sXEhqT8Up7a4RA==",
+          "publishedAt": "2021-03-02T21:50:55.719Z"
+        },
+        "6.0.4": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.0.4",
+            "@pixi/core": "6.0.4",
+            "@pixi/math": "6.0.4",
+            "@pixi/mesh": "6.0.4",
+            "@pixi/text": "6.0.4",
+            "@pixi/utils": "6.0.4",
+            "@pixi/runner": "6.0.4",
+            "@pixi/sprite": "6.0.4",
+            "@pixi/ticker": "6.0.4",
+            "@pixi/display": "6.0.4",
+            "@pixi/extract": "6.0.4",
+            "@pixi/loaders": "6.0.4",
+            "@pixi/prepare": "6.0.4",
+            "@pixi/graphics": "6.0.4",
+            "@pixi/polyfill": "6.0.4",
+            "@pixi/settings": "6.0.4",
+            "@pixi/constants": "6.0.4",
+            "@pixi/particles": "6.0.4",
+            "@pixi/filter-blur": "6.0.4",
+            "@pixi/filter-fxaa": "6.0.4",
+            "@pixi/interaction": "6.0.4",
+            "@pixi/mesh-extras": "6.0.4",
+            "@pixi/spritesheet": "6.0.4",
+            "@pixi/text-bitmap": "6.0.4",
+            "@pixi/filter-alpha": "6.0.4",
+            "@pixi/filter-noise": "6.0.4",
+            "@pixi/accessibility": "6.0.4",
+            "@pixi/sprite-tiling": "6.0.4",
+            "@pixi/sprite-animated": "6.0.4",
+            "@pixi/compressed-textures": "6.0.4",
+            "@pixi/filter-color-matrix": "6.0.4",
+            "@pixi/filter-displacement": "6.0.4",
+            "@pixi/mixin-cache-as-bitmap": "6.0.4",
+            "@pixi/mixin-get-child-by-name": "6.0.4",
+            "@pixi/mixin-get-global-position": "6.0.4"
+          },
+          "gitHead": "2ece475553e843c59a291339231f6c1866fab4db",
+          "integrity": "sha512-zAlwr5x9xytaflmZiZWl/ZhlSf+lZzeJG+Hexa7Buf7cvEhHPfSITy4NNk0+qnMXKooQidikBmypShDsj2jAdg==",
+          "publishedAt": "2021-05-11T18:06:09.683Z"
+        },
+        "6.1.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.1.0",
+            "@pixi/core": "6.1.0",
+            "@pixi/math": "6.1.0",
+            "@pixi/mesh": "6.1.0",
+            "@pixi/text": "6.1.0",
+            "@pixi/utils": "6.1.0",
+            "@pixi/runner": "6.1.0",
+            "@pixi/sprite": "6.1.0",
+            "@pixi/ticker": "6.1.0",
+            "@pixi/display": "6.1.0",
+            "@pixi/extract": "6.1.0",
+            "@pixi/loaders": "6.1.0",
+            "@pixi/prepare": "6.1.0",
+            "@pixi/graphics": "6.1.0",
+            "@pixi/polyfill": "6.1.0",
+            "@pixi/settings": "6.1.0",
+            "@pixi/constants": "6.1.0",
+            "@pixi/filter-blur": "6.1.0",
+            "@pixi/filter-fxaa": "6.1.0",
+            "@pixi/interaction": "6.1.0",
+            "@pixi/mesh-extras": "6.1.0",
+            "@pixi/spritesheet": "6.1.0",
+            "@pixi/text-bitmap": "6.1.0",
+            "@pixi/filter-alpha": "6.1.0",
+            "@pixi/filter-noise": "6.1.0",
+            "@pixi/accessibility": "6.1.0",
+            "@pixi/sprite-tiling": "6.1.0",
+            "@pixi/sprite-animated": "6.1.0",
+            "@pixi/particle-container": "6.1.0",
+            "@pixi/compressed-textures": "6.1.0",
+            "@pixi/filter-color-matrix": "6.1.0",
+            "@pixi/filter-displacement": "6.1.0",
+            "@pixi/mixin-cache-as-bitmap": "6.1.0",
+            "@pixi/mixin-get-child-by-name": "6.1.0",
+            "@pixi/mixin-get-global-position": "6.1.0"
+          },
+          "gitHead": "55da4f04b3d5dba4a0f507550d25cb6335d975fa",
+          "integrity": "sha512-uBcM3wivcLq7CPwLGkcyGscsvRST4TcXSlgXaH46P6mxNnJoDgVJtEYwYP+5H9g7b96ZBo5We6lddO+mmz7cXw==",
+          "publishedAt": "2021-08-02T16:17:26.479Z"
+        },
+        "6.1.3": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.1.3",
+            "@pixi/core": "6.1.3",
+            "@pixi/math": "6.1.3",
+            "@pixi/mesh": "6.1.3",
+            "@pixi/text": "6.1.3",
+            "@pixi/utils": "6.1.3",
+            "@pixi/runner": "6.1.3",
+            "@pixi/sprite": "6.1.3",
+            "@pixi/ticker": "6.1.3",
+            "@pixi/display": "6.1.3",
+            "@pixi/extract": "6.1.3",
+            "@pixi/loaders": "6.1.3",
+            "@pixi/prepare": "6.1.3",
+            "@pixi/graphics": "6.1.3",
+            "@pixi/polyfill": "6.1.3",
+            "@pixi/settings": "6.1.3",
+            "@pixi/constants": "6.1.3",
+            "@pixi/filter-blur": "6.1.3",
+            "@pixi/filter-fxaa": "6.1.3",
+            "@pixi/interaction": "6.1.3",
+            "@pixi/mesh-extras": "6.1.3",
+            "@pixi/spritesheet": "6.1.3",
+            "@pixi/text-bitmap": "6.1.3",
+            "@pixi/filter-alpha": "6.1.3",
+            "@pixi/filter-noise": "6.1.3",
+            "@pixi/accessibility": "6.1.3",
+            "@pixi/sprite-tiling": "6.1.3",
+            "@pixi/sprite-animated": "6.1.3",
+            "@pixi/particle-container": "6.1.3",
+            "@pixi/compressed-textures": "6.1.3",
+            "@pixi/filter-color-matrix": "6.1.3",
+            "@pixi/filter-displacement": "6.1.3",
+            "@pixi/mixin-cache-as-bitmap": "6.1.3",
+            "@pixi/mixin-get-child-by-name": "6.1.3",
+            "@pixi/mixin-get-global-position": "6.1.3"
+          },
+          "gitHead": "2342b551124751206078602eb0e4408df230923e",
+          "integrity": "sha512-h8Y/YVgP4CSPoUQvXaQvQf5GyQxi0b1NtVD38bZQsrX4CQ3r85jBU+zPyHN0fAcvhCB+nNvdD2sEwhhqkNsuSw==",
+          "publishedAt": "2021-09-13T15:39:48.899Z"
+        },
+        "6.2.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.2.0",
+            "@pixi/core": "6.2.0",
+            "@pixi/math": "6.2.0",
+            "@pixi/mesh": "6.2.0",
+            "@pixi/text": "6.2.0",
+            "@pixi/utils": "6.2.0",
+            "@pixi/runner": "6.2.0",
+            "@pixi/sprite": "6.2.0",
+            "@pixi/ticker": "6.2.0",
+            "@pixi/display": "6.2.0",
+            "@pixi/extract": "6.2.0",
+            "@pixi/loaders": "6.2.0",
+            "@pixi/prepare": "6.2.0",
+            "@pixi/graphics": "6.2.0",
+            "@pixi/polyfill": "6.2.0",
+            "@pixi/settings": "6.2.0",
+            "@pixi/constants": "6.2.0",
+            "@pixi/filter-blur": "6.2.0",
+            "@pixi/filter-fxaa": "6.2.0",
+            "@pixi/interaction": "6.2.0",
+            "@pixi/mesh-extras": "6.2.0",
+            "@pixi/spritesheet": "6.2.0",
+            "@pixi/text-bitmap": "6.2.0",
+            "@pixi/filter-alpha": "6.2.0",
+            "@pixi/filter-noise": "6.2.0",
+            "@pixi/accessibility": "6.2.0",
+            "@pixi/sprite-tiling": "6.2.0",
+            "@pixi/sprite-animated": "6.2.0",
+            "@pixi/particle-container": "6.2.0",
+            "@pixi/compressed-textures": "6.2.0",
+            "@pixi/filter-color-matrix": "6.2.0",
+            "@pixi/filter-displacement": "6.2.0",
+            "@pixi/mixin-cache-as-bitmap": "6.2.0",
+            "@pixi/mixin-get-child-by-name": "6.2.0",
+            "@pixi/mixin-get-global-position": "6.2.0"
+          },
+          "gitHead": "793f21c0d0f2d2a423bd4339f40a569e1ea68711",
+          "integrity": "sha512-EJtbnN8N+w7MG89UICGrgC/+0KJojkNYSgVNwXG2UwP7k0k0AVOoy2b/0uRGllh6HI87ax5yDQe+NIjjhisFrA==",
+          "publishedAt": "2021-11-01T17:02:12.788Z"
+        },
+        "6.2.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.2.2",
+            "@pixi/core": "6.2.2",
+            "@pixi/math": "6.2.2",
+            "@pixi/mesh": "6.2.2",
+            "@pixi/text": "6.2.2",
+            "@pixi/utils": "6.2.2",
+            "@pixi/runner": "6.2.2",
+            "@pixi/sprite": "6.2.2",
+            "@pixi/ticker": "6.2.2",
+            "@pixi/display": "6.2.2",
+            "@pixi/extract": "6.2.2",
+            "@pixi/loaders": "6.2.2",
+            "@pixi/prepare": "6.2.2",
+            "@pixi/graphics": "6.2.2",
+            "@pixi/polyfill": "6.2.2",
+            "@pixi/settings": "6.2.2",
+            "@pixi/constants": "6.2.2",
+            "@pixi/filter-blur": "6.2.2",
+            "@pixi/filter-fxaa": "6.2.2",
+            "@pixi/interaction": "6.2.2",
+            "@pixi/mesh-extras": "6.2.2",
+            "@pixi/spritesheet": "6.2.2",
+            "@pixi/text-bitmap": "6.2.2",
+            "@pixi/filter-alpha": "6.2.2",
+            "@pixi/filter-noise": "6.2.2",
+            "@pixi/accessibility": "6.2.2",
+            "@pixi/sprite-tiling": "6.2.2",
+            "@pixi/sprite-animated": "6.2.2",
+            "@pixi/particle-container": "6.2.2",
+            "@pixi/compressed-textures": "6.2.2",
+            "@pixi/filter-color-matrix": "6.2.2",
+            "@pixi/filter-displacement": "6.2.2",
+            "@pixi/mixin-cache-as-bitmap": "6.2.2",
+            "@pixi/mixin-get-child-by-name": "6.2.2",
+            "@pixi/mixin-get-global-position": "6.2.2"
+          },
+          "gitHead": "23c4599ad83dbb128d71a1010aa6c4fb96779270",
+          "integrity": "sha512-/xCnJUsWTZuacR6JYTnRbUb+5grzlqpp2O1Ub7bCZCE3FApTCs7nMNYeLfdeP+np/MlGaM+SsPh2cXcafR3OZw==",
+          "publishedAt": "2022-01-26T16:31:32.177Z"
+        },
+        "6.3.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.3.0",
+            "@pixi/core": "6.3.0",
+            "@pixi/math": "6.3.0",
+            "@pixi/mesh": "6.3.0",
+            "@pixi/text": "6.3.0",
+            "@pixi/utils": "6.3.0",
+            "@pixi/runner": "6.3.0",
+            "@pixi/sprite": "6.3.0",
+            "@pixi/ticker": "6.3.0",
+            "@pixi/display": "6.3.0",
+            "@pixi/extract": "6.3.0",
+            "@pixi/loaders": "6.3.0",
+            "@pixi/prepare": "6.3.0",
+            "@pixi/graphics": "6.3.0",
+            "@pixi/polyfill": "6.3.0",
+            "@pixi/settings": "6.3.0",
+            "@pixi/constants": "6.3.0",
+            "@pixi/filter-blur": "6.3.0",
+            "@pixi/filter-fxaa": "6.3.0",
+            "@pixi/interaction": "6.3.0",
+            "@pixi/mesh-extras": "6.3.0",
+            "@pixi/spritesheet": "6.3.0",
+            "@pixi/text-bitmap": "6.3.0",
+            "@pixi/filter-alpha": "6.3.0",
+            "@pixi/filter-noise": "6.3.0",
+            "@pixi/accessibility": "6.3.0",
+            "@pixi/sprite-tiling": "6.3.0",
+            "@pixi/sprite-animated": "6.3.0",
+            "@pixi/particle-container": "6.3.0",
+            "@pixi/compressed-textures": "6.3.0",
+            "@pixi/filter-color-matrix": "6.3.0",
+            "@pixi/filter-displacement": "6.3.0",
+            "@pixi/mixin-cache-as-bitmap": "6.3.0",
+            "@pixi/mixin-get-child-by-name": "6.3.0",
+            "@pixi/mixin-get-global-position": "6.3.0"
+          },
+          "gitHead": "dc311cdd7a28e6817556cdc674fd15ef71069467",
+          "integrity": "sha512-ayOmVagMSa5lPVvznDf2e4EppwzPEDnB/q3AYdjTM9Ksw+JKT3lbLuZFo/6U0HNYF9DsJRJL/4ebReZh1hnqLQ==",
+          "publishedAt": "2022-03-23T19:08:58.695Z"
+        },
+        "6.3.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.3.2",
+            "@pixi/core": "6.3.2",
+            "@pixi/math": "6.3.2",
+            "@pixi/mesh": "6.3.2",
+            "@pixi/text": "6.3.2",
+            "@pixi/utils": "6.3.2",
+            "@pixi/runner": "6.3.2",
+            "@pixi/sprite": "6.3.2",
+            "@pixi/ticker": "6.3.2",
+            "@pixi/display": "6.3.2",
+            "@pixi/extract": "6.3.2",
+            "@pixi/loaders": "6.3.2",
+            "@pixi/prepare": "6.3.2",
+            "@pixi/graphics": "6.3.2",
+            "@pixi/polyfill": "6.3.2",
+            "@pixi/settings": "6.3.2",
+            "@pixi/constants": "6.3.2",
+            "@pixi/filter-blur": "6.3.2",
+            "@pixi/filter-fxaa": "6.3.2",
+            "@pixi/interaction": "6.3.2",
+            "@pixi/mesh-extras": "6.3.2",
+            "@pixi/spritesheet": "6.3.2",
+            "@pixi/text-bitmap": "6.3.2",
+            "@pixi/filter-alpha": "6.3.2",
+            "@pixi/filter-noise": "6.3.2",
+            "@pixi/accessibility": "6.3.2",
+            "@pixi/sprite-tiling": "6.3.2",
+            "@pixi/sprite-animated": "6.3.2",
+            "@pixi/particle-container": "6.3.2",
+            "@pixi/compressed-textures": "6.3.2",
+            "@pixi/filter-color-matrix": "6.3.2",
+            "@pixi/filter-displacement": "6.3.2",
+            "@pixi/mixin-cache-as-bitmap": "6.3.2",
+            "@pixi/mixin-get-child-by-name": "6.3.2",
+            "@pixi/mixin-get-global-position": "6.3.2"
+          },
+          "gitHead": "87031295631dcd7db3e24b99ed7ceb2c4f963a40",
+          "integrity": "sha512-XEF59IQRouXCkTSCwNrNvr08/FY3Dai4lwNdrgh5SLeS4Hmn+lNURq2auM+4lYPfsXtQdpZNdJ5iYrFwP41JvA==",
+          "publishedAt": "2022-05-04T18:04:09.669Z"
+        },
+        "6.4.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.4.0",
+            "@pixi/core": "6.4.0",
+            "@pixi/math": "6.4.0",
+            "@pixi/mesh": "6.4.0",
+            "@pixi/text": "6.4.0",
+            "@pixi/utils": "6.4.0",
+            "@pixi/runner": "6.4.0",
+            "@pixi/sprite": "6.4.0",
+            "@pixi/ticker": "6.4.0",
+            "@pixi/display": "6.4.0",
+            "@pixi/extract": "6.4.0",
+            "@pixi/loaders": "6.4.0",
+            "@pixi/prepare": "6.4.0",
+            "@pixi/graphics": "6.4.0",
+            "@pixi/polyfill": "6.4.0",
+            "@pixi/settings": "6.4.0",
+            "@pixi/constants": "6.4.0",
+            "@pixi/filter-blur": "6.4.0",
+            "@pixi/filter-fxaa": "6.4.0",
+            "@pixi/interaction": "6.4.0",
+            "@pixi/mesh-extras": "6.4.0",
+            "@pixi/spritesheet": "6.4.0",
+            "@pixi/text-bitmap": "6.4.0",
+            "@pixi/filter-alpha": "6.4.0",
+            "@pixi/filter-noise": "6.4.0",
+            "@pixi/accessibility": "6.4.0",
+            "@pixi/sprite-tiling": "6.4.0",
+            "@pixi/sprite-animated": "6.4.0",
+            "@pixi/particle-container": "6.4.0",
+            "@pixi/compressed-textures": "6.4.0",
+            "@pixi/filter-color-matrix": "6.4.0",
+            "@pixi/filter-displacement": "6.4.0",
+            "@pixi/mixin-cache-as-bitmap": "6.4.0",
+            "@pixi/mixin-get-child-by-name": "6.4.0",
+            "@pixi/mixin-get-global-position": "6.4.0"
+          },
+          "gitHead": "e7eaa713b6e0eeb335e90384aec778f5c99c60d5",
+          "integrity": "sha512-lQA37rTvs08c1TOU46OGZsEUQ4QCHD9AkyXh5xnDzDaS1GvzjohT50XbGHcieUHmvjUopg3Ew4Jc2En4k/520A==",
+          "publishedAt": "2022-06-01T21:26:53.790Z"
+        },
+        "6.4.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.4.2",
+            "@pixi/core": "6.4.2",
+            "@pixi/math": "6.4.2",
+            "@pixi/mesh": "6.4.2",
+            "@pixi/text": "6.4.2",
+            "@pixi/utils": "6.4.2",
+            "@pixi/runner": "6.4.2",
+            "@pixi/sprite": "6.4.2",
+            "@pixi/ticker": "6.4.2",
+            "@pixi/display": "6.4.2",
+            "@pixi/extract": "6.4.2",
+            "@pixi/loaders": "6.4.2",
+            "@pixi/prepare": "6.4.2",
+            "@pixi/graphics": "6.4.2",
+            "@pixi/polyfill": "6.4.2",
+            "@pixi/settings": "6.4.2",
+            "@pixi/constants": "6.4.2",
+            "@pixi/filter-blur": "6.4.2",
+            "@pixi/filter-fxaa": "6.4.2",
+            "@pixi/interaction": "6.4.2",
+            "@pixi/mesh-extras": "6.4.2",
+            "@pixi/spritesheet": "6.4.2",
+            "@pixi/text-bitmap": "6.4.2",
+            "@pixi/filter-alpha": "6.4.2",
+            "@pixi/filter-noise": "6.4.2",
+            "@pixi/accessibility": "6.4.2",
+            "@pixi/sprite-tiling": "6.4.2",
+            "@pixi/sprite-animated": "6.4.2",
+            "@pixi/particle-container": "6.4.2",
+            "@pixi/compressed-textures": "6.4.2",
+            "@pixi/filter-color-matrix": "6.4.2",
+            "@pixi/filter-displacement": "6.4.2",
+            "@pixi/mixin-cache-as-bitmap": "6.4.2",
+            "@pixi/mixin-get-child-by-name": "6.4.2",
+            "@pixi/mixin-get-global-position": "6.4.2"
+          },
+          "gitHead": "a87bb87036d5fb9119ee92fd9c3da23b5bb9424b",
+          "integrity": "sha512-8fjWgBfuSinIz0J5qXdsz10KAeDYyaa8XOcp4E1f+ug5ckE5rTPCcrSwQ8LNWA/YpdJ5irGOjv0rEA4sOcWVeQ==",
+          "publishedAt": "2022-06-02T15:53:42.141Z"
+        },
+        "6.5.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.5.0",
+            "@pixi/core": "6.5.0",
+            "@pixi/math": "6.5.0",
+            "@pixi/mesh": "6.5.0",
+            "@pixi/text": "6.5.0",
+            "@pixi/utils": "6.5.0",
+            "@pixi/runner": "6.5.0",
+            "@pixi/sprite": "6.5.0",
+            "@pixi/ticker": "6.5.0",
+            "@pixi/display": "6.5.0",
+            "@pixi/extract": "6.5.0",
+            "@pixi/loaders": "6.5.0",
+            "@pixi/prepare": "6.5.0",
+            "@pixi/graphics": "6.5.0",
+            "@pixi/polyfill": "6.5.0",
+            "@pixi/settings": "6.5.0",
+            "@pixi/constants": "6.5.0",
+            "@pixi/filter-blur": "6.5.0",
+            "@pixi/filter-fxaa": "6.5.0",
+            "@pixi/interaction": "6.5.0",
+            "@pixi/mesh-extras": "6.5.0",
+            "@pixi/spritesheet": "6.5.0",
+            "@pixi/text-bitmap": "6.5.0",
+            "@pixi/filter-alpha": "6.5.0",
+            "@pixi/filter-noise": "6.5.0",
+            "@pixi/accessibility": "6.5.0",
+            "@pixi/sprite-tiling": "6.5.0",
+            "@pixi/sprite-animated": "6.5.0",
+            "@pixi/particle-container": "6.5.0",
+            "@pixi/compressed-textures": "6.5.0",
+            "@pixi/filter-color-matrix": "6.5.0",
+            "@pixi/filter-displacement": "6.5.0",
+            "@pixi/mixin-cache-as-bitmap": "6.5.0",
+            "@pixi/mixin-get-child-by-name": "6.5.0",
+            "@pixi/mixin-get-global-position": "6.5.0"
+          },
+          "gitHead": "63b9f0c48521d739e7758fc8ecab337b00ff64fc",
+          "integrity": "sha512-6xTlLnLYyLzSwWiz9IyATajDdduiuTbEEio6c5ojNS0Pzr6PbQWDpRPJ/+6+oF9Ek7chNN2V91cYM0vAUbeLhA==",
+          "publishedAt": "2022-07-22T18:56:53.603Z"
+        },
+        "6.5.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.5.1",
+            "@pixi/core": "6.5.1",
+            "@pixi/math": "6.5.1",
+            "@pixi/mesh": "6.5.1",
+            "@pixi/text": "6.5.1",
+            "@pixi/utils": "6.5.1",
+            "@pixi/runner": "6.5.1",
+            "@pixi/sprite": "6.5.1",
+            "@pixi/ticker": "6.5.1",
+            "@pixi/display": "6.5.1",
+            "@pixi/extract": "6.5.1",
+            "@pixi/loaders": "6.5.1",
+            "@pixi/prepare": "6.5.1",
+            "@pixi/graphics": "6.5.1",
+            "@pixi/polyfill": "6.5.1",
+            "@pixi/settings": "6.5.1",
+            "@pixi/constants": "6.5.1",
+            "@pixi/extensions": "6.5.1",
+            "@pixi/filter-blur": "6.5.1",
+            "@pixi/filter-fxaa": "6.5.1",
+            "@pixi/interaction": "6.5.1",
+            "@pixi/mesh-extras": "6.5.1",
+            "@pixi/spritesheet": "6.5.1",
+            "@pixi/text-bitmap": "6.5.1",
+            "@pixi/filter-alpha": "6.5.1",
+            "@pixi/filter-noise": "6.5.1",
+            "@pixi/accessibility": "6.5.1",
+            "@pixi/sprite-tiling": "6.5.1",
+            "@pixi/sprite-animated": "6.5.1",
+            "@pixi/particle-container": "6.5.1",
+            "@pixi/compressed-textures": "6.5.1",
+            "@pixi/filter-color-matrix": "6.5.1",
+            "@pixi/filter-displacement": "6.5.1",
+            "@pixi/mixin-cache-as-bitmap": "6.5.1",
+            "@pixi/mixin-get-child-by-name": "6.5.1",
+            "@pixi/mixin-get-global-position": "6.5.1"
+          },
+          "gitHead": "a344b58dc859e3a60f75d2dc95b7d45180c766d8",
+          "integrity": "sha512-6oW67mBPRuuNuyO+kaVKbbYjgcurm60J0PMw57y20RAefvYGqiV7vCmcizJF9jgmHhmeMJI/bXst+Vu3GQuh5w==",
+          "publishedAt": "2022-07-24T21:08:27.417Z"
+        },
+        "6.5.10": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "6.5.10",
+            "@pixi/core": "6.5.10",
+            "@pixi/math": "6.5.10",
+            "@pixi/mesh": "6.5.10",
+            "@pixi/text": "6.5.10",
+            "@pixi/utils": "6.5.10",
+            "@pixi/runner": "6.5.10",
+            "@pixi/sprite": "6.5.10",
+            "@pixi/ticker": "6.5.10",
+            "@pixi/display": "6.5.10",
+            "@pixi/extract": "6.5.10",
+            "@pixi/loaders": "6.5.10",
+            "@pixi/prepare": "6.5.10",
+            "@pixi/graphics": "6.5.10",
+            "@pixi/polyfill": "6.5.10",
+            "@pixi/settings": "6.5.10",
+            "@pixi/constants": "6.5.10",
+            "@pixi/extensions": "6.5.10",
+            "@pixi/filter-blur": "6.5.10",
+            "@pixi/filter-fxaa": "6.5.10",
+            "@pixi/interaction": "6.5.10",
+            "@pixi/mesh-extras": "6.5.10",
+            "@pixi/spritesheet": "6.5.10",
+            "@pixi/text-bitmap": "6.5.10",
+            "@pixi/filter-alpha": "6.5.10",
+            "@pixi/filter-noise": "6.5.10",
+            "@pixi/accessibility": "6.5.10",
+            "@pixi/sprite-tiling": "6.5.10",
+            "@pixi/sprite-animated": "6.5.10",
+            "@pixi/particle-container": "6.5.10",
+            "@pixi/compressed-textures": "6.5.10",
+            "@pixi/filter-color-matrix": "6.5.10",
+            "@pixi/filter-displacement": "6.5.10",
+            "@pixi/mixin-cache-as-bitmap": "6.5.10",
+            "@pixi/mixin-get-child-by-name": "6.5.10",
+            "@pixi/mixin-get-global-position": "6.5.10"
+          },
+          "gitHead": "8cdbf55064b7adc05f65c51e177f1c22f7329f0f",
+          "integrity": "sha512-Z2mjeoISml2iuVwT1e/BQwERYM2yKoiR08ZdGrg8y5JjeuVptfTrve4DbPMRN/kEDodesgQZGV/pFv0fE9Q2SA==",
+          "publishedAt": "2023-07-06T15:35:20.130Z"
+        }
+      }
+    },
+    "react": {
+      "source": "https://registry.npmjs.org/react",
+      "selected": {
+        "17.0.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-rG9bqS3LMuetoSUKHN8G3fMNuQOePKDThK6+2yXFWtoeTDLVNh/QCaxT+Jr+rNf4lwNXpx+atdn3Aa0oi8/6eQ==",
+          "publishedAt": "2020-10-20T20:11:47.327Z"
+        },
+        "17.0.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-lG9c9UuMHdcAexXtigOZLX8exLWkW0Ku29qPRU8uhF2R9BN96dLCt0psvzPLlHc5OWkgymP3qwTRgbnw5BKx3w==",
+          "publishedAt": "2020-10-22T12:21:45.340Z"
+        },
+        "17.0.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==",
+          "publishedAt": "2021-03-22T21:56:19.536Z"
+        }
+      }
+    },
+    "react-reconciler": {
+      "source": "https://registry.npmjs.org/react-reconciler",
+      "selected": {
+        "0.26.0": {
+          "peerDependencies": {
+            "react": "^17.0.0"
+          },
+          "dependencies": {
+            "scheduler": "^0.20.0",
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-n2FJE9vPSiZ0Dn/jaV/iOAO6rXepnk74QGRcgwPSgmN/2syUJnbfEz7Bw5yodBfJhjA3L7cu1YdImYISTj4KZQ==",
+          "publishedAt": "2020-10-20T20:14:50.832Z"
+        },
+        "0.26.1": {
+          "peerDependencies": {
+            "react": "^17.0.1"
+          },
+          "dependencies": {
+            "scheduler": "^0.20.1",
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-6E/CvH9zcDmHjhiNJlP0qJ8+3ufnY2b5RWs774Uy8XKWN0l6qfnlkz0XnDacxqj2rbJdq76w9dlFXjPPOQrmqA==",
+          "publishedAt": "2020-10-22T12:22:09.079Z"
+        },
+        "0.26.2": {
+          "peerDependencies": {
+            "react": "^17.0.2"
+          },
+          "dependencies": {
+            "scheduler": "^0.20.2",
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-nK6kgY28HwrMNwDnMui3dvm3rCFjZrcGiuwLc5COUipBK5hWHLOxMJhSnSomirqWwjPBJKV1QcbkI0VJr7Gl1Q==",
+          "publishedAt": "2021-03-22T21:57:38.069Z"
+        }
+      }
+    },
+    "scheduler": {
+      "source": "https://registry.npmjs.org/scheduler",
+      "selected": {
+        "0.20.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-XegIgta1bIaz2LdaL6eg1GEcE42g0BY9qFXCqlZ/+s2MuEKfigFCW6DEGBlZzeVFlwDmVusrWEyFtBo4sbkkdA==",
+          "publishedAt": "2020-10-20T20:09:04.343Z"
+        },
+        "0.20.1": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-LKTe+2xNJBNxu/QhHvDR14wUXHRQbVY5ZOYpOGWRzhydZUqrLb2JBvLPY7cAqFmqrWuDED0Mjk7013SZiOz6Bw==",
+          "publishedAt": "2020-10-22T12:22:19.306Z"
+        },
+        "0.20.2": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "gitHead": {},
+          "integrity": "sha512-2eWfGgAqqWFGqtdMmcL5zCMK1U8KlXv8SQFGglL3CEtd0aDVDWgeF/YoCmvln55m5zSk3J/20hTaSBeSObsQDQ==",
+          "publishedAt": "2021-03-22T21:56:00.627Z"
+        }
+      }
+    },
+    "typescript": {
+      "source": "https://registry.npmjs.org/typescript",
+      "selected": {
+        "5.6.3": {
+          "peerDependencies": {},
+          "dependencies": {},
+          "gitHead": "d48a5cf89a62a62d6c6ed53ffa18f070d9458b85",
+          "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==",
+          "publishedAt": "2024-10-08T22:01:09.783Z"
+        }
+      }
+    }
+  },
+  "probes": [
+    {
+      "id": "react-17.0.0-bridge-1.2.0",
+      "kind": "react",
+      "runtime": "react17.mjs",
+      "typeFiles": [
+        "react17.tsx"
+      ],
+      "packages": {
+        "react": "17.0.0",
+        "react-reconciler": "0.26.0",
+        "scheduler": "0.20.0",
+        "its-fine": "1.2.0",
+        "@types/react": "17.0.93",
+        "@types/react-reconciler": "0.26.7",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-17.0.0-bridge-1.2.2",
+      "kind": "react",
+      "runtime": "react17.mjs",
+      "typeFiles": [
+        "react17.tsx"
+      ],
+      "packages": {
+        "react": "17.0.0",
+        "react-reconciler": "0.26.0",
+        "scheduler": "0.20.0",
+        "its-fine": "1.2.2",
+        "@types/react": "17.0.93",
+        "@types/react-reconciler": "0.26.7",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-17.0.1-bridge-1.2.0",
+      "kind": "react",
+      "runtime": "react17.mjs",
+      "typeFiles": [
+        "react17.tsx"
+      ],
+      "packages": {
+        "react": "17.0.1",
+        "react-reconciler": "0.26.1",
+        "scheduler": "0.20.1",
+        "its-fine": "1.2.0",
+        "@types/react": "17.0.93",
+        "@types/react-reconciler": "0.26.7",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-17.0.1-bridge-1.2.2",
+      "kind": "react",
+      "runtime": "react17.mjs",
+      "typeFiles": [
+        "react17.tsx"
+      ],
+      "packages": {
+        "react": "17.0.1",
+        "react-reconciler": "0.26.1",
+        "scheduler": "0.20.1",
+        "its-fine": "1.2.2",
+        "@types/react": "17.0.93",
+        "@types/react-reconciler": "0.26.7",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-17.0.2-bridge-1.2.0",
+      "kind": "react",
+      "runtime": "react17.mjs",
+      "typeFiles": [
+        "react17.tsx"
+      ],
+      "packages": {
+        "react": "17.0.2",
+        "react-reconciler": "0.26.2",
+        "scheduler": "0.20.2",
+        "its-fine": "1.2.0",
+        "@types/react": "17.0.93",
+        "@types/react-reconciler": "0.26.7",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "react-17.0.2-bridge-1.2.2",
+      "kind": "react",
+      "runtime": "react17.mjs",
+      "typeFiles": [
+        "react17.tsx"
+      ],
+      "packages": {
+        "react": "17.0.2",
+        "react-reconciler": "0.26.2",
+        "scheduler": "0.20.2",
+        "its-fine": "1.2.2",
+        "@types/react": "17.0.93",
+        "@types/react-reconciler": "0.26.7",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.0.0",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.0.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.0.4",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.0.4",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.1.0",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.1.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.1.3",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.1.3",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.2.0",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.2.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.2.2",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.2.2",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.3.0",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.3.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.3.2",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.3.2",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.4.0",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.4.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.4.2",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.4.2",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.5.0",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.5.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.5.1",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.5.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.5.10",
+      "kind": "pixi",
+      "runtime": "pixi6.mjs",
+      "typeFiles": [
+        "pixi6.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/app",
+        "@pixi/display",
+        "@pixi/sprite",
+        "@pixi/text",
+        "@pixi/ticker",
+        "@pixi/interaction",
+        "@pixi/particle-container",
+        "@pixi/core"
+      ],
+      "packages": {
+        "pixi.js": "6.5.10",
+        "typescript": "5.6.3"
+      }
+    }
+  ],
+  "knownFailures": [
+    {
+      "id": "pixi-6.4.0-node-exports",
+      "tupleId": "pixi-6.4.0",
+      "expectedRuntimeExit": 1,
+      "signature": "TypeError: isMobileCall is not a function"
+    },
+    {
+      "id": "pixi-6.4.2-node-exports",
+      "tupleId": "pixi-6.4.2",
+      "expectedRuntimeExit": 1,
+      "signature": "TypeError: isMobileCall is not a function"
+    }
+  ]
+}

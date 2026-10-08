@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const read = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url)));
-const seed = read('seed.json');
+const historical = process.argv[2] === '--historical';
+const seed = read(historical ? 'historical-seed.json' : 'seed.json');
 const evidence = read(seed.evidence);
 const nonemptyObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0;
 const strings = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string');
@@ -76,6 +77,17 @@ for (const failure of seed.knownFailures)
         assert.ok(row.failure?.includes(failure.signature), failure.id);
     }
 }
-for (let minor = 2; minor <= 22; minor++) assert.ok(seed.probes.some((p) => p.packages['pixi.js']?.startsWith(`8.${minor}.`)));
-for (let minor = 0; minor <= 3; minor++) assert.ok(seed.probes.some((p) => p.packages.react?.startsWith(`19.${minor}.`)));
+if (historical)
+{
+    for (const version of ['17.0.0', '17.0.1', '17.0.2'])
+        for (const bridge of ['1.2.0', '1.2.2'])
+            assert.ok(seed.probes.some((p) => p.packages.react === version && p.packages['its-fine'] === bridge));
+    for (const version of ['6.0.0', '6.0.4', '6.1.0', '6.1.3', '6.2.0', '6.2.2', '6.3.0', '6.3.2', '6.4.0', '6.4.2', '6.5.0', '6.5.1', '6.5.10'])
+        assert.ok(seed.probes.some((p) => p.packages['pixi.js'] === version));
+}
+else
+{
+    for (let minor = 2; minor <= 22; minor++) assert.ok(seed.probes.some((p) => p.packages['pixi.js']?.startsWith(`8.${minor}.`)));
+    for (let minor = 0; minor <= 3; minor++) assert.ok(seed.probes.some((p) => p.packages.react?.startsWith(`19.${minor}.`)));
+}
 process.stdout.write(`Validated ${seed.probes.length} exact tuples; known failures remain excluded from certification.\n`);

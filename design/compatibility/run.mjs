@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 const here = dirname(fileURLToPath(import.meta.url));
-const manifest = JSON.parse(readFileSync(join(here, 'seed.json')));
+const manifest = JSON.parse(readFileSync(process.env.AUDIT_MANIFEST || join(here, 'seed.json')));
 const root = process.env.AUDIT_WORKDIR || mkdtempSync(join(tmpdir(), 'pixi-version-audit-'));
 mkdirSync(root, { recursive: true });
 const results = [];
@@ -26,22 +26,23 @@ for (const tuple of manifest.probes.filter(t => !filter || t.id.includes(filter)
     const install = reuse ? { status: 0, reused: true } : run('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--cache', process.env.AUDIT_NPM_CACHE || join(root, 'cache')]);
     const row = { id: tuple.id, packages: tuple.packages, workdir: realpathSync(cwd), install, certification: 'not-certified' };
     if (install.status === 0) {
-        for (const name of [`${tuple.kind}.mjs`, `${tuple.kind}.tsx`]) copyFileSync(join(here, name), join(cwd, name));
-        const typeFiles = [`${tuple.kind}.tsx`];
+        const runtime = tuple.runtime || `${tuple.kind}.mjs`;
+        const typeFiles = tuple.typeFiles ? [...tuple.typeFiles] : [`${tuple.kind}.tsx`];
+        for (const name of [runtime, ...typeFiles]) copyFileSync(join(here, name), join(cwd, name));
         const [major, minor] = (tuple.packages.react || tuple.packages['pixi.js']).split('.').map(Number);
-        const extras = tuple.kind === 'pixi' ? [major === 7 ? 'pixi7.tsx' : 'pixi8.tsx', ...(major === 8 && minor >= 5 ? ['particle.tsx'] : [])] : major === 19 ? ['react19.tsx', ...(minor >= 2 ? ['react192.tsx'] : []), ...(minor >= 3 ? ['react193.tsx'] : [])] : [];
+        const extras = tuple.typeFiles ? [] : tuple.kind === 'pixi' ? [major === 7 ? 'pixi7.tsx' : 'pixi8.tsx', ...(major === 8 && minor >= 5 ? ['particle.tsx'] : [])] : major === 19 ? ['react19.tsx', ...(minor >= 2 ? ['react192.tsx'] : []), ...(minor >= 3 ? ['react193.tsx'] : [])] : [];
         for (const file of extras) { copyFileSync(join(here, file), join(cwd, file)); typeFiles.push(file); }
         writeFileSync(join(cwd, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true, noEmit: true, skipLibCheck: true, target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext', jsx: 'react-jsx', lib: ['ES2022', 'DOM'], types: tuple.kind === 'react' ? ['react'] : [] }, files: typeFiles }));
-        row.runtime = run(process.execPath, [`${tuple.kind}.mjs`]);
+        row.runtime = run(process.execPath, [runtime]);
         row.types = run(process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'tsconfig.json']);
         // Keep the actual transitive resolutions/integrities alongside the result.
         row.surfaces = {};
-        const roots = tuple.kind === 'pixi' ? (major === 7 ? ['@pixi/app', '@pixi/display', '@pixi/sprite', '@pixi/text', '@pixi/ticker', '@pixi/events', '@pixi/particle-container', '@pixi/extensions'] : ['pixi.js']) : ['react-reconciler', '@types/react', 'its-fine'];
+        const roots = tuple.surfaceRoots || (tuple.kind === 'pixi' ? (major === 7 ? ['@pixi/app', '@pixi/display', '@pixi/sprite', '@pixi/text', '@pixi/ticker', '@pixi/events', '@pixi/particle-container', '@pixi/extensions'] : ['pixi.js']) : ['react-reconciler', '@types/react', 'its-fine']);
         const scan = dir => {
             for (const entry of readdirSync(dir, { withFileTypes: true })) {
                 const path = join(dir, entry.name);
                 if (entry.isDirectory()) scan(path);
-                else if (/\.(d\.ts|mjs|js)$/.test(path) && !path.endsWith('.production.js') && (/Application|Container|Particle|Ticker|Federated|Extension|Sprite|Text|global/.test(path) || tuple.kind === 'react' && /index\.d\.ts$|react-reconciler.development.js$|its-fine.*index.js$/.test(path))) {
+                else if (/\.(d\.ts|mjs|js)$/.test(path) && !path.endsWith('.production.js') && (tuple.surfaceRoots && path.endsWith('index.d.ts') || /Application|Container|Particle|Ticker|Federated|Extension|Sprite|Text|global/.test(path) || tuple.kind === 'react' && /index\.d\.ts$|react-reconciler.development.js$|its-fine.*index.js$/.test(path))) {
                     const text = readFileSync(path, 'utf8');
                     row.surfaces[path.slice(join(cwd, 'node_modules').length + 1)] = { sha256: createHash('sha256').update(text).digest('hex'), declarations: path.endsWith('.d.ts') ? text.split('\n').filter(l => /^\s*(constructor\(|(?:init|destroy|addChild|addParticle|removeParticles|removeChildren|updateTransform|on|add|remove|visible|parent|createContainer|Fragment|ViewTransition)[<(?: :])/.test(l)).map(l => l.trim()) : undefined };
                 }
