@@ -12,6 +12,10 @@ const SpriteComponent = renderer.component(Sprite);
 const GraphicsComponent = renderer.component(Graphics);
 const spriteRef = createRef<Sprite>();
 const appRef = createRef<ApplicationRef<Application>>();
+const applied: Sprite = renderer.applyProps<typeof Sprite>(new Sprite(), { x: 10 });
+void applied;
+// @ts-expect-error Explicit constructor type preserves event payloads in applyProps.
+renderer.applyProps<typeof Sprite>(new Sprite(), { onPointerDown: (event: number) => event });
 export function Scene() {
     renderer.useExtend({ Custom });
     const app: Application = renderer.useApplication().app;
