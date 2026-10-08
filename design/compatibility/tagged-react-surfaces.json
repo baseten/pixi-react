@@ -1,11 +1,11 @@
 {
-  "note": "Tagged Flow source includes disabled feature branches; compare installed hostDelta separately. First tagged host is19.0;18 uses installed runtime keys.",
+  "note": "Tagged Flow source includes disabled feature branches; compare installed hostDelta separately. First tagged host is19.0;18 uses installed runtime keys. Published0.33/0.34 omit the feature-gated transitionCallbacks trailing argument; argument10 changes meaning despite runtime arity10.",
   "surfaces": [
     {
       "tag": "v18.3.1",
-      "rootSource": "https://github.com/facebook/react/blob/v18.3.1/packages/react-reconciler/src/ReactFiberReconciler.js",
-      "rootSha256": "49798bb1cc74bd8fed9ba5eae8fc2e481f1029b44951d196a93bef3f724e8bc5",
-      "createContainer": ""
+      "rootSource": "https://github.com/facebook/react/blob/v18.3.1/packages/react-reconciler/src/ReactFiberReconciler.old.js",
+      "rootSha256": "f994f90ba84097f1b27fed9a1c68ac9b25e29c66ca6de8de14b6b9fa6f8f2795",
+      "createContainer": "export function createContainer(\n  containerInfo: Container,\n  tag: RootTag,\n  hydrationCallbacks: null | SuspenseHydrationCallbacks,\n  isStrictMode: boolean,\n  concurrentUpdatesByDefaultOverride: null | boolean,\n  identifierPrefix: string,\n  onRecoverableError: (error: mixed) => void,\n  transitionCallbacks: null | TransitionTracingCallbacks,\n)"
     },
     {
       "tag": "v19.0.0",
