@@ -24,4 +24,6 @@ node design/compatibility/summarize.mjs /tmp/pixi-version-audit/results.json des
 node design/compatibility/validate.mjs
 ```
 
+Failed installs retain their exit status, signal, spawn error, and output in `installDiagnostics`; runtime and type exits are `null` because those probes did not run. Such rows do not participate in boundary deltas and do not pass validation. Run the summarizer regression fixtures without network access with `node --test design/compatibility/summarize.test.mjs`.
+
 For local probe development only, `AUDIT_REUSE_INSTALL=1` reuses a tuple whose installed direct versions still exactly match the seed. The retained lock records the reused transitive graph. The default remains a normal isolated install; a fresh work directory is required when auditing dependency-resolution changes. `tagged-react-surfaces.json` additionally records source fetched from each cited Git tag, rather than treating the published bundle and a feature-flagged source fork as identical.

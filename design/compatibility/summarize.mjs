@@ -1,6 +1,9 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const results = input.results.map(row => {
+    if (row.install.status !== 0) {
+        return { id: row.id, packages: row.packages, certification: row.certification, installExit: row.install.status, installDiagnostics: row.install, runtimeExit: null, typeExit: null, observation: null, resolvedPackages: {}, surfaces: {} };
+    }
     const runtime = row.runtime.stdout.trim().split('\n').findLast(line => line.startsWith('{'));
     const observation = runtime ? JSON.parse(runtime) : null;
     if (observation) delete observation.surfaces;
@@ -10,6 +13,7 @@ const results = input.results.map(row => {
 let previousReact;
 let previousPixi;
 for (const row of results) {
+    if (row.installExit !== 0) continue;
     if (row.packages.react) {
         const keys = row.observation?.hostKeys || [];
         row.hostDelta = { added: keys.filter(k => !previousReact?.includes(k)), removed: (previousReact || []).filter(k => !keys.includes(k)) };
