@@ -292,3 +292,69 @@ test('tracks separate React and Pixi boundary histories when seed tuples interle
 
     assert.equal(result.status, 0, result.stderr);
 });
+
+for (const [id, field, values] of [
+    ['pixi-7.4.2', 'visibleChanged', [null, '0', -1, 0.5]],
+    ['pixi-8.2.6', 'visibleChanged', [undefined, null, '0', -1, 0.5]],
+    ['pixi-8.5.2', 'particleIsContainer', [undefined, null, 'false', 0]],
+    ['pixi-8.10.0', 'removeParticlesDefaultCount', [undefined, null, '1', -1, 0.5]],
+    ['pixi-8.2.6', 'zeroScale', [undefined, null, {}, [], [0], [0, 0, 0], ['0', 0], [0, null]]],
+    ['pixi-8.21.0', 'mirroredTransform', [undefined, null, [], {}, 'invalid']],
+])
+{
+    for (const value of values)
+    {
+        test(`rejects ${id} observation ${field} replaced by ${JSON.stringify(value)}`, (t) =>
+        {
+            const result = validate(t, (evidence) =>
+            {
+                const row = evidence.results.find((r) => r.id === id);
+
+                assert.equal(row.runtimeExit, 0);
+                assert.ok(Object.hasOwn(row.observation.observations, field));
+                if (value === undefined) delete row.observation.observations[field];
+                else row.observation.observations[field] = value;
+            });
+
+            assert.equal(result.status, 1, result.stdout);
+            assert.ok(result.stderr.includes(`${id}: observation.observations.${field}`), result.stderr);
+        });
+    }
+}
+
+for (const field of ['rotation', 'scaleX', 'skewX'])
+{
+    for (const value of [undefined, null, '0'])
+    {
+        test(`rejects mirroredTransform.${field} replaced by ${JSON.stringify(value)}`, (t) =>
+        {
+            const result = validate(t, (evidence) =>
+            {
+                const transform = evidence.results.find((r) => r.id === 'pixi-8.21.0').observation.observations.mirroredTransform;
+
+                assert.ok(Number.isFinite(transform[field]));
+                if (value === undefined) delete transform[field];
+                else transform[field] = value;
+            });
+
+            assert.equal(result.status, 1, result.stdout);
+            assert.ok(result.stderr.includes(`pixi-8.21.0: observation.observations.mirroredTransform.${field}`), result.stderr);
+        });
+    }
+}
+
+test('requires particle observations for a particle-era tuple even with an edited capability flag', (t) =>
+{
+    const result = validate(t, (evidence) =>
+    {
+        const observation = evidence.results.find((r) => r.id === 'pixi-8.10.0').observation;
+
+        assert.equal(observation.capabilities.particle, true);
+        observation.capabilities.particle = false;
+        delete observation.observations.particleIsContainer;
+        delete observation.observations.removeParticlesDefaultCount;
+    });
+
+    assert.equal(result.status, 1, result.stdout);
+    assert.match(result.stderr, /pixi-8.10.0: observation.observations.particleIsContainer/);
+});
