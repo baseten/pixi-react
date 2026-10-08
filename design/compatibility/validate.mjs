@@ -42,6 +42,11 @@ for (const tuple of seed.probes)
         const stdout = row.typeVariants[check.name].stdout;
         const signatures = check.signatures ?? [check.signature];
 
+        if (check.name === 'NodeNext' && tuple.packages['its-fine'])
+        {
+            assert.deepEqual(signatures, ['FiberProvider', 'useContextBridge'].map((name) => `Module '"its-fine"' has no exported member '${name}'.`), `${row.id}: NodeNext its-fine signatures`);
+        }
+
         assert.ok(signatures.every((signature) => typeof signature === 'string' && signature.length > 0), `${row.id}: ${check.name} signatures`);
         for (const signature of signatures) assert.ok(stdout.includes(signature), `${row.id}: ${check.name} diagnostic ${signature}`);
         if (check.signatures)
