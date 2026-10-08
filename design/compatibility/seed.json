@@ -985,6 +985,7 @@
   "probes": [
     {
       "id": "react-18.3.1",
+      "resolvedPackagesSha256": "b864513c44bc4fb94ff29eaca07bdf4cc6ee331627478cac34afc90206e94d37",
       "kind": "react",
       "packages": {
         "react": "18.3.1",
@@ -996,6 +997,7 @@
     },
     {
       "id": "react-19.0.0",
+      "resolvedPackagesSha256": "89875b4b8c8b26c2ee8dbb156d87fded0ea88b387bdc2b214ee2e605b976e39b",
       "kind": "react",
       "packages": {
         "react": "19.0.0",
@@ -1007,6 +1009,7 @@
     },
     {
       "id": "react-19.0.8",
+      "resolvedPackagesSha256": "fabca75c11478023f1307f8f6ef9b1449c4fe0f8c64aa2416b88dee328832b82",
       "kind": "react",
       "packages": {
         "react": "19.0.8",
@@ -1018,6 +1021,7 @@
     },
     {
       "id": "react-19.1.0",
+      "resolvedPackagesSha256": "cc9860e553ca918be646908b3242199bf6e8c54f9ab457ed067a6aff4d19d6ca",
       "kind": "react",
       "packages": {
         "react": "19.1.0",
@@ -1029,6 +1033,7 @@
     },
     {
       "id": "react-19.1.9",
+      "resolvedPackagesSha256": "74118793a05a197b344e2cc8adf6ec593007cc3ec30bace59b2f72654ceaf195",
       "kind": "react",
       "packages": {
         "react": "19.1.9",
@@ -1040,6 +1045,7 @@
     },
     {
       "id": "react-19.2.0",
+      "resolvedPackagesSha256": "a13f246c96d7569f3843da08cb352aaa7ff755fa1748454881a937a58350ee4b",
       "kind": "react",
       "packages": {
         "react": "19.2.0",
@@ -1051,6 +1057,7 @@
     },
     {
       "id": "react-19.2.8",
+      "resolvedPackagesSha256": "8eb53bfe5c1664798d1c7be754552340dde7035e4e3524902f66fa9fcb668fa5",
       "kind": "react",
       "packages": {
         "react": "19.2.8",
@@ -1062,6 +1069,7 @@
     },
     {
       "id": "react-19.3.0",
+      "resolvedPackagesSha256": "f9583ea71c8ed443d4b35742eccff4f7e5444ddd505e92c58a45f0872e382ecb",
       "kind": "react",
       "packages": {
         "react": "19.3.0",
@@ -1073,6 +1081,7 @@
     },
     {
       "id": "pixi-7.4.2",
+      "resolvedPackagesSha256": "9cb7e8572b9a99288f5d35f52db971ab5b4a7f604edf9120b2d8e5d6040aca88",
       "kind": "pixi",
       "packages": {
         "pixi.js": "7.4.2",
@@ -1081,6 +1090,7 @@
     },
     {
       "id": "pixi-7.4.3",
+      "resolvedPackagesSha256": "0d2f4c9fa876dfb7c42428ecb213c4a663dcd2a1b0719bb06ebf983ab18dc616",
       "kind": "pixi",
       "packages": {
         "pixi.js": "7.4.3",
@@ -1089,6 +1099,7 @@
     },
     {
       "id": "pixi-8.2.6",
+      "resolvedPackagesSha256": "cadd02f6e576223b1dc7c95e0187ab0193d75a64fbb494093e6b86656fc60aa8",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.2.6",
@@ -1097,6 +1108,7 @@
     },
     {
       "id": "pixi-8.3.0",
+      "resolvedPackagesSha256": "b7e5341318db3cdd9e18acf7ea9b13792f1e7b6769646b05b95cba08824fa067",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.3.0",
@@ -1105,6 +1117,7 @@
     },
     {
       "id": "pixi-8.3.4",
+      "resolvedPackagesSha256": "0e3694dd82748c43689e93e2ba09f3a5a8367fa26cf1ab6b12f37932ee73d467",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.3.4",
@@ -1113,6 +1126,7 @@
     },
     {
       "id": "pixi-8.4.0",
+      "resolvedPackagesSha256": "dc93943eb9299e44f05eead73a26d03721b8d90fb871eb7cec2c54c700da0f40",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.4.0",
@@ -1121,6 +1135,7 @@
     },
     {
       "id": "pixi-8.4.1",
+      "resolvedPackagesSha256": "794b224179dc03549d8c1f77863f99549956db809d684f0a5a1a0823ef12e39a",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.4.1",
@@ -1129,6 +1144,7 @@
     },
     {
       "id": "pixi-8.5.0",
+      "resolvedPackagesSha256": "7d94331370b5236fcbc1053d2f3063afabe5832200a4979a8515f47db0931908",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.5.0",
@@ -1137,6 +1153,7 @@
     },
     {
       "id": "pixi-8.5.2",
+      "resolvedPackagesSha256": "b5117e36abd42fa45612fe742186fdcc9eb3028f5ca7615562b5f3a0382d771b",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.5.2",
@@ -1145,6 +1162,7 @@
     },
     {
       "id": "pixi-8.6.0",
+      "resolvedPackagesSha256": "991695e9fc7131d955b15e7adbaec1364d62b29b4f28e1d2cc73fe8d77d3f19e",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.6.0",
@@ -1153,6 +1171,7 @@
     },
     {
       "id": "pixi-8.6.6",
+      "resolvedPackagesSha256": "2d98b03da06299b0ede4894706b57e50f84c9fd97b776a1a9ae7c0ec8c621b59",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.6.6",
@@ -1161,6 +1180,7 @@
     },
     {
       "id": "pixi-8.7.0",
+      "resolvedPackagesSha256": "d5181c214185837b17ec9a16b495f9f7234416559187f96f3d6c09596bd373d9",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.7.0",
@@ -1169,6 +1189,7 @@
     },
     {
       "id": "pixi-8.7.3",
+      "resolvedPackagesSha256": "256c0867d2b598c100716a7637abc181a90d10ee501bfc77d84fe2b7467b0881",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.7.3",
@@ -1177,6 +1198,7 @@
     },
     {
       "id": "pixi-8.8.0",
+      "resolvedPackagesSha256": "f1bfc14e08a3ff2e13e0558dc49a2d2427272163448f6f95c5b32890c19e76a0",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.8.0",
@@ -1185,6 +1207,7 @@
     },
     {
       "id": "pixi-8.8.1",
+      "resolvedPackagesSha256": "df4bb76490b4301b7b1c4d902f8d095eed699ffb9a1a9dd06d09ae36b7ccd406",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.8.1",
@@ -1193,6 +1216,7 @@
     },
     {
       "id": "pixi-8.9.0",
+      "resolvedPackagesSha256": "12e47ba301581a4d4df7a1b5b10ef2fab20d2e48f6e9be066b34b761978001fd",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.9.0",
@@ -1201,6 +1225,7 @@
     },
     {
       "id": "pixi-8.9.2",
+      "resolvedPackagesSha256": "d2df3cdf9bd1f417f9f106108c7090cfe1226adc289604e3e6a0346dc909e83b",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.9.2",
@@ -1209,6 +1234,7 @@
     },
     {
       "id": "pixi-8.10.0",
+      "resolvedPackagesSha256": "8c63c625952d58b4759575fbcd1dc179b43759fc0f6165a9a3edb68917bf59de",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.10.0",
@@ -1217,6 +1243,7 @@
     },
     {
       "id": "pixi-8.10.2",
+      "resolvedPackagesSha256": "82b0b57f3064b93141758fff34cabf30ebe0c3e9bb7e03dd807dced9902d9456",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.10.2",
@@ -1225,6 +1252,7 @@
     },
     {
       "id": "pixi-8.11.0",
+      "resolvedPackagesSha256": "1bba2549ee6a877e93098baf516e4dbf63401fe0cff5742f9e367821f6b26f05",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.11.0",
@@ -1233,6 +1261,7 @@
     },
     {
       "id": "pixi-8.12.0",
+      "resolvedPackagesSha256": "9c1504daab72e78bd2b929957d9dd5b79abdf0721b133dee5be5b8c5dbf28984",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.12.0",
@@ -1241,6 +1270,7 @@
     },
     {
       "id": "pixi-8.13.0",
+      "resolvedPackagesSha256": "9a41133ae659eab675beefe0fa2e8ea9d91b016beab6c671034f17e804b1a019",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.13.0",
@@ -1249,6 +1279,7 @@
     },
     {
       "id": "pixi-8.13.2",
+      "resolvedPackagesSha256": "37a9b9cffc282c04cd6793f90a9df13b2642a5aa1e5cd889595fa0def029d553",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.13.2",
@@ -1257,6 +1288,7 @@
     },
     {
       "id": "pixi-8.14.0",
+      "resolvedPackagesSha256": "033bc12b3eba294152e950bdb3c6cb6fcb1375eb3db4a1c2b6fa0bfa1e9b2bca",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.14.0",
@@ -1265,6 +1297,7 @@
     },
     {
       "id": "pixi-8.14.3",
+      "resolvedPackagesSha256": "966c3eff0f6b17fa937564c1964ff9b82896fff499033e96e5e9e11bb1a04fb2",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.14.3",
@@ -1273,6 +1306,7 @@
     },
     {
       "id": "pixi-8.15.0",
+      "resolvedPackagesSha256": "4c34bb22c59098d4f0871bea58bb4b035835c32a89c163b4fd644d95017b2c92",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.15.0",
@@ -1281,6 +1315,7 @@
     },
     {
       "id": "pixi-8.16.0",
+      "resolvedPackagesSha256": "1017b937f771ce33a1b281632635f86304842c566df818d4bb685ab4e8768a5e",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.16.0",
@@ -1289,6 +1324,7 @@
     },
     {
       "id": "pixi-8.17.0",
+      "resolvedPackagesSha256": "86fb4bce45c3f90e8f99f9a11e819bc8a34a4fcf6fa5ea198e868cf164f4ba85",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.17.0",
@@ -1297,6 +1333,7 @@
     },
     {
       "id": "pixi-8.17.1",
+      "resolvedPackagesSha256": "47a4856400fd5014c5f09e2a04b67185c95ce5f2101f9a44afb04e9b75dd02b2",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.17.1",
@@ -1305,6 +1342,7 @@
     },
     {
       "id": "pixi-8.18.0",
+      "resolvedPackagesSha256": "9fe2b2d305b1904aab1980f9ec491b96dc1d24dbdf691aaaf8fa01b74741d428",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.18.0",
@@ -1313,6 +1351,7 @@
     },
     {
       "id": "pixi-8.18.1",
+      "resolvedPackagesSha256": "bb35355f05019b4ca013200dfa915a3377e70eef40b118b384f049d70ce58017",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.18.1",
@@ -1321,6 +1360,7 @@
     },
     {
       "id": "pixi-8.19.0",
+      "resolvedPackagesSha256": "434da78d68d868aed861cf773129abdb88c581354cfec0ae2d66ea01e87eb90f",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.19.0",
@@ -1329,6 +1369,7 @@
     },
     {
       "id": "pixi-8.20.0",
+      "resolvedPackagesSha256": "e77747f979bebd5f9bf530111296c0afedc9f29cad74bc485215d9d8012bca53",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.20.0",
@@ -1337,6 +1378,7 @@
     },
     {
       "id": "pixi-8.20.1",
+      "resolvedPackagesSha256": "0b866bbacb372c209b5c23ce89156ce12fc7ea74ae6280f97ac3950dd141a458",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.20.1",
@@ -1345,6 +1387,7 @@
     },
     {
       "id": "pixi-8.21.0",
+      "resolvedPackagesSha256": "1dbfe9479b89d3e96dfb6e463edd170783b272a65da48e8a03830785a91524fc",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.21.0",
@@ -1353,6 +1396,7 @@
     },
     {
       "id": "pixi-8.22.0",
+      "resolvedPackagesSha256": "b23ac0900c44e9ccb56efefc690a63ebd152abfd7d1d4e694eb445a4d9460919",
       "kind": "pixi",
       "packages": {
         "pixi.js": "8.22.0",

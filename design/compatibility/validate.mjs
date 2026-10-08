@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { declarationSeries } from './declaration-series.mjs';
+import { resolvedPackagesSha256 } from './resolved-packages.mjs';
 import { validateHistoricalObservation } from './validate-historical.mjs';
 
 const read = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url)));
@@ -59,6 +60,8 @@ for (const tuple of seed.probes)
         assert.ok(typeof pkg?.version === 'string' && pkg.version.length > 0, `${row.id}: resolvedPackages.${name}.version`);
         assert.ok(typeof pkg?.integrity === 'string' && pkg.integrity.length > 0, `${row.id}: resolvedPackages.${name}.integrity`);
     }
+    assert.ok(typeof tuple.resolvedPackagesSha256 === 'string' && (/^[a-f0-9]{64}$/).test(tuple.resolvedPackagesSha256), `${row.id}: resolvedPackagesSha256`);
+    assert.equal(resolvedPackagesSha256(row.resolvedPackages), tuple.resolvedPackagesSha256, `${row.id}: resolvedPackages complete lock digest`);
     if (row.runtimeExit === 0)
     {
         assert.ok(nonemptyObject(row.observation), `${row.id}: observation`);

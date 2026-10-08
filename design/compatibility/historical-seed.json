@@ -934,7 +934,8 @@
           "expectedExit": 2,
           "signature": "has no exported member"
         }
-      ]
+      ],
+      "resolvedPackagesSha256": "99f8de8c7ca549be977cf23097b572cb201efd7b747797a84cb4066a3b7d458a"
     },
     {
       "id": "react-17.0.0-bridge-1.2.2",
@@ -965,7 +966,8 @@
           "expectedExit": 2,
           "signature": "has no exported member"
         }
-      ]
+      ],
+      "resolvedPackagesSha256": "edab2c80ac717c6edcee06d67f9514bd802f1e61157b5e96898362783b3fd5d4"
     },
     {
       "id": "react-17.0.1-bridge-1.2.0",
@@ -996,7 +998,8 @@
           "expectedExit": 2,
           "signature": "has no exported member"
         }
-      ]
+      ],
+      "resolvedPackagesSha256": "8cddfdcfb446e280527bd2198db280dbca463460bb5b23873ba9b12d6df993e2"
     },
     {
       "id": "react-17.0.1-bridge-1.2.2",
@@ -1027,7 +1030,8 @@
           "expectedExit": 2,
           "signature": "has no exported member"
         }
-      ]
+      ],
+      "resolvedPackagesSha256": "0872112b616ae94acbf039dbd6b2fa5e55e45b1480750bafa8ee4a765124ff21"
     },
     {
       "id": "react-17.0.2-bridge-1.2.0",
@@ -1058,7 +1062,8 @@
           "expectedExit": 2,
           "signature": "has no exported member"
         }
-      ]
+      ],
+      "resolvedPackagesSha256": "e19f8019b944649cb1785659c8f2b4a420bd7fee361c3736fd1ba8a5df45df83"
     },
     {
       "id": "react-17.0.2-bridge-1.2.2",
@@ -1089,7 +1094,8 @@
           "expectedExit": 2,
           "signature": "has no exported member"
         }
-      ]
+      ],
+      "resolvedPackagesSha256": "b10bffc448a9e2b7d8efbd218174a41058fc586e6cd863623d50faf2f62c604a"
     },
     {
       "id": "pixi-6.0.0",
@@ -1113,7 +1119,8 @@
         "pixi.js": "6.0.0",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "e4d8c52c2e250f2f5ccbcd63f1dcc47e6c92de18776e8672e137851ec2e90034"
     },
     {
       "id": "pixi-6.0.4",
@@ -1137,7 +1144,8 @@
         "pixi.js": "6.0.4",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "38a5818def0afe8fec573594fa41a4eed5db16df11dffff61334d7243d8bed7d"
     },
     {
       "id": "pixi-6.1.0",
@@ -1161,7 +1169,8 @@
         "pixi.js": "6.1.0",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "ebf41d139319723ed2bfecab8ee7878d6a164408dbe6af721aa767b1482ea32e"
     },
     {
       "id": "pixi-6.1.3",
@@ -1185,7 +1194,8 @@
         "pixi.js": "6.1.3",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "062581c0de62366721b0de6038758fa5a74ff3d52883330204c42836b699d4fa"
     },
     {
       "id": "pixi-6.2.0",
@@ -1209,7 +1219,8 @@
         "pixi.js": "6.2.0",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "dd99dcea2bdb9343c479960413b6b959348b2db750ddef04c78a5f09fc2181e2"
     },
     {
       "id": "pixi-6.2.2",
@@ -1233,7 +1244,8 @@
         "pixi.js": "6.2.2",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "b15e7318b712b1c88ead0e3f95f3f16022dce71b9fa40d156f43b68a0819214d"
     },
     {
       "id": "pixi-6.3.0",
@@ -1257,7 +1269,8 @@
         "pixi.js": "6.3.0",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "7d244e98b8381ad0edf007417f429c207b459a34ff9795d8e7cbd3593cdf8412"
     },
     {
       "id": "pixi-6.3.2",
@@ -1281,7 +1294,8 @@
         "pixi.js": "6.3.2",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "f95bc0c98a00e023301e411f02ccdcdde1bd6c50a24b2d2604d6ca035297f052"
     },
     {
       "id": "pixi-6.4.0",
@@ -1305,7 +1319,8 @@
         "pixi.js": "6.4.0",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "694414ba4ea312cab08578b945514d11aa6c02f21cc5632fddbb8a7168a68233"
     },
     {
       "id": "pixi-6.4.2",
@@ -1329,7 +1344,8 @@
         "pixi.js": "6.4.2",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "8d4f673f6aaaa0449f54d220a19ad0e1b6f8a8db59ae79c0344845d99023bf7e"
     },
     {
       "id": "pixi-6.5.0",
@@ -1354,7 +1370,8 @@
         "pixi.js": "6.5.0",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "376b02b3ba1b4ed618c3cf08304f36ad83bb8efc2c298e3bd7ed38ce1f3d7508"
     },
     {
       "id": "pixi-6.5.1",
@@ -1380,7 +1397,8 @@
         "pixi.js": "6.5.1",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "1290f77ad38ed91da8e25171ad67bc2f6e9ca0031e7c28d03cbcea1bcc6d8c5d"
     },
     {
       "id": "pixi-6.5.10",
@@ -1406,7 +1424,8 @@
         "pixi.js": "6.5.10",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-baseline"
+      "declarationSeries": "pixi6-baseline",
+      "resolvedPackagesSha256": "1a3d0d9edfb208d2102531b4651b05af06f07e761dd22ccb788c3f3669ae5025"
     },
     {
       "id": "pixi-6.1.0-federated",
@@ -1432,7 +1451,8 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.1.0"
       },
-      "declarationSeries": "pixi6-federated"
+      "declarationSeries": "pixi6-federated",
+      "resolvedPackagesSha256": "f3573df90eb629b9edb36fe668a2edfc141a982bea5e98297059087acad3fe32"
     },
     {
       "id": "pixi-6.3.0-federated",
@@ -1458,7 +1478,8 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.3.0"
       },
-      "declarationSeries": "pixi6-federated"
+      "declarationSeries": "pixi6-federated",
+      "resolvedPackagesSha256": "060b9a3a5f795765e5dba2f1703356a037ab0b2e06268c7856fb7f12729e0a73"
     },
     {
       "id": "pixi-6.5.1-federated",
@@ -1484,7 +1505,8 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.5.1"
       },
-      "declarationSeries": "pixi6-federated"
+      "declarationSeries": "pixi6-federated",
+      "resolvedPackagesSha256": "d43a44ea148d6e8d00f2fa3097767da100a0bfcb8a4b18a8f70ed4624e9fc45e"
     },
     {
       "id": "pixi-6.5.10-federated",
@@ -1510,7 +1532,8 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.5.10"
       },
-      "declarationSeries": "pixi6-federated"
+      "declarationSeries": "pixi6-federated",
+      "resolvedPackagesSha256": "bda5ec981995274b2b15ad48f1ef0ed9393c167c9373492afaf532be547f6a90"
     },
     {
       "id": "pixi-6.5.0-assets",
@@ -1529,7 +1552,8 @@
         "@pixi/assets": "6.5.0",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-assets"
+      "declarationSeries": "pixi6-assets",
+      "resolvedPackagesSha256": "79f43e5ad373038a4eaaf2f657122b8087b9c0a25d8b38181cae582f4a65940c"
     },
     {
       "id": "pixi-6.5.1-assets",
@@ -1548,7 +1572,8 @@
         "@pixi/assets": "6.5.1",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-assets"
+      "declarationSeries": "pixi6-assets",
+      "resolvedPackagesSha256": "d7b4a70063debcae7ff5389a07b98839311e77c311761bb714da90843c828eb3"
     },
     {
       "id": "pixi-6.5.10-assets",
@@ -1567,7 +1592,8 @@
         "@pixi/assets": "6.5.10",
         "typescript": "5.6.3"
       },
-      "declarationSeries": "pixi6-assets"
+      "declarationSeries": "pixi6-assets",
+      "resolvedPackagesSha256": "a4bcba052d6a8a2806f4fbae50d49c431f539345faac7d51f8526b418ae2b1b5"
     }
   ],
   "knownFailures": [

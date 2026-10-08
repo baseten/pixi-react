@@ -17,6 +17,7 @@ function validate(t, mutate)
     copyFileSync(new URL('declaration-series.mjs', import.meta.url), join(root, 'declaration-series.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
+    copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
     writeFileSync(join(root, 'seed.json'), JSON.stringify(seed));
     writeFileSync(join(root, seed.evidence), JSON.stringify(evidence));
 
@@ -571,3 +572,72 @@ for (const value of [undefined, null, {}])
         assert.match(result.stderr, /registry.react-reconciler.0.33.0.peerDependencies/);
     });
 }
+
+for (const [name, mutate] of [
+    ['missing transitive package', (packages) => { delete packages.scheduler; }],
+    ['wrong transitive version', (packages) => { packages.scheduler.version = '999.0.0'; }],
+    ['wrong transitive integrity', (packages) => { packages.scheduler.integrity = 'sha512-unrelated'; }],
+    ['extra transitive package', (packages) => { packages.unexpected = { version: '1.0.0', integrity: 'sha512-unexpected' }; }],
+    ['renamed transitive package', (packages) => { packages.renamed = packages.scheduler; delete packages.scheduler; }],
+])
+{
+    test(`rejects a ${name} in the complete resolved lock`, (t) =>
+    {
+        const result = validate(t, (evidence) =>
+        {
+            const packages = evidence.results.find((row) => row.id === 'react-19.2.0').resolvedPackages;
+
+            assert.ok(packages.scheduler);
+            mutate(packages);
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /react-19.2.0: resolvedPackages/);
+    });
+}
+
+test('requires the complete resolved lock even for the expected runtime failure', (t) =>
+{
+    const result = validate(t, (evidence) =>
+    {
+        const row = evidence.results.find((r) => r.id === 'pixi-8.5.0');
+
+        assert.equal(row.runtimeExit, 1);
+        assert.ok(row.resolvedPackages['@pixi/colord']);
+        delete row.resolvedPackages['@pixi/colord'];
+    });
+
+    assert.equal(result.status, 1, result.stdout);
+    assert.match(result.stderr, /pixi-8.5.0: resolvedPackages/);
+});
+
+for (const digest of [undefined, null, '', [], 'malformed', 'a'.repeat(64)])
+{
+    test(`rejects a missing, malformed or mismatched pinned lock digest (${JSON.stringify(digest)})`, (t) =>
+    {
+        const result = validate(t, (_evidence, seed) =>
+        {
+            const tuple = seed.probes.find((row) => row.id === 'react-19.2.0');
+
+            assert.match(tuple.resolvedPackagesSha256, /^[a-f0-9]{64}$/);
+            if (digest === undefined) delete tuple.resolvedPackagesSha256;
+            else tuple.resolvedPackagesSha256 = digest;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /react-19.2.0: resolvedPackages/);
+    });
+}
+
+test('accepts equivalent package and value property order in resolved lock evidence', (t) =>
+{
+    const result = validate(t, (evidence) =>
+    {
+        for (const row of evidence.results)
+        {
+            row.resolvedPackages = Object.fromEntries(Object.entries(row.resolvedPackages).reverse().map(([name, pkg]) => [name, { integrity: pkg.integrity, version: pkg.version }]));
+        }
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+});

@@ -17,6 +17,7 @@ function validate(t, mutate)
     copyFileSync(new URL('declaration-series.mjs', import.meta.url), join(root, 'declaration-series.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
+    copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
     writeFileSync(join(root, 'historical-seed.json'), JSON.stringify(seed));
     writeFileSync(join(root, seed.evidence), JSON.stringify(evidence));
 
