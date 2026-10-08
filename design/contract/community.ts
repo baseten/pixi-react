@@ -2,7 +2,7 @@ import { FrameworkAdapter, type BindingFamily, type Runtime, type SceneTypes, ty
 import { createRenderer } from './renderer.js';
 import type { SceneAdapter } from './core.js';
 interface Inspection<S extends SceneTypes> { inspect(): S['app']; node: S['node'] }
-interface InspectionFamily extends BindingFamily { readonly type: Inspection<this['scene']> }
+interface InspectionFamily extends BindingFamily { readonly type: Inspection<Extract<this['scene'], SceneTypes>> }
 // An external framework adds its own public API without a known-adapter union.
 class Inspector extends FrameworkAdapter<InspectionFamily> {
     readonly manifest: AdapterManifest = {

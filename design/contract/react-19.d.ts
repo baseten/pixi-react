@@ -41,7 +41,7 @@ export interface ReactBindings<S extends SceneTypes> {
     /** Called inside the parent React tree; wraps a separate reconciler root. */
     useContextBridge(): ComponentType<{ children?: ReactNode }>;
 }
-export interface React19Family extends BindingFamily { readonly type: ReactBindings<this['scene']> }
+export interface React19Family extends BindingFamily { readonly type: ReactBindings<Extract<this['scene'], SceneTypes>> }
 export declare class React19Adapter extends FrameworkAdapter<React19Family> {
     readonly manifest: AdapterManifest;
     bind<S extends SceneTypes>(runtime: Runtime<S>): ReactBindings<S>;

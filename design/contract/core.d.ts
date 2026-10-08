@@ -70,7 +70,7 @@ export declare abstract class SceneAdapter<S extends SceneTypes> {
     abstract describe<C extends Constructor>(ctor: C): NodeDefinition<InstanceType<C>, PropsOf<S, C>>;
 }
 /** Open higher-kinded family: the framework substitutes the scene type into its API. */
-export interface BindingFamily { readonly scene: SceneTypes; readonly type: unknown }
+export interface BindingFamily { readonly scene: unknown; readonly type: unknown }
 export type Bind<F extends BindingFamily, S extends SceneTypes> = (F & { readonly scene: S })['type'];
 export declare abstract class FrameworkAdapter<F extends BindingFamily> {
     /** Type-only witness; concrete implementations use declare, emitting no field. */
