@@ -76,23 +76,36 @@ for (const tuple of seed.probes)
         {
             assert.equal(observation.version, tuple.packages['pixi.js'], `${row.id}: observation.version`);
             assert.ok(nonemptyObject(observation.capabilities), `${row.id}: observation.capabilities`);
-            for (const key of ['asyncInit', 'particle', 'particleContainer', 'cacheAsTexture', 'renderLayer', 'domContainer', 'canvasRenderer']) assert.equal(typeof observation.capabilities[key], 'boolean', `${row.id}: observation.capabilities.${key}`);
+            const [major, minor] = tuple.packages['pixi.js'].split('.').map(Number);
+            const v8 = major === 8;
+            const expectedCapabilities = { asyncInit: v8, particle: v8 && minor >= 5, particleContainer: major === 7 || (v8 && minor >= 5), cacheAsTexture: v8 && minor >= 6, renderLayer: v8 && minor >= 7, domContainer: v8 && minor >= 9, canvasRenderer: v8 && minor >= 16 };
+
+            for (const [key, expected] of Object.entries(expectedCapabilities)) assert.equal(observation.capabilities[key], expected, `${row.id}: observation.capabilities.${key}`);
             assert.ok(nonemptyObject(observation.observations), `${row.id}: observation.observations`);
             const observed = observation.observations;
-            const [major, minor] = tuple.packages['pixi.js'].split('.').map(Number);
 
-            assert.ok(Number.isSafeInteger(observed.visibleChanged) && observed.visibleChanged >= 0, `${row.id}: observation.observations.visibleChanged`);
+            assert.equal(observed.visibleChanged, v8 && minor >= 17 ? 1 : 0, `${row.id}: observation.observations.visibleChanged`);
             // Version boundaries keep edited capability flags from hiding required observations.
             if (major === 8 && minor >= 5)
             {
-                assert.equal(typeof observed.particleIsContainer, 'boolean', `${row.id}: observation.observations.particleIsContainer`);
-                assert.ok(Number.isSafeInteger(observed.removeParticlesDefaultCount) && observed.removeParticlesDefaultCount >= 0, `${row.id}: observation.observations.removeParticlesDefaultCount`);
+                assert.equal(observed.particleIsContainer, false, `${row.id}: observation.observations.particleIsContainer`);
+                assert.equal(observed.removeParticlesDefaultCount, minor >= 10 ? 1 : 0, `${row.id}: observation.observations.removeParticlesDefaultCount`);
             }
             if (major !== 7)
             {
-                assert.ok(Array.isArray(observed.zeroScale) && observed.zeroScale.length === 2 && observed.zeroScale.every(Number.isFinite), `${row.id}: observation.observations.zeroScale`);
+                assert.deepEqual(observed.zeroScale, minor >= 19 ? [0, 0] : [1, 1], `${row.id}: observation.observations.zeroScale`);
                 assert.ok(nonemptyObject(observed.mirroredTransform), `${row.id}: observation.observations.mirroredTransform`);
-                for (const key of ['rotation', 'scaleX', 'skewX']) assert.ok(Number.isFinite(observed.mirroredTransform[key]), `${row.id}: observation.observations.mirroredTransform.${key}`);
+                const expectedTransform = minor >= 21 ? { rotation: -Math.PI / 6, scaleX: -1, skewX: 0 } : { rotation: 0, scaleX: 1, skewX: Math.PI / 6 };
+
+                for (const [key, expected] of Object.entries(expectedTransform))
+                {
+                    const value = observed.mirroredTransform[key];
+
+                    assert.ok(Number.isFinite(value), `${row.id}: observation.observations.mirroredTransform.${key}`);
+                    // Matrix decomposition may round computed angles by a few floating-point bits.
+                    if (key === 'scaleX' || expected === 0) assert.equal(value, expected, `${row.id}: observation.observations.mirroredTransform.${key}`);
+                    else assert.ok(Math.abs(value - expected) <= 1e-12, `${row.id}: observation.observations.mirroredTransform.${key}`);
+                }
             }
         }
     }
