@@ -93,3 +93,50 @@ for (const [field, mutate] of [
         assert.match(result.stderr, new RegExp(`pixi-8.10.0.*${field}`));
     });
 }
+
+for (const field of ['surfaces', 'resolvedPackages'])
+{
+    for (const value of [undefined, null, {}, [], 'invalid'])
+    {
+        test(`rejects known runtime failure with ${field} replaced by ${JSON.stringify(value)}`, (t) =>
+        {
+            const result = validate(t, (evidence) =>
+            {
+                const row = evidence.results.find((r) => r.id === 'pixi-8.5.0');
+
+                assert.equal(row.installExit, 0);
+                assert.equal(row.typeExit, 0);
+                assert.equal(row.runtimeExit, 1);
+                assert.equal(row.observation, null);
+                if (value === undefined) delete row[field];
+                else row[field] = value;
+            });
+
+            assert.equal(result.status, 1, result.stdout);
+            assert.match(result.stderr, new RegExp(`pixi-8.5.0.*${field}`));
+        });
+    }
+}
+
+for (const [name, field, mutate] of [
+    ['missing hash', 'surfaces', (row) => { delete Object.values(row.surfaces)[0].sha256; }],
+    ['non-string declaration', 'surfaces', (row) => { Object.values(row.surfaces)[0].declarations = ['valid', null]; }],
+    ['missing direct package', 'resolvedPackages', (row) => { delete row.resolvedPackages['pixi.js']; }],
+    ['wrong direct version', 'resolvedPackages', (row) => { row.resolvedPackages['pixi.js'].version = '8.4.0'; }],
+    ['missing integrity', 'resolvedPackages', (row) => { delete row.resolvedPackages['pixi.js'].integrity; }],
+])
+{
+    test(`rejects malformed nested ${field} on a known runtime failure: ${name}`, (t) =>
+    {
+        const result = validate(t, (evidence) =>
+        {
+            const row = evidence.results.find((r) => r.id === 'pixi-8.5.0');
+
+            assert.equal(row.runtimeExit, 1);
+            mutate(row);
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, new RegExp(`pixi-8.5.0.*${field}`));
+    });
+}
