@@ -12,6 +12,10 @@ assert.deepEqual(seed.floors, { react: '18.3.1', 'pixi.js': '7.4.2', pixi8: '8.2
 assert.deepEqual(seed.advertisedRanges, []);
 assert.equal(new Set(seed.probes.map((p) => p.id)).size, seed.probes.length);
 assert.equal(evidence.results.length, seed.probes.length);
+assert.deepEqual(evidence.results.map((row) => row.id), seed.probes.map((tuple) => tuple.id), 'evidence tuple order');
+let previousReact = [];
+let previousPixi = {};
+
 for (const tuple of seed.probes)
 {
     for (const version of Object.values(tuple.packages)) assert.match(version, /^\d+\.\d+\.\d+$/);
@@ -28,7 +32,17 @@ for (const tuple of seed.probes)
         assert.ok((/^[a-f0-9]{64}$/).test(surface?.sha256), `${row.id}: surfaces.${path}.sha256`);
         if (path.endsWith('.d.ts')) assert.ok(strings(surface.declarations), `${row.id}: surfaces.${path}.declarations`);
     }
-    for (const [name, version] of Object.entries(tuple.packages)) assert.equal(row.resolvedPackages[name]?.version, version, `${row.id}: resolvedPackages.${name}`);
+    for (const [name, version] of Object.entries(tuple.packages))
+    {
+        assert.equal(row.resolvedPackages[name]?.version, version, `${row.id}: resolvedPackages.${name}`);
+        if (seed.registry[name])
+        {
+            const integrity = seed.registry[name].selected?.[version]?.integrity;
+
+            assert.ok(typeof integrity === 'string' && integrity.length > 0, `registry.${name}.${version}.integrity`);
+            assert.equal(row.resolvedPackages[name].integrity, integrity, `${row.id}: resolvedPackages.${name}.integrity`);
+        }
+    }
     for (const [name, pkg] of Object.entries(row.resolvedPackages))
     {
         assert.ok(typeof pkg?.version === 'string' && pkg.version.length > 0, `${row.id}: resolvedPackages.${name}.version`);
@@ -55,6 +69,24 @@ for (const tuple of seed.probes)
         }
     }
     if (row.runtimeExit !== 0) assert.ok(seed.knownFailures.some((f) => f.tupleId === row.id && f.expectedRuntimeExit === row.runtimeExit && row.failure?.includes(f.signature)), row.id);
+    if (tuple.kind === 'react')
+    {
+        const keys = row.observation?.hostKeys || [];
+        const previousKeys = previousReact;
+        const expected = { added: keys.filter((key) => !previousKeys.includes(key)), removed: previousKeys.filter((key) => !keys.includes(key)) };
+
+        assert.deepEqual(row.hostDelta, expected, `${row.id}: hostDelta`);
+        previousReact = keys;
+    }
+    else
+    {
+        const previousSurfaces = previousPixi;
+        const paths = new Set([...Object.keys(row.surfaces), ...Object.keys(previousSurfaces)]);
+        const expected = Object.fromEntries([...paths].map((path) => [path, { before: previousSurfaces[path]?.declarations ?? null, after: row.surfaces[path]?.declarations ?? null }]).filter(([, delta]) => JSON.stringify(delta.before) !== JSON.stringify(delta.after)));
+
+        assert.deepEqual(row.declarationDelta, expected, `${row.id}: declarationDelta`);
+        previousPixi = row.surfaces;
+    }
 }
 for (const failure of seed.knownFailures)
 {

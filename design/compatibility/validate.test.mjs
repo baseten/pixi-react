@@ -140,3 +140,155 @@ for (const [name, field, mutate] of [
         assert.match(result.stderr, new RegExp(`pixi-8.5.0.*${field}`));
     });
 }
+
+for (const [id, name] of [
+    ['pixi-8.22.0', 'pixi.js'],
+    ['pixi-8.5.0', 'pixi.js'],
+    ['react-19.0.0', 'react'],
+    ['react-19.0.0', 'react-reconciler'],
+    ['react-19.0.0', '@types/react'],
+    ['react-19.0.0', 'its-fine'],
+])
+{
+    test(`rejects a mismatched registry integrity for ${id}: ${name}`, (t) =>
+    {
+        const result = validate(t, (evidence, seed) =>
+        {
+            const row = evidence.results.find((r) => r.id === id);
+            const expected = seed.registry[name].selected[row.packages[name]].integrity;
+
+            assert.equal(row.resolvedPackages[name].integrity, expected);
+            row.resolvedPackages[name].integrity = 'sha512-tampered';
+            assert.notEqual(row.resolvedPackages[name].integrity, expected);
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.ok(result.stderr.includes(`${id}: resolvedPackages.${name}.integrity`), result.stderr);
+    });
+}
+
+for (const value of [undefined, null, ''])
+{
+    test(`rejects missing registry integrity metadata: ${JSON.stringify(value)}`, (t) =>
+    {
+        const result = validate(t, (evidence, seed) =>
+        {
+            const metadata = seed.registry['pixi.js'].selected['8.22.0'];
+
+            if (value === undefined) delete metadata.integrity;
+            else metadata.integrity = value;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /registry.*pixi.js.*8.22.0.*integrity/);
+    });
+}
+
+for (const [id, field] of [
+    ['react-18.3.1', 'hostDelta'],
+    ['react-19.0.0', 'hostDelta'],
+    ['pixi-7.4.2', 'declarationDelta'],
+    ['pixi-8.2.6', 'declarationDelta'],
+    ['pixi-8.5.0', 'declarationDelta'],
+])
+{
+    for (const value of [undefined, null, {}, []])
+    {
+        test(`rejects ${id} with ${field} replaced by ${JSON.stringify(value)}`, (t) =>
+        {
+            const result = validate(t, (evidence) =>
+            {
+                const row = evidence.results.find((r) => r.id === id);
+
+                assert.ok(Object.keys(row[field]).length > 0);
+                if (value === undefined) delete row[field];
+                else row[field] = value;
+            });
+
+            assert.equal(result.status, 1, result.stdout);
+            assert.ok(result.stderr.includes(`${id}: ${field}`), result.stderr);
+        });
+    }
+}
+
+for (const [name, id, field, mutate] of [
+    ['missing host addition', 'react-19.0.0', 'hostDelta', (row) =>
+    {
+        assert.ok(row.hostDelta.added.length > 0);
+        row.hostDelta.added.pop();
+    }],
+    ['missing host removal', 'react-19.0.0', 'hostDelta', (row) =>
+    {
+        assert.ok(row.hostDelta.removed.length > 0);
+        row.hostDelta.removed.pop();
+    }],
+    ['spurious host change', 'react-19.0.8', 'hostDelta', (row) =>
+    {
+        assert.deepEqual(row.hostDelta, { added: [], removed: [] });
+        row.hostDelta.added.push('inventedHostKey');
+    }],
+    ['host keys disagree with delta', 'react-19.0.8', 'hostDelta', (row) =>
+    {
+        assert.ok(row.observation.hostKeys.length > 1);
+        row.observation.hostKeys.pop();
+    }],
+    ['missing removed declaration', 'pixi-8.2.6', 'declarationDelta', (row) =>
+    {
+        const path = '@pixi/app/lib/Application.d.ts';
+
+        assert.equal(row.declarationDelta[path].after, null);
+        delete row.declarationDelta[path];
+    }],
+    ['wrong declaration before', 'pixi-8.10.0', 'declarationDelta', (row) =>
+    {
+        const delta = row.declarationDelta['pixi.js/lib/scene/text/Text.d.ts'];
+
+        assert.ok(Array.isArray(delta.before));
+        delta.before = ['invented(): void;'];
+    }],
+    ['wrong declaration after', 'pixi-8.10.0', 'declarationDelta', (row) =>
+    {
+        const delta = row.declarationDelta['pixi.js/lib/scene/text/Text.d.ts'];
+
+        assert.ok(Array.isArray(delta.after));
+        delta.after = ['invented(): void;'];
+    }],
+    ['spurious declaration change', 'pixi-8.5.2', 'declarationDelta', (row) =>
+    {
+        assert.deepEqual(row.declarationDelta, {});
+        row.declarationDelta['pixi.js/Invented.d.ts'] = { before: null, after: [] };
+    }],
+])
+{
+    test(`rejects ${name}`, (t) =>
+    {
+        const result = validate(t, (evidence) => mutate(evidence.results.find((r) => r.id === id)));
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.ok(result.stderr.includes(`${id}: ${field}`), result.stderr);
+    });
+}
+
+test('rejects evidence reordered away from the seed boundary sequence', (t) =>
+{
+    const result = validate(t, (evidence) => evidence.results.reverse());
+
+    assert.equal(result.status, 1, result.stdout);
+    assert.match(result.stderr, /tuple order/);
+});
+
+test('tracks separate React and Pixi boundary histories when seed tuples interleave', (t) =>
+{
+    const result = validate(t, (evidence, seed) =>
+    {
+        const pixiIndex = seed.probes.findIndex((tuple) => tuple.kind === 'pixi');
+
+        assert.ok(pixiIndex > 1);
+        const [pixi] = seed.probes.splice(pixiIndex, 1);
+
+        seed.probes.splice(1, 0, pixi);
+        evidence.results = seed.probes.map((tuple) => evidence.results.find((row) => row.id === tuple.id));
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+});
