@@ -1,5 +1,5 @@
 // Standalone installed-consumer audit. No repository dependency tree is reused.
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, existsSync, readdirSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, existsSync, readdirSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,7 +24,7 @@ for (const tuple of manifest.probes.filter(t => !filter || t.id.includes(filter)
         return existsSync(path) && JSON.parse(readFileSync(path)).version === version;
     });
     const install = reuse ? { status: 0, reused: true } : run('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--cache', process.env.AUDIT_NPM_CACHE || join(root, 'cache')]);
-    const row = { id: tuple.id, packages: tuple.packages, install, certification: 'not-certified' };
+    const row = { id: tuple.id, packages: tuple.packages, workdir: realpathSync(cwd), install, certification: 'not-certified' };
     if (install.status === 0) {
         for (const name of [`${tuple.kind}.mjs`, `${tuple.kind}.tsx`]) copyFileSync(join(here, name), join(cwd, name));
         const typeFiles = [`${tuple.kind}.tsx`];

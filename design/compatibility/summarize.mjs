@@ -1,14 +1,20 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { dirname, join, sep } from 'node:path';
+import { pathToFileURL } from 'node:url';
 const input = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const results = input.results.map(row => {
+    // Older runner output stays usable while it remains in its original audit directory.
+    const workdir = row.workdir || join(dirname(realpathSync(process.argv[2])), row.id);
+    const normalize = text => text?.replaceAll(`${pathToFileURL(workdir).href}/`, '<tuple>/').replaceAll(`${workdir}${sep}`, '<tuple>/');
     if (row.install.status !== 0) {
-        return { id: row.id, packages: row.packages, certification: row.certification, installExit: row.install.status, installDiagnostics: row.install, runtimeExit: null, typeExit: null, observation: null, resolvedPackages: {}, surfaces: {} };
+        const installDiagnostics = { ...row.install, stdout: normalize(row.install.stdout), stderr: normalize(row.install.stderr), error: normalize(row.install.error) };
+        return { id: row.id, packages: row.packages, certification: row.certification, installExit: row.install.status, installDiagnostics, runtimeExit: null, typeExit: null, observation: null, resolvedPackages: {}, surfaces: {} };
     }
     const runtime = row.runtime.stdout.trim().split('\n').findLast(line => line.startsWith('{'));
-    const observation = runtime ? JSON.parse(runtime) : null;
+    const observation = runtime ? JSON.parse(runtime, (key, value) => typeof value === 'string' ? normalize(value) : value) : null;
     if (observation) delete observation.surfaces;
     const surfaces = Object.fromEntries(Object.entries(row.surfaces).filter(([path]) => /\/(?:Application|Container|ParticleContainer|Particle|Ticker|FederatedPointerEvent|Sprite|Text|extensions)\.d\.ts$|react-reconciler.development.js$|@types\/react\/index.d.ts$|its-fine\/dist\/index.js$/.test(path)));
-    return { id: row.id, packages: row.packages, certification: row.certification, installExit: row.install.status, runtimeExit: row.runtime.status, typeExit: row.types.status, observation, failure: row.runtime.status ? row.runtime.stderr.replaceAll(/\/private\/tmp\/[^\s)]*?\/node_modules\//g, '<tuple>/node_modules/').split('\n').slice(0,12).join('\n') : undefined, typeDiagnostics: row.types.stdout || undefined, resolvedPackages: Object.fromEntries(Object.entries(row.lock.packages).filter(([path]) => path).map(([path, pkg]) => [path.replace(/^node_modules\//, ''), { version: pkg.version, integrity: pkg.integrity }])), surfaces };
+    return { id: row.id, packages: row.packages, certification: row.certification, installExit: row.install.status, runtimeExit: row.runtime.status, typeExit: row.types.status, observation, failure: row.runtime.status ? normalize(row.runtime.stderr).split('\n').slice(0,12).join('\n') : undefined, typeDiagnostics: normalize(row.types.stdout) || undefined, resolvedPackages: Object.fromEntries(Object.entries(row.lock.packages).filter(([path]) => path).map(([path, pkg]) => [path.replace(/^node_modules\//, ''), { version: pkg.version, integrity: pkg.integrity }])), surfaces };
 });
 let previousReact;
 let previousPixi;
