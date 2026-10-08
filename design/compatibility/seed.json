@@ -1359,5 +1359,123 @@
         "typescript": "5.6.3"
       }
     }
-  ]
+  ],
+  "reactEpochs": [
+    {
+      "id": "react18",
+      "reactMinor": "18.3",
+      "reconciler": "0.29.2",
+      "status": "candidate-not-certified",
+      "requiredEvidence": [
+        "installed consumer types",
+        "host/root ABI probe",
+        "real renderer browser lifecycle",
+        "context bridge from React DOM",
+        "advertised feature paths"
+      ]
+    },
+    {
+      "id": "react190",
+      "reactMinor": "19.0",
+      "reconciler": "0.31.0",
+      "status": "candidate-not-certified",
+      "requiredEvidence": [
+        "installed consumer types",
+        "host/root ABI probe",
+        "real renderer browser lifecycle",
+        "context bridge from React DOM",
+        "advertised feature paths"
+      ]
+    },
+    {
+      "id": "react191",
+      "reactMinor": "19.1",
+      "reconciler": "0.32.0",
+      "status": "candidate-not-certified",
+      "requiredEvidence": [
+        "installed consumer types",
+        "host/root ABI probe",
+        "real renderer browser lifecycle",
+        "context bridge from React DOM",
+        "advertised feature paths"
+      ]
+    },
+    {
+      "id": "react192",
+      "reactMinor": "19.2",
+      "reconciler": "0.33.0",
+      "status": "candidate-not-certified",
+      "requiredEvidence": [
+        "installed consumer types",
+        "host/root ABI probe",
+        "real renderer browser lifecycle",
+        "context bridge from React DOM",
+        "advertised feature paths"
+      ]
+    },
+    {
+      "id": "react193",
+      "reactMinor": "19.3",
+      "reconciler": "0.34.0",
+      "status": "candidate-not-certified",
+      "requiredEvidence": [
+        "installed consumer types",
+        "host/root ABI probe",
+        "real renderer browser lifecycle",
+        "context bridge from React DOM",
+        "advertised feature paths"
+      ]
+    }
+  ],
+  "pixiEpochs": [
+    {
+      "id": "pixi7",
+      "line": "7.4",
+      "minimum": "7.4.2",
+      "current": "7.4.3",
+      "status": "candidate-not-certified"
+    },
+    {
+      "id": "pixi8",
+      "minimum": "8.2.6",
+      "current": "8.22.0",
+      "status": "candidate-not-certified",
+      "capabilityBoundaries": {
+        "particles": "8.5.0",
+        "cacheAsTexture": "8.6.0",
+        "renderLayer": "8.7.0",
+        "domContainer": "8.9.0",
+        "canvasRenderer": "8.16.0",
+        "visibleChanged": "8.17.0",
+        "contextmenu": "8.22.0"
+      }
+    }
+  ],
+  "knownFailures": [
+    {
+      "id": "pixi-850-particle-destroy",
+      "tupleId": "pixi-8.5.0",
+      "probe": "pixi.mjs",
+      "signature": "ParticleContainer.removeChildren() is not available. Please use ParticleContainer.removeParticles()",
+      "classification": "regression",
+      "decision": "exclude particle destruction until workaround or later certified patch",
+      "laterPassingSample": "pixi-8.5.2"
+    },
+    {
+      "id": "react193-fragment-host",
+      "tupleId": "react-19.3.0",
+      "probe": "react.mjs",
+      "signature": "createFragmentInstance is not a function",
+      "classification": "missing-host-capability",
+      "decision": "dedicated fragment host implementation required; basic mount is insufficient"
+    }
+  ],
+  "promotionRequirements": [
+    "exact registry/tag review",
+    "integrity-recorded isolated install",
+    "targeted runtime and consumer type probes",
+    "real renderer browser lifecycle and feature matrix",
+    "owner review for support removal"
+  ],
+  "evidence": "evidence.json"
 }

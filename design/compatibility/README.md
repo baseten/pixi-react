@@ -16,3 +16,12 @@ An optional positional substring selects tuple IDs, for example `react-19.2` or 
 The React probe uses a tiny in-memory mutation renderer: actual reconciler root creation, prop update, unmount, context propagation across two roots through `its-fine`, error delivery, and Activity visibility where available. It is not the production Pixi renderer or a React DOM bridge test. The Pixi probe exercises installed scene mutation, ticker argument shape, event emitter registration, destruction, and selected behavior changes without initializing a GPU. Its emitter check does not test hit testing, event capture/bubbling, rendering, or browser lifecycle.
 
 The TypeScript consumer uses `skipLibCheck: true` to isolate consumer assignability from unrelated dependency declarations; full dependency declaration correctness is not claimed. TS 5.6.3 is pinned. No TS 6/7 certificate follows from the Pixi 8.21 release notes. Installed package source/declaration fingerprints and selected signatures support boundary comparison; changed hashes alone do not mean a breaking interface.
+
+To refresh compact evidence after running the probes:
+
+```sh
+node design/compatibility/summarize.mjs /tmp/pixi-version-audit/results.json design/compatibility/evidence.json
+node design/compatibility/validate.mjs
+```
+
+For local probe development only, `AUDIT_REUSE_INSTALL=1` reuses a tuple whose installed direct versions still exactly match the seed. The retained lock records the reused transitive graph. The default remains a normal isolated install; a fresh work directory is required when auditing dependency-resolution changes. `tagged-react-surfaces.json` additionally records source fetched from each cited Git tag, rather than treating the published bundle and a feature-flagged source fork as identical.
