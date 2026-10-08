@@ -360,3 +360,84 @@ test('requires particle observations for a particle-era tuple even with an edite
     assert.equal(result.status, 1, result.stdout);
     assert.match(result.stderr, /pixi-8.10.0: observation.observations.particleIsContainer/);
 });
+
+for (const id of ['react-18.3.1', 'react-19.0.0', 'react-19.0.8', 'react-19.1.0', 'react-19.1.9', 'react-19.2.0', 'react-19.2.8', 'react-19.3.0'])
+{
+    for (const field of ['contextBridge', 'activity'])
+    {
+        for (const value of [undefined, null, 'wrong-outcome'])
+        {
+            test(`rejects ${id} feature ${field} replaced by ${JSON.stringify(value)}`, (t) =>
+            {
+                const result = validate(t, (evidence) =>
+                {
+                    const row = evidence.results.find((r) => r.id === id);
+
+                    assert.equal(row.runtimeExit, 0);
+                    assert.equal(typeof row.observation.features[field], 'string');
+                    if (value === undefined) delete row.observation.features[field];
+                    else row.observation.features[field] = value;
+                });
+
+                assert.equal(result.status, 1, result.stdout);
+                assert.ok(result.stderr.includes(`${id}: observation.features.${field}`), result.stderr);
+            });
+        }
+    }
+}
+
+for (const [id, activity] of [['react-19.1.9', 'hide-restore'], ['react-19.2.0', 'not-available'], ['react-19.3.0', 'not-available']])
+{
+    test(`rejects version-inappropriate Activity outcome for ${id}`, (t) =>
+    {
+        const result = validate(t, (evidence) =>
+        {
+            const features = evidence.results.find((r) => r.id === id).observation.features;
+
+            assert.notEqual(features.activity, activity);
+            features.activity = activity;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.ok(result.stderr.includes(`${id}: observation.features.activity`), result.stderr);
+    });
+}
+
+for (const id of ['react-18.3.1', 'react-19.1.0', 'react-19.2.0'])
+{
+    for (const value of [undefined, null, 'rendered', { status: 'missing-host-capability', errors: ['createFragmentInstance is not a function'] }])
+    {
+        test(`rejects ${id} fragmentRef replaced by ${JSON.stringify(value)}`, (t) =>
+        {
+            const result = validate(t, (evidence) =>
+            {
+                const features = evidence.results.find((r) => r.id === id).observation.features;
+
+                assert.equal(features.fragmentRef, 'not-available');
+                if (value === undefined) delete features.fragmentRef;
+                else features.fragmentRef = value;
+            });
+
+            assert.equal(result.status, 1, result.stdout);
+            assert.ok(result.stderr.includes(`${id}: observation.features.fragmentRef`), result.stderr);
+        });
+    }
+}
+
+for (const extra of [null, 42, 'another error'])
+{
+    test(`rejects an extra fragment error ${JSON.stringify(extra)}`, (t) =>
+    {
+        const result = validate(t, (evidence) =>
+        {
+            const fragment = evidence.results.find((r) => r.id === 'react-19.3.0').observation.features.fragmentRef;
+
+            assert.equal(fragment.errors.length, 1);
+            assert.match(fragment.errors[0], /createFragmentInstance/);
+            fragment.errors.push(extra);
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /react-19.3.0: observation.features.fragmentRef.errors/);
+    });
+}

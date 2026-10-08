@@ -70,6 +70,18 @@ for (const tuple of seed.probes)
             assert.equal(observation.reconciler, tuple.packages['react-reconciler'], `${row.id}: observation.reconciler`);
             for (const field of ['hostKeys', 'exports']) assert.ok(strings(observation[field]) && observation[field].length > 0, `${row.id}: observation.${field}`);
             assert.ok(nonemptyObject(observation.features), `${row.id}: observation.features`);
+            const features = observation.features;
+            const [major, minor] = tuple.packages.react.split('.').map(Number);
+
+            assert.equal(features.contextBridge, 'mount-update-unmount', `${row.id}: observation.features.contextBridge`);
+            assert.equal(features.activity, major === 19 && minor >= 2 ? 'hide-restore' : 'not-available', `${row.id}: observation.features.activity`);
+            if (major === 19 && minor >= 3)
+            {
+                assert.ok(nonemptyObject(features.fragmentRef), `${row.id}: observation.features.fragmentRef`);
+                assert.equal(features.fragmentRef.status, 'missing-host-capability', `${row.id}: observation.features.fragmentRef.status`);
+                assert.ok(strings(features.fragmentRef.errors) && features.fragmentRef.errors.length === 1, `${row.id}: observation.features.fragmentRef.errors`);
+            }
+            else assert.equal(features.fragmentRef, 'not-available', `${row.id}: observation.features.fragmentRef`);
         }
         else
         {
