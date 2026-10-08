@@ -85,10 +85,12 @@ for (const failure of seed.knownFailures)
 if (historical)
 {
     for (const version of ['17.0.0', '17.0.1', '17.0.2'])
+    {
         for (const bridge of ['1.2.0', '1.2.2'])
-            assert.ok(seed.probes.some((p) => p.packages.react === version && p.packages['its-fine'] === bridge));
+        { assert.ok(seed.probes.some((p) => p.packages.react === version && p.packages['its-fine'] === bridge)); }
+    }
     for (const version of ['6.0.0', '6.0.4', '6.1.0', '6.1.3', '6.2.0', '6.2.2', '6.3.0', '6.3.2', '6.4.0', '6.4.2', '6.5.0', '6.5.1', '6.5.10'])
-        assert.ok(seed.probes.some((p) => p.packages['pixi.js'] === version));
+    { assert.ok(seed.probes.some((p) => p.packages['pixi.js'] === version)); }
 }
 else
 {

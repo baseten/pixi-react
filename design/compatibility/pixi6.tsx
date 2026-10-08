@@ -1,4 +1,4 @@
-import { Application, Container, InteractionEvent, ParticleContainer, Sprite, Text, Texture, Ticker } from 'pixi.js';
+import { Application, Container, InteractionEvent, ParticleContainer, Sprite, Spritesheet, Text, Texture, Ticker } from 'pixi.js';
 
 const container = new Container();
 const sprite = new Sprite(Texture.EMPTY);
@@ -34,3 +34,8 @@ const app = new Application({ width: 16, height: 16, autoStart: false, sharedTic
 app.resize();
 app.resizeTo = window;
 app.destroy(true, { children: true, texture: false, baseTexture: false });
+
+const sheet = new Spritesheet(Texture.EMPTY, { frames: {}, meta: { scale: '1' } });
+const callbackResult: void = sheet.parse(() => { void sheet.textures; });
+
+void callbackResult;

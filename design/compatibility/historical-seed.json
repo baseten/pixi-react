@@ -633,7 +633,37 @@
           "integrity": "sha512-Z2mjeoISml2iuVwT1e/BQwERYM2yKoiR08ZdGrg8y5JjeuVptfTrve4DbPMRN/kEDodesgQZGV/pFv0fE9Q2SA==",
           "publishedAt": "2023-07-06T15:35:20.130Z"
         }
-      }
+      },
+      "publishedStableVersions": [
+        "6.0.0",
+        "6.0.1",
+        "6.0.2",
+        "6.0.3",
+        "6.0.4",
+        "6.1.0",
+        "6.1.1",
+        "6.1.2",
+        "6.1.3",
+        "6.2.0",
+        "6.2.1",
+        "6.2.2",
+        "6.3.0",
+        "6.3.1",
+        "6.3.2",
+        "6.4.0",
+        "6.4.2",
+        "6.5.0",
+        "6.5.1",
+        "6.5.2",
+        "6.5.3",
+        "6.5.4",
+        "6.5.5",
+        "6.5.6",
+        "6.5.7",
+        "6.5.8",
+        "6.5.9",
+        "6.5.10"
+      ]
     },
     "react": {
       "source": "https://registry.npmjs.org/react",
@@ -668,7 +698,12 @@
           "integrity": "sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==",
           "publishedAt": "2021-03-22T21:56:19.536Z"
         }
-      }
+      },
+      "publishedStableVersions": [
+        "17.0.0",
+        "17.0.1",
+        "17.0.2"
+      ]
     },
     "react-reconciler": {
       "source": "https://registry.npmjs.org/react-reconciler",
@@ -712,7 +747,12 @@
           "integrity": "sha512-nK6kgY28HwrMNwDnMui3dvm3rCFjZrcGiuwLc5COUipBK5hWHLOxMJhSnSomirqWwjPBJKV1QcbkI0VJr7Gl1Q==",
           "publishedAt": "2021-03-22T21:57:38.069Z"
         }
-      }
+      },
+      "publishedStableVersions": [
+        "0.26.0",
+        "0.26.1",
+        "0.26.2"
+      ]
     },
     "scheduler": {
       "source": "https://registry.npmjs.org/scheduler",
@@ -747,7 +787,12 @@
           "integrity": "sha512-2eWfGgAqqWFGqtdMmcL5zCMK1U8KlXv8SQFGglL3CEtd0aDVDWgeF/YoCmvln55m5zSk3J/20hTaSBeSObsQDQ==",
           "publishedAt": "2021-03-22T21:56:00.627Z"
         }
-      }
+      },
+      "publishedStableVersions": [
+        "0.20.0",
+        "0.20.1",
+        "0.20.2"
+      ]
     },
     "typescript": {
       "source": "https://registry.npmjs.org/typescript",
@@ -803,6 +848,58 @@
           "dependencies": {},
           "integrity": "sha512-LRKZ4tkilgTKRI4hmYEBhEzUbDMOf9YBnBPXDJgfe08k5/taVPVvEhMn4cs5UKTf9ALxTF+EOzrg8n2+kfMuJA==",
           "publishedAt": "2023-07-06T15:34:48.936Z"
+        }
+      }
+    },
+    "@pixi/assets": {
+      "source": "https://registry.npmjs.org/@pixi/assets",
+      "selected": {
+        "6.5.0": {
+          "peerDependencies": {
+            "@pixi/core": "6.5.0",
+            "@pixi/basis": "6.5.0",
+            "@pixi/utils": "6.5.0",
+            "@pixi/settings": "6.5.0",
+            "@pixi/constants": "6.5.0",
+            "@pixi/spritesheet": "6.5.0",
+            "@pixi/text-bitmap": "6.5.0",
+            "@pixi/compressed-textures": "6.5.0"
+          },
+          "dependencies": {},
+          "integrity": "sha512-EFB/n2e0oheSebfxWY6FCMOsCR7EYWQHoTN1XBhCeNUb6jXjhlJhPDeu90tY3Zo/B215Glo7OsZic/pVMvXPrA==",
+          "publishedAt": "2022-07-22T18:56:27.180Z"
+        },
+        "6.5.1": {
+          "peerDependencies": {
+            "@pixi/core": "6.5.1",
+            "@pixi/basis": "6.5.1",
+            "@pixi/utils": "6.5.1",
+            "@pixi/settings": "6.5.1",
+            "@pixi/constants": "6.5.1",
+            "@pixi/spritesheet": "6.5.1",
+            "@pixi/text-bitmap": "6.5.1",
+            "@pixi/compressed-textures": "6.5.1"
+          },
+          "dependencies": {},
+          "integrity": "sha512-vTN2i68CbSabCuYzXK0Hv34vZdzdb4hPPPkdC3S+BsOr0CSuYv/3M8/p/a1ekqAxF2leO8XEWmHEISEmSIghbA==",
+          "publishedAt": "2022-07-24T21:08:00.835Z"
+        },
+        "6.5.10": {
+          "peerDependencies": {
+            "@pixi/core": "6.5.10",
+            "@pixi/basis": "6.5.10",
+            "@pixi/utils": "6.5.10",
+            "@pixi/settings": "6.5.10",
+            "@pixi/constants": "6.5.10",
+            "@pixi/spritesheet": "6.5.10",
+            "@pixi/text-bitmap": "6.5.10",
+            "@pixi/compressed-textures": "6.5.10"
+          },
+          "dependencies": {
+            "@types/css-font-loading-module": "^0.0.7"
+          },
+          "integrity": "sha512-K8QQRkLauFw7UtJkF2Yy3gvq8Hh1EKeAT1T64wGSEVOco/yyvbPAh4b4YKyol2wZcqaM6FECroKCPXuJtShKQg==",
+          "publishedAt": "2023-07-06T15:34:35.614Z"
         }
       }
     }
@@ -1009,7 +1106,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particles",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.0.0",
@@ -1031,7 +1129,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particles",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.0.4",
@@ -1053,7 +1152,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.1.0",
@@ -1075,7 +1175,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.1.3",
@@ -1097,7 +1198,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.2.0",
@@ -1119,7 +1221,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.2.2",
@@ -1141,7 +1244,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.3.0",
@@ -1163,7 +1267,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.3.2",
@@ -1185,7 +1290,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.4.0",
@@ -1207,7 +1313,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.4.2",
@@ -1230,7 +1337,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.5.0",
@@ -1253,7 +1361,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.5.1",
@@ -1276,7 +1385,8 @@
         "@pixi/ticker",
         "@pixi/interaction",
         "@pixi/particle-container",
-        "@pixi/core"
+        "@pixi/core",
+        "@pixi/spritesheet"
       ],
       "packages": {
         "pixi.js": "6.5.10",
@@ -1382,6 +1492,60 @@
         "typescript": "5.6.3",
         "@pixi/events": "6.5.10"
       }
+    },
+    {
+      "id": "pixi-6.5.0-assets",
+      "kind": "pixi",
+      "runtime": "pixi6-assets.mjs",
+      "typeFiles": [
+        "pixi6-assets.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/assets",
+        "@pixi/app",
+        "@pixi/display"
+      ],
+      "packages": {
+        "pixi.js": "6.5.0",
+        "@pixi/assets": "6.5.0",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.5.1-assets",
+      "kind": "pixi",
+      "runtime": "pixi6-assets.mjs",
+      "typeFiles": [
+        "pixi6-assets.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/assets",
+        "@pixi/app",
+        "@pixi/display"
+      ],
+      "packages": {
+        "pixi.js": "6.5.1",
+        "@pixi/assets": "6.5.1",
+        "typescript": "5.6.3"
+      }
+    },
+    {
+      "id": "pixi-6.5.10-assets",
+      "kind": "pixi",
+      "runtime": "pixi6-assets.mjs",
+      "typeFiles": [
+        "pixi6-assets.tsx"
+      ],
+      "surfaceRoots": [
+        "@pixi/assets",
+        "@pixi/app",
+        "@pixi/display"
+      ],
+      "packages": {
+        "pixi.js": "6.5.10",
+        "@pixi/assets": "6.5.10",
+        "typescript": "5.6.3"
+      }
     }
   ],
   "knownFailures": [
@@ -1462,6 +1626,17 @@
       ],
       "classification": "missing-context-value",
       "signature": "secondary-parent"
+    },
+    {
+      "id": "pixi-6.5.0-embedded-core",
+      "tupleId": "pixi-6.5.0",
+      "expectedRuntimeExit": 0,
+      "observationPath": [
+        "observations",
+        "packaging"
+      ],
+      "classification": "embedded-core-definitions",
+      "signature": "ticker embeds core"
     }
   ]
 }

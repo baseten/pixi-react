@@ -37,7 +37,93 @@ if (bareImport.status !== 0 && (/ReferenceError: (self|window|document) is not d
     };
     bootstrap.push({ operation: 'browser-global-import-fixture', globals: ['self', 'window', 'document', 'CanvasRenderingContext2D'], webgl: 'unavailable' });
 }
-const P = await import('pixi.js');
+const bundles = {};
+
+for (const name of ['@pixi/app', '@pixi/display', '@pixi/ticker', '@pixi/spritesheet'])
+{
+    const pkg = metadata(name);
+
+    for (const format of ['main', 'module', 'bundle'])
+    {
+        const path = pkg[format];
+
+        if (!path) continue;
+        const content = readFileSync(join('node_modules', name, path), 'utf8');
+
+        bundles[`${name}/${path}`] = {
+            packageVersion: pkg.version,
+            sha256: createHash('sha256').update(content).digest('hex'),
+            bytes: Buffer.byteLength(content),
+            embeddedCoreDefinitions: ['BaseTexture', 'Texture', 'Renderer'].filter((symbol) => new RegExp(`function ${symbol}\\(`).test(content)),
+        };
+    }
+}
+const spriteDeclarationsPath = '@pixi/spritesheet/index.d.ts';
+const spriteDeclarations = readFileSync(join('node_modules', spriteDeclarationsPath), 'utf8');
+const spritesheet = {
+    declarations: {
+        path: spriteDeclarationsPath,
+        sha256: createHash('sha256').update(spriteDeclarations).digest('hex'),
+        parseSignatures: spriteDeclarations.split('\n').map((line) => line.trim()).filter((line) => line.startsWith('parse(')),
+    },
+    scope: 'Texture.EMPTY with no frames; no image loading, texture upload or rendering',
+};
+let P;
+
+try
+{
+    P = await import('pixi.js');
+}
+catch (error)
+{
+    // Preserve the default ESM failure; a supplementary CJS route is labelled separately.
+    const cjs = spawnSync(process.execPath, ['-e', `
+        const assert = require('node:assert/strict');
+        const P = require('pixi.js');
+        const sheet = new P.Spritesheet(P.Texture.EMPTY, { frames: {}, meta: { scale: '1' } });
+        let callbacks = 0;
+        const result = sheet.parse(textures => { callbacks++; assert.deepEqual(textures, {}); });
+        assert.equal(callbacks, 1);
+        assert.equal(result, undefined);
+        sheet.destroy(false);
+        process.stdout.write(JSON.stringify({ route: 'supplementary CommonJS require', callbacks, returnType: 'undefined' }));
+    `], { encoding: 'utf8' });
+
+    spritesheet.commonjs = { exit: cjs.status, result: cjs.status === 0 ? JSON.parse(cjs.stdout) : null, diagnostic: cjs.stderr.match(/(?:ReferenceError|TypeError|Error):[^\n]+/)?.[0] ?? null };
+    process.stdout.write(`${JSON.stringify({ version, capabilities: null, observations: { spritesheet, publishedBundles: bundles } })}\n`);
+    throw error;
+}
+const sheet = new P.Spritesheet(P.Texture.EMPTY, { frames: {}, meta: { scale: '1' } });
+
+if (Number(version.split('.')[1]) >= 5)
+{
+    const parsed = sheet.parse();
+
+    assert.ok(parsed instanceof Promise);
+    assert.deepEqual(await parsed, {});
+    spritesheet.runtime = { route: 'default ESM import', noArgumentReturn: 'Promise', resolvedTextureCount: 0 };
+}
+else
+{
+    let callbacks = 0;
+    const parsed = sheet.parse((textures) =>
+    {
+        callbacks++;
+        assert.deepEqual(textures, {});
+    });
+
+    assert.equal(callbacks, 1);
+    assert.equal(parsed, undefined);
+    spritesheet.runtime = { route: 'default ESM import with recorded bootstrap where needed', callbacks, callbackReturn: 'undefined' };
+}
+sheet.destroy(false);
+const embeddedTickerPaths = Object.entries(bundles).filter(([path, bundle]) => path.startsWith('@pixi/ticker/') && bundle.embeddedCoreDefinitions.length > 0).map(([path]) => path);
+const packaging = embeddedTickerPaths.length > 0
+    ? { status: 'embedded-core-definitions', errors: ['ticker embeds core implementation'], inspectedPaths: embeddedTickerPaths }
+    : { status: 'no-core-definitions-in-inspected-ticker' };
+
+if (version === '6.5.0') assert.equal(packaging.status, 'embedded-core-definitions');
+if (version === '6.5.1' || version === '6.5.10') assert.equal(packaging.status, 'no-core-definitions-in-inspected-ticker');
 const parent = new P.Container();
 const a = new P.Sprite(P.Texture.EMPTY);
 const b = new P.Sprite(P.Texture.EMPTY);
@@ -94,27 +180,6 @@ b.on('destroyed', () => destroyEvents.push({ publicDestroyedDuringEvent: b.destr
 parent.destroy({ children: true });
 a.destroy();
 assert.equal(b.parent, null);
-const bundles = {};
-
-for (const name of ['@pixi/app', '@pixi/display', '@pixi/ticker'])
-{
-    const pkg = metadata(name);
-
-    for (const format of ['main', 'module', 'bundle'])
-    {
-        const path = pkg[format];
-
-        if (!path) continue;
-        const content = readFileSync(join('node_modules', name, path), 'utf8');
-
-        bundles[`${name}/${path}`] = {
-            packageVersion: pkg.version,
-            sha256: createHash('sha256').update(content).digest('hex'),
-            bytes: Buffer.byteLength(content),
-            embeddedCoreDefinitions: ['BaseTexture', 'Texture', 'Renderer'].filter((symbol) => new RegExp(`function ${symbol}\\(`).test(content)),
-        };
-    }
-}
 const capabilities = {
     asyncInit: typeof P.Application.prototype.init === 'function',
     particle: typeof P.Particle === 'function',
@@ -132,6 +197,8 @@ const capabilities = {
 const observations = {
     unmodifiedNodeImport: { exit: bareImport.status, diagnostic: bareImport.stderr.match(/(?:ReferenceError|TypeError|Error):[^\n]+/)?.[0] ?? null },
     bootstrap,
+    spritesheet,
+    packaging,
     scene: 'construct-add-reorder-remove-properties-destroy',
     eventScope: 'EventEmitter on/emit/off only; no DOM events, propagation or hit testing',
     application: {
