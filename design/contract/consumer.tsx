@@ -4,7 +4,7 @@ import { createRenderer } from './renderer.js';
 import { Pixi8Adapter } from './pixi-8.js';
 import { React19Adapter, type ApplicationRef, type ElementProps } from './react-19.js';
 import type { Pixi8Types } from './pixi-8.js';
-const renderer = createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
+const renderer = createRenderer({ framework: new React19Adapter(), scene: new Pixi8Adapter() });
 class Custom extends Container { constructor(options: { marker: string }) { super(); this.label = options.marker; } }
 renderer.extend({ Custom, Sprite, Graphics });
 const CustomComponent = renderer.component(Custom);

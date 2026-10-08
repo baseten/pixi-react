@@ -36,8 +36,11 @@ export interface ReactBindings<S extends SceneTypes> {
     useApplication(): ApplicationState<S['app']>;
     useTick<C = unknown>(options: ((tick: S['tick']) => void) | TickOptions<S['tick'], C>): void;
     applyProps<C extends Constructor>(instance: InstanceType<C>, props: PropsOf<S, C>): InstanceType<C>;
-    /** Local component route preserves selected scene props without global JSX augmentation. */
-    component<C extends Constructor>(ctor: C): ComponentType<ElementProps<S, C>>;
+    /**
+     * Local component route preserves selected scene props without global JSX augmentation.
+     * The registered type name is `name` when given, else a WeakMap-assigned unique id; never `ctor.name`.
+     */
+    component<C extends Constructor>(ctor: C, name?: string): ComponentType<ElementProps<S, C>>;
     /** Called inside the parent React tree; wraps a separate reconciler root. */
     useContextBridge(): ComponentType<{ children?: ReactNode }>;
 }
