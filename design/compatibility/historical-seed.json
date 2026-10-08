@@ -1341,7 +1341,8 @@
       },
       "declarationSeries": "pixi6-baseline",
       "resolvedPackagesSha256": "694414ba4ea312cab08578b945514d11aa6c02f21cc5632fddbb8a7168a68233",
-      "surfacesSha256": "10fd9df3f8342adfdadb79a4b6295c8d0c0d51a0860713fc2c1052230b1d0ff8"
+      "surfacesSha256": "10fd9df3f8342adfdadb79a4b6295c8d0c0d51a0860713fc2c1052230b1d0ff8",
+      "runtimeDiagnosticsSha256": "6508e1ce3d9304d6df12f39174427853fb545b648f5ed815044e595eda7af9d8"
     },
     {
       "id": "pixi-6.4.2",
@@ -1367,7 +1368,8 @@
       },
       "declarationSeries": "pixi6-baseline",
       "resolvedPackagesSha256": "8d4f673f6aaaa0449f54d220a19ad0e1b6f8a8db59ae79c0344845d99023bf7e",
-      "surfacesSha256": "7d748f663dd8c4521cb1de569e80feda8885c37136cb6df9423e6fc199b7c0e4"
+      "surfacesSha256": "7d748f663dd8c4521cb1de569e80feda8885c37136cb6df9423e6fc199b7c0e4",
+      "runtimeDiagnosticsSha256": "f8d275c51e963356d93a0466e15d538c8e63e7f429bf2054a38a736e686ab3d2"
     },
     {
       "id": "pixi-6.5.0",

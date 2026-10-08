@@ -16,6 +16,7 @@ function validate(t, mutate)
     mutate?.(evidence, seed);
     copyFileSync(new URL('declaration-series.mjs', import.meta.url), join(root, 'declaration-series.mjs'));
     copyFileSync(new URL('react-abi.mjs', import.meta.url), join(root, 'react-abi.mjs'));
+    copyFileSync(new URL('process-diagnostics.mjs', import.meta.url), join(root, 'process-diagnostics.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
@@ -734,5 +735,27 @@ for (const digest of [undefined, '', '0'.repeat(64)])
 
         assert.equal(result.status, 1, result.stdout);
         assert.match(result.stderr, /React ABI/);
+    });
+}
+
+for (const [name, mutate] of [
+    ['missing object', (row) => { delete row.runtimeDiagnostics; }],
+    ['empty object', (row) => { row.runtimeDiagnostics = {}; }],
+    ['wrong status', (row) => { row.runtimeDiagnostics.status = 2; }],
+    ['missing signal', (row) => { delete row.runtimeDiagnostics.signal; }],
+    ['wrong signal', (row) => { row.runtimeDiagnostics.signal = 'SIGTERM'; }],
+    ['missing stdout', (row) => { delete row.runtimeDiagnostics.stdout; }],
+    ['missing stderr', (row) => { delete row.runtimeDiagnostics.stderr; }],
+    ['truncated stderr', (row) => { row.runtimeDiagnostics.stderr = row.failure; }],
+    ['wrong error', (row) => { row.runtimeDiagnostics.error = 'ETIMEDOUT'; }],
+    ['wrong failure excerpt', (row) => { row.failure += '\nextra'; }],
+])
+{
+    test(`rejects incomplete runtime diagnostics: ${name}`, (t) =>
+    {
+        const result = validate(t, (evidence) => mutate(evidence.results.find((r) => r.id === 'pixi-8.5.0')));
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /pixi-8.5.0: runtimeDiagnostics/);
     });
 }

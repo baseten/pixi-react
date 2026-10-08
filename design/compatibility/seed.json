@@ -1173,7 +1173,8 @@
         "pixi.js": "8.5.0",
         "typescript": "5.6.3"
       },
-      "surfacesSha256": "4ee34e912b27e3350f9733709699d751807d639a130b8bb2a8e37970e9b5c17c"
+      "surfacesSha256": "4ee34e912b27e3350f9733709699d751807d639a130b8bb2a8e37970e9b5c17c",
+      "runtimeDiagnosticsSha256": "3456773104f7a058716352e98ee0089146f8c823a255cac8add02c23e7ec4f06"
     },
     {
       "id": "pixi-8.5.2",

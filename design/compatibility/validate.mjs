@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { declarationSeries } from './declaration-series.mjs';
+import { processDiagnosticsSha256 } from './process-diagnostics.mjs';
 import { reactAbiSha256 } from './react-abi.mjs';
 import { resolvedPackagesSha256 } from './resolved-packages.mjs';
 import { surfaceMapSha256 } from './surface-map.mjs';
@@ -133,7 +134,21 @@ for (const tuple of seed.probes)
         }
     }
     if (historical) validateHistoricalObservation(row, tuple);
-    if (row.runtimeExit !== 0) assert.ok(seed.knownFailures.some((f) => f.tupleId === row.id && f.expectedRuntimeExit === row.runtimeExit && row.failure?.includes(f.signature)), row.id);
+    if (row.runtimeExit !== 0)
+    {
+        const diagnostics = row.runtimeDiagnostics;
+
+        assert.ok(nonemptyObject(diagnostics), `${row.id}: runtimeDiagnostics`);
+        assert.equal(diagnostics.status, row.runtimeExit, `${row.id}: runtimeDiagnostics.status`);
+        assert.ok(Object.hasOwn(diagnostics, 'signal') && (diagnostics.signal === null || (typeof diagnostics.signal === 'string' && diagnostics.signal.length > 0)), `${row.id}: runtimeDiagnostics.signal`);
+        for (const field of ['stdout', 'stderr']) assert.ok(Object.hasOwn(diagnostics, field) && (diagnostics[field] === null || typeof diagnostics[field] === 'string'), `${row.id}: runtimeDiagnostics.${field}`);
+        if (Object.hasOwn(diagnostics, 'error')) assert.ok(typeof diagnostics.error === 'string' && diagnostics.error.length > 0, `${row.id}: runtimeDiagnostics.error`);
+        if (row.runtimeExit === null) assert.ok(diagnostics.signal || diagnostics.error, `${row.id}: runtimeDiagnostics.termination`);
+        assert.ok(typeof tuple.runtimeDiagnosticsSha256 === 'string' && (/^[a-f0-9]{64}$/).test(tuple.runtimeDiagnosticsSha256), `${row.id}: runtimeDiagnostics pinned digest`);
+        assert.equal(processDiagnosticsSha256(diagnostics), tuple.runtimeDiagnosticsSha256, `${row.id}: runtimeDiagnostics captured digest`);
+        assert.equal(row.failure, (diagnostics.stderr || '').split('\n').slice(0, 12).join('\n'), `${row.id}: runtimeDiagnostics failure excerpt`);
+        assert.ok(seed.knownFailures.some((f) => f.tupleId === row.id && f.expectedRuntimeExit === row.runtimeExit && row.failure?.includes(f.signature)), row.id);
+    }
     if (tuple.kind === 'react')
     {
         const keys = row.observation?.hostKeys || [];

@@ -16,6 +16,7 @@ function validate(t, mutate)
     mutate?.(evidence, seed);
     copyFileSync(new URL('declaration-series.mjs', import.meta.url), join(root, 'declaration-series.mjs'));
     copyFileSync(new URL('react-abi.mjs', import.meta.url), join(root, 'react-abi.mjs'));
+    copyFileSync(new URL('process-diagnostics.mjs', import.meta.url), join(root, 'process-diagnostics.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
