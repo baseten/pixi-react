@@ -511,3 +511,63 @@ for (const [id, fields] of [
         });
     }
 }
+
+for (const id of ['react-18.3.1', 'react-19.0.0', 'react-19.1.0', 'react-19.2.0', 'react-19.3.0'])
+{
+    for (const [field, values] of [
+        ['peers', [undefined, null, {}, [], { react: '*' }]],
+        ['createContainerArity', [undefined, null, '10', 99, 11]],
+    ])
+    {
+        for (const value of values)
+        {
+            test(`rejects ${id} ABI ${field} replaced by ${JSON.stringify(value)}`, (t) =>
+            {
+                const result = validate(t, (evidence) =>
+                {
+                    const observation = evidence.results.find((r) => r.id === id).observation;
+
+                    assert.ok(Object.hasOwn(observation, field));
+                    assert.notDeepEqual(observation[field], value);
+                    if (value === undefined) delete observation[field];
+                    else observation[field] = value;
+                });
+
+                assert.equal(result.status, 1, result.stdout);
+                assert.ok(result.stderr.includes(`${id}: observation.${field}`), result.stderr);
+            });
+        }
+    }
+}
+
+test('rejects an extra peer not declared by the selected reconciler', (t) =>
+{
+    const result = validate(t, (evidence) =>
+    {
+        const peers = evidence.results.find((r) => r.id === 'react-19.2.0').observation.peers;
+
+        assert.deepEqual(peers, { react: '^19.2.0' });
+        peers['react-dom'] = '^19.2.0';
+    });
+
+    assert.equal(result.status, 1, result.stdout);
+    assert.match(result.stderr, /react-19.2.0: observation.peers/);
+});
+
+for (const value of [undefined, null, {}])
+{
+    test(`rejects unavailable reconciler peer metadata: ${JSON.stringify(value)}`, (t) =>
+    {
+        const result = validate(t, (evidence, seed) =>
+        {
+            const selected = seed.registry['react-reconciler'].selected['0.33.0'];
+
+            assert.deepEqual(selected.peerDependencies, { react: '^19.2.0' });
+            if (value === undefined) delete selected.peerDependencies;
+            else selected.peerDependencies = value;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /registry.react-reconciler.0.33.0.peerDependencies/);
+    });
+}
