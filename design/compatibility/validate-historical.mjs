@@ -52,11 +52,25 @@ export function validateHistoricalObservation(row, tuple)
     }
     if (row.runtimeExit === 0)
     {
-        for (const [key, expected] of Object.entries({ interactionManager: true, federatedEventsInDefaultBundle: false, assetsInDefaultBundle: false, loader: true, extensions: minor >= 5 })) equal(`capabilities.${key}`, expected);
+        equal('capabilities', {
+            asyncInit: false,
+            particle: false,
+            particleContainer: true,
+            cacheAsTexture: false,
+            renderLayer: false,
+            domContainer: false,
+            canvasRenderer: false,
+            interactionManager: true,
+            federatedEventsInDefaultBundle: false,
+            assetsInDefaultBundle: false,
+            loader: true,
+            extensions: minor >= 5,
+            ...(events ? { optionalFederatedEvents: true } : {}),
+            ...(assets ? { optionalAssets: true } : {}),
+        });
     }
     if (assets)
     {
-        equal('capabilities.optionalAssets', true);
         equal(`${prefix}.assets.version`, tuple.packages['@pixi/assets']);
         equal(`${prefix}.assets.methods`, ['init', 'load', 'unload', 'add', 'loadBundle']);
         equal(`${prefix}.assets.scope`, 'API presence only; no init, fetch, decoding, loading or rendering');
@@ -79,7 +93,6 @@ export function validateHistoricalObservation(row, tuple)
     }
     if (events)
     {
-        equal('capabilities.optionalFederatedEvents', true);
         equal(`${prefix}.optionalEvents.version`, tuple.packages['@pixi/events']);
         equal(`${prefix}.optionalEvents.eventBoundary`, 'synthetic capture-target-bubble and listener removal');
         equal(`${prefix}.optionalEvents.received`, ['capture', 'target', 'bubble']);

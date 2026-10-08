@@ -158,3 +158,51 @@ test('the evidence consumer accepts interleaved historical series with their own
 
     assert.equal(result.status, 0, result.stderr);
 });
+
+const pixiEvidence = JSON.parse(readFileSync(new URL('historical-evidence.json', import.meta.url))).results.filter((row) => row.packages['pixi.js']);
+
+for (const row of pixiEvidence.filter((item) => item.runtimeExit === 0))
+{
+    for (const [key, recorded] of Object.entries(row.observation.capabilities))
+    {
+        test(`historical capability rejects inverted ${row.id}: ${key}`, (t) =>
+        {
+            assert.equal(typeof recorded, 'boolean');
+            const result = validate(t, (e) =>
+            {
+                e.results.find((item) => item.id === row.id).observation.capabilities[key] = !recorded;
+            });
+
+            assert.equal(result.status, 1, result.stdout);
+            assert.ok(result.stderr.includes(`${row.id}: observation.capabilities`), result.stderr);
+        });
+    }
+    test(`historical capability rejects an unreported flag in ${row.id}`, (t) =>
+    {
+        const result = validate(t, (e) =>
+        {
+            e.results.find((item) => item.id === row.id).observation.capabilities.unreportedFeature = true;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.ok(result.stderr.includes(`${row.id}: observation.capabilities`), result.stderr);
+    });
+}
+
+for (const row of pixiEvidence.filter((item) => item.runtimeExit !== 0))
+{
+    for (const replacement of [undefined, {}, { asyncInit: false, particle: false, particleContainer: true, cacheAsTexture: false, renderLayer: false, domContainer: false, canvasRenderer: false }])
+    {
+        test(`failed import retains unobserved capabilities for ${row.id}: ${JSON.stringify(replacement)}`, (t) =>
+        {
+            assert.equal(row.observation.capabilities, null);
+            const result = validate(t, (e) =>
+            {
+                e.results.find((item) => item.id === row.id).observation.capabilities = replacement;
+            });
+
+            assert.equal(result.status, 1, result.stdout);
+            assert.ok(result.stderr.includes(`${row.id}: observation.capabilities`), result.stderr);
+        });
+    }
+}
