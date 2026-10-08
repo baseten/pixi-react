@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, sep } from 'node:path';
 import { test } from 'node:test';
@@ -50,5 +50,34 @@ for (const [id, surfacePath] of [
             sha256: createHash('sha256').update(declaration).digest('hex'),
             declarations: ['remove(...extensions: any[]): any;', 'add(...extensions: any[]): any;'],
         });
+    });
+}
+
+for (const reused of [false, true])
+{
+    test(`rejects an unmatched filter with ${reused ? 'stale' : 'no'} audit output`, (t) =>
+    {
+        const parent = mkdtempSync(join(tmpdir(), 'audit-empty-selection-test-'));
+        const root = join(parent, 'audit');
+        const output = join(root, 'results.json');
+        const stale = '{"results":[{"id":"stale-audit"}]}\n';
+
+        t.after(() => rmSync(parent, { recursive: true, force: true }));
+        if (reused)
+        {
+            mkdirSync(root);
+            writeFileSync(output, stale);
+        }
+        else assert.equal(existsSync(root), false);
+        const run = spawnSync(process.execPath, [fileURLToPath(new URL('run.mjs', import.meta.url)), 'nonexistent-audit-tuple'], {
+            encoding: 'utf8',
+            env: { ...process.env, AUDIT_WORKDIR: root },
+        });
+
+        assert.equal(run.status, 1, run.stdout);
+        assert.match(run.stderr, /No audit tuples match.*nonexistent-audit-tuple/);
+        assert.doesNotMatch(run.stdout, /Evidence directory:/);
+        if (reused) assert.equal(readFileSync(output, 'utf8'), stale);
+        else assert.equal(existsSync(root), false);
     });
 }

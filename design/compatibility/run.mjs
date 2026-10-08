@@ -1,4 +1,5 @@
 // Standalone installed-consumer audit. No repository dependency tree is reused.
+import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
@@ -8,13 +9,16 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const manifest = JSON.parse(readFileSync(join(here, 'seed.json')));
+const filter = process.argv[2];
+const selected = manifest.probes.filter((tuple) => !filter || tuple.id.includes(filter));
+
+assert.ok(selected.length > 0, `No audit tuples match filter ${JSON.stringify(filter)}`);
 const root = process.env.AUDIT_WORKDIR || mkdtempSync(join(tmpdir(), 'pixi-version-audit-'));
 
 mkdirSync(root, { recursive: true });
 const results = [];
-const filter = process.argv[2];
 
-for (const tuple of manifest.probes.filter((t) => !filter || t.id.includes(filter)))
+for (const tuple of selected)
 {
     const cwd = join(root, tuple.id);
 
