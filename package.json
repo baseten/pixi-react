@@ -87,6 +87,7 @@
     "husky": "^8.0.0",
     "jsdom": "^25.0.0",
     "pixi.js": "8.2.6",
+    "pkg-pr-new": "0.0.54",
     "playwright": "^1.45.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
