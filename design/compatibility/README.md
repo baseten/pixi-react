@@ -34,6 +34,8 @@ React tuples additionally pin `reactAbiSha256`: the canonical JSON pair of sorte
 
 Failed installs retain their exit status, signal, spawn error, and output in `installDiagnostics`; runtime and type exits are `null` because those probes did not run. Such rows do not participate in boundary deltas and do not pass validation. Each known failure declares its expected runtime exit; a negative observation inside a successful probe also names its observation path, whose status and diagnostic signature must match. Run the audit-tool regression fixtures without network access with `node --test design/compatibility/*.test.mjs`.
 
+Failed runtime and type probes likewise retain full process diagnostics, including signal, spawn error, stdout and stderr. Interrupted partial JSON is retained as diagnostic output without becoming an observation.
+
 The runner records each tuple's canonical `workdir` in raw results. Summarization replaces that directory in diagnostic paths and file URLs with `<tuple>/`, including copied probes and dependency files. Older raw results without `workdir` must be summarized from their original audit directory so the tuple path can be derived from the input location.
 
 For local probe development only, `AUDIT_REUSE_INSTALL=1` reuses a tuple whose installed direct versions still exactly match the seed. The retained lock records the reused transitive graph. The default remains a normal isolated install; a fresh work directory is required when auditing dependency-resolution changes. `tagged-react-surfaces.json` additionally records source fetched from each cited Git tag, rather than treating the published bundle and a feature-flagged source fork as identical.
