@@ -114,7 +114,9 @@ jobs:
       - uses: ./.github/actions/setup
       - run: npm run build
       - name: Publish configured fork release
-        run: npx semantic-release@24.2.9
+        run: |
+          rm -f "$NPM_CONFIG_USERCONFIG"
+          npx semantic-release@24.2.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
