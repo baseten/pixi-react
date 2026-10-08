@@ -100,5 +100,5 @@ const secondarySourceValue = secondary.children[0]?.props.value;
 assert.equal(secondarySourceValue, 'default');
 flush(null, secondaryRoot, secondaryReconciler);
 flush(null, secondarySource, secondaryReconciler);
-const features = { secondaryParentBridge: { status: 'missing-context-value', expected: 'secondary-parent', actual: secondarySourceValue }, refs: 'attach-update-detach', effects, state: 'synchronous-update', errorBoundary: caught, contextBridge: 'mount-update-unmount', activity: 'not-available', fragmentRef: 'not-available' };
+const features = { secondaryParentBridge: { status: 'missing-context-value', errors: ['secondary-parent context read default'], expected: 'secondary-parent', actual: secondarySourceValue }, refs: 'attach-update-detach', effects, state: 'synchronous-update', errorBoundary: caught, contextBridge: 'mount-update-unmount', activity: 'not-available', fragmentRef: 'not-available' };
 console.log(JSON.stringify({ react: React.version, scheduler: JSON.parse(readFileSync('node_modules/scheduler/package.json')).version, bridge: JSON.parse(readFileSync('node_modules/its-fine/package.json')).version, updateContainerArity: reconciler.updateContainer.length, reconciler: pkg.version, peers: pkg.peerDependencies, hostKeys, exports: Object.keys(reconciler).sort(), features, createContainerArity: reconciler.createContainer.length }));
