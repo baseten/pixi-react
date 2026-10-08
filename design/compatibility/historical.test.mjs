@@ -55,7 +55,14 @@ const cases = [
 
         v.stdout = v.stdout.replace("Module '\"its-fine\"' has no exported member 'useContextBridge'.", "Module 'unrelated' has no exported member 'Whatever'.");
     }],
-    ['extra unrelated TS2305 beside both its-fine diagnostics', (e) => { e.results[0].typeVariants.NodeNext.stdout += "react17.tsx(4,1): error TS2305: Module 'unrelated' has no exported member 'Whatever'.\n"; }],
+    ['duplicated diagnostic with the other signature on a non-diagnostic line', (e) =>
+    {
+        const v = e.results[0].typeVariants.NodeNext;
+        const fiber = v.stdout.split('\n').find((l) => l.includes('error TS') && l.includes('FiberProvider'));
+
+        v.stdout = `${fiber}\n${fiber}\nnote: Module '"its-fine"' has no exported member 'useContextBridge'.\n`;
+    }],
+    ['extra unrelated TS2305 beside both its-fine diagnostics',(e) => { e.results[0].typeVariants.NodeNext.stdout += "react17.tsx(4,1): error TS2305: Module 'unrelated' has no exported member 'Whatever'.\n"; }],
     ['generic seed signature that weakens the check', (e, s) =>
     {
         const check = s.probes.find((p) => p.id === e.results[0].id).additionalTypeChecks[0];

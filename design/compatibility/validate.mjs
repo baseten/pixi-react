@@ -54,7 +54,16 @@ for (const tuple of seed.probes)
             const diagnostics = stdout.split('\n').filter((line) => line.includes('error TS'));
 
             assert.equal(diagnostics.length, signatures.length, `${row.id}: ${check.name} unexpected diagnostics`);
-            for (const line of diagnostics) assert.ok(signatures.some((signature) => line.endsWith(signature)), `${row.id}: ${check.name} unexpected diagnostic ${line}`);
+            const matched = diagnostics.map((line) =>
+            {
+                const signature = signatures.find((candidate) => line.endsWith(candidate));
+
+                assert.ok(signature, `${row.id}: ${check.name} unexpected diagnostic ${line}`);
+
+                return signature;
+            });
+
+            assert.deepEqual([...matched].sort(), [...signatures].sort(), `${row.id}: ${check.name} diagnostics must match signatures one-to-one`);
         }
     }
     for (const field of ['surfaces', 'resolvedPackages']) assert.ok(nonemptyObject(row[field]), `${row.id}: ${field}`);
