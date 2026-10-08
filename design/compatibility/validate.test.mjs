@@ -140,3 +140,46 @@ for (const [name, field, mutate] of [
         assert.match(result.stderr, new RegExp(`pixi-8.5.0.*${field}`));
     });
 }
+
+for (const [id, name] of [
+    ['pixi-8.22.0', 'pixi.js'],
+    ['pixi-8.5.0', 'pixi.js'],
+    ['react-19.0.0', 'react'],
+    ['react-19.0.0', 'react-reconciler'],
+    ['react-19.0.0', '@types/react'],
+    ['react-19.0.0', 'its-fine'],
+])
+{
+    test(`rejects a mismatched registry integrity for ${id}: ${name}`, (t) =>
+    {
+        const result = validate(t, (evidence, seed) =>
+        {
+            const row = evidence.results.find((r) => r.id === id);
+            const expected = seed.registry[name].selected[row.packages[name]].integrity;
+
+            assert.equal(row.resolvedPackages[name].integrity, expected);
+            row.resolvedPackages[name].integrity = 'sha512-tampered';
+            assert.notEqual(row.resolvedPackages[name].integrity, expected);
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.ok(result.stderr.includes(`${id}: resolvedPackages.${name}.integrity`), result.stderr);
+    });
+}
+
+for (const value of [undefined, null, ''])
+{
+    test(`rejects missing registry integrity metadata: ${JSON.stringify(value)}`, (t) =>
+    {
+        const result = validate(t, (evidence, seed) =>
+        {
+            const metadata = seed.registry['pixi.js'].selected['8.22.0'];
+
+            if (value === undefined) delete metadata.integrity;
+            else metadata.integrity = value;
+        });
+
+        assert.equal(result.status, 1, result.stdout);
+        assert.match(result.stderr, /registry.*pixi.js.*8.22.0.*integrity/);
+    });
+}

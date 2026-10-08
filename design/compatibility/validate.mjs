@@ -28,7 +28,17 @@ for (const tuple of seed.probes)
         assert.ok((/^[a-f0-9]{64}$/).test(surface?.sha256), `${row.id}: surfaces.${path}.sha256`);
         if (path.endsWith('.d.ts')) assert.ok(strings(surface.declarations), `${row.id}: surfaces.${path}.declarations`);
     }
-    for (const [name, version] of Object.entries(tuple.packages)) assert.equal(row.resolvedPackages[name]?.version, version, `${row.id}: resolvedPackages.${name}`);
+    for (const [name, version] of Object.entries(tuple.packages))
+    {
+        assert.equal(row.resolvedPackages[name]?.version, version, `${row.id}: resolvedPackages.${name}`);
+        if (seed.registry[name])
+        {
+            const integrity = seed.registry[name].selected?.[version]?.integrity;
+
+            assert.ok(typeof integrity === 'string' && integrity.length > 0, `registry.${name}.${version}.integrity`);
+            assert.equal(row.resolvedPackages[name].integrity, integrity, `${row.id}: resolvedPackages.${name}.integrity`);
+        }
+    }
     for (const [name, pkg] of Object.entries(row.resolvedPackages))
     {
         assert.ok(typeof pkg?.version === 'string' && pkg.version.length > 0, `${row.id}: resolvedPackages.${name}.version`);
