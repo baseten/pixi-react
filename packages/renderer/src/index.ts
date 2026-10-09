@@ -20,26 +20,49 @@ function isBindable(value: unknown): value is object
 }
 
 /**
- * A non-extensible bindings value cannot carry `runtime`, so the result inherits from it instead. A function
- * stays callable: the wrapper forwards calls and inherits the function's properties.
+ * A non-extensible bindings value cannot carry `runtime` as its own property, and a derived object would call its
+ * methods with the wrong receiver (private-field brand checks fail, state writes land on the copy). The result is
+ * a proxy of the original instead: `runtime` is answered by the proxy, and every other read, write and call reaches
+ * the original. Methods inherited from the prototype chain are bound to the original, once per method, so a call
+ * through the proxy (or a detached method) runs with the original as `this`. Own properties are returned as they
+ * are. `runtime` is readable and non-writable, but it is not an own key of the result.
  */
-function inherit(bindings: object): object
+function attachToNonExtensible<S extends SceneTypes>(bindings: object, runtime: Runtime<S>): object
 {
-    if (typeof bindings !== 'function')
-    {
-        return Object.create(bindings) as object;
-    }
+    const bound = new WeakMap<(...args: unknown[]) => unknown, (...args: unknown[]) => unknown>();
+    const isRuntime = (key: PropertyKey) => key === 'runtime';
 
-    const call = bindings as (...args: unknown[]) => unknown;
+    return new Proxy(bindings, {
+        get(target, key)
+        {
+            if (isRuntime(key))
+            {
+                return runtime;
+            }
 
-    function wrapper(this: unknown, ...args: unknown[]): unknown
-    {
-        return call.apply(this, args);
-    }
+            const value: unknown = Reflect.get(target, key, target);
 
-    Object.setPrototypeOf(wrapper, bindings);
+            if (typeof value !== 'function' || Object.prototype.hasOwnProperty.call(target, key))
+            {
+                return value;
+            }
 
-    return wrapper;
+            const method = value as (...args: unknown[]) => unknown;
+            let forward = bound.get(method);
+
+            if (!forward)
+            {
+                forward = method.bind(target) as (...args: unknown[]) => unknown;
+                bound.set(method, forward);
+            }
+
+            return forward;
+        },
+        set: (target, key, value) => !isRuntime(key) && Reflect.set(target, key, value, target),
+        has: (target, key) => isRuntime(key) || Reflect.has(target, key),
+        defineProperty: (target, key, descriptor) => !isRuntime(key) && Reflect.defineProperty(target, key, descriptor),
+        deleteProperty: (target, key) => !isRuntime(key) && Reflect.deleteProperty(target, key),
+    });
 }
 
 /**
@@ -88,9 +111,12 @@ export function createRenderer<S extends SceneTypes, F extends BindingFamily>(
         throw error;
     }
 
-    const target = Object.isExtensible(bindings) ? bindings : inherit(bindings);
+    if (!Object.isExtensible(bindings))
+    {
+        return attachToNonExtensible(bindings, runtime) as Renderer<F, S>;
+    }
 
-    Object.defineProperty(target, 'runtime', { value: runtime, enumerable: true, writable: false, configurable: false });
+    Object.defineProperty(bindings, 'runtime', { value: runtime, enumerable: true, writable: false, configurable: false });
 
-    return target as Renderer<F, S>;
+    return bindings as Renderer<F, S>;
 }

@@ -128,6 +128,77 @@ describe('createRenderer', () =>
         expect(frozenFn.runtime.status).toBe('active');
     });
 
+    it('calls methods of a frozen class instance with private fields on the original instance', () =>
+    {
+        class PrivateBindings
+        {
+            #count = 0;
+            readonly tag = 'private';
+
+            increment(): number
+            {
+                this.#count += 1;
+
+                return this.#count;
+            }
+
+            get count(): number
+            {
+                return this.#count;
+            }
+        }
+
+        const original = Object.freeze(new PrivateBindings());
+        const renderer = createRenderer({ framework: new ToolsFramework({}, () => original), scene: new ItemSceneAdapter() });
+        const bindings = renderer as unknown as PrivateBindings;
+
+        expect(bindings.increment()).toBe(1);
+        expect(bindings.increment()).toBe(2);
+        expect(bindings.count).toBe(2);
+        expect(original.count).toBe(2);
+        expect(bindings.tag).toBe('private');
+        expect(bindings).toBeInstanceOf(PrivateBindings);
+        // A detached method keeps its receiver, and reading it twice gives one function.
+        const { increment } = bindings;
+
+        expect(increment()).toBe(3);
+        expect(bindings.increment).toBe(bindings.increment);
+        expect(renderer.runtime.status).toBe('active');
+        expect(renderer.runtime.manifests.framework.id).toBe('test.tools');
+    });
+
+    it('writes the state of a non-extensible class instance to the original instance', () =>
+    {
+        class PublicBindings
+        {
+            count = 0;
+
+            increment(): number
+            {
+                this.count += 1;
+
+                return this.count;
+            }
+        }
+
+        const original = Object.preventExtensions(new PublicBindings());
+        const renderer = createRenderer({ framework: new ToolsFramework({}, () => original), scene: new ItemSceneAdapter() });
+        const bindings = renderer as unknown as PublicBindings;
+
+        expect(bindings.increment()).toBe(1);
+        expect(original.count).toBe(1);
+        expect(bindings.count).toBe(1);
+        bindings.count = 10;
+        expect(original.count).toBe(10);
+        expect(Object.keys(bindings)).toEqual(['count']);
+        expect(renderer.runtime.status).toBe('active');
+        expect(() =>
+        {
+            (renderer as { runtime: unknown }).runtime = null;
+        }).toThrow(TypeError);
+        expect(renderer.runtime.status).toBe('active');
+    });
+
     it('rejects a missing adapter pair', () =>
     {
         expect(() => createRenderer(undefined as never)).toThrow(TypeError);
