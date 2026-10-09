@@ -44,7 +44,8 @@
     "prerelease": "pnpm run test:lint && pnpm run build",
     "release": "xs bump,publish,git-push",
     "test": "tsc --project tsconfig.test.json && vitest run",
-    "test:e2e": "tsc --project tsconfig.test.json && vitest run e2e",
+    "test:conformance": "tsc --project tsconfig.test.json && vitest run conformance",
+    "test:e2e": "tsc --project tsconfig.test.json && vitest run e2e conformance",
     "test:unit": "tsc --project tsconfig.test.json && vitest run unit",
     "test:lint": "xs lint",
     "test:watch": "vitest",
@@ -56,6 +57,7 @@
     "react-reconciler": "0.31.0"
   },
   "devDependencies": {
+    "@pixi-react-provisional/conformance": "workspace:*",
     "@pixi/extension-scripts": "^4.0.0",
     "@rollup/plugin-commonjs": "^25.0.8",
     "@rollup/plugin-json": "^6.1.0",

@@ -7,6 +7,7 @@ dist/
 lib/
 types/
 .turbo/
+__screenshots__/
 
 # Generated files
 .docusaurus

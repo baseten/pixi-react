@@ -10,6 +10,8 @@ This is a pnpm workspace orchestrated by Turborepo:
 - `packages/react` is the published `@pixi/react` library.
 - `apps/docs` is the private Docusaurus site. It depends on the local library
   through `workspace:*`.
+- `packages/conformance` is the private renderer conformance suite: scenarios,
+  a fake scene backend and a runner. See its README.
 - The root `package.json` is private. It holds only workspace tooling.
 
 Use the Node version in `.nvmrc` and the pnpm version in the root
@@ -25,7 +27,8 @@ The root scripts run Turbo tasks, which build workspace dependencies first:
 | `pnpm test:types` | `typecheck` | Excludes the docs app (see below) |
 | `pnpm test:lint` | `lint` | Library and docs, shared root `eslint.config.mjs` |
 | `pnpm test:unit` | `test:unit` | jsdom unit tests |
-| `pnpm test:e2e` | `test:e2e` | Vitest browser mode with Playwright Chromium; never cached |
+| `pnpm test:e2e` | `test:e2e` | Vitest browser mode with Playwright Chromium, including the conformance suite; never cached |
+| `pnpm test:conformance` | `test:conformance` | The conformance suite alone against the baseline facade, in Chromium; never cached |
 | `pnpm build:docs` | `build` (`docs`) | Builds the library, then the Docusaurus site |
 
 Browser tests need Chromium:

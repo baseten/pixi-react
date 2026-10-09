@@ -23,4 +23,18 @@ export default defineWorkspace([
             setupFiles: ['./vitest.setup.ts'],
         },
     },
+    {
+        plugins: [react()],
+        // One React instance for the facade, the scenarios and React DOM.
+        resolve: { dedupe: ['react', 'react-dom'] },
+        test: {
+            name: 'conformance',
+            browser: {
+                enabled: true,
+                name: 'chromium',
+                provider: 'playwright',
+            },
+            include: ['test/conformance/**/*.test.tsx'],
+        },
+    },
 ]);
