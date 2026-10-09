@@ -9,7 +9,7 @@
     "node": "^22.22.0"
   },
   "scripts": {
-    "build": "turbo run build --filter=@pixi/react",
+    "build": "turbo run build --filter=!docs",
     "build:docs": "turbo run build --filter=docs",
     "deploy": "pnpm --filter docs run deploy",
     "start:docs": "pnpm --filter docs run start",
