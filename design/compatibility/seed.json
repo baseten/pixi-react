@@ -1580,5 +1580,490 @@
     "real renderer browser lifecycle and feature matrix",
     "owner review for support removal"
   ],
-  "evidence": "evidence.json"
+  "evidence": "evidence.json",
+  "adapterMatrix": {
+    "schemaVersion": 1,
+    "issue": "https://github.com/baseten/pixi-react/issues/13",
+    "note": "Adapter compatibility cells. Cells are generated from this section plus `probes`, `reactEpochs` and `pixiEpochs`; nothing lists a cell by hand. A cell names its adapters as data (artifact, entry, class), so a package-layout change edits rows here only. Exact React and Pixi versions come from the audited `probes` tuples.",
+    "toolchain": {
+      "typescript": "5.6.3",
+      "vitest": "2.1.9",
+      "@vitest/browser": "2.1.9",
+      "playwright": "1.50.1",
+      "vite": "5.4.14"
+    },
+    "commands": {
+      "order": [
+        "install",
+        "tree",
+        "modules",
+        "types",
+        "conformance"
+      ],
+      "timeoutSeconds": {
+        "install": 300,
+        "tree": 60,
+        "modules": 60,
+        "types": 180,
+        "conformance": 420
+      }
+    },
+    "artifacts": {
+      "core": {
+        "dir": "packages/core",
+        "package": "@pixi-react-provisional/core"
+      },
+      "renderer": {
+        "dir": "packages/renderer",
+        "package": "@pixi-react-provisional/renderer"
+      },
+      "conformance": {
+        "dir": "packages/conformance",
+        "package": "@pixi-react-provisional/conformance",
+        "role": "harness"
+      },
+      "react-18": {
+        "dir": "packages/react-18",
+        "package": "@pixi-react-provisional/react-18"
+      },
+      "react-19": {
+        "dir": "packages/react-19",
+        "package": "@pixi-react-provisional/react-19"
+      },
+      "pixi-8": {
+        "dir": "packages/pixi-8",
+        "package": "@pixi-react-provisional/pixi-8"
+      }
+    },
+    "commonArtifacts": [
+      "core",
+      "renderer",
+      "conformance"
+    ],
+    "reactAdapters": {
+      "react18": {
+        "id": "react-18",
+        "artifact": "react-18",
+        "entry": ".",
+        "className": "React18Adapter",
+        "hashScope": "package",
+        "adapterId": "react-18",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "provides": {},
+        "requires": {
+          "pixi.mutation": 1,
+          "pixi.visibility": 1,
+          "pixi.application": 1,
+          "pixi.ticker": 1
+        },
+        "declaredPeers": {
+          "react": "18.3.1"
+        },
+        "reconciler": {
+          "via": "bundled",
+          "infoExport": "REACT18",
+          "infoField": "reconciler"
+        },
+        "bundled": [
+          "react-reconciler",
+          "its-fine"
+        ],
+        "typesReactDom": "18.3.7",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize"
+        ],
+        "typeProbes": [
+          "react18"
+        ],
+        "sameClassAcrossFormats": true
+      },
+      "react190": {
+        "id": "react-19.0",
+        "artifact": "react-19",
+        "entry": "./19.0",
+        "className": "React19Adapter",
+        "hashScope": "entry",
+        "adapterId": "react-19/19.0",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "provides": {},
+        "requires": {
+          "pixi.mutation": 1,
+          "pixi.visibility": 1,
+          "pixi.application": 1,
+          "pixi.ticker": 1
+        },
+        "declaredPeers": {
+          "react": "19.0.0 || 19.0.8 || 19.1.0 || 19.1.9 || 19.2.0 || 19.2.8 || 19.3.0"
+        },
+        "reconciler": {
+          "via": "bundled",
+          "infoExport": "EPOCH",
+          "infoField": "reconciler"
+        },
+        "bundled": [
+          "react-reconciler",
+          "its-fine"
+        ],
+        "typesReactDom": "19.0.6",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize"
+        ],
+        "typeProbes": [
+          "react19"
+        ],
+        "sameClassAcrossFormats": true,
+        "expectedConformanceFailures": {
+          "multi-root.default-text-style-global": {
+            "reason": "On React 19.0 and 19.1 the Text that existed before a second Application set defaultTextStyle reports the new fontSize (41) instead of the baseline: the style change is not non-retroactive. React 18.3, 19.2 and 19.3 pass the same scenario, on Pixi 8.2.6 and 8.22.0 alike. First observed by the issue-13 cells; the fake-Pixi fixtures never exercised it.",
+            "match": "existing text",
+            "owner": "React 19 epoch owner (issue 9); follow-up issue not yet filed"
+          }
+        }
+      },
+      "react191": {
+        "id": "react-19.1",
+        "artifact": "react-19",
+        "entry": "./19.1",
+        "className": "React19Adapter",
+        "hashScope": "entry",
+        "adapterId": "react-19/19.1",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "provides": {},
+        "requires": {
+          "pixi.mutation": 1,
+          "pixi.visibility": 1,
+          "pixi.application": 1,
+          "pixi.ticker": 1
+        },
+        "declaredPeers": {
+          "react": "19.0.0 || 19.0.8 || 19.1.0 || 19.1.9 || 19.2.0 || 19.2.8 || 19.3.0"
+        },
+        "reconciler": {
+          "via": "bundled",
+          "infoExport": "EPOCH",
+          "infoField": "reconciler"
+        },
+        "bundled": [
+          "react-reconciler",
+          "its-fine"
+        ],
+        "typesReactDom": "19.1.11",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize"
+        ],
+        "typeProbes": [
+          "react19"
+        ],
+        "sameClassAcrossFormats": true,
+        "expectedConformanceFailures": {
+          "multi-root.default-text-style-global": {
+            "reason": "On React 19.0 and 19.1 the Text that existed before a second Application set defaultTextStyle reports the new fontSize (41) instead of the baseline: the style change is not non-retroactive. React 18.3, 19.2 and 19.3 pass the same scenario, on Pixi 8.2.6 and 8.22.0 alike. First observed by the issue-13 cells; the fake-Pixi fixtures never exercised it.",
+            "match": "existing text",
+            "owner": "React 19 epoch owner (issue 9); follow-up issue not yet filed"
+          }
+        }
+      },
+      "react192": {
+        "id": "react-19.2",
+        "artifact": "react-19",
+        "entry": "./19.2",
+        "className": "React19Adapter",
+        "hashScope": "entry",
+        "adapterId": "react-19/19.2",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "provides": {
+          "react.activity": 1
+        },
+        "requires": {
+          "pixi.mutation": 1,
+          "pixi.visibility": 1,
+          "pixi.application": 1,
+          "pixi.ticker": 1
+        },
+        "declaredPeers": {
+          "react": "19.0.0 || 19.0.8 || 19.1.0 || 19.1.9 || 19.2.0 || 19.2.8 || 19.3.0"
+        },
+        "reconciler": {
+          "via": "bundled",
+          "infoExport": "EPOCH",
+          "infoField": "reconciler"
+        },
+        "bundled": [
+          "react-reconciler",
+          "its-fine"
+        ],
+        "typesReactDom": "19.2.7",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize"
+        ],
+        "typeProbes": [
+          "react19"
+        ],
+        "sameClassAcrossFormats": true
+      },
+      "react193": {
+        "id": "react-19.3",
+        "artifact": "react-19",
+        "entry": "./19.3",
+        "className": "React19Adapter",
+        "hashScope": "entry",
+        "adapterId": "react-19/19.3",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "provides": {
+          "react.activity": 1
+        },
+        "requires": {
+          "pixi.mutation": 1,
+          "pixi.visibility": 1,
+          "pixi.application": 1,
+          "pixi.ticker": 1
+        },
+        "declaredPeers": {
+          "react": "19.0.0 || 19.0.8 || 19.1.0 || 19.1.9 || 19.2.0 || 19.2.8 || 19.3.0"
+        },
+        "reconciler": {
+          "via": "bundled",
+          "infoExport": "EPOCH",
+          "infoField": "reconciler"
+        },
+        "bundled": [
+          "react-reconciler",
+          "its-fine"
+        ],
+        "typesReactDom": "19.3.0",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize"
+        ],
+        "typeProbes": [
+          "react19"
+        ],
+        "sameClassAcrossFormats": true
+      }
+    },
+    "pixiAdapters": {
+      "pixi8": {
+        "id": "pixi-8",
+        "artifact": "pixi-8",
+        "entry": ".",
+        "className": "Pixi8Adapter",
+        "hashScope": "package",
+        "adapterId": "pixi-8",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "requires": {},
+        "declaredPeers": {
+          "pixi.js": ">=8.2.6 <8.5.0 || >=8.5.1 <8.23.0"
+        },
+        "excludedVersions": [
+          "8.5.0"
+        ],
+        "capabilities": {
+          "always": [
+            "pixi.mutation",
+            "pixi.visibility",
+            "pixi.application",
+            "pixi.ticker",
+            "pixi.globals",
+            "pixi8.filter"
+          ],
+          "fromBoundary": {
+            "pixi8.particle": "particles",
+            "pixi8.render-layer": "renderLayer",
+            "pixi8.dom-container": "domContainer"
+          }
+        },
+        "probeSource": "packages/pixi-8/test/browser/pixiProbe.ts",
+        "typeProbes": [
+          "pixi8"
+        ],
+        "sameClassAcrossFormats": false,
+        "sameClassNote": "Each entry binds the pixi.js module its own loader resolves, so ESM and CJS legitimately differ in Node (pixi-8 README, D6)."
+      }
+    },
+    "formats": [
+      "esm",
+      "cjs"
+    ],
+    "tiers": {
+      "pr": {
+        "description": "Required check: each React epoch at its latest patch against the minimum and the current Pixi 8, plus fast probes at every named Pixi 8 boundary.",
+        "react": {
+          "epochs": "all",
+          "patch": "latest"
+        },
+        "pixi": {
+          "versions": [
+            "minimum",
+            "current"
+          ]
+        },
+        "boundaryProbes": [
+          {
+            "id": "pixi-8.2.6",
+            "boundary": "8.2 minimum"
+          },
+          {
+            "id": "pixi-8.5.0",
+            "boundary": "8.5.0 excluded (ParticleContainer.destroy); expected known failure"
+          },
+          {
+            "id": "pixi-8.5.2",
+            "boundary": "8.5.1+ allowed (first audited passing sample)"
+          },
+          {
+            "id": "pixi-8.7.0",
+            "boundary": "8.7 RenderLayer"
+          },
+          {
+            "id": "pixi-8.9.0",
+            "boundary": "8.9 DOMContainer"
+          },
+          {
+            "id": "pixi-8.10.0",
+            "boundary": "8.10 removeParticles end-index semantics"
+          },
+          {
+            "id": "pixi-8.22.0",
+            "boundary": "8.22 current"
+          }
+        ],
+        "negative": "all"
+      },
+      "nightly": {
+        "description": "Full cross-product: every React epoch at its latest patch against every Pixi 8 minor at its latest audited patch, plus every audited probe tuple.",
+        "react": {
+          "epochs": "all",
+          "patch": "latest"
+        },
+        "pixi": {
+          "versions": "all-minors"
+        },
+        "boundaryProbes": "all",
+        "negative": "all"
+      }
+    },
+    "negative": [
+      {
+        "id": "react-adapter-beside-wrong-minor",
+        "description": "The React 19.3 adapter installed beside React 19.1.9. The peer list accepts the version, so only the adapter environment check can reject it.",
+        "react": {
+          "epoch": "react193",
+          "version": "19.1.9"
+        },
+        "pixi": {
+          "version": "8.22.0"
+        },
+        "commands": [
+          "install",
+          "modules"
+        ],
+        "expect": {
+          "failingCommand": "modules",
+          "signatures": [
+            "UNSUPPORTED_TUPLE",
+            "supports React 19.3.x",
+            "React 19.1.9 is installed"
+          ]
+        }
+      },
+      {
+        "id": "react-18-adapter-beside-react-19",
+        "description": "The React 18 adapter installed beside React 19.3.0: the strict peer check must refuse the install.",
+        "react": {
+          "epoch": "react18",
+          "version": "19.3.0",
+          "typesReactDom": "19.3.0",
+          "typesReact": "19.3.0"
+        },
+        "pixi": {
+          "version": "8.22.0"
+        },
+        "commands": [
+          "install",
+          "modules"
+        ],
+        "expect": {
+          "failingCommand": "install",
+          "signatures": [
+            "ERESOLVE",
+            "react@\"18.3.1\""
+          ]
+        }
+      },
+      {
+        "id": "pixi-peer-range-excludes-8.5.0",
+        "description": "The Pixi 8 adapter beside the excluded pixi.js 8.5.0: the strict peer check refuses the install.",
+        "react": {
+          "epoch": "react193",
+          "version": "19.3.0"
+        },
+        "pixi": {
+          "version": "8.5.0"
+        },
+        "commands": [
+          "install",
+          "modules"
+        ],
+        "expect": {
+          "failingCommand": "install",
+          "signatures": [
+            "ERESOLVE",
+            "peer pixi.js"
+          ]
+        }
+      },
+      {
+        "id": "pixi-adapter-rejects-8.5.0-when-peers-ignored",
+        "description": "The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the adapter's own environment check must still reject pixi.js 8.5.0.",
+        "react": {
+          "epoch": "react193",
+          "version": "19.3.0"
+        },
+        "pixi": {
+          "version": "8.5.0"
+        },
+        "install": {
+          "legacyPeerDeps": true
+        },
+        "commands": [
+          "install",
+          "modules"
+        ],
+        "expect": {
+          "failingCommand": "modules",
+          "signatures": [
+            "UNSUPPORTED_TUPLE",
+            "8.5.0"
+          ]
+        }
+      }
+    ]
+  }
 }

@@ -30,6 +30,8 @@ The root scripts run Turbo tasks, which build workspace dependencies first:
 | `pnpm test:e2e` | `test:e2e` | Vitest browser mode with Playwright Chromium, including the conformance suite; never cached |
 | `pnpm test:conformance` | `test:conformance` | The conformance suite alone: against the baseline facade and the Pixi 8 adapter (pixi.js 8.2.6 and 8.22.0) in Chromium, and against core + renderer in jsdom; never cached |
 | `pnpm build:docs` | `build` (`docs`) | Builds the library, then the Docusaurus site |
+| `pnpm test:contract` | design-contract package | Type-level adapter contract under NodeNext and Bundler resolution |
+| `pnpm test:compatibility` | none (Node script) | The required PR-tier compatibility check, locally: audit probes, packed-adapter cells in isolated projects, and the deliberately incompatible pairs. Run `pnpm build` first. See `design/compatibility/cells/README.md` |
 
 Browser tests need Chromium:
 `pnpm --filter @pixi/react exec playwright install chromium`. Outside CI, set
@@ -72,7 +74,7 @@ for the invocation; an implementation assignment does not otherwise grant it.
 
 ## Publication is opt-in
 
-Ordinary pushes and PRs retain all five verification jobs, without path filters.
+Ordinary pushes and PRs retain all seven verification jobs (typecheck, lint, unit, E2E, conformance, contract, docs), without path filters. The separate **Compatibility** workflow adds the aggregate check `Compatibility (required)`; an owner makes it a required status check in branch protection. The **Compatibility nightly** workflow is not a PR check.
 By default, neither publishes packages nor deploys docs. PR runs cancel an older
 run for the same PR, including an opted-in preview. Manual release and deployment
 runs have timeouts and are not cancelled by newer PR runs. Unset publication

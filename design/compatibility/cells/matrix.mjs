@@ -1,0 +1,433 @@
+// Pure functions over the #3 seed manifest: generate adapter compatibility cells, validate the `adapterMatrix` section,
+// derive cache keys and render the compatibility table. Nothing here touches the network, npm or the file system
+// beyond reading the seed, so `cells.test.mjs` can exercise all of it offline.
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+
+export const here = new URL('.', import.meta.url);
+export const seedPath = new URL('../seed.json', import.meta.url);
+
+export const loadSeed = () => JSON.parse(readFileSync(seedPath, 'utf8'));
+
+const parts = (version) => version.split('.').map(Number);
+export const compareVersions = (a, b) =>
+{
+    const [x, y] = [parts(a), parts(b)];
+
+    return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
+};
+const minorOf = (version) => parts(version).slice(0, 2).join('.');
+const sha256 = (value) => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
+
+/** Audited probe tuples of one package, as `{ version, tuple }`, oldest first. */
+function audited(seed, name)
+{
+    return seed.probes
+        .filter((tuple) => tuple.packages[name] && (name !== 'pixi.js' || tuple.kind === 'pixi'))
+        .map((tuple) => ({ version: tuple.packages[name], tuple }))
+        .sort((a, b) => compareVersions(a.version, b.version));
+}
+
+/**
+ * React versions of one epoch from the audited tuples: the lowest and the highest audited patch of the epoch's minor.
+ * The tuple supplies the exact `@types/react` (and the reconciler the epoch expects).
+ */
+export function reactVersions(seed, epochId)
+{
+    const epoch = seed.reactEpochs.find((candidate) => candidate.id === epochId);
+
+    assert.ok(epoch, `unknown React epoch ${epochId}`);
+    const tuples = audited(seed, 'react').filter(({ version }) => minorOf(version) === epoch.reactMinor);
+
+    assert.ok(tuples.length > 0, `no audited React ${epoch.reactMinor} tuple`);
+
+    return { epoch, minimum: tuples[0], latest: tuples.at(-1) };
+}
+
+/**
+ * Pixi 8 minors: for every audited minor between the minimum and the current certified version, the lowest and
+ * highest audited patch that the adapter does not exclude.
+ */
+export function pixiMinors(seed, adapterKey)
+{
+    const adapter = seed.adapterMatrix.pixiAdapters[adapterKey];
+    const epoch = seed.pixiEpochs.find((candidate) => candidate.id === 'pixi8');
+    const excluded = new Set(adapter.excludedVersions);
+    const byMinor = new Map();
+
+    for (const entry of audited(seed, 'pixi.js'))
+    {
+        if (!entry.version.startsWith('8.') || excluded.has(entry.version)) continue;
+        if (compareVersions(entry.version, epoch.minimum) < 0 || compareVersions(entry.version, epoch.current) > 0) continue;
+        const minor = minorOf(entry.version);
+
+        byMinor.set(minor, [...(byMinor.get(minor) ?? []), entry]);
+    }
+
+    return [...byMinor.entries()].map(([minor, list]) => ({ minor, minimum: list[0], latest: list.at(-1) }))
+        .sort((a, b) => compareVersions(`${a.minor}.0`, `${b.minor}.0`));
+}
+
+/** Capability IDs the Pixi adapter must provide at `version`, from the seed's capability boundaries. */
+export function expectedPixiProvides(seed, adapterKey, version)
+{
+    const { capabilities } = seed.adapterMatrix.pixiAdapters[adapterKey];
+    const boundaries = seed.pixiEpochs.find((epoch) => epoch.id === 'pixi8').capabilityBoundaries;
+    const provides = Object.fromEntries(capabilities.always.map((id) => [id, 1]));
+
+    for (const [capability, boundary] of Object.entries(capabilities.fromBoundary))
+    {
+        if (compareVersions(version, boundaries[boundary]) >= 0) provides[capability] = 1;
+    }
+
+    return provides;
+}
+
+function describeReact(seed, epochId, version)
+{
+    const matrix = seed.adapterMatrix;
+    const adapterKey = epochId;
+    const adapter = matrix.reactAdapters[adapterKey];
+    const tuple = seed.probes.find((probe) => probe.id === `react-${version}`);
+
+    assert.ok(adapter, `no React adapter row for ${epochId}`);
+
+    return { epoch: epochId, adapterKey, adapter, version, tuple };
+}
+
+/** Builds one cell from a React selection and a Pixi version. */
+export function makeCell(seed, { react, pixi, commands, negative }, options = {})
+{
+    const matrix = seed.adapterMatrix;
+    const reactSel = describeReact(seed, react.epoch, react.version);
+    const pixiAdapterKey = pixi.adapter ?? 'pixi8';
+    const pixiAdapter = matrix.pixiAdapters[pixiAdapterKey];
+    const epoch = seed.reactEpochs.find((candidate) => candidate.id === react.epoch);
+    const types = {
+        '@types/react': react.typesReact ?? reactSel.tuple?.packages['@types/react'],
+        '@types/react-dom': react.typesReactDom ?? reactSel.adapter.typesReactDom,
+    };
+    const order = matrix.commands.order;
+    const selected = commands ?? order;
+    const needsTypes = selected.includes('types');
+    const deps = {
+        react: react.version,
+        'react-dom': react.version,
+        'pixi.js': pixi.version,
+        ...(needsTypes ? types : {}),
+    };
+
+    return {
+        id: negative ? `negative-${negative.id}` : `react-${react.version}_pixi-${pixi.version}`,
+        label: negative ? negative.id : `${reactSel.adapter.id} @ react ${react.version} x ${pixiAdapter.id} @ pixi.js ${pixi.version}`,
+        kind: negative ? 'negative' : 'cell',
+        epoch: react.epoch,
+        react: { ...reactSel, version: react.version, reconciler: epoch.reconciler },
+        pixi: { adapterKey: pixiAdapterKey, adapter: pixiAdapter, version: pixi.version, roles: pixi.roles ?? [] },
+        deps,
+        // Everything the cell installs on top of the packed artifacts, exactly: this is also the npm download-cache key.
+        toolchain: matrix.toolchain,
+        install: negative?.install ?? {},
+        commands: selected.filter((name) => order.includes(name)).sort((a, b) => order.indexOf(a) - order.indexOf(b)),
+        expect: negative?.expect ?? null,
+        description: negative?.description ?? null,
+        ...(options.extra ?? {}),
+    };
+}
+
+/** Artifact ids a cell installs. */
+export function cellArtifacts(seed, cell)
+{
+    const matrix = seed.adapterMatrix;
+
+    return [...new Set([...matrix.commonArtifacts, cell.react.adapter.artifact, cell.pixi.adapter.artifact])];
+}
+
+/** The reconciler a cell expects: bundled adapters contribute none to the tree, dependency-style adapters exactly one. */
+export function expectedTree(cell)
+{
+    const { adapter, version } = cell.react;
+    const exact = { react: version, 'react-dom': version, 'pixi.js': cell.pixi.version, ...cell.deps };
+    const absent = [...adapter.bundled];
+    let reconciler = null;
+
+    if (adapter.reconciler.via === 'dependency')
+    {
+        reconciler = cell.react.reconciler;
+        absent.splice(absent.indexOf('react-reconciler'), 1);
+    }
+
+    return { exact, absent, reconciler };
+}
+
+function reactCells(seed, tier, patches)
+{
+    const selection = seed.adapterMatrix.tiers[tier].react;
+    const epochs = selection.epochs === 'all' ? Object.keys(seed.adapterMatrix.reactAdapters) : selection.epochs;
+    const result = [];
+
+    for (const epochId of epochs)
+    {
+        const { minimum, latest } = reactVersions(seed, epochId);
+        const choice = patches ?? selection.patch;
+        const versions = choice === 'all' ? [...new Set([minimum.version, latest.version])] : [latest.version];
+
+        for (const version of versions) result.push({ epoch: epochId, version, patch: version === latest.version ? 'latest' : 'minimum' });
+    }
+
+    return result;
+}
+
+function pixiSelections(seed, tier)
+{
+    const selection = seed.adapterMatrix.tiers[tier].pixi;
+    const minors = pixiMinors(seed, 'pixi8');
+    const epoch = seed.pixiEpochs.find((candidate) => candidate.id === 'pixi8');
+
+    if (selection.versions === 'all-minors') return minors.map(({ latest }) => ({ version: latest.version, roles: [] }));
+    const roles = { minimum: epoch.minimum, current: epoch.current };
+
+    return selection.versions.map((name) => ({ version: roles[name], roles: [name] }));
+}
+
+/**
+ * Cells of a tier. `patches` overrides the tier's React patch selection ('latest' or 'all'); `filter` keeps cells whose
+ * id or label contains any listed substring.
+ */
+export function selectCells(seed, tier, { patches, filter } = {})
+{
+    assert.ok(seed.adapterMatrix.tiers[tier], `unknown tier ${tier}`);
+    const cells = [];
+
+    for (const pixi of pixiSelections(seed, tier))
+    {
+        for (const react of reactCells(seed, tier, patches)) cells.push(makeCell(seed, { react, pixi }));
+    }
+
+    const unique = new Set(cells.map((cell) => cell.id));
+
+    assert.equal(unique.size, cells.length, 'duplicate cell id');
+
+    return filter?.length ? cells.filter((cell) => filter.some((part) => cell.id.includes(part) || cell.label.includes(part))) : cells;
+}
+
+export function negativeCells(seed)
+{
+    return seed.adapterMatrix.negative.map((negative) => makeCell(seed, {
+        react: { epoch: negative.react.epoch, version: negative.react.version, typesReact: negative.react.typesReact, typesReactDom: negative.react.typesReactDom },
+        pixi: { version: negative.pixi.version },
+        commands: negative.commands,
+        negative,
+    }));
+}
+
+/** Boundary probe tuple IDs of a tier, each with the reason it is there. */
+export function boundaryProbes(seed, tier)
+{
+    const selection = seed.adapterMatrix.tiers[tier].boundaryProbes;
+
+    if (selection === 'all') return seed.probes.filter((tuple) => tuple.kind === 'react' || tuple.packages['pixi.js']?.startsWith('8.')).map((tuple) => ({ id: tuple.id, boundary: 'audited tuple' }));
+
+    return selection;
+}
+
+/** Structural validation of the `adapterMatrix` section against the rest of the seed. Offline. */
+export function validateAdapterMatrix(seed)
+{
+    const matrix = seed.adapterMatrix;
+
+    assert.equal(matrix.schemaVersion, 1);
+    for (const [id, artifact] of Object.entries(matrix.artifacts))
+    {
+        assert.match(artifact.dir, /^packages\/[a-z0-9-]+$/, `artifact ${id} dir`);
+        assert.match(artifact.package, /^@[a-z0-9-]+\/[a-z0-9-]+$/, `artifact ${id} package`);
+    }
+    for (const id of matrix.commonArtifacts) assert.ok(matrix.artifacts[id], `common artifact ${id}`);
+    for (const command of matrix.commands.order) assert.ok(Number.isInteger(matrix.commands.timeoutSeconds[command]), `timeout for ${command}`);
+
+    for (const [key, adapter] of Object.entries(matrix.reactAdapters))
+    {
+        const epoch = seed.reactEpochs.find((candidate) => candidate.id === key);
+
+        assert.ok(epoch, `reactAdapters.${key} must be a reactEpochs id`);
+        assert.ok(matrix.artifacts[adapter.artifact], `${key}: artifact`);
+        assert.match(adapter.entry, /^(\.|\.\/[\w.-]+)$/, `${key}: entry`);
+        assert.match(adapter.className, /^[A-Za-z0-9_]+$/, `${key}: className`);
+        assert.ok(['entry', 'package'].includes(adapter.hashScope), `${key}: hashScope`);
+        assert.ok(Number.isInteger(adapter.abi.major) && Number.isInteger(adapter.abi.minor), `${key}: abi`);
+        assert.ok(['bundled', 'dependency'].includes(adapter.reconciler.via), `${key}: reconciler.via`);
+        assert.ok(Array.isArray(adapter.bundled), `${key}: bundled`);
+        assert.ok(adapter.declaredPeers.react, `${key}: declaredPeers.react`);
+
+        const { minimum, latest } = reactVersions(seed, key);
+
+        for (const { version, tuple } of [minimum, latest])
+        {
+            assert.equal(tuple.packages['react-reconciler'], epoch.reconciler, `${key}: ${version} reconciler matches the epoch`);
+            assert.ok(seed.registry.react.selected[version], `${key}: ${version} registry entry`);
+        }
+        assert.ok(adapter.typesReactDom, `${key}: typesReactDom`);
+    }
+    for (const [key, adapter] of Object.entries(matrix.pixiAdapters))
+    {
+        assert.ok(matrix.artifacts[adapter.artifact], `${key}: artifact`);
+        assert.ok(adapter.declaredPeers['pixi.js'], `${key}: declaredPeers`);
+        const boundaries = seed.pixiEpochs.find((epoch) => epoch.id === 'pixi8').capabilityBoundaries;
+
+        for (const boundary of Object.values(adapter.capabilities.fromBoundary)) assert.ok(boundaries[boundary], `${key}: boundary ${boundary}`);
+    }
+
+    const probeIds = new Set(seed.probes.map((tuple) => tuple.id));
+
+    for (const tier of Object.keys(matrix.tiers))
+    {
+        const { boundaryProbes: selection } = matrix.tiers[tier];
+
+        if (selection !== 'all') for (const probe of selection) assert.ok(probeIds.has(probe.id), `${tier}: unknown probe ${probe.id}`);
+        assert.ok(selectCells(seed, tier).length > 0, `${tier}: no cells`);
+    }
+    // The owner-mandated PR boundaries must stay covered even if the list is edited.
+    const pr = new Set(matrix.tiers.pr.boundaryProbes.map((probe) => probe.id));
+
+    for (const required of ['pixi-8.2.6', 'pixi-8.5.0', 'pixi-8.5.2', 'pixi-8.7.0', 'pixi-8.9.0', 'pixi-8.10.0', 'pixi-8.22.0']) assert.ok(pr.has(required), `PR tier must probe ${required}`);
+
+    for (const cell of [...selectCells(seed, 'nightly', { patches: 'all' }), ...negativeCells(seed)])
+    {
+        assert.ok(cell.react.tuple, `${cell.id}: no audited React tuple`);
+        assert.ok(seed.probes.some((tuple) => tuple.id === `pixi-${cell.pixi.version}`), `${cell.id}: pixi.js ${cell.pixi.version} has no audited tuple`);
+        assert.equal(cell.deps['pixi.js'], cell.pixi.version);
+        for (const [name, version] of Object.entries(cell.deps)) assert.match(version, /^\d+\.\d+\.\d+$/, `${cell.id}: ${name} must be an exact version`);
+    }
+    for (const negative of matrix.negative)
+    {
+        assert.ok(negative.expect.signatures.length > 0 && matrix.commands.order.includes(negative.expect.failingCommand), `negative ${negative.id}`);
+    }
+}
+
+/** sha256 of the sorted `[path, sha256]` list: the identity of a set of files. */
+export const fileSetHash = (files) => sha256(Object.keys(files).sort().map((path) => [path, files[path]]));
+
+/**
+ * Cache key of a cell: everything that can change its verdict. `artifacts` is the pack step's `artifacts.json`;
+ * `harness` is a hash of the harness files and runner. Tarball bytes are not used (tar metadata may vary): the key
+ * uses the content hash of the files, and for an adapter with `hashScope: "entry"` only the files its export entry
+ * can reach, so an edit to one entry leaves the other entries' keys alone.
+ */
+export function cellKey(seed, cell, artifacts, harness, environment)
+{
+    const used = {};
+    const adapterArtifacts = new Map([[cell.react.adapter.artifact, cell.react.adapter], [cell.pixi.adapter.artifact, cell.pixi.adapter]]);
+
+    for (const id of cellArtifacts(seed, cell))
+    {
+        const artifact = artifacts[id];
+
+        assert.ok(artifact, `artifact ${id} was not packed`);
+        const adapter = adapterArtifacts.get(id);
+        const scoped = adapter?.hashScope === 'entry' ? artifact.entries[adapter.entry] : null;
+
+        assert.ok(!adapter || adapter.hashScope !== 'entry' || scoped, `artifact ${id}: no entry scope for ${adapter?.entry}`);
+        used[id] = scoped ? { scope: `entry ${adapter.entry}`, hash: scoped.hash } : { scope: 'package', hash: artifact.hash };
+    }
+
+    const input = { schema: 1, id: cell.id, commands: cell.commands, deps: cell.deps, toolchain: cell.toolchain, artifacts: used, harness, environment, expect: cell.expect };
+
+    return { key: sha256(input).slice(0, 40), depsKey: sha256({ deps: cell.deps, toolchain: cell.toolchain, commands: cell.commands, environment }).slice(0, 40), input };
+}
+
+const statusMark = { pass: 'pass', 'cached-pass': 'pass (cached)', 'expected-fail': 'expected failure', fail: 'FAIL', skipped: 'not run' };
+
+/** Markdown compatibility table (React adapters by Pixi version) from result rows `{ id, react, pixi, status }`. */
+export function renderTable(seed, rows, { title = 'Adapter compatibility table', manifestOnly = false, intro = true } = {})
+{
+    const cells = rows.filter((row) => row.kind !== 'negative');
+    const pixiVersions = [...new Set(cells.map((row) => row.pixiVersion))].sort(compareVersions);
+    const reactKeys = [...new Set(cells.map((row) => `${row.adapterLabel}|${row.reactVersion}`))].sort((a, b) =>
+        compareVersions(a.split('|')[1], b.split('|')[1]));
+    const lookup = new Map(cells.map((row) => [`${row.adapterLabel}|${row.reactVersion}|${row.pixiVersion}`, row]));
+    const lines = [`# ${title}`, ''];
+
+    if (intro) lines.push(manifestOnly
+        ? 'Generated from `design/compatibility/seed.json` (`adapterMatrix`). These are the cells CI runs, not a support certificate: the certified ranges stay empty until the owner promotes them.'
+        : 'Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js, then checks the dependency tree, ESM/CJS imports and ABI, declaration consumers and the real-browser conformance suite.');
+    lines.push('', `| React adapter @ React | ${pixiVersions.map((version) => `pixi.js ${version}`).join(' | ')} |`, `| --- | ${pixiVersions.map(() => '---').join(' | ')} |`);
+    for (const key of reactKeys)
+    {
+        const [adapter, version] = key.split('|');
+
+        lines.push(`| ${adapter} @ ${version} | ${pixiVersions.map((pixi) =>
+        {
+            const row = lookup.get(`${key}|${pixi}`);
+
+            return row ? (manifestOnly ? 'cell' : `${statusMark[row.status] ?? row.status}${row.knownFailures?.length && row.status !== 'fail' ? ` + ${row.knownFailures.length} known defect` : ''}`) : '-';
+        }).join(' | ')} |`);
+    }
+    const negatives = rows.filter((row) => row.kind === 'negative');
+
+    if (negatives.length)
+    {
+        lines.push('', '## Deliberately incompatible pairs', '', '| Case | Expected failing command | Result | Message |', '| --- | --- | --- | --- |');
+        for (const row of negatives) lines.push(`| ${row.label} | ${row.expect?.failingCommand ?? '-'} | ${manifestOnly ? 'planned' : statusMark[row.status] ?? row.status} | ${(row.message ?? row.description ?? '').slice(0, 400).replaceAll('|', '\\|').replaceAll('\n', ' ')} |`);
+    }
+
+    return `${lines.join('\n')}\n`;
+}
+
+/** Rows for a manifest-only table (no run). */
+export function plannedRows(seed, tier, options)
+{
+    const toRow = (cell) => ({
+        id: cell.id,
+        kind: cell.kind,
+        label: cell.label,
+        adapterLabel: cell.react.adapter.id,
+        reactVersion: cell.react.version,
+        pixiVersion: cell.pixi.version,
+        status: 'skipped',
+        expect: cell.expect,
+        description: cell.description,
+    });
+
+    return [...selectCells(seed, tier, options).map(toRow), ...negativeCells(seed).map(toRow)];
+}
+
+/** The checked-in compatibility document: both tiers, generated from the seed. `cells.test.mjs` keeps it current. */
+export function renderCompatibilityDoc(seed)
+{
+    const matrix = seed.adapterMatrix;
+    const section = (tier) => renderTable(seed, plannedRows(seed, tier), { title: `${tier === 'pr' ? 'PR tier' : 'Nightly tier'} (${selectCells(seed, tier).length} cells)`, manifestOnly: true, intro: false }).replace(/^# /, '## ').replace(/^## Deliberately[\s\S]*$/m, '');
+    const probes = (tier) => boundaryProbes(seed, tier);
+    const lines = [
+        '# Adapter compatibility cells',
+        '',
+        '<!-- Generated by `node design/compatibility/cells/run-cells.mjs doc`; do not edit. Source: `adapterMatrix` in seed.json. -->',
+        '',
+        'This is the list of compatibility cells CI runs (issue 13), not a support certificate: `advertisedRanges` stays empty until the owner promotes a range. Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js. Results are published by the Compatibility workflows (job summary and the `compatibility-table` artifact).',
+        '',
+        `Required PR check: **Compatibility (required)**. Nightly: **Compatibility (nightly)**, ${selectCells(seed, 'nightly').length} cells (${selectCells(seed, 'nightly', { patches: 'all' }).length} with minimum and latest React patches).`,
+        '',
+        section('pr'),
+        '### PR tier boundary probes',
+        '',
+        '| Tuple | Boundary |',
+        '| --- | --- |',
+        ...probes('pr').map((probe) => `| ${probe.id} | ${probe.boundary} |`),
+        '',
+        section('nightly'),
+        `Nightly also re-runs all ${probes('nightly').length} audited tuples as boundary probes.`,
+        '',
+        '## Deliberately incompatible pairs',
+        '',
+        '| Case | Fails at | Expected message contains |',
+        '| --- | --- | --- |',
+        ...matrix.negative.map((negative) => `| ${negative.id}: ${negative.description} | ${negative.expect.failingCommand} | ${negative.expect.signatures.map((signature) => `\`${signature.replaceAll('|', '\\|')}\``).join(', ')} |`),
+        '',
+        '## Commands each cell runs',
+        '',
+        ...matrix.commands.order.map((command) => `- \`${command}\` (timeout ${matrix.commands.timeoutSeconds[command]}s)`),
+        '',
+    ];
+
+    return lines.join('\n');
+}

@@ -1,0 +1,300 @@
+name: Compatibility nightly
+
+# Nightly tier of the adapter compatibility matrix (issue 13): every React epoch at its latest patch against every
+# Pixi 8 minor at its latest audited patch (generated from design/compatibility/seed.json), the full conformance
+# suite in each cell, and every audited type/API probe. Not a PR check. Its output is the compatibility table.
+#
+# Hooks for the dependency-update automation (issue 40), which this workflow does not implement:
+#   - repository_dispatch with event_type "compatibility-cells" and client_payload {"cells": "pixi-8.23.0,react-19.3", "patches": "all"}
+#   - workflow_call from another workflow, with the same `cells` / `patches` inputs (the caller must grant `issues: write`
+#     for the failure issue; without it only the failing status is reported).
+# `cells` is a comma-separated list of substrings of cell ids; empty means every cell. Nothing is published.
+
+on:
+  schedule:
+    - cron: '37 2 * * *'
+  workflow_dispatch:
+    inputs:
+      cells:
+        description: Comma-separated substrings of cell ids to run (empty runs every cell)
+        type: string
+        default: ''
+      patches:
+        description: React patches per epoch (latest, or all for the minimum and latest audited patch)
+        type: choice
+        options: [latest, all]
+        default: latest
+  workflow_call:
+    inputs:
+      cells:
+        type: string
+        default: ''
+      patches:
+        type: string
+        default: latest
+  repository_dispatch:
+    types: [compatibility-cells]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compatibility-nightly
+  cancel-in-progress: false
+
+env:
+  CELLS: ${{ inputs.cells || github.event.client_payload.cells || '' }}
+  PATCHES: ${{ inputs.patches || github.event.client_payload.patches || 'latest' }}
+
+jobs:
+  plan:
+    name: Plan nightly cells
+    if: ${{ github.event_name != 'schedule' || github.repository == 'baseten/pixi-react' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      chunks: ${{ steps.plan.outputs.chunks }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node design/compatibility/validate.mjs
+      # One job per Pixi version, each running that version's React cells one after another: the checkout, the
+      # Chromium install and the artifact download are paid once per chunk, not once per cell.
+      - id: plan
+        run: |
+          echo "chunks=$(node design/compatibility/cells/run-cells.mjs list --tier nightly --patches "$PATCHES" --filter "$CELLS" --format chunks)" >> "$GITHUB_OUTPUT"
+
+  pack:
+    name: Pack adapter artifacts
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: pnpm run build
+      - run: node design/compatibility/cells/run-cells.mjs pack --out .compat/tarballs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compat-tarballs
+          path: .compat/tarballs
+          if-no-files-found: error
+          retention-days: 7
+
+  cells:
+    name: Cells ${{ matrix.chunk.name }}
+    needs: [plan, pack]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix: ${{ fromJSON(needs.plan.outputs.chunks) }}
+    env:
+      CHUNK: ${{ matrix.chunk.cells }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        with:
+          name: compat-tarballs
+          path: .compat/tarballs
+      - id: tools
+        run: echo "playwright=$(node design/compatibility/cells/run-cells.mjs toolchain --name playwright)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: compat-npm-nightly-${{ matrix.chunk.pixi }}-${{ hashFiles('design/compatibility/seed.json') }}
+          restore-keys: compat-npm-nightly-
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.tools.outputs.playwright }}
+      - name: Install Chromium
+        env:
+          PLAYWRIGHT_VERSION: ${{ steps.tools.outputs.playwright }}
+        run: npx --yes "playwright@$PLAYWRIGHT_VERSION" install chromium
+      # No verdict cache here: the nightly run exists to catch drift in what the key cannot see (Chromium, the registry).
+      - name: Run the cells in isolated projects
+        run: node design/compatibility/cells/run-cells.mjs run --tier nightly --patches "$PATCHES" --cell "$CHUNK" --no-cache
+      - name: Upload the cell results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-result-${{ matrix.chunk.pixi }}
+          path: .compat/results
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-diagnostics-${{ matrix.chunk.pixi }}
+          path: .compat/out
+          if-no-files-found: ignore
+          retention-days: 14
+
+  probes:
+    name: Probes at every audited tuple
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: compat-npm-probes-${{ hashFiles('design/compatibility/seed.json') }}
+          restore-keys: compat-npm-probes-
+      - run: node design/compatibility/cells/run-cells.mjs probes --tier nightly
+      - name: Upload the probe results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-result-probes
+          path: .compat/results
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-diagnostics-probes
+          path: .compat/out
+          if-no-files-found: ignore
+          retention-days: 14
+
+  negative:
+    name: Incompatible pairs are rejected
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        with:
+          name: compat-tarballs
+          path: .compat/tarballs
+      - run: node design/compatibility/cells/run-cells.mjs run --negative
+      - name: Upload the results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-result-negative
+          path: .compat/results
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-diagnostics-negative
+          path: .compat/out
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Publishes the compatibility table (artifact + job summary) and fails when any cell, probe or job failed.
+  report:
+    name: Compatibility (nightly)
+    needs: [plan, pack, cells, probes, negative]
+    if: ${{ always() && needs.plan.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      failed: ${{ steps.report.outputs.failed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: compat-result-*
+          merge-multiple: true
+          path: .compat/results
+      - name: Compatibility table
+        id: report
+        run: |
+          node design/compatibility/cells/run-cells.mjs report --tier nightly --patches "$PATCHES" --filter "$CELLS" --out .compat/report >> "$GITHUB_OUTPUT"
+          cat .compat/report/compatibility-table.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-table
+          path: .compat/report
+          retention-days: 30
+      - name: Fail when any cell, probe or job failed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          CELL_FAILURES: ${{ steps.report.outputs.failed }}
+        run: |
+          echo "job results: $RESULTS; failing cells or probes: $CELL_FAILURES"
+          for result in $RESULTS; do
+            [ "$result" = success ] || { echo "::error::A compatibility job did not succeed ($RESULTS)"; exit 1; }
+          done
+          [ "$CELL_FAILURES" = false ] || { echo "::error::Cells or probes failed; see the table in the job summary"; exit 1; }
+
+  # The only job with `issues: write`. It opens, or updates, one issue for the failing cells. It publishes nothing.
+  issue:
+    name: Open or update the failure issue
+    needs: report
+    if: ${{ always() && needs.report.outputs.failed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: compatibility-table
+          path: report
+      - name: Open or update the issue
+        run: |
+          label=compatibility-nightly
+          gh label create "$label" --color B60205 --description "Failing cells of the nightly adapter compatibility matrix" 2>/dev/null || true
+          {
+            echo "The nightly adapter compatibility run found failing cells or probes: $RUN_URL"
+            echo
+            echo "No support range was changed and nothing was published. Review the failure before widening or narrowing any range."
+            echo
+            echo "### Failures"
+            echo
+            head -c 20000 report/failures.md
+            echo
+            echo
+            echo "The full table is the \`compatibility-table\` artifact of the run."
+          } > body.md
+          existing=$(gh issue list --label "$label" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file body.md
+            gh issue comment "$existing" --body "Still failing in $RUN_URL"
+          else
+            gh issue create --title "Nightly compatibility: failing cells" --label "$label" --body-file body.md
+          fi

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { validateAdapterMatrix } from './cells/matrix.mjs';
 import { declarationSeries } from './declaration-series.mjs';
 import { processDiagnosticsSha256 } from './process-diagnostics.mjs';
 import { reactAbiSha256 } from './react-abi.mjs';
@@ -232,4 +233,5 @@ else
     for (let minor = 2; minor <= 22; minor++) assert.ok(seed.probes.some((p) => p.packages['pixi.js']?.startsWith(`8.${minor}.`)));
     for (let minor = 0; minor <= 3; minor++) assert.ok(seed.probes.some((p) => p.packages.react?.startsWith(`19.${minor}.`)));
 }
+if (!historical) validateAdapterMatrix(seed);
 process.stdout.write(`Validated ${seed.probes.length} exact tuples; known failures remain excluded from certification.\n`);
