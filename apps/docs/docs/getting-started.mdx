@@ -7,10 +7,89 @@ import { EmbeddedEditor } from '@site/src/components/Editor/EmbeddedEditor';
 import ExampleApp from '!!raw-loader!../src/examples/basic/App';
 import ExampleBunnySprite from '!!raw-loader!../src/examples/basic/BunnySprite';
 
-To add `@pixi/react` to an existing React application, install the necessary dependencies:
+## Start a new project
+
+The quickest way to start is the official PixiJS scaffolder, which sets up Vite, React 19 and `@pixi/react` for you:
 
 ```bash
-npm install pixi.js@^8.2.6 @pixi/react
+npm create pixi.js@latest
+```
+
+Choose the `framework-react` template (or `framework-react-js` for plain JavaScript). Create React App is deprecated and is not recommended.
+
+## Add to an existing app
+
+`@pixi/react` works with any bundler-based React 19 application: Vite, Next.js, Remix and so on. Install the dependencies:
+
+```bash
+npm install pixi.js@8.22.0 react@19.3.0 react-dom@19.3.0 @pixi/react
+```
+
+Then tell `@pixi/react` which Pixi.js classes you use with `extend`, and render them inside an `<Application>`:
+
+```tsx
+import {
+    Application,
+    extend,
+} from '@pixi/react';
+import {
+    Container,
+    Graphics,
+} from 'pixi.js';
+import { useCallback } from 'react';
+
+extend({
+    Container,
+    Graphics,
+});
+
+export const MyComponent = () => {
+    const drawCallback = useCallback((graphics: Graphics) => {
+        graphics.clear();
+        graphics.setFillStyle({ color: 'red' });
+        graphics.rect(0, 0, 100, 100);
+        graphics.fill();
+    }, []);
+
+    return (
+        <Application>
+            <pixiContainer x={100} y={100}>
+                <pixiGraphics draw={drawCallback} />
+            </pixiContainer>
+        </Application>
+    );
+};
+```
+
+## Supported versions
+
+| Peer | Range |
+| --- | --- |
+| `react` | `^19.3.0` (certified: 19.3.0) |
+| `pixi.js` | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` (8.5.0 is excluded) |
+
+Only React 19.3 is certified. With any other React 19 minor, `@pixi/react` still runs but logs a single console warning naming the certified version. To silence it, pin `react` and `react-dom` to 19.3 (for example `"react": "~19.3.0"`). A React outside the 19 major, or a pixi.js outside its range, throws a `CompatibilityError` the first time you call into `@pixi/react`.
+
+If you must stay on an older React minor, stay on upstream `@pixi/react` 8.0.5 for now. Once the modular packages are published, you will also be able to compose your own renderer with `createRenderer` and the React adapter package for your minor; the release notes will say when.
+
+{/* TODO(#15): link the modular install recipes (design/release.md) once they exist on main. */}
+
+## No bundler?
+
+Plain `<script>` tags are not supported, because React 19 ships no global (UMD) build. Without a bundler, load the ES module build `dist/pixi-react.mjs` through an import map, taking React from an ESM CDN such as esm.sh and PixiJS from its browser ESM build (`dist/pixi.mjs`):
+
+```html
+<script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@19.3.0",
+            "react/": "https://esm.sh/react@19.3.0/",
+            "react-dom/": "https://esm.sh/react-dom@19.3.0/",
+            "pixi.js": "https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.mjs",
+            "@pixi/react": "https://cdn.jsdelivr.net/npm/@pixi/react/dist/pixi-react.mjs"
+        }
+    }
+</script>
 ```
 
 ## Does it have limitations?
