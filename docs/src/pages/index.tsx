@@ -3,6 +3,7 @@ import CTA from './CTA';
 import styles from './index.module.css';
 import ExampleApp from '!!raw-loader!../examples/basic/App';
 import ExampleBunnySprite from '!!raw-loader!../examples/basic/BunnySprite';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { EmbeddedEditor } from '@site/src/components/Editor/EmbeddedEditor';
 import Heading from '@theme/Heading';
@@ -11,12 +12,13 @@ import Layout from '@theme/Layout';
 function HomepageHeader()
 {
     const { siteConfig } = useDocusaurusContext();
+    const logoUrl = useBaseUrl('/img/logo-main.svg');
 
     return (
         <header className={clsx(styles.heroBanner)}>
             <div className="container">
                 <Heading as="h1">
-                    <img src="/img/logo-main.svg" alt="Logo" width={'100%'} style={{ maxHeight: 150 }} />
+                    <img src={logoUrl} alt="Logo" width={'100%'} style={{ maxHeight: 150 }} />
                 </Heading>
                 <p className="hero__subtitle" style={{ marginTop: -30 }}>
                     {siteConfig.tagline}

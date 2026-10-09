@@ -55,7 +55,8 @@
     "test:unit": "tsc --project tsconfig.test.json && vitest run unit",
     "test:lint": "xs lint",
     "test:watch": "vitest",
-    "test:types": "tsc --noEmit --emitDeclarationOnly false"
+    "test:types": "tsc --noEmit --emitDeclarationOnly false",
+    "test:contract": "npx -y -p typescript@5.6.3 tsc -p design/contract/tsconfig.json && npx -y -p typescript@5.6.3 tsc -p design/contract/tsconfig.json --module ESNext --moduleResolution Bundler"
   },
   "husky": {
     "hooks": {
@@ -87,6 +88,7 @@
     "husky": "^8.0.0",
     "jsdom": "^25.0.0",
     "pixi.js": "8.2.6",
+    "pkg-pr-new": "0.0.54",
     "playwright": "^1.45.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

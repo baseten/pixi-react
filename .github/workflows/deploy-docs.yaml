@@ -1,33 +1,59 @@
 name: Deploy Docs
 
 on:
-  push:
-      branches:
-          - main
-          - docs
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy configured fork docs (false builds and reviews only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FORK_RELEASE_ENABLED: ${{ vars.FORK_RELEASE_ENABLED }}
+  FORK_PREVIEW_ENABLED: ${{ vars.FORK_PREVIEW_ENABLED }}
+  FORK_PACKAGE_NAME: ${{ vars.FORK_PACKAGE_NAME }}
+  FORK_DOCS_ENABLED: ${{ vars.FORK_DOCS_ENABLED }}
+  FORK_DOCS_REPOSITORY: ${{ vars.FORK_DOCS_REPOSITORY }}
 
 jobs:
-  deploy:
-    name: Deploy
+  review:
+    name: Build and review docs destination
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          persist-credentials: false
+      - run: node .github/actions/fork-safety/check.cjs review
+      - uses: ./.github/actions/setup
+      - run: npm run build:docs
 
-      - run: npm ci
-      - run: |
-          git config --global user.name "$GITHUB_ACTOR"
-          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          git remote set-url origin https://git:${GIT_PASS}@github.com/pixijs/pixi-react.git
-          npm run deploy
+  deploy:
+    name: Deploy configured fork docs
+    needs: review
+    if: ${{ github.repository == 'baseten/pixi-react' && github.ref == 'refs/heads/main' && inputs.deploy && vars.FORK_DOCS_ENABLED == 'true' && vars.FORK_DOCS_REPOSITORY == 'baseten/pixi-react' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate docs destination
+        run: node .github/actions/fork-safety/check.cjs docs
+      - uses: ./.github/actions/setup
+      - name: Deploy to this fork
+        run: npm run deploy
         env:
-          GIT_USER: $GITHUB_ACTOR
+          GIT_USER: ${{ github.actor }}
+          GIT_USER_NAME: ${{ github.actor }}
+          GIT_USER_EMAIL: ${{ github.actor }}@users.noreply.github.com
           GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
