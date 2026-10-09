@@ -7,14 +7,14 @@ import { ROLES } from './nodes.js';
 import type { Application, Ticker } from 'pixi.js';
 import type { DefaultStyleRegistry, ExtensionLeaseHolder, ExtensionLeaseTable } from './globals.js';
 import type { PixiNodes } from './nodes.js';
-import type { PixiModule } from './pixi.js';
+import type { PixiBinding } from './pixi.js';
 import type { Pixi8AppProps, Pixi8DestroyOptions, Pixi8InitOptions, Pixi8ResizeTarget, Pixi8Types } from './types.js';
 import type { NodeDefinition, PixiSession, TickOptions } from '@pixi-react-provisional/core';
 
 /** What a session shares with every other session of the same Pixi module. */
 export interface SessionGlobals
 {
-    readonly pixi: PixiModule;
+    readonly pixi: PixiBinding;
     readonly nodes: PixiNodes;
     readonly extensions: ExtensionLeaseTable;
     readonly defaultStyle: DefaultStyleRegistry;
@@ -24,7 +24,7 @@ export interface SessionGlobals
 type SessionStatus = 'new' | 'initialising' | 'ready' | 'failed' | 'destroyed';
 
 /** The plain option values of a `defaultTextStyle` given either as options or as a `TextStyle`. */
-function styleValues(pixi: PixiModule, style: unknown): Record<string, unknown> | undefined
+function styleValues(pixi: PixiBinding, style: unknown): Record<string, unknown> | undefined
 {
     if (style === undefined || style === null)
     {

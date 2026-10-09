@@ -161,6 +161,112 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect([sprite.alpha, sprite.x, sprite.scale.x, sprite.scale.y, sprite.anchor.x]).toEqual([1, 0, 1, 1, 0]);
     });
 
+    it('restores Text kind defaults from a blank Text, recognized without importing Text', () =>
+    {
+        class Label extends pixi.Text
+        {}
+        const props = { text: 'hello', anchor: { x: 0.5, y: 0.5 }, resolution: 2 };
+        const label = make(nodes, Label, props);
+
+        expect([label.text, label.anchor.x, label.resolution]).toEqual(['hello', 0.5, 2]);
+        nodes.applyChanges(label, props, {});
+        expect([label.text, label.anchor.x]).toEqual([new pixi.Text().text, 0]);
+    });
+
+    it('never constructs a custom class that redeclares a built-in signature', () =>
+    {
+        let constructions = 0;
+
+        class Overriding extends pixi.Sprite
+        {
+            constructor(options?: Any)
+            {
+                super(options);
+                constructions += 1;
+            }
+
+            get anchor() { return super.anchor; }
+            set anchor(value) { super.anchor = value; }
+            get texture() { return super.texture; }
+            set texture(value) { super.texture = value; }
+            get sourceBounds() { return super.sourceBounds; }
+        }
+        const props = { anchor: { x: 0.5, y: 0.5 } };
+        const sprite = make(nodes, Overriding, props);
+
+        nodes.applyChanges(sprite, props, {});
+        expect([sprite.anchor.x, constructions]).toEqual([0, 1]);
+    });
+
+    it('falls back to no kind default when a signature-only custom class needs constructor arguments', () =>
+    {
+        // Declares all of Sprite's signature without extending Sprite, so it is recognized as Sprite (README).
+        class LooksLikeSprite extends pixi.Container
+        {
+            private readonly options: Any;
+
+            constructor(options: Any)
+            {
+                if (!options)
+                {
+                    throw new Error('LooksLikeSprite needs options');
+                }
+
+                super(options);
+                this.options = options;
+            }
+
+            get anchor() { return this.options.anchor; }
+            set anchor(value) { this.options.anchor = value; }
+            get texture() { return undefined; }
+            set texture(_value) { /* unused */ }
+            get sourceBounds() { return undefined; }
+        }
+        const props = { alpha: 0.5 };
+        const node = make(nodes, LooksLikeSprite, props);
+
+        expect(nodes.builtins.builtinOf(LooksLikeSprite, 'Sprite')).toBe(LooksLikeSprite);
+        expect(() => nodes.applyChanges(node, props, {})).not.toThrow();
+    });
+
+    it('falls back to no kind default when a signature-only blank instance throws from its accessors', () =>
+    {
+        const blank = new WeakSet<object>();
+
+        class LooksLikeSprite extends pixi.Container
+        {
+            constructor(options?: Any)
+            {
+                super(options);
+                if (!options)
+                {
+                    blank.add(this);
+                }
+            }
+
+            get anchor() { return { x: 0, y: 0 }; }
+            set anchor(_value) { /* unused */ }
+            // Its zero-argument constructor succeeds, but a blank instance cannot report a texture.
+            get texture(): string
+            {
+                if (blank.has(this))
+                {
+                    throw new Error('LooksLikeSprite was built without options');
+                }
+
+                return 'set';
+            }
+
+            set texture(_value: string) { /* unused */ }
+            get sourceBounds() { return undefined; }
+        }
+        const props = { texture: 'set' };
+        const node = make(nodes, LooksLikeSprite, props);
+
+        expect(nodes.builtins.builtinOf(LooksLikeSprite, 'Sprite')).toBe(LooksLikeSprite);
+        expect(() => nodes.applyChanges(node, props, {})).not.toThrow();
+    });
+
     it('restores a custom class initial value, and never constructs a class that needs arguments', () =>
     {
         let constructions = 0;

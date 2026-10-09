@@ -1,8 +1,10 @@
 /**
  * The CommonJS entry (`lib/index.js`): the facade bound to the pixi.js module that `require` loads. The generated
- * ESM entry (`lib/index.mjs`) binds the module that `import` loads instead; see `bind.ts`.
+ * ESM entry (`lib/index.mjs`) binds the module that `import` loads instead; see `bind.ts`. Both pass only the Pixi 8
+ * adapter's binding exports (`PIXI8_BINDING_EXPORTS`), imported by name: never the namespace, which would keep every
+ * Pixi class in an application bundle.
  */
-import * as pixi from 'pixi.js';
+import { Application as PixiApplication, Container, extensions, Filter, Graphics, ObservablePoint, Point, TextStyle, VERSION } from 'pixi.js';
 import { bindFacade, bindPixi } from './bind';
 import { type CreateRootOptions } from './typedefs/CreateRootOptions';
 import { type UseTickOptions } from './typedefs/UseTickOptions';
@@ -12,7 +14,9 @@ import type { MaybeInstance } from './helpers/applyProps';
 import type { DiffSet } from './typedefs/DiffSet';
 import type { HostConfig } from './typedefs/HostConfig';
 
-const facade = bindFacade(bindPixi(pixi));
+const facade = bindFacade(bindPixi({
+    Application: PixiApplication, Container, extensions, Filter, Graphics, ObservablePoint, Point, TextStyle, VERSION,
+}));
 
 export const Application = facade.Application;
 

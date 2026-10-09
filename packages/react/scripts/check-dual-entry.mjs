@@ -9,7 +9,7 @@
  * In plain Node, pixi.js itself loads twice (its ESM and CJS builds), so the ESM and CJS entries are bound to two
  * Pixi instances and get two runtimes, as the modular Pixi 8 adapter package does. A bundler resolves one Pixi
  * instance; that case is checked by binding the one implementation module to one pixi.js module through different
- * namespace objects. Run after `pnpm build`.
+ * binding objects. Run after `pnpm build`.
  */
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -21,9 +21,11 @@ const packageDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(join(packageDir, 'package.json'));
 
 const cjs = require('@pixi/react');
+
 const esm = await import('@pixi/react');
 const bind = require(join(packageDir, 'lib', 'bind.js'));
 const pixiCjs = require('pixi.js');
+
 const pixiEsm = await import('pixi.js');
 // The bundled Pixi 8 adapter, bound to each module system's pixi.js (as the two entries bind it).
 const pixi8Cjs = bind.bindPixi(pixiCjs);
@@ -61,6 +63,15 @@ for (const file of readdirSync(join(packageDir, 'lib'), { recursive: true }).map
 assert.equal(loaded('/react/index.js').length, 1, 'React loaded once');
 assert.deepEqual(readdirSync(join(packageDir, 'lib'), { recursive: true }).filter((file) => String(file).endsWith('.mjs')), ['index.mjs'],
     'lib/index.mjs is the only ESM file');
+
+// Tree shaking: the entries import the Pixi 8 adapter's binding exports by name, never the pixi.js namespace, so a
+// bundler keeps only the Pixi classes an application imports. The adapter keeps only those exports.
+const pixiImports = (file) => [...readFileSync(join(packageDir, file), 'utf8').matchAll(/^import (.+) from 'pixi\.js';$/gm)].map((match) => match[1]);
+
+assert.deepEqual(pixiImports('lib/index.mjs'), [`{ ${bind.PIXI8_BINDING_EXPORTS.map((name) => `${name} as pixi_${name}`).join(', ')} }`],
+    'lib/index.mjs imports the binding exports by name');
+assert.doesNotMatch(readFileSync(join(packageDir, 'lib', 'index.js'), 'utf8'), /__importStar|import\s*\*/, 'lib/index.js binds named exports');
+assert.deepEqual(Object.keys(new pixi8Esm.Pixi8Adapter().pixi).sort(), [...bind.PIXI8_BINDING_EXPORTS].sort(), 'the adapter keeps only the binding exports');
 
 // The ESM entry's values ARE the facade the one implementation module bound to the ESM Pixi 8 adapter.
 const esmFacade = bind.bindFacade(pixi8Esm);

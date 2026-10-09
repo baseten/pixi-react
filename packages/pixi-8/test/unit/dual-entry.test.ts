@@ -34,6 +34,15 @@ describe('ESM and CJS entries share one implementation, bound per Pixi instance 
         expect(report.manifestId).toBe('pixi-8');
     });
 
+    it('imports and binds only the pixi.js exports it uses, by name (tree shaking)', () =>
+    {
+        const names = [...report.bindingExports].sort();
+
+        expect(report.esmPixiImports).toEqual([`{ ${report.bindingExports.map((name: string) => `${name} as peer_${name}`).join(', ')} }`]);
+        expect(report.esmBoundExports).toEqual(names);
+        expect(report.cjsBoundExports).toEqual(names);
+    });
+
     it('loads no React package', () =>
     {
         expect(report.reactLoaded).toBe(false);

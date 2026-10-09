@@ -18,19 +18,23 @@
  *   expected adapters (the facade's `extend` ran);
  * - unused Pixi constructors can be eliminated: `NineSliceSprite`, which no fixture imports or registers, must be
  *   absent. KNOWN_GAPS lists fixtures where that is not true yet; such a fixture must still fail the assertion (an
- *   unexpected pass fails the run, so the list is kept honest).
+ *   unexpected pass fails the run, so the list is kept honest);
+ * - the Pixi code kept is no more than upstream's (issue 57): the facade fixture is also bundled against upstream
+ *   `@pixi/react` 8.0.5 from the registry, in its own clean project with the same React, pixi.js and esbuild, and the
+ *   facade and explicit fixtures may keep no more pixi.js modules and no more pixi.js bytes than that baseline.
  *
  * Bundles are measured for a fixed fixture with pinned versions. They say nothing about resolving peer-version
  * conflicts: tree shaking never makes two React or Pixi versions coexist.
  *
  * Usage: node scripts/release/bundles.mjs [--tarballs <dir>]   (after consumers.mjs)
  */
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
-import { repoRoot } from './config.mjs';
+import { repoRoot, resetOutputDir } from './config.mjs';
 import { consumersRoot, scenarios } from './consumers.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -39,18 +43,17 @@ const here = dirname(fileURLToPath(import.meta.url));
 const UNUSED_PIXI_MODULE = /\/NineSliceSprite\.m?js$/;
 
 /**
- * Fixtures whose bundles still keep every Pixi constructor. The Pixi 8 adapter binds the whole `pixi.js` module
- * namespace (`import * as peer from 'pixi.js'; bindPixi(peer)`, the D6 peer binding, and the facade's
- * `lib/index.mjs` the same way) so it can detect optional exports. A namespace object that escapes into a function
- * keeps every export alive in every bundler. Closing this needs the adapter to bind named constructors instead
- * (proposed follow-up; see design/release.md, "Known gap: Pixi constructor elimination").
+ * Fixtures that still keep an unused Pixi constructor: `{ [id]: { fixtures: [kind, ...], reason } }`. None today: the
+ * gap issue 15 recorded (pixi-8 and the facade bound the whole `pixi.js` namespace) was closed by issue 57, whose
+ * entries import the adapter's binding exports by name. A listed fixture that no longer reproduces fails the run.
  */
-export const KNOWN_GAPS = {
-    'unused-pixi-constructor': {
-        fixtures: ['explicit', 'facade'],
-        reason: 'pixi-8 and the facade bind the whole pixi.js namespace (D6 peer binding), so no Pixi constructor can be eliminated',
-    },
-};
+export const KNOWN_GAPS = {};
+
+/** pixi.js and its dependencies: the packages a Pixi bundle may contain. */
+const PIXI_DEPS = ['pixi.js', '@pixi/colord', '@xmldom/xmldom', '@webgpu/types', 'earcut', 'eventemitter3', 'gifuct-js', 'ismobilejs', 'parse-svg-path', 'tiny-lru', 'js-binary-schema-parser', '@types/*'];
+
+/** Upstream's last release, bundled on the facade fixture as the bound for the Pixi code our bundles keep. */
+export const UPSTREAM_BASELINE = Object.freeze({ name: '@pixi/react', version: '8.0.5' });
 
 const fill = (text, values) => Object.entries(values ?? {}).reduce((result, [key, value]) => result.replaceAll(`__${key}__`, value), text);
 
@@ -162,6 +165,7 @@ export async function checkFixture({ dir, fixture, values, expect })
         gzipBytes: gzipSync(output, { level: 9 }).length,
         inputModules: inputs.length,
         pixiModules: inputs.filter((input) => packageOfInput(input) === 'pixi.js').length,
+        pixiBytes: byPackage['pixi.js'] ?? 0,
         bytesByPackage: Object.fromEntries(Object.entries(byPackage).sort(([, a], [, b]) => b - a)),
         executed,
         problems,
@@ -175,7 +179,6 @@ export function bundlePlan(manifest)
     const list = scenarios(manifest);
     const reconcilers = ['0.29.2', '0.31.0', '0.32.0', '0.33.0', '0.34.0'];
     const plan = [];
-    const pixiDeps = ['pixi.js', '@pixi/colord', '@xmldom/xmldom', '@webgpu/types', 'earcut', 'eventemitter3', 'gifuct-js', 'ismobilejs', 'parse-svg-path', 'tiny-lru', 'js-binary-schema-parser', '@types/*'];
 
     for (const scenario of list.filter((item) => item.bundle))
     {
@@ -194,11 +197,12 @@ export function bundlePlan(manifest)
                 expect: {
                     kind: 'explicit',
                     pixi: true,
-                    allowedPackages: [...ours, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...pixiDeps],
+                    allowedPackages: [...ours, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...PIXI_DEPS],
                     requiredPackages: [...ours, 'react-reconciler', 'pixi.js'],
                     bundledVersions: { 'react-reconciler': reconciler, react: scenario.registry.react },
                     absentMarkers: reconcilers.filter((version) => version !== reconciler).map((version) => ({ text: `"${version}"`, label: `another epoch's reconciler version "${version}"` })),
                     result: { registered: ['pixiContainer', 'pixiSprite'], react: scenario.bundleValues.REACT_ID, pixi: 'pixi-8' },
+                    upstreamBound: true,
                 },
             });
             plan.push({
@@ -206,7 +210,7 @@ export function bundlePlan(manifest)
                 dir,
                 fixture: 'pixi-control.mjs',
                 values: {},
-                expect: { kind: 'control', pixi: true, allowedPackages: pixiDeps, requiredPackages: ['pixi.js'], result: { constructors: ['function', 'function'] } },
+                expect: { kind: 'control', pixi: true, allowedPackages: PIXI_DEPS, requiredPackages: ['pixi.js'], result: { constructors: ['function', 'function'] } },
             });
         }
         if (scenario.bundle === 'facade')
@@ -221,11 +225,12 @@ export function bundlePlan(manifest)
                 expect: {
                     kind: 'facade',
                     pixi: true,
-                    allowedPackages: [facade, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...pixiDeps],
+                    allowedPackages: [facade, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...PIXI_DEPS],
                     requiredPackages: [facade, 'react-reconciler'],
                     bundledVersions: { 'react-reconciler': '0.34.0', react: scenario.registry.react },
                     absentMarkers: reconcilers.filter((version) => version !== '0.34.0').map((version) => ({ text: `"${version}"`, label: `a non-default epoch's reconciler version "${version}"` })),
                     result: { application: 'object', extend: 'function' },
+                    upstreamBound: true,
                 },
             });
         }
@@ -246,10 +251,55 @@ export function bundlePlan(manifest)
     return plan;
 }
 
+/**
+ * The upstream baseline: the facade fixture against upstream `@pixi/react` 8.0.5 from the registry, with the facade
+ * scenario's React, pixi.js and esbuild. Its project is a sibling of the consumer projects.
+ */
+export function upstreamPlan(manifest)
+{
+    const facade = scenarios(manifest).find((item) => item.bundle === 'facade');
+    const { react, 'react-dom': reactDom, 'pixi.js': pixi, esbuild } = facade.registry;
+
+    return {
+        scenario: `upstream-${UPSTREAM_BASELINE.version}`,
+        dir: join(consumersRoot(), `upstream-${UPSTREAM_BASELINE.version}`),
+        dependencies: { [UPSTREAM_BASELINE.name]: UPSTREAM_BASELINE.version, react, 'react-dom': reactDom, 'pixi.js': pixi, esbuild },
+        fixture: 'facade.mjs',
+        values: { FACADE: UPSTREAM_BASELINE.name },
+        expect: {
+            kind: 'upstream',
+            pixi: true,
+            allowedPackages: [UPSTREAM_BASELINE.name, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...PIXI_DEPS],
+            requiredPackages: [UPSTREAM_BASELINE.name, 'react-reconciler', 'pixi.js'],
+            bundledVersions: { [UPSTREAM_BASELINE.name]: UPSTREAM_BASELINE.version, react, 'pixi.js': pixi },
+            result: { application: 'object', extend: 'function' },
+        },
+    };
+}
+
+/** Creates and installs the upstream baseline project (registry packages only, no lifecycle scripts). */
+function installUpstream(plan)
+{
+    resetOutputDir(plan.dir, { insideRelease: true });
+    writeFileSync(join(plan.dir, 'package.json'), `${JSON.stringify({ name: 'release-upstream-baseline', version: '0.0.0', private: true, type: 'module', dependencies: plan.dependencies }, null, 2)}\n`);
+    execFileSync('npm', ['install', '--ignore-scripts', '--strict-peer-deps', '--no-audit', '--no-fund', '--loglevel=error'], { cwd: plan.dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+}
+
+/** Problems of `result` against the upstream baseline: more pixi.js modules or bytes than upstream keeps. */
+export function compareWithUpstream(result, upstream)
+{
+    const problems = [];
+
+    if (result.pixiModules > upstream.pixiModules) problems.push(`keeps ${result.pixiModules} pixi.js modules, more than upstream ${UPSTREAM_BASELINE.version}'s ${upstream.pixiModules}`);
+    if (result.pixiBytes > upstream.pixiBytes) problems.push(`keeps ${result.pixiBytes} bytes of pixi.js, more than upstream ${UPSTREAM_BASELINE.version}'s ${upstream.pixiBytes}`);
+
+    return problems;
+}
+
 export function renderBundleTable(results)
 {
     const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KiB`;
-    const lines = ['| Scenario | Fixture | Minified | Gzip | Modules (pixi.js) | Largest inputs | Result |', '| --- | --- | --- | --- | --- | --- | --- |'];
+    const lines = ['| Scenario | Fixture | Minified | Gzip | Modules (pixi.js) | pixi.js bytes | Largest inputs | Result |', '| --- | --- | --- | --- | --- | --- | --- | --- |'];
 
     for (const item of results)
     {
@@ -258,7 +308,7 @@ export function renderBundleTable(results)
 
         if (item.problems.length) verdict = 'FAIL';
 
-        lines.push(`| ${item.scenario} | ${item.fixture} | ${kb(item.bytes)} | ${kb(item.gzipBytes)} | ${item.inputModules} (${item.pixiModules}) | ${largest} | ${verdict} |`);
+        lines.push(`| ${item.scenario} | ${item.fixture} | ${kb(item.bytes)} | ${kb(item.gzipBytes)} | ${item.inputModules} (${item.pixiModules}) | ${kb(item.pixiBytes)} | ${largest} | ${verdict} |`);
     }
 
     return lines.join('\n');
@@ -267,13 +317,24 @@ export function renderBundleTable(results)
 export async function runBundles(manifest, { log = console.log } = {})
 {
     const results = [];
+    const baseline = upstreamPlan(manifest);
+
+    installUpstream(baseline);
+    const upstream = { scenario: baseline.scenario, ...(await checkFixture(baseline)) };
+
+    results.push(upstream);
+    log(`${baseline.scenario} ${baseline.fixture}: ${upstream.problems.length ? 'FAILED' : 'ok'} (${upstream.bytes} bytes, gzip ${upstream.gzipBytes}, ${upstream.inputModules} modules, ${upstream.pixiModules} from pixi.js, ${upstream.pixiBytes} bytes of pixi.js; the baseline)`);
+    for (const problem of upstream.problems) log(`  - ${problem}`);
 
     for (const entry of bundlePlan(manifest))
     {
         const result = { scenario: entry.scenario, ...(await checkFixture(entry)) };
 
+        if (entry.expect.upstreamBound && !upstream.problems.length) result.problems.push(...compareWithUpstream(result, upstream));
+        else if (entry.expect.upstreamBound) result.problems.push('the upstream baseline failed, so the Pixi bound could not be checked');
+
         results.push(result);
-        log(`${entry.scenario} ${entry.fixture}: ${result.problems.length ? 'FAILED' : 'ok'} (${result.bytes} bytes, gzip ${result.gzipBytes}, ${result.inputModules} modules, ${result.pixiModules} from pixi.js)`);
+        log(`${entry.scenario} ${entry.fixture}: ${result.problems.length ? 'FAILED' : 'ok'} (${result.bytes} bytes, gzip ${result.gzipBytes}, ${result.inputModules} modules, ${result.pixiModules} from pixi.js, ${result.pixiBytes} bytes of pixi.js)`);
         for (const problem of result.problems) log(`  - ${problem}`);
         for (const gap of result.gaps) log(`  known gap: ${gap}`);
     }

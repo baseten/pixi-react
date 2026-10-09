@@ -35,8 +35,10 @@ export const PIXI8_BOUNDS = Object.freeze({
 export const PIXI8_TESTED_VERSIONS = Object.freeze(['8.2.6', '8.9.2', '8.22.0'] as const);
 
 /**
- * Feature boundaries the adapter branches on. Each one is detected from the installed module's exports, never from
- * the version alone; the version is recorded so a mismatch between both is visible in diagnostics.
+ * Feature boundaries the adapter branches on, compared with the installed `VERSION`. They are not detected from the
+ * module's exports: reading an optional export such as `Particle` would keep it, and everything it imports, in every
+ * application bundle (see `pixi.ts`). The peer range is closed, and every version in it is a release whose exports
+ * match these boundaries.
  */
 export const PIXI8_BOUNDARIES = Object.freeze({
     /** `Particle`/`ParticleContainer` (not Containers): addParticle/removeParticle(s). */

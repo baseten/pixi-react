@@ -8,10 +8,14 @@
  * `require` loads, and the generated ESM wrapper binds the module `import` loads. This module is loaded once by
  * both entries, so every bound export, lease table and style registry is cached per Pixi instance here, and both
  * entries share them whenever they share a Pixi instance.
+ *
+ * Each entry imports only `PIXI8_BINDING_EXPORTS`, by name, and passes those (never the module namespace), so a
+ * bundler keeps only the Pixi classes the application itself imports, as with the upstream facade.
  */
 import { createAdapterClass, normalizePixiName, type Pixi8AdapterConstructor } from './adapter.js';
 import { DefaultStyleRegistry, ExtensionLeaseTable } from './globals.js';
 import { PixiNodes } from './nodes.js';
+import { PIXI8_BINDING_EXPORTS, type PixiBinding } from './pixi.js';
 import {
     checkSupportedVersion,
     PIXI8_BOUNDARIES,
@@ -20,7 +24,7 @@ import {
     PIXI8_TESTED_VERSIONS,
 } from './version.js';
 
-import type { PixiModule } from './pixi.js';
+export { PIXI8_BINDING_EXPORTS };
 
 /** Everything the package exports at runtime, bound to one Pixi module. */
 export interface BoundExports
@@ -42,19 +46,32 @@ function reportError(error: unknown): void
     console.error(error);
 }
 
-export function bindPixi(pixi: PixiModule): BoundExports
+/**
+ * Binds the implementation to the `PIXI8_BINDING_EXPORTS` of one loaded pixi.js module, given as an object of those
+ * exports (the entries pass exactly those) or as the whole module namespace. Cached per Pixi instance: every binding
+ * of one instance returns the same exports. Only the binding exports are read and kept.
+ */
+export function bindPixi(binding: PixiBinding): BoundExports
 {
-    const key = pixi?.Container;
+    const key = binding?.Container;
 
-    if (typeof key !== 'function' || typeof pixi.Application !== 'function')
+    if (typeof key !== 'function' || typeof binding.Application !== 'function')
     {
-        throw new TypeError('bindPixi expects the pixi.js module namespace.');
+        throw new TypeError(`bindPixi expects the pixi.js exports ${PIXI8_BINDING_EXPORTS.join(', ')}.`);
     }
 
     let exports = bound.get(key);
 
     if (!exports)
     {
+        const missing = PIXI8_BINDING_EXPORTS.filter((name) => binding[name] === undefined || binding[name] === null);
+
+        if (missing.length)
+        {
+            throw new TypeError(`bindPixi expects the pixi.js exports ${PIXI8_BINDING_EXPORTS.join(', ')}; missing ${missing.join(', ')}.`);
+        }
+
+        const pixi = Object.freeze(Object.fromEntries(PIXI8_BINDING_EXPORTS.map((name) => [name, binding[name]]))) as PixiBinding;
         const extensions = new ExtensionLeaseTable(pixi.extensions as unknown as ConstructorParameters<typeof ExtensionLeaseTable>[0]);
         const defaultStyle = new DefaultStyleRegistry(pixi.TextStyle.defaultTextStyle as unknown as Record<string, unknown>);
 

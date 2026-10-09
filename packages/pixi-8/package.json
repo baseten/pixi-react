@@ -40,7 +40,8 @@
     "peerBinding": {
       "peer": "pixi.js",
       "module": "bind.js",
-      "bind": "bindPixi"
+      "bind": "bindPixi",
+      "imports": "PIXI8_BINDING_EXPORTS"
     }
   },
   "scripts": {

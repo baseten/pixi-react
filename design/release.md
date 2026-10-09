@@ -194,35 +194,45 @@ workspace's version) inside those consumer projects:
   evaluate and run `extend`.
 - **Unused Pixi constructors can be eliminated.** `NineSliceSprite`, which no fixture imports or registers, must be
   absent from the output. A pixi.js-only control fixture shows that the bundler does eliminate it (146 of 633 pixi.js
-  modules kept). See the known gap below.
+  modules kept).
+- **The Pixi code kept is no more than upstream's.** The facade fixture is also bundled against upstream
+  `@pixi/react` 8.0.5 from the registry, in its own clean project with the same React, pixi.js and esbuild. The facade
+  and explicit fixtures may keep no more pixi.js modules and no more pixi.js bytes than that baseline. See Pixi
+  constructor elimination below.
 
 Bundle sizes come from fixed fixtures and pinned versions. They describe those fixtures only. Tree shaking never
 resolves a peer-version conflict: two React or Pixi versions cannot coexist because of it, and nothing here promises
 that.
 
-### Known gap: Pixi constructor elimination
+### Pixi constructor elimination
 
-The Pixi 8 adapter binds the **whole `pixi.js` module namespace**. Its ESM entry runs
-`import * as peer from 'pixi.js'; bindPixi(peer)` (the D6 peer binding), and the facade's `lib/index.mjs` does the
-same. The adapter needs the namespace to detect optional exports. Once the namespace object escapes into a function
-call, a bundler must keep every export. As a result, **no Pixi constructor can be eliminated** from an application
-that uses `pixi-8` or the facade. Upstream `@pixi/react` 8.0.5 imports named constructors and does not have this
-problem. Measured with the same facade fixture, esbuild options, pixi.js 8.22.0 and production React:
+Until issue 57, the Pixi 8 adapter's ESM entry ran `import * as peer from 'pixi.js'; bindPixi(peer)`, and the
+facade's `lib/index.mjs` did the same. A namespace object passed to a function keeps every export alive in every
+bundler, so no Pixi constructor could be eliminated (633 pixi.js modules, 1125 KiB minified and 330 KiB gzip for the
+facade fixture).
 
-| Bundle | Minified | Gzip | pixi.js modules kept | `NineSliceSprite` |
-| --- | --- | --- | --- | --- |
-| Upstream `@pixi/react` 8.0.5 | 663 KiB | 196 KiB | 381 | eliminated |
-| This facade (8.1.0 candidate) | 1125 KiB | 330 KiB | 633 (all reachable) | kept |
-| Explicit React 19.3 + pixi-8 | 1112 KiB | 326 KiB | 633 | kept |
-| Explicit React 18 + pixi-8 | 1067 KiB | 313 KiB | 633 | kept |
-| pixi.js alone (`Container`, `Sprite`) | 204 KiB | 60 KiB | 146 | eliminated |
+Now every entry imports only the adapter's binding exports (`PIXI8_BINDING_EXPORTS`: `Application`, `Container`,
+`Filter`, `Graphics`, `ObservablePoint`, `Point`, `TextStyle`, `VERSION`, `extensions`) by name, and the D6 binding is
+unchanged otherwise: one CJS implementation, bound per Pixi instance. The adapter reads optional features from
+`VERSION`, and it recognizes the built-ins it treats specially (Particle, RenderLayer, Mesh, Sprite, Text, ...) from
+the constructors an application registers, by their prototype signatures, instead of importing them
+(`packages/pixi-8/src/builtins.ts`). Measured with the facade fixture, esbuild 0.21.5, pixi.js 8.22.0 and production
+React:
 
-The compatibility inventory requires the facade to preserve tree shaking with `extend` and to avoid a runtime import
-of the full Pixi namespace, so this is a regression against upstream. `bundles.mjs` records it as the known gap
-`unused-pixi-constructor` (`KNOWN_GAPS`). The run passes while the gap reproduces, and it **fails once the gap is
-closed**, so the entry has to be removed then. A fix needs the Pixi adapter to bind the named constructors it uses and
-detect optional exports another way. It belongs to the Pixi adapter (issue 8) and the facade (issue 10), and it is
-proposed as a follow-up to this issue.
+| Bundle | Minified | Gzip | pixi.js modules kept | pixi.js bytes | `NineSliceSprite` |
+| --- | --- | --- | --- | --- | --- |
+| Upstream `@pixi/react` 8.0.5 (the bound) | 663.6 KiB | 196.2 KiB | 381 | 501.5 KiB | eliminated |
+| This facade (8.1.0 candidate) | 751.7 KiB | 222.9 KiB | 381 | 501.4 KiB | eliminated |
+| Explicit React 19.3 + pixi-8 | 738.3 KiB | 217.8 KiB | 381 | 501.4 KiB | eliminated |
+| Explicit React 18 + pixi-8 | 693.1 KiB | 205.0 KiB | 381 | 501.3 KiB | eliminated |
+| pixi.js alone (`Container`, `Sprite`) | 203.9 KiB | 60.3 KiB | 146 | 189.5 KiB | eliminated |
+| Before issue 57: this facade | 1125 KiB | 330 KiB | 633 | 807 KiB | kept |
+
+The Pixi part now matches upstream's: the same 381 pixi.js modules and no more pixi.js bytes. The rest of the facade
+bundle is larger than upstream's (+88 KiB minified, +27 KiB gzip). That is not Pixi code: react-reconciler 0.34.0
+(React 19.3) is larger than upstream's 0.31.0, and the modular core, renderer and adapters bundled into `@pixi/react`
+are larger than upstream's single package and CommonJS (D6), which bundlers do not tree shake. `bundles.mjs` asserts
+the Pixi bound only.
 
 ## Enabling publication
 

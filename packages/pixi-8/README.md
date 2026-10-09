@@ -42,13 +42,34 @@ installed version and the detected features are recorded in `adapter.manifest.pi
 | `pixi.mutation`, `pixi.visibility`, `pixi.application`, `pixi.ticker` | always | The core scene protocol |
 | `pixi.globals` | always | Extension leases and the default-text-style writer registry below |
 | `pixi8.filter` | always | Filters attach to their parent's `filters` |
-| `pixi8.particle` | `Particle` and `ParticleContainer` exported (8.5+) | Particles attach through the ParticleContainer API |
-| `pixi8.render-layer` | `RenderLayer` exported (8.7+) | A RenderLayer node |
-| `pixi8.dom-container` | `DOMContainer` exported (8.9+) | A DOMContainer node |
+| `pixi8.particle` | pixi.js 8.5+ (`Particle`, `ParticleContainer`) | Particles attach through the ParticleContainer API |
+| `pixi8.render-layer` | pixi.js 8.7+ (`RenderLayer`) | A RenderLayer node |
+| `pixi8.dom-container` | pixi.js 8.9+ (`DOMContainer`) | A DOMContainer node |
 
-Features are detected from the installed module's exports. `new Pixi8Adapter({ disable: [...] })` withholds optional
-capabilities. Registering a node whose capability is missing throws `UNSUPPORTED_NODE` naming the capability; it is
-never a silent no-op.
+Features follow the installed `VERSION` (`PIXI8_BOUNDARIES`): these are the first releases that export the classes, and
+the peer range is closed. They are not read from the module's exports, because reading an export keeps it in every
+application bundle (see Tree shaking). `new Pixi8Adapter({ disable: [...] })` withholds optional capabilities.
+Registering a node whose capability is missing throws `UNSUPPORTED_NODE` naming the capability; it is never a silent
+no-op.
+
+## Tree shaking
+
+Each entry point imports only the pixi.js exports the adapter uses at runtime, by name (`PIXI8_BINDING_EXPORTS`:
+`Application`, `Container`, `Filter`, `Graphics`, `ObservablePoint`, `Point`, `TextStyle`, `VERSION`, `extensions`),
+and passes them to `bindPixi`. It never passes the module namespace, which would keep every Pixi class in every
+application bundle. A bundler therefore keeps only the Pixi classes the application itself imports (to `extend`
+them, for example), as with upstream `@pixi/react`. `scripts/release/bundles.mjs` checks this on the release fixtures:
+they keep no more pixi.js modules or bytes than upstream 8.0.5 on the same fixture.
+
+The adapter still treats some classes it does not import specially (`Particle`, `ParticleContainer`, `RenderLayer`,
+`DOMContainer`, the split texts and `Mesh` change attach rules; `Sprite`, `Text`, `TilingSprite` and four filters supply
+kind defaults). It recognizes them in a registered constructor's prototype chain by signature: the least-derived class
+whose own prototype declares the class's distinctive members (`addParticle`, `removeParticles`, ... for
+`ParticleContainer`; see `src/builtins.ts`). A unit test checks every class pixi.js exports, on each tested version,
+against these signatures. A custom subclass is classified like the built-in it extends. A custom class that declares
+a whole signature without extending that built-in is treated like it, so extend the built-in instead. Such a class may
+be constructed without arguments to read kind defaults when a constructor-fed prop is removed; if that throws, the prop
+simply has no kind default.
 
 ## Nodes
 
@@ -110,7 +131,7 @@ become `HTMLText` (upstream's `NameOverrides`).
   took the value from the props, the captured value is not an initial value. The prop then returns to the kind
   default, read from a cached blank instance of the nearest built-in ancestor whose constructor needs no arguments
   (`Container`, `Sprite`, `Graphics`, `Text`, `TilingSprite`, `AlphaFilter`, `BlurFilter`, `ColorMatrixFilter`,
-  `NoiseFilter`). Particles and base filters use explicit default tables. A custom class is never constructed to read
+  `NoiseFilter`; recognized by signature, see Tree shaking, and `Text` by its `text` render pipe). Particles and base filters use explicit default tables. A custom class is never constructed to read
   a default. When no default is known, the value is kept and a warning is logged.
 - **Events.** PascalCase props (`onPointerTap`) set the Pixi handler property (`onpointertap`), and removal sets it to
   `null`. Pixi-named props warn once and are ignored.
@@ -180,6 +201,8 @@ implementation therefore never imports pixi.js at runtime:
 - `dist/cjs/index.js` binds the module that `require('pixi.js')` loads.
 - The generated ESM wrapper binds the module that `import 'pixi.js'` loads (`"dualPackage.peerBinding"` in
   `package.json`, read by [`scripts/build-dual-package.mjs`](../../scripts/build-dual-package.mjs)).
+
+Both bind only `PIXI8_BINDING_EXPORTS`, imported by name (see Tree shaking).
 
 `bindPixi` caches the bound exports, lease table and style registry per Pixi instance. Both entries therefore share
 them whenever they share a Pixi instance, as in a bundler. `test/unit/dual-entry.test.ts` checks this in plain Node:

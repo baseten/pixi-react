@@ -4,11 +4,12 @@
  * module-level `WeakMap` side table keyed by the node; nothing is written onto Pixi objects except the Pixi
  * properties the props themselves name.
  */
+import { BuiltinMatcher, type BuiltinName, classChain } from './builtins.js';
 import { isPixiEventProp, isReactEventProp, PIXI_TO_REACT_EVENT_PROP_NAMES, REACT_TO_PIXI_EVENT_PROP_NAMES } from './events.js';
 import { isAtLeast, parseVersion, PIXI8_BOUNDARIES } from './version.js';
 import { CompatibilityError, type Constructor, type NodeDefinition } from '@pixi-react-provisional/core';
 
-import type { ParticleContainerLike, ParticleLike, PixiModule } from './pixi.js';
+import type { ParticleContainerLike, ParticleLike, PixiBinding } from './pixi.js';
 
 /** Manifest ID of the adapter; errors name it. */
 export const ADAPTER_ID = 'pixi-8';
@@ -196,36 +197,42 @@ export interface PixiFeatures
     readonly removeParticlesEndIndex: boolean;
 }
 
-export function detectFeatures(pixi: PixiModule): PixiFeatures
+/**
+ * The optional features of the installed Pixi, from its `VERSION`. They are not detected from the module's exports:
+ * reading `Particle` or `RenderLayer` would keep those classes (and everything they import) in every application
+ * bundle, registered or not. An unparseable version has none of them, and `checkEnvironment` rejects it anyway.
+ */
+export function detectFeatures(pixi: { readonly VERSION: string }): PixiFeatures
 {
     const version = parseVersion(pixi.VERSION);
+    const since = (boundary: string) => (version ? isAtLeast(version, boundary) : false);
 
     return Object.freeze({
-        particles: typeof pixi.Particle === 'function' && typeof pixi.ParticleContainer === 'function',
-        renderLayer: typeof pixi.RenderLayer === 'function',
-        domContainer: typeof pixi.DOMContainer === 'function',
+        particles: since(PIXI8_BOUNDARIES.particles),
+        renderLayer: since(PIXI8_BOUNDARIES.renderLayer),
+        domContainer: since(PIXI8_BOUNDARIES.domContainer),
         removeParticlesEndIndex: version ? isAtLeast(version, PIXI8_BOUNDARIES.removeParticlesEndIndex) : true,
     });
 }
+
+/** Built-ins whose constructors need no arguments, recognized by signature: a blank instance supplies kind defaults. */
+const SAFE_DEFAULT_BUILTINS: readonly BuiltinName[] = ['Sprite', 'TilingSprite', 'AlphaFilter', 'BlurFilter', 'ColorMatrixFilter', 'NoiseFilter'];
 
 /** The node behaviour bound to one Pixi module and one set of enabled capabilities. */
 export class PixiNodes
 {
     readonly features: PixiFeatures;
-    private readonly defaultInstances = new Map<ClassLike, object>();
-    private readonly safeDefaults: ReadonlySet<ClassLike>;
+    /** Recognizes the built-ins the adapter does not import (see `builtins.ts`). */
+    readonly builtins: BuiltinMatcher;
+    /** Per default class: its blank instance, or `null` when constructing it without arguments threw. */
+    private readonly defaultInstances = new Map<ClassLike, object | null>();
+    /** Per node class: the built-in whose blank instance supplies kind defaults, or `null` when there is none. */
+    private readonly defaultClasses = new WeakMap<ClassLike, ClassLike | null>();
 
-    constructor(readonly pixi: PixiModule, private readonly enabled: (capability: string) => boolean)
+    constructor(readonly pixi: PixiBinding, private readonly enabled: (capability: string) => boolean)
     {
         this.features = detectFeatures(pixi);
-
-        const candidates: unknown[] = [
-            pixi.Container, pixi.Sprite, pixi.Graphics, pixi.Text, pixi.TilingSprite,
-            pixi.AlphaFilter, pixi.BlurFilter, pixi.ColorMatrixFilter, pixi.NoiseFilter,
-        ];
-
-        // Classes whose constructors need no arguments: a cached blank instance supplies their kind defaults.
-        this.safeDefaults = new Set(candidates.filter((ctor): ctor is ClassLike => typeof ctor === 'function'));
+        this.builtins = new BuiltinMatcher(pixi);
     }
 
     // ---------------------------------------------------------------- definitions
@@ -254,41 +261,7 @@ export class PixiNodes
             return { [capability]: 1 };
         };
 
-        if (isSubclass(ctor, pixi.Particle))
-        {
-            return define(ROLES.particle, [], gated(CAPABILITIES.particle, 'Particle'));
-        }
-
-        if (isSubclass(ctor, pixi.ParticleContainer))
-        {
-            return define(ROLES.child, [ROLES.particle, ROLES.filter], gated(CAPABILITIES.particle, 'ParticleContainer'));
-        }
-
-        if (isSubclass(ctor, pixi.RenderLayer))
-        {
-            // Layer membership is imperative (`layer.attach(node)` through a ref); JSX children are rejected by core.
-            return define(ROLES.child, [], gated(CAPABILITIES.renderLayer, 'RenderLayer'));
-        }
-
-        if (isSubclass(ctor, pixi.DOMContainer))
-        {
-            return define(ROLES.child, [], gated(CAPABILITIES.domContainer, 'DOMContainer'));
-        }
-
-        if (isSubclass(ctor, pixi.AbstractSplitText) || isSubclass(ctor, pixi.SplitText) || isSubclass(ctor, pixi.SplitBitmapText))
-        {
-            // The node generates its own line, word and character children from `text` and rebuilds them on every
-            // text or style change, re-adding the lines at the end. React children would be displaced from their JSX
-            // order and core's child indices would no longer match. Filters are the node's own list and survive.
-            return define(ROLES.child, [ROLES.filter], {});
-        }
-
-        if (isSubclass(ctor, pixi.Mesh))
-        {
-            // Mesh, MeshPlane, MeshRope, MeshSimple and PerspectiveMesh set `allowChildren = false`: Pixi deprecates
-            // `addChild` on them. Their own geometry and texture are props, and filters are the node's own list.
-            return define(ROLES.child, [ROLES.filter], {});
-        }
+        const { builtins } = this;
 
         if (isSubclass(ctor, pixi.Filter))
         {
@@ -297,7 +270,43 @@ export class PixiNodes
 
         if (isSubclass(ctor, pixi.Container))
         {
+            if (builtins.is(ctor, 'ParticleContainer'))
+            {
+                return define(ROLES.child, [ROLES.particle, ROLES.filter], gated(CAPABILITIES.particle, 'ParticleContainer'));
+            }
+
+            if (builtins.is(ctor, 'RenderLayer'))
+            {
+                // Layer membership is imperative (`layer.attach(node)` through a ref); JSX children are rejected by core.
+                return define(ROLES.child, [], gated(CAPABILITIES.renderLayer, 'RenderLayer'));
+            }
+
+            if (builtins.is(ctor, 'DOMContainer'))
+            {
+                return define(ROLES.child, [], gated(CAPABILITIES.domContainer, 'DOMContainer'));
+            }
+
+            if (builtins.is(ctor, 'AbstractSplitText'))
+            {
+                // The node generates its own line, word and character children from `text` and rebuilds them on every
+                // text or style change, re-adding the lines at the end. React children would be displaced from their
+                // JSX order and core's child indices would no longer match. Filters are the node's own list and survive.
+                return define(ROLES.child, [ROLES.filter], {});
+            }
+
+            if (builtins.is(ctor, 'Mesh'))
+            {
+                // Mesh, MeshPlane, MeshRope, MeshSimple and PerspectiveMesh set `allowChildren = false`: Pixi deprecates
+                // `addChild` on them. Their own geometry and texture are props, and filters are the node's own list.
+                return define(ROLES.child, [ROLES.filter], {});
+            }
+
             return define(ROLES.child, [ROLES.child, ROLES.filter], {});
+        }
+
+        if (builtins.is(ctor, 'Particle'))
+        {
+            return define(ROLES.particle, [], gated(CAPABILITIES.particle, 'Particle'));
         }
 
         throw unsupported(
@@ -318,7 +327,7 @@ export class PixiNodes
 
     private kindOfInstance(node: object): NodeKind
     {
-        if (isSubclass(node.constructor, this.pixi.Particle))
+        if (this.builtins.is(node.constructor, 'Particle'))
         {
             return 'particle';
         }
@@ -582,7 +591,7 @@ export class PixiNodes
     private restore(node: object, state: NodeState, key: string): void
     {
         const captured = state.initial.has(key) ? state.initial.get(key) : FROM_PROPS;
-        const value = captured === FROM_PROPS ? this.kindDefault(state, key) : captured;
+        const value = captured === FROM_PROPS ? this.kindDefault(node, state, key) : captured;
 
         if (value === NO_DEFAULT)
         {
@@ -594,7 +603,7 @@ export class PixiNodes
         this.setProp(node, state, key, this.snapshot(value));
     }
 
-    private kindDefault(state: NodeState, key: string): unknown
+    private kindDefault(node: object, state: NodeState, key: string): unknown
     {
         const path = pathOf(key);
 
@@ -603,15 +612,23 @@ export class PixiNodes
             return path.length === 1 && key in PARTICLE_DEFAULTS ? PARTICLE_DEFAULTS[key] : NO_DEFAULT;
         }
 
-        const instance = this.defaultInstance(state.ctor);
+        const instance = this.defaultInstance(node, state.ctor);
 
         if (instance)
         {
-            const parent = readPath(instance, path.slice(0, -1));
-
-            if (isObjectLike(parent) && path[path.length - 1] in parent)
+            // A signature-only custom class (see defaultInstance) may throw from its accessors on a blank instance.
+            try
             {
-                return parent[path[path.length - 1]];
+                const parent = readPath(instance, path.slice(0, -1));
+
+                if (isObjectLike(parent) && path[path.length - 1] in parent)
+                {
+                    return parent[path[path.length - 1]];
+                }
+            }
+            catch
+            {
+                // No kind default from this instance.
             }
         }
 
@@ -624,25 +641,70 @@ export class PixiNodes
     }
 
     /** A cached blank instance of the nearest built-in ancestor whose constructor needs no arguments. */
-    private defaultInstance(ctor: ClassLike): object | undefined
+    private defaultInstance(node: object, ctor: ClassLike): object | undefined
     {
-        for (let current: unknown = ctor; typeof current === 'function'; current = Object.getPrototypeOf(current))
+        const source = this.defaultClass(node, ctor);
+
+        if (!source)
         {
-            if (this.safeDefaults.has(current as ClassLike))
-            {
-                let instance = this.defaultInstances.get(current as ClassLike);
-
-                if (!instance)
-                {
-                    instance = new (current as new () => object)();
-                    this.defaultInstances.set(current as ClassLike, instance);
-                }
-
-                return instance;
-            }
+            return undefined;
         }
 
-        return undefined;
+        let instance = this.defaultInstances.get(source);
+
+        if (instance === undefined)
+        {
+            // Only built-ins are constructed, but a custom class declaring a whole built-in signature without
+            // extending it is recognized as that built-in (see builtins.ts). If its constructor needs arguments, it
+            // has no kind defaults rather than breaking prop removal.
+            try
+            {
+                instance = new (source as new () => object)();
+            }
+            catch
+            {
+                instance = null;
+            }
+            this.defaultInstances.set(source, instance);
+        }
+
+        return instance ?? undefined;
+    }
+
+    /**
+     * The nearest ancestor of `ctor` (itself included) whose constructor needs no arguments: `Container`, `Graphics`,
+     * `Text`, or a built-in in `SAFE_DEFAULT_BUILTINS`. Only built-ins qualify, so a custom class is never constructed.
+     * `Text` shares its signature with `BitmapText` and `HTMLText` (all three extend `AbstractText` directly), so it is
+     * told apart by the render pipe its instances use.
+     */
+    private defaultClass(node: object, ctor: ClassLike): ClassLike | null
+    {
+        let source = this.defaultClasses.get(ctor);
+
+        if (source === undefined)
+        {
+            const { builtins, pixi } = this;
+            const safe = new Set<unknown>([pixi.Container, pixi.Graphics, ...SAFE_DEFAULT_BUILTINS.map((name) => builtins.builtinOf(ctor, name))]);
+
+            if ((node as { renderPipeId?: unknown }).renderPipeId === 'text')
+            {
+                safe.add(builtins.childOf(ctor, 'AbstractText'));
+            }
+
+            source = null;
+            for (const current of classChain(ctor))
+            {
+                if (safe.has(current))
+                {
+                    source = current as ClassLike;
+                    break;
+                }
+            }
+
+            this.defaultClasses.set(ctor, source);
+        }
+
+        return source;
     }
 
     private visibilityKey(state: NodeState): string
@@ -729,7 +791,7 @@ export class PixiNodes
                 this.attachParticle(parent as ParticleContainerLike, child as ParticleLike, null);
                 break;
             default:
-                (parent as InstanceType<PixiModule['Container']>).addChild(child as InstanceType<PixiModule['Container']>);
+                (parent as InstanceType<PixiBinding['Container']>).addChild(child as InstanceType<PixiBinding['Container']>);
         }
     }
 
@@ -745,15 +807,15 @@ export class PixiNodes
                 break;
             default:
             {
-                const container = parent as InstanceType<PixiModule['Container']>;
-                const node = child as InstanceType<PixiModule['Container']>;
+                const container = parent as InstanceType<PixiBinding['Container']>;
+                const node = child as InstanceType<PixiBinding['Container']>;
 
                 if (node.parent === container)
                 {
                     container.removeChild(node);
                 }
 
-                container.addChildAt(node, container.getChildIndex(before as InstanceType<PixiModule['Container']>));
+                container.addChildAt(node, container.getChildIndex(before as InstanceType<PixiBinding['Container']>));
             }
         }
     }
@@ -770,7 +832,7 @@ export class PixiNodes
                 this.detachParticle(child as ParticleLike);
                 break;
             default:
-                (parent as InstanceType<PixiModule['Container']>).removeChild(child as InstanceType<PixiModule['Container']>);
+                (parent as InstanceType<PixiBinding['Container']>).removeChild(child as InstanceType<PixiBinding['Container']>);
         }
     }
 

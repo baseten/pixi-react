@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { compareWithUpstream, KNOWN_GAPS, UPSTREAM_BASELINE } from './bundles.mjs';
 import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
@@ -316,4 +317,16 @@ test('release scripts refuse output directories they must not wipe', () =>
     {
         rmSync(dir, { recursive: true, force: true });
     }
+});
+
+test('bundles keep no more Pixi code than upstream 8.0.5, and no Pixi tree-shaking gap is excused (issue 57)', () =>
+{
+    const upstream = { pixiModules: 381, pixiBytes: 513000 };
+
+    assert.deepEqual(UPSTREAM_BASELINE, { name: '@pixi/react', version: '8.0.5' });
+    assert.deepEqual(KNOWN_GAPS, {}, 'no fixture may keep an unused Pixi constructor');
+    assert.deepEqual(compareWithUpstream({ pixiModules: 381, pixiBytes: 513000 }, upstream), [], 'equal is within the bound');
+    assert.deepEqual(compareWithUpstream({ pixiModules: 146, pixiBytes: 200000 }, upstream), []);
+    assert.equal(compareWithUpstream({ pixiModules: 633, pixiBytes: 513000 }, upstream).length, 1, 'more modules');
+    assert.equal(compareWithUpstream({ pixiModules: 381, pixiBytes: 513001 }, upstream).length, 1, 'more bytes');
 });
