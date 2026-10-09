@@ -13,3 +13,6 @@ __screenshots__/
 .docusaurus
 .cache-loader
 apps/docs/build
+
+# Adapter compatibility cells: packed tarballs, verdicts and diagnostics (design/compatibility/cells)
+.compat/
