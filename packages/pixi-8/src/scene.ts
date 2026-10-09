@@ -414,6 +414,19 @@ export class PixiScene
                 else
                 {
                     this.restore(node, state, key);
+
+                    if (key === this.visibilityKey(state))
+                    {
+                        // The prop no longer controls visibility. While hidden, the restored value is what unhide
+                        // brings back; after that, a hide/unhide cycle restores whatever the node holds at hide time.
+                        if (state.hidden)
+                        {
+                            state.restoreVisibility = state.committedVisibility?.value;
+                        }
+
+                        state.committedVisibility = undefined;
+                    }
+
                     touched.push(key);
                 }
             }

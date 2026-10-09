@@ -270,6 +270,26 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect(plain.visible).toBe(true);
     });
 
+    it('a removed visible prop stops owning visibility, so imperative changes survive a hide/unhide cycle', () =>
+    {
+        const node = make(scene, pixi.Container, { visible: false });
+
+        scene.applyChanges(node, { visible: false }, {});
+        expect(node.visible, 'removal restores the initial value').toBe(true);
+
+        node.visible = false;
+        scene.setHidden(node, true);
+        scene.setHidden(node, false);
+        expect(node.visible, 'value held just before hiding').toBe(false);
+
+        const hidden = make(scene, pixi.Container, { visible: false });
+
+        scene.setHidden(hidden, true);
+        scene.applyChanges(hidden, { visible: false }, {});
+        scene.setHidden(hidden, false);
+        expect(hidden.visible, 'removal while hidden restores the initial value on unhide').toBe(true);
+    });
+
     it('destroys containers with the options and each node at most once', () =>
     {
         const container = make(scene, pixi.Container, {});
