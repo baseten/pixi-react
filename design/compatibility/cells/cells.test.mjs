@@ -90,7 +90,10 @@ function artifactsWith(overrides = {})
         renderer: { hash: 'renderer', entries: {} },
         conformance: { hash: 'conformance', entries: {} },
         'react-18': { hash: 'r18', entries: entries('.') },
-        'react-19': { hash: 'r19', entries: entries('./19.0', './19.1', './19.2', './19.3') },
+        'react-19.0': { hash: 'r190', entries: entries('.') },
+        'react-19.1': { hash: 'r191', entries: entries('.') },
+        'react-19.2': { hash: 'r192', entries: entries('.') },
+        'react-19.3': { hash: 'r193', entries: entries('.') },
         'pixi-8': { hash: 'p8', entries: entries('.') },
     };
 
@@ -105,7 +108,7 @@ const changed = (before, after) => Object.keys(before).filter((id) => before[id]
 test('cache keys: one adapter entry invalidates exactly the cells that use it', () =>
 {
     const before = keys(artifactsWith());
-    const after = keys(artifactsWith({ 'react-19': { hash: 'r19-changed', entries: { './19.1': { hash: 'entry:./19.1:edited', files: [] } } } }));
+    const after = keys(artifactsWith({ 'react-19.1': { hash: 'r191-changed', entries: { '.': { hash: 'entry:.:edited', files: [] } } } }));
 
     assert.deepEqual(changed(before, after), ['react-19.1.9_pixi-8.22.0', 'react-19.1.9_pixi-8.2.6'].sort());
 });

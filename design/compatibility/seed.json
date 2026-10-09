@@ -1626,9 +1626,21 @@
         "dir": "packages/react-18",
         "package": "@pixi-react-provisional/react-18"
       },
-      "react-19": {
-        "dir": "packages/react-19",
-        "package": "@pixi-react-provisional/react-19"
+      "react-19.0": {
+        "dir": "packages/react-19.0",
+        "package": "@pixi-react-provisional/react-19.0"
+      },
+      "react-19.1": {
+        "dir": "packages/react-19.1",
+        "package": "@pixi-react-provisional/react-19.1"
+      },
+      "react-19.2": {
+        "dir": "packages/react-19.2",
+        "package": "@pixi-react-provisional/react-19.2"
+      },
+      "react-19.3": {
+        "dir": "packages/react-19.3",
+        "package": "@pixi-react-provisional/react-19.3"
       },
       "pixi-8": {
         "dir": "packages/pixi-8",
@@ -1663,14 +1675,11 @@
           "react": "18.3.1"
         },
         "reconciler": {
-          "via": "bundled",
+          "via": "dependency",
           "infoExport": "REACT18",
           "infoField": "reconciler"
         },
-        "bundled": [
-          "react-reconciler",
-          "its-fine"
-        ],
+        "bundled": [],
         "typesReactDom": "18.3.7",
         "conformanceCapabilities": [
           "react.18",
@@ -1684,11 +1693,11 @@
       },
       "react190": {
         "id": "react-19.0",
-        "artifact": "react-19",
-        "entry": "./19.0",
-        "className": "React19Adapter",
-        "hashScope": "entry",
-        "adapterId": "react-19/19.0",
+        "artifact": "react-19.0",
+        "entry": ".",
+        "className": "React190Adapter",
+        "hashScope": "package",
+        "adapterId": "react-19.0",
         "abi": {
           "major": 1,
           "minor": 0
@@ -1701,17 +1710,14 @@
           "pixi.ticker": 1
         },
         "declaredPeers": {
-          "react": "19.0.0 || 19.0.8 || 19.1.0 || 19.1.9 || 19.2.0 || 19.2.8 || 19.3.0"
+          "react": "19.0.0 || 19.0.8"
         },
         "reconciler": {
-          "via": "bundled",
+          "via": "dependency",
           "infoExport": "EPOCH",
           "infoField": "reconciler"
         },
-        "bundled": [
-          "react-reconciler",
-          "its-fine"
-        ],
+        "bundled": [],
         "typesReactDom": "19.0.6",
         "conformanceCapabilities": [
           "react.19",
@@ -1732,11 +1738,11 @@
       },
       "react191": {
         "id": "react-19.1",
-        "artifact": "react-19",
-        "entry": "./19.1",
-        "className": "React19Adapter",
-        "hashScope": "entry",
-        "adapterId": "react-19/19.1",
+        "artifact": "react-19.1",
+        "entry": ".",
+        "className": "React191Adapter",
+        "hashScope": "package",
+        "adapterId": "react-19.1",
         "abi": {
           "major": 1,
           "minor": 0
@@ -1749,17 +1755,14 @@
           "pixi.ticker": 1
         },
         "declaredPeers": {
-          "react": "19.0.0 || 19.0.8 || 19.1.0 || 19.1.9 || 19.2.0 || 19.2.8 || 19.3.0"
+          "react": "19.1.0 || 19.1.9"
         },
         "reconciler": {
-          "via": "bundled",
+          "via": "dependency",
           "infoExport": "EPOCH",
           "infoField": "reconciler"
         },
-        "bundled": [
-          "react-reconciler",
-          "its-fine"
-        ],
+        "bundled": [],
         "typesReactDom": "19.1.11",
         "conformanceCapabilities": [
           "react.19",
@@ -1780,11 +1783,11 @@
       },
       "react192": {
         "id": "react-19.2",
-        "artifact": "react-19",
-        "entry": "./19.2",
-        "className": "React19Adapter",
-        "hashScope": "entry",
-        "adapterId": "react-19/19.2",
+        "artifact": "react-19.2",
+        "entry": ".",
+        "className": "React192Adapter",
+        "hashScope": "package",
+        "adapterId": "react-19.2",
         "abi": {
           "major": 1,
           "minor": 0
@@ -1799,17 +1802,14 @@
           "pixi.ticker": 1
         },
         "declaredPeers": {
-          "react": "19.0.0 || 19.0.8 || 19.1.0 || 19.1.9 || 19.2.0 || 19.2.8 || 19.3.0"
+          "react": "19.2.0 || 19.2.8"
         },
         "reconciler": {
-          "via": "bundled",
+          "via": "dependency",
           "infoExport": "EPOCH",
           "infoField": "reconciler"
         },
-        "bundled": [
-          "react-reconciler",
-          "its-fine"
-        ],
+        "bundled": [],
         "typesReactDom": "19.2.7",
         "conformanceCapabilities": [
           "react.19",
@@ -1823,11 +1823,11 @@
       },
       "react193": {
         "id": "react-19.3",
-        "artifact": "react-19",
-        "entry": "./19.3",
-        "className": "React19Adapter",
-        "hashScope": "entry",
-        "adapterId": "react-19/19.3",
+        "artifact": "react-19.3",
+        "entry": ".",
+        "className": "React193Adapter",
+        "hashScope": "package",
+        "adapterId": "react-19.3",
         "abi": {
           "major": 1,
           "minor": 0
@@ -1842,17 +1842,14 @@
           "pixi.ticker": 1
         },
         "declaredPeers": {
-          "react": "19.0.0 || 19.0.8 || 19.1.0 || 19.1.9 || 19.2.0 || 19.2.8 || 19.3.0"
+          "react": "19.3.0"
         },
         "reconciler": {
-          "via": "bundled",
+          "via": "dependency",
           "infoExport": "EPOCH",
           "infoField": "reconciler"
         },
-        "bundled": [
-          "react-reconciler",
-          "its-fine"
-        ],
+        "bundled": [],
         "typesReactDom": "19.3.0",
         "conformanceCapabilities": [
           "react.19",
@@ -1973,13 +1970,16 @@
     "negative": [
       {
         "id": "react-adapter-beside-wrong-minor",
-        "description": "The React 19.3 adapter installed beside React 19.1.9. The peer list accepts the version, so only the adapter environment check can reject it.",
+        "description": "The React 19.3 adapter installed beside React 19.1.9 by a consumer that ignores peers (--legacy-peer-deps): its exact peer (19.3.0) would refuse the install, so this checks that the adapter's own environment check still rejects the wrong minor and names the per-minor package to install.",
         "react": {
           "epoch": "react193",
           "version": "19.1.9"
         },
         "pixi": {
           "version": "8.22.0"
+        },
+        "install": {
+          "legacyPeerDeps": true
         },
         "commands": [
           "install",
@@ -1990,7 +1990,8 @@
           "signatures": [
             "UNSUPPORTED_TUPLE",
             "supports React 19.3.x",
-            "React 19.1.9 is installed"
+            "React 19.1.9 is installed",
+            "@pixi-react-provisional/react-19.1"
           ]
         }
       },
