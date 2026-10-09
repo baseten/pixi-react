@@ -7,6 +7,8 @@ settings:
 overrides:
   rollup: ^4.18.0
 
+packageExtensionsChecksum: sha256-noGqb2u83M9KRz9Y6ju/7nUbIPdPxQHlAjFH5YnqA2I=
+
 importers:
 
   .:
@@ -5934,7 +5936,11 @@ packages:
   its-fine@2.0.0:
     resolution: {integrity: sha512-KLViCmWx94zOvpLwSlsx6yOCeMhZYaxrJV87Po5k/FoZzcPSahvK5qJ7fYhS61sZi5ikmh2S3Hz55A2l3U69ng==}
     peerDependencies:
+      '@types/react': '*'
       react: ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   its-fine@2.1.1:
     resolution: {integrity: sha512-C5ZoVkeqSt0Aje0tzESO+iT/EQpNFNL39GkP7mCACtoZUFD6GcyerFCr6kp0ZtiII4W9HoYkY48Soy5xE/uHKw==}
@@ -16556,8 +16562,8 @@ snapshots:
     dependencies:
       '@types/react-reconciler': 0.28.9(@types/react@19.0.8)
       react: 19.0.0
-    transitivePeerDependencies:
-      - '@types/react'
+    optionalDependencies:
+      '@types/react': 19.0.8
 
   its-fine@2.1.1(@types/react@19.3.0)(react@19.3.0):
     dependencies:

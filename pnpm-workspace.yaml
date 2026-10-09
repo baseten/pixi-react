@@ -7,3 +7,14 @@ packages:
 # Carried over from the npm `overrides` field of the single-package manifest.
 overrides:
   rollup: ^4.18.0
+
+# its-fine 2.0.0 (the facade's bridge) imports React types without declaring @types/react, so it would fall back to
+# whichever @types/react pnpm hoists. With several React 19 type lines installed (react-19 fixtures), resolve it
+# from the dependent instead, as its-fine 2.1.1 declares.
+packageExtensions:
+  its-fine@2.0.0:
+    peerDependencies:
+      '@types/react': '*'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
