@@ -35,8 +35,8 @@
     "build": "node ../../scripts/build-dual-package.mjs",
     "check:graph": "node ../../scripts/check-dependency-graph.mjs --allow @pixi-react-provisional/core --allow pixi.js",
     "lint": "eslint --max-warnings 0 .",
-    "test:conformance": "vitest run --config vitest.browser.config.mts --project 'conformance*'",
-    "test:e2e": "vitest run --config vitest.browser.config.mts",
+    "test:conformance": "vitest run --workspace vitest.browser.workspace.mts --project 'conformance*'",
+    "test:e2e": "vitest run --workspace vitest.browser.workspace.mts",
     "test:unit": "tsc --noEmit -p tsconfig.json && vitest run && pnpm run check:graph",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.current.json"
   },
@@ -54,6 +54,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "@vitest/browser": "^2.0.4",
     "eslint": "^9.16.0",
+    "its-fine": "^2.0.0",
     "jsdom": "^25.0.0",
     "pixi.js": "8.2.6",
     "pixi.js-8.9": "npm:pixi.js@8.9.2",
@@ -61,6 +62,7 @@
     "playwright": "^1.45.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-reconciler": "0.31.0",
     "typescript": "^5.4.5",
     "vite": "^5.0.0",
     "vitest": "^2.0.0"
