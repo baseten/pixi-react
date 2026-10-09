@@ -51,7 +51,7 @@ function createComposition(options: RendererOptions, faults: FakeRuntimeFaults =
 /**
  * Capabilities: the fake React adapter renders with React 19 and the fake Pixi resizes to DOM elements. It
  * does not provide `pixi.globals` (the fake Pixi backend has no global extension or text-style registry: issue 8 binds
- * those with Pixi), `react.18` (issue 12) or `parity.upstream` (the contract registry rejects
+ * those with Pixi), `react.18` (bound by the React 18 binding, issue 12) or `parity.upstream` (the contract registry rejects
  * conflicting `extend` calls). Scenarios that need them are listed as skipped by the runner, with the reason.
  */
 export const CORE_BINDING_CAPABILITIES: readonly Capability[] = ['react.19', 'dom.resize'];
