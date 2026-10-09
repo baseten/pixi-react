@@ -46,6 +46,8 @@ never a silent no-op.
 | Constructor | Role | Accepts | Tree operations |
 | --- | --- | --- | --- |
 | `Container` subclasses | `child` | `child`, `filter` | `addChild`, `addChildAt`, `removeChild` |
+| `Mesh`, `MeshPlane`, `MeshRope`, `MeshSimple`, `PerspectiveMesh` and subclasses | `child` | `filter` | As a container, for the node's own attachment and its filters |
+| `SplitText`, `SplitBitmapText` (present on 8.22.0) and subclasses | `child` | `filter` | As a container, for the node's own attachment and its filters |
 | `Filter` subclasses | `filter` | none | The parent's renderer-attached filter list, in JSX order. Reordering looks up the parent's list |
 | `ParticleContainer` | `child` | `particle`, `filter` | As a container |
 | `Particle` (not a Container) | `particle` | none | `addParticle`, `addParticleAt`, and removal with explicit indices (below) |
@@ -61,6 +63,27 @@ registry check throws in every build; there are no development-only invariants.
 `removeParticles(begin)` removed nothing. From 8.10, `end` is an end index and omitting it removes everything to the
 end. The adapter never calls it without both indices, and converts `[begin, end)` to the installed version's meaning.
 `adapter.removeParticles(container, begin, end)` exposes the same conversion.
+
+**Leaf classes.** Some Container subclasses own their children or do not support any, so their JSX children are
+rejected (`UNSUPPORTED_NODE`, before any mutation) while `filter` children still attach to the node's own `filters`:
+
+| Class | Exported | Accepts | Why, and what to pass instead |
+| --- | --- | --- | --- |
+| `Mesh` | 8.2.6 (floor) | `filter` | Pixi sets `allowChildren = false` (`addChild` is deprecated). Pass `geometry` and `texture` as props |
+| `MeshPlane` | 8.2.6 | `filter` | As `Mesh`. Needs `texture` (`verticesX`, `verticesY` optional) |
+| `MeshRope` | 8.2.6 | `filter` | As `Mesh`. Needs `texture` and `points` |
+| `MeshSimple` | 8.2.6 | `filter` | As `Mesh`. Needs `texture` and `vertices` |
+| `PerspectiveMesh` | absent on 8.2.6, present on 8.9.2 | `filter` | As `Mesh`. `texture` and the corner options are optional |
+| `SplitText`, `SplitBitmapText` | absent on 8.9.2, present on 8.22.0 | `filter` | The node generates its line, word and character children from `text`/`style` and re-adds the lines at the end on every change, displacing and re-indexing React children. Verified on 8.22.0: after one `text` update a child mounted after the lines was ahead of them. Read `lines`, `words` and `chars` through a ref |
+
+Constructor options of these classes (`geometry`, `texture`, `points`, `vertices`, `verticesX/Y`, the split texts'
+`text` and `style`) are read once by the constructor and are therefore not reapplied on update, except where the
+class has a setter of that name (`texture`, `text`, `style`, and the split texts' anchors). `points` of a
+`MeshRope` is a field of its geometry, so update it with the dashed prop `geometry-points` (or mutate the array
+in place; Pixi's per-frame update follows a same-length replacement): a plain `points` prop on update only sets an
+unused field on the rope. Removing a prop that the
+constructor requires keeps the current value and warns, because no default exists and a class is never constructed to
+find one; the other props return to the `Container` defaults.
 
 Names are normalized once: `pixiSprite` and `sprite` become `Sprite`; `pixiHtmlText`, `htmlText` and `HTMLText`
 become `HTMLText` (upstream's `NameOverrides`).

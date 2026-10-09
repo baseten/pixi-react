@@ -38,6 +38,12 @@ export interface OptionalPixiExports
     RenderLayer?: AnyConstructor;
     /** 8.9+ */
     DOMContainer?: AnyConstructor;
+    /** 8.11+: the shared base of `SplitText` and `SplitBitmapText`. */
+    AbstractSplitText?: abstract new (...args: any[]) => object;
+    /** 8.11+ */
+    SplitText?: AnyConstructor;
+    /** 8.11+ */
+    SplitBitmapText?: AnyConstructor;
 }
 
 export type PixiModule = typeof Pixi & OptionalPixiExports;
