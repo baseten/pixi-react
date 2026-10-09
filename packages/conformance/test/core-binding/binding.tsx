@@ -5,7 +5,7 @@
 import { FakeSceneAdapter } from '../../src/fake-scene/adapter';
 import { SceneJournal } from '../../src/journal';
 import { createBuiltins, createFakeProbe } from '../fake-binding/probe';
-import { FakeReactFrameworkAdapter } from './framework';
+import { FakeReactFrameworkAdapter } from '../../src/fake-react/framework';
 import { createRenderer } from '@pixi-react-provisional/renderer';
 
 import type { Capability, Composition, ConformanceBinding, ReactBindingApi, SceneElement } from '../../src/binding';

@@ -265,10 +265,11 @@ function createBindings<S extends SceneTypes>(runtime: Runtime<S>, faults: FakeR
 
                 void record.initialise(initOptions as S['options']);
 
-                // Runs after onInit, in call order; resolves after this request's own commit.
+                // Runs after onInit, in call order; resolves after this request's own commit. Every render passes
+                // the complete set of application props; the scene decides which ones are mutable.
                 return record.schedule((app) => new Promise<S['app']>((resolve) =>
                 {
-                    record.scene.updateApplication({ resizeTo: resizeTo ?? null } as S['appProps']);
+                    record.scene.updateApplication({ ...initOptions, resizeTo: resizeTo ?? null } as S['appProps']);
                     reconciler.updateContainer(
                         <RecordContext.Provider value={record}>
                             <StateContext.Provider value={record.applicationState}>{children}</StateContext.Provider>
