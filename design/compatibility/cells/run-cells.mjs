@@ -86,7 +86,7 @@ function harnessHash()
     return hash.digest('hex');
 }
 
-const environment = () => ({ platform: process.platform, arch: process.arch, node: process.versions.node.split('.')[0], runner: 'compat-1' });
+const environment = () => ({ platform: process.platform, arch: process.arch, node: process.versions.node, runner: 'compat-1' });
 
 function getArtifacts()
 {
