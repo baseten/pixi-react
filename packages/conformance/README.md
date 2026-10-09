@@ -6,20 +6,20 @@ parity measurable before runtime code is extracted into modular packages
 
 - **Scenarios** (`src/scenarios/`): reusable, scene-neutral React scenarios with their expected outcome.
   [`FEATURE-MAP.md`](FEATURE-MAP.md) maps every public feature of the facade to its scenarios.
-- **A fake scene backend** (`src/fake-scene/`, exported as `@pixi-react-provisional/conformance/fake-scene`):
-  plain-data nodes, a manual ticker, an application with an asynchronous `init`, and a `FakeSceneSession`
-  shaped after the contract's `SceneSession` (sole owner of node construction and destruction).
+- **A fake Pixi backend** (`src/fake-pixi/`, exported as `@pixi-react-provisional/conformance/fake-pixi`):
+  plain-data nodes, a manual ticker, an application with an asynchronous `init`, and a `FakePixiSession`
+  shaped after the contract's `PixiSession` (sole owner of node construction and destruction).
 - **A runner** (`src/runner.ts`): `describeConformance(binding)` registers every scenario with Vitest
   against one binding.
 
 The package imports no adapter and no scene library. Scenarios see the scene only through the binding's
-`SceneProbe`.
+`PixiProbe`.
 
 ## Bindings
 
 A binding is a factory. Each scenario calls `binding.create()` and gets a fresh, fully observable
 `Composition`: the React-facing API (`Application`, `createRoot`, `extend`, hooks, `applyProps`), element
-types for the built-in kinds, deterministic application options, and a `SceneProbe` whose `SceneJournal`
+types for the built-in kinds, deterministic application options, and a `PixiProbe` whose `PixiJournal`
 records every construction, destruction, initialization and app teardown. This follows the historical
 prototype's "rebuild the composition with spies" test pattern. `dispose()` restores any global state the
 composition touched.
@@ -29,9 +29,9 @@ import { describeConformance, type ConformanceBinding } from '@pixi-react-provis
 
 const binding: ConformanceBinding = {
     id: 'react-19/19.3 + pixi-8',
-    capabilities: ['framework.react-19', 'dom.resize'],
+    capabilities: ['react.19', 'dom.resize'],
     expectedFailures: {},
-    create: () => buildSpiedComposition(), // e.g. createRenderer({ framework, scene }) plus a probe
+    create: () => buildSpiedComposition(), // e.g. createRenderer({ react, pixi }) plus a probe
 };
 
 describeConformance(binding);
@@ -42,46 +42,46 @@ Current bindings:
 | Binding | Where | Runs in |
 | --- | --- | --- |
 | Default facade, `@pixi/react` from `packages/react`: the composed React19Adapter (19.3) and Pixi8Adapter behind upstream's API | `packages/react/test/conformance/facadeBinding.ts` | Vitest browser mode, Playwright Chromium |
-| Explicit factory: `createRenderer({ framework: new React19Adapter() /* 19.3 */, scene: new Pixi8Adapter() })`, without the facade's parity shims | `packages/react/test/conformance/explicitBinding.ts` | Vitest browser mode, Playwright Chromium |
-| Fake renderer over the fake scene (a test double, not an adapter) | `test/fake-binding/` | jsdom |
-| Core + renderer: `createRenderer({ framework, scene })` with a fake React 19 framework adapter and the fake scene adapter | `test/core-binding/` | jsdom |
-| Core + renderer + the real `Pixi8Adapter`, driven by the same fake React 19 framework adapter, on pixi.js 8.2.6 and 8.22.0 | `packages/pixi-8/test/browser/` | Vitest browser mode, Playwright Chromium |
-| Each React 19 epoch (`@pixi-react-provisional/react-19/19.0` … `/19.3`, built) with the fake scene adapter, once per audited React version | `packages/react-19/fixtures/` | jsdom |
+| Explicit factory: `createRenderer({ react: new React19Adapter() /* 19.3 */, pixi: new Pixi8Adapter() })`, without the facade's parity shims | `packages/react/test/conformance/explicitBinding.ts` | Vitest browser mode, Playwright Chromium |
+| Fake renderer over the fake Pixi backend (a test double, not an adapter) | `test/fake-binding/` | jsdom |
+| Core + renderer: `createRenderer({ react, pixi })` with a fake React 19 adapter and the fake Pixi adapter | `test/core-binding/` | jsdom |
+| Core + renderer + the real `Pixi8Adapter`, driven by the same fake React 19 adapter, on pixi.js 8.2.6 and 8.22.0 | `packages/pixi-8/test/browser/` | Vitest browser mode, Playwright Chromium |
+| Each React 19 epoch (`@pixi-react-provisional/react-19/19.0` … `/19.3`, built) with the fake Pixi adapter, once per audited React version | `packages/react-19/fixtures/` | jsdom |
 
 The second binding shows that the interface is not shaped around the facade. The second and third bindings both
 host the committed negative controls.
 
-The React 19 epoch bindings ([issue 9](https://github.com/baseten/pixi-react/issues/9)) reuse the fake scene
+The React 19 epoch bindings ([issue 9](https://github.com/baseten/pixi-react/issues/9)) reuse the fake Pixi
 adapter and the fake probe (`@pixi-react-provisional/conformance/fake-probe`) with the real adapters; see
 [the react-19 README](../react-19/README.md#fixtures-one-workspace-package-per-audited-react-version).
 
 The core binding ([issue 7](https://github.com/baseten/pixi-react/issues/7)) composes the real
 `@pixi-react-provisional/core` and `@pixi-react-provisional/renderer` builds with two adapters:
 
-- `FakeSceneAdapter`, a core `SceneAdapter` over the fake backend, exported as
-  `@pixi-react-provisional/conformance/fake-scene-adapter`.
-- `src/fake-react/framework.tsx`, a `FrameworkAdapter` test double over react-reconciler 0.31, exported as
-  `@pixi-react-provisional/conformance/fake-react-framework` so scene adapters (issue 8) can be bound before the
+- `FakePixiAdapter`, a core `PixiAdapter` over the fake backend, exported as
+  `@pixi-react-provisional/conformance/fake-pixi-adapter`.
+- `src/fake-react/adapter.tsx`, a `ReactAdapter` test double over react-reconciler 0.31, exported as
+  `@pixi-react-provisional/conformance/fake-react-adapter` so Pixi adapters (issue 8) can be bound before the
   real React adapter (issue 9) exists. Every render passes the complete application props to
-  `SceneBridge.updateApplication`; the scene decides which of them are mutable.
+  `PixiBridge.updateApplication`; the scene decides which of them are mutable.
 
-The framework double owns only React concerns. Registry lookups, node ownership and destruction, roots, target
+The React adapter double owns only React concerns. Registry lookups, node ownership and destruction, roots, target
 leases, and init and teardown ordering all go through core.
 
-The binding provides `framework.react-19` and `dom.resize`. Scenarios that need `scene.globals` (bound by the Pixi 8
-binding), `framework.react-18` (issue 12) or `parity.upstream` are skipped by capability, and the runner names the
+The binding provides `react.19` and `dom.resize`. Scenarios that need `pixi.globals` (bound by the Pixi 8
+binding), `react.18` (issue 12) or `parity.upstream` are skipped by capability, and the runner names the
 missing capability in the title. The binding lists no expected failures. `createRoot.same-element`, an issue-7
 defect of the baseline facade, passes here because core maps an element target and its canvas to one root.
 
-The Pixi 8 binding ([issue 8](https://github.com/baseten/pixi-react/issues/8)) provides `framework.react-19`,
-`scene.globals` and `dom.resize`, and lists no expected failures: every issue-8 defect of the baseline facade passes there. It does not provide `parity.upstream`, because the modular adapter ships the corrected extension and
+The Pixi 8 binding ([issue 8](https://github.com/baseten/pixi-react/issues/8)) provides `react.19`,
+`pixi.globals` and `dom.resize`, and lists no expected failures: every issue-8 defect of the baseline facade passes there. It does not provide `parity.upstream`, because the modular adapter ships the corrected extension and
 default-text-style behaviour (D4).
 
 A second core binding selects `registryConflict: 'replace'`, the policy the facade uses for D4 parity, and runs
 `extend.replace-name`.
 
 The default facade binding ([issue 10](https://github.com/baseten/pixi-react/issues/10)) provides
-`framework.react-19`, `scene.globals`, `dom.resize` and `parity.upstream`, and lists no expected failures: the
+`react.19`, `pixi.globals`, `dom.resize` and `parity.upstream`, and lists no expected failures: the
 sixteen baseline defects pass through the composed adapters (the owner approved their failure-path repairs for the
 facade), and every parity scenario passes through the facade's shims. The explicit-factory binding composes the same
 pair with `createRenderer` and runs every scenario except the `parity.upstream` and React 18 ones, with no expected
@@ -89,7 +89,7 @@ failures.
 
 ### Capabilities, kinds and expected failures
 
-- A scenario lists the capabilities it needs (`framework.react-18`, `scene.globals`, `dom.resize`,
+- A scenario lists the capabilities it needs (`react.18`, `pixi.globals`, `dom.resize`,
   `parity.upstream`). The runner skips it, naming the missing capabilities, when a binding lacks one. The
   React 18 scenarios (ConcurrentRoot, recoverable-error routing, rejection of React 19-only root callbacks)
   are defined now and run once [issue 12](https://github.com/baseten/pixi-react/issues/12) provides a

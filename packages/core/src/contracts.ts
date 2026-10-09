@@ -1,9 +1,9 @@
 /**
- * Public ABI 1 interfaces implemented by core (registry, runtime, roots) and by scene adapters (sessions).
- * Core types never mirror a framework's renderer signatures: a framework adapter translates between its own
+ * Public ABI 1 interfaces implemented by core (registry, runtime, roots) and by Pixi adapters (sessions).
+ * Core types never mirror React's renderer signatures: a React adapter translates between its own
  * renderer (for example a reconciler host config) and this protocol.
  */
-import type { SceneAdapter } from './adapters.js';
+import type { PixiAdapter } from './adapters.js';
 import type {
     AdapterManifest,
     ApplicationState,
@@ -12,11 +12,11 @@ import type {
     Catalog,
     Constructor,
     NodeDefinition,
-    SceneTypes,
+    PixiTypes,
     TickOptions,
 } from './types.js';
 
-export interface Registry<S extends SceneTypes>
+export interface Registry<S extends PixiTypes>
 {
     /** Registers raw constructors under their catalog keys. Same name + same constructor is idempotent. */
     extend<C extends Catalog>(catalog: C): void;
@@ -27,7 +27,7 @@ export interface Registry<S extends SceneTypes>
     /** Stable type name for `component(Ctor)`: `name` when given, else a per-runtime WeakMap-assigned unique id. */
     nameOf(ctor: Constructor, name?: string): string;
     /**
-     * Registers `ctor` under `nameOf(ctor, name)` and returns its definition: the route behind a framework's
+     * Registers `ctor` under `nameOf(ctor, name)` and returns its definition: the route behind a React adapter's
      * `component(Ctor, name?)`. An explicit name bound to another constructor always throws `REGISTRY_CONFLICT`.
      */
     define<C extends Constructor>(ctor: C, name?: string): NodeDefinition<C>;
@@ -35,7 +35,7 @@ export interface Registry<S extends SceneTypes>
 }
 
 /** Context handed to every node construction. A node never reaches for a global application. */
-export interface NodeContext<S extends SceneTypes>
+export interface NodeContext<S extends PixiTypes>
 {
     readonly app: S['app'];
     readonly runtime: Runtime<S>;
@@ -43,11 +43,11 @@ export interface NodeContext<S extends SceneTypes>
 }
 
 /**
- * One application's lifecycle and scene bridge, implemented by a scene adapter. It is the single owner of node
- * construction and destruction. Core calls it only through a root's `SceneBridge`, which records ownership
+ * One application's lifecycle and Pixi bridge, implemented by a Pixi adapter. It is the single owner of node
+ * construction and destruction. Core calls it only through a root's `PixiBridge`, which records ownership
  * in a WeakMap side table and guarantees each node is destroyed at most once.
  */
-export interface SceneSession<S extends SceneTypes>
+export interface PixiSession<S extends PixiTypes>
 {
     readonly app: S['app'];
     /** The root display node children of the root are appended to. */
@@ -77,8 +77,8 @@ export type RootStatus = 'new' | 'initialising' | 'ready' | 'failed' | 'disposin
 
 export type RootTarget = HTMLElement | HTMLCanvasElement;
 
-/** Callbacks a framework adapter attaches to a root. They are replaced, not chained, by `setHooks`. */
-export interface RootHooks<S extends SceneTypes>
+/** Callbacks a React adapter attaches to a root. They are replaced, not chained, by `setHooks`. */
+export interface RootHooks<S extends PixiTypes>
 {
     /** Runs once after a successful initialization, before any queued work is committed. */
     onInit?: (app: S['app']) => void;
@@ -94,7 +94,7 @@ export interface GenerationToken
 }
 
 /** Scene operations of one root. Every node it touches must be owned by this root. */
-export interface SceneBridge<S extends SceneTypes>
+export interface PixiBridge<S extends PixiTypes>
 {
     /** Resolves `type` through the runtime registry and constructs the node through the session. */
     create(type: string | NodeDefinition, props: unknown): S['node'];
@@ -115,24 +115,24 @@ export interface SceneBridge<S extends SceneTypes>
     updateApplication(props: S['appProps']): void;
 }
 
-/** Core's record of one root: target ownership, lifecycle state machine and scene bridge. */
-export interface RootRecord<S extends SceneTypes>
+/** Core's record of one root: target ownership, lifecycle state machine and Pixi bridge. */
+export interface RootRecord<S extends PixiTypes>
 {
     readonly id: number;
     readonly runtime: Runtime<S>;
     readonly target: RootTarget;
     readonly canvas: HTMLCanvasElement;
-    readonly session: SceneSession<S>;
+    readonly session: PixiSession<S>;
     readonly status: RootStatus;
     readonly generation: number;
     readonly app: S['app'];
-    /** Stable for a given status, so a framework can pass it to a context provider. */
+    /** Stable for a given status, so a React adapter can pass it to a context provider. */
     readonly applicationState: ApplicationState<S['app']>;
     /** The initialization error once `status` is `failed`. */
     readonly failure: unknown;
     /** Aborted when the root starts tearing down. */
     readonly signal: AbortSignal;
-    readonly scene: SceneBridge<S>;
+    readonly pixi: PixiBridge<S>;
     setHooks(hooks: RootHooks<S>): void;
     /**
      * Starts initialization on the first call; every call returns the same promise. Options of later calls
@@ -146,7 +146,7 @@ export interface RootRecord<S extends SceneTypes>
      */
     schedule<T>(task: (app: S['app']) => T | PromiseLike<T>): Promise<T>;
     token(): GenerationToken;
-    /** Registers framework cleanup that runs (in reverse order) when the root tears down, before node and app cleanup. */
+    /** Registers React adapter cleanup that runs (in reverse order) when the root tears down, before node and app cleanup. */
     onTeardown(hook: () => void | Promise<void>): () => void;
     /** Defers teardown by one scheduled turn so a StrictMode remount can cancel it. */
     deferDispose(options?: S['destroy']): void;
@@ -157,7 +157,7 @@ export interface RootRecord<S extends SceneTypes>
 }
 
 /** What core knows about a node it owns. A node with no entry is not owned by the runtime. */
-export interface NodeInfo<S extends SceneTypes>
+export interface NodeInfo<S extends PixiTypes>
 {
     readonly root: RootRecord<S>;
     readonly definition: NodeDefinition;
@@ -168,18 +168,18 @@ export interface NodeInfo<S extends SceneTypes>
 
 export type RuntimeStatus = 'active' | 'disposing' | 'disposed';
 
-export interface CreateRootOptions<S extends SceneTypes>
+export interface CreateRootOptions<S extends PixiTypes>
 {
     readonly hooks?: RootHooks<S>;
 }
 
 /** One composed runtime: catalog, roots, node metadata and pending cleanup. Nothing is shared between runtimes. */
-export interface Runtime<S extends SceneTypes>
+export interface Runtime<S extends PixiTypes>
 {
     readonly id: symbol;
-    readonly scene: SceneAdapter<S>;
+    readonly pixi: PixiAdapter<S>;
     readonly registry: Registry<S>;
-    readonly manifests: { readonly framework: AdapterManifest; readonly scene: AdapterManifest };
+    readonly manifests: { readonly react: AdapterManifest; readonly pixi: AdapterManifest };
     /** Every capability either adapter provides, after negotiation. */
     readonly capabilities: CapabilityMap;
     readonly status: RuntimeStatus;

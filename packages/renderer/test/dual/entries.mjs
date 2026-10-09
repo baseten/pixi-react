@@ -15,26 +15,26 @@ const manifest = (id, extra) => ({
     abi: { major: 1, minor: 0 }, id, packageVersion: '0', certification: 'test', provides: {}, requires: {}, ...extra,
 });
 
-class Scene extends core.SceneAdapter
+class TestPixiAdapter extends core.PixiAdapter
 {
-    manifest = manifest('dual.scene');
+    manifest = manifest('dual.pixi');
     createSession() { throw new Error('unused'); }
     describe(ctor, name) { return { name, ctor, capabilities: {}, attach: { role: 'child', accepts: [] } }; }
 }
 
-class Framework extends cjsCore.FrameworkAdapter
+class TestReactAdapter extends cjsCore.ReactAdapter
 {
-    manifest = manifest('dual.framework');
+    manifest = manifest('dual.react');
     bind() { return {}; }
 }
 
-const fromImport = esm.createRenderer({ framework: new Framework(), scene: new Scene() });
-const fromRequire = cjs.createRenderer({ framework: new Framework(), scene: new Scene() });
+const fromImport = esm.createRenderer({ react: new TestReactAdapter(), pixi: new TestPixiAdapter() });
+const fromRequire = cjs.createRenderer({ react: new TestReactAdapter(), pixi: new TestPixiAdapter() });
 let error;
 
 try
 {
-    cjs.createRenderer({ framework: new Framework(), scene: new Scene() }, { requiredCapabilities: { missing: 1 } });
+    cjs.createRenderer({ react: new TestReactAdapter(), pixi: new TestPixiAdapter() }, { requiredCapabilities: { missing: 1 } });
 }
 catch (caught)
 {

@@ -1,12 +1,12 @@
-import { SceneJournal } from '../../src/journal';
+import { PixiJournal } from '../../src/journal';
 import { createBuiltins, createFakeProbe } from './probe';
 import { createFakeRuntime, type FakeRuntimeFaults } from './runtime';
 
-import type { Composition, ConformanceBinding, SceneElement } from '../../src/binding';
+import type { Composition, ConformanceBinding, PixiElement } from '../../src/binding';
 
 function createComposition(faults: FakeRuntimeFaults): Composition
 {
-    const journal = new SceneJournal();
+    const journal = new PixiJournal();
     const { builtins, kindOf } = createBuiltins();
     let rootCount = () => 0;
     const { probe, interceptInit } = createFakeProbe(journal, () => rootCount());
@@ -15,7 +15,7 @@ function createComposition(faults: FakeRuntimeFaults): Composition
     rootCount = () => runtime.roots.size;
     runtime.api.extend(builtins);
 
-    const element = (name: string) => runtime.tagFor(name) as unknown as SceneElement;
+    const element = (name: string) => runtime.tagFor(name) as unknown as PixiElement;
 
     return {
         api: runtime.api,
@@ -36,14 +36,14 @@ function createComposition(faults: FakeRuntimeFaults): Composition
 }
 
 /**
- * A binding over the fake React renderer and fake scene. With `faults`, it is a deliberately faulty
+ * A binding over the fake React renderer and fake Pixi backend. With `faults`, it is a deliberately faulty
  * binding for negative controls.
  */
-export function createFakeBinding(faults: FakeRuntimeFaults = {}, id = 'fake renderer (React 19, fake scene)'): ConformanceBinding
+export function createFakeBinding(faults: FakeRuntimeFaults = {}, id = 'fake renderer (React 19, fake Pixi)'): ConformanceBinding
 {
     return {
         id,
-        capabilities: ['framework.react-19', 'dom.resize'],
+        capabilities: ['react.19', 'dom.resize'],
         create: () => createComposition(faults),
     };
 }

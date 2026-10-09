@@ -1,16 +1,16 @@
 /**
  * Public React 19 binding types, after `design/contract/react-19.d.ts`. They name React and core types only:
- * the scene's types arrive through `S`, so nothing here imports a scene library.
+ * the Pixi adapter's types arrive through `S`, so nothing here imports a scene library.
  */
 import type { ComponentType, ReactNode, Ref, RefObject } from 'react';
 import type {
     ApplicationState,
-    BindingFamily,
     Catalog,
     Constructor,
+    PixiTypes,
     PropsOf,
+    ReactBindingFamily,
     RootStatus,
-    SceneTypes,
     TickOptions,
 } from '@pixi-react-provisional/core';
 
@@ -35,7 +35,7 @@ export interface ApplicationRef<A>
 }
 
 /** A React root over one core root record. */
-export interface Root<S extends SceneTypes>
+export interface Root<S extends PixiTypes>
 {
     readonly applicationState: ApplicationState<S['app']>;
     readonly status: RootStatus;
@@ -50,7 +50,7 @@ export interface Root<S extends SceneTypes>
 }
 
 /** Root options: the scene's application destroy options plus the React root callbacks. */
-export type RootOptions<S extends SceneTypes> = Partial<S['destroy']> & RootErrors & {
+export type RootOptions<S extends PixiTypes> = Partial<S['destroy']> & RootErrors & {
     /** Runs once after a successful initialization, before the first child commit. */
     onInit?: (app: S['app']) => void;
     /** Runs once when initialization rejects. */
@@ -59,7 +59,7 @@ export type RootOptions<S extends SceneTypes> = Partial<S['destroy']> & RootErro
     identifierPrefix?: string;
 };
 
-export type ApplicationProps<S extends SceneTypes> =
+export type ApplicationProps<S extends PixiTypes> =
     Omit<Partial<S['options']> & Partial<S['appProps']>, 'resizeTo' | 'children' | 'className' | 'ref'>
     & RootOptions<S>
     & {
@@ -69,13 +69,13 @@ export type ApplicationProps<S extends SceneTypes> =
         ref?: Ref<ApplicationRef<S['app']>>;
     };
 
-export type ElementProps<S extends SceneTypes, C extends Constructor> = PropsOf<S, C> & {
+export type ElementProps<S extends PixiTypes, C extends Constructor> = PropsOf<S, C> & {
     ref?: Ref<InstanceType<C>>;
     children?: ReactNode;
 };
 
 /** The bindings a React 19 epoch returns from `bind(runtime)`. */
-export interface ReactBindings<S extends SceneTypes>
+export interface ReactBindings<S extends PixiTypes>
 {
     Application: ComponentType<ApplicationProps<S>>;
     createRoot(target: HTMLElement | HTMLCanvasElement, options?: RootOptions<S>): Root<S>;
@@ -99,7 +99,7 @@ export interface ReactBindings<S extends SceneTypes>
     ContextBridgeProvider: ComponentType<{ children?: ReactNode }>;
 }
 
-export interface React19Family extends BindingFamily
+export interface React19Family extends ReactBindingFamily
 {
-    readonly type: ReactBindings<Extract<this['scene'], SceneTypes>>;
+    readonly type: ReactBindings<Extract<this['pixi'], PixiTypes>>;
 }

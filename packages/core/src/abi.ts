@@ -5,13 +5,25 @@ import type { AdapterManifest, CapabilityMap } from './types.js';
 /** The ABI this core implements. An adapter may implement any minor up to this one. */
 export const CORE_ABI = Object.freeze({ major: 1, minor: 0 } as const);
 
-export type AdapterRole = 'framework' | 'scene';
+/**
+ * Methods each adapter role must implement at ABI 1.0, checked at composition time. Its keys are the roles. The
+ * role names appear only as property keys, never as string literals: the dependency-graph check treats a quoted
+ * React package name in core's built output as a module reference.
+ */
+const REQUIRED_METHODS = Object.freeze({
+    react: Object.freeze(['bind'] as const),
+    pixi: Object.freeze(['createSession', 'describe', 'normalizeName'] as const),
+});
 
-/** Methods each adapter role must implement at ABI 1.0, checked at composition time. */
-const REQUIRED_METHODS: Readonly<Record<AdapterRole, readonly string[]>> = {
-    framework: ['bind'],
-    scene: ['createSession', 'describe', 'normalizeName'],
-};
+/** An adapter role: the key an adapter is passed under to `compose` and `createRenderer`. */
+export type AdapterRole = keyof typeof REQUIRED_METHODS;
+
+/** Every adapter role, in validation order. */
+export const ADAPTER_ROLES: readonly AdapterRole[] = Object.freeze(Object.keys(REQUIRED_METHODS) as AdapterRole[]);
+
+/** How messages name each role's adapter, and the adapter of the other role. */
+const ROLE_LABELS: Readonly<Record<AdapterRole, string>> = { react: 'React', pixi: 'Pixi' };
+const OTHER_ROLE_LABELS: Readonly<Record<AdapterRole, string>> = { react: 'Pixi', pixi: 'React' };
 
 function isRecord(value: unknown): value is Record<string, unknown>
 {
@@ -29,7 +41,7 @@ function malformed(role: AdapterRole, id: string | undefined, message: string, e
     actual: Record<string, string | number | boolean | null>;
 }> = {}): CompatibilityError
 {
-    const label = id ? `${role} adapter "${id}"` : `The ${role} adapter`;
+    const label = id ? `${ROLE_LABELS[role]} adapter "${id}"` : `The ${ROLE_LABELS[role]} adapter`;
 
     return new CompatibilityError(`${label} has a malformed manifest: ${message}`, {
         code: 'ABI_MISMATCH',
@@ -93,7 +105,7 @@ export function validateManifest(manifest: unknown, role: AdapterRole): AdapterM
     if (abi.major !== CORE_ABI.major)
     {
         throw new CompatibilityError(
-            `The ${role} adapter "${id}" implements ABI ${abi.major}.${abi.minor}, but this core implements ABI `
+            `The ${ROLE_LABELS[role]} adapter "${id}" implements ABI ${abi.major}.${abi.minor}, but this core implements ABI `
             + `${CORE_ABI.major}.${CORE_ABI.minor}. Install a "${id}" release built for ABI ${CORE_ABI.major}.`,
             {
                 code: 'ABI_MISMATCH',
@@ -107,7 +119,7 @@ export function validateManifest(manifest: unknown, role: AdapterRole): AdapterM
     if (abi.minor > CORE_ABI.minor)
     {
         throw new CompatibilityError(
-            `The ${role} adapter "${id}" needs ABI ${abi.major}.${abi.minor}, but this core only implements ABI `
+            `The ${ROLE_LABELS[role]} adapter "${id}" needs ABI ${abi.major}.${abi.minor}, but this core only implements ABI `
             + `${CORE_ABI.major}.${CORE_ABI.minor}. Upgrade the core package, or install an older "${id}".`,
             {
                 code: 'ABI_MISMATCH',
@@ -144,7 +156,7 @@ export function validateAdapterShape(adapter: unknown, role: AdapterRole): Adapt
 {
     if (!isRecord(adapter))
     {
-        throw new CompatibilityError(`Expected a ${role} adapter instance, got ${adapter === null ? 'null' : typeof adapter}.`, {
+        throw new CompatibilityError(`Expected a ${ROLE_LABELS[role]} adapter instance, got ${adapter === null ? 'null' : typeof adapter}.`, {
             code: 'ABI_MISMATCH',
             adapterIds: [],
         });
@@ -157,8 +169,8 @@ export function validateAdapterShape(adapter: unknown, role: AdapterRole): Adapt
         if (typeof adapter[method] !== 'function')
         {
             throw new CompatibilityError(
-                `The ${role} adapter "${manifest.id}" does not implement ${method}(), required by ABI `
-                + `${CORE_ABI.major}.${manifest.abi.minor}. Was a ${role === 'scene' ? 'framework' : 'scene'} adapter passed as the ${role}?`,
+                `The ${ROLE_LABELS[role]} adapter "${manifest.id}" does not implement ${method}(), required by ABI `
+                + `${CORE_ABI.major}.${manifest.abi.minor}. Was a ${OTHER_ROLE_LABELS[role]} adapter passed as \`${role}\`?`,
                 {
                     code: 'ABI_MISMATCH',
                     adapterIds: [manifest.id],
@@ -174,14 +186,14 @@ export function validateAdapterShape(adapter: unknown, role: AdapterRole): Adapt
 
 export interface NegotiatedComposition
 {
-    readonly framework: AdapterManifest;
-    readonly scene: AdapterManifest;
+    readonly react: AdapterManifest;
+    readonly pixi: AdapterManifest;
     /** Every capability either adapter provides. */
     readonly capabilities: CapabilityMap;
 }
 
 function requireCapabilities(
-    /** Subject and verb, e.g. `Scene adapter "x" requires`. */
+    /** Subject and verb, e.g. `Pixi adapter "x" requires`. */
     requirer: string,
     requirerIds: readonly string[],
     requires: CapabilityMap,
@@ -218,39 +230,39 @@ function requireCapabilities(
 }
 
 /**
- * Validates one framework/scene pair before anything is allocated. Each adapter's `requires` must be met
+ * Validates one react/pixi pair before anything is allocated. Each adapter's `requires` must be met
  * exactly (same protocol version) by its counterpart's `provides`, and the consumer's
  * `requiredCapabilities` by either adapter. Unknown optional capabilities are ignored.
  */
 export function negotiate(
-    framework: AdapterManifest,
-    scene: AdapterManifest,
+    react: AdapterManifest,
+    pixi: AdapterManifest,
     requiredCapabilities: CapabilityMap = {},
 ): NegotiatedComposition
 {
     const required = validateCapabilitiesInput(requiredCapabilities);
 
     requireCapabilities(
-        `Framework adapter "${framework.id}" requires`, [framework.id], framework.requires,
-        `scene adapter "${scene.id}"`, [scene.id], scene.provides,
+        `React adapter "${react.id}" requires`, [react.id], react.requires,
+        `Pixi adapter "${pixi.id}"`, [pixi.id], pixi.provides,
     );
     requireCapabilities(
-        `Scene adapter "${scene.id}" requires`, [scene.id], scene.requires,
-        `framework adapter "${framework.id}"`, [framework.id], framework.provides,
+        `Pixi adapter "${pixi.id}" requires`, [pixi.id], pixi.requires,
+        `React adapter "${react.id}"`, [react.id], react.provides,
     );
 
-    const capabilities: Record<string, number> = { ...framework.provides };
+    const capabilities: Record<string, number> = { ...react.provides };
 
-    for (const [capability, version] of Object.entries(scene.provides))
+    for (const [capability, version] of Object.entries(pixi.provides))
     {
         if (capabilities[capability] !== undefined && capabilities[capability] !== version)
         {
             throw new CompatibilityError(
-                `Framework adapter "${framework.id}" provides "${capability}" version ${capabilities[capability]} but `
-                + `scene adapter "${scene.id}" provides version ${version}; one capability ID has one protocol owner.`,
+                `React adapter "${react.id}" provides "${capability}" version ${capabilities[capability]} but `
+                + `Pixi adapter "${pixi.id}" provides version ${version}; one capability ID has one protocol owner.`,
                 {
                     code: 'UNSUPPORTED_TUPLE',
-                    adapterIds: [framework.id, scene.id],
+                    adapterIds: [react.id, pixi.id],
                     capability,
                     expected: { [capability]: capabilities[capability] },
                     actual: { [capability]: version },
@@ -263,10 +275,10 @@ export function negotiate(
 
     requireCapabilities(
         'The renderer options require', [], required,
-        'the composed adapters', [framework.id, scene.id], capabilities,
+        'the composed adapters', [react.id, pixi.id], capabilities,
     );
 
-    return Object.freeze({ framework, scene, capabilities: Object.freeze(capabilities) });
+    return Object.freeze({ react, pixi, capabilities: Object.freeze(capabilities) });
 }
 
 function validateCapabilitiesInput(map: unknown): CapabilityMap

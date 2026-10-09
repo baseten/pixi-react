@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { type CompatibilityError, type RootRecord, type Runtime } from '../src/index.js';
-import { composeFake, FakeFilter, FakeNode, FakeSceneAdapter, type FakeSceneTypes, readyRoot, type SceneLogEntry } from './fakes.js';
+import { composeFake, FakeFilter, FakeNode, FakePixiAdapter, type FakePixiTypes, type PixiLogEntry, readyRoot } from './fakes.js';
 
-async function setup(scene = new FakeSceneAdapter())
+async function setup(pixi = new FakePixiAdapter())
 {
-    const runtime = composeFake(scene);
+    const runtime = composeFake(pixi);
 
     runtime.registry.extend({ Node: FakeNode, Filter: FakeFilter });
 
     const root = await readyRoot(runtime);
-    const node = (label: string) => root.scene.create('Node', { label }) as FakeNode;
+    const node = (label: string) => root.pixi.create('Node', { label }) as FakeNode;
 
-    return { scene, runtime, root, node, stage: root.session.container as FakeNode };
+    return { pixi, runtime, root, node, stage: root.session.container as FakeNode };
 }
 
-const destroyed = (log: SceneLogEntry[]) => log
-    .filter((entry): entry is Extract<SceneLogEntry, { op: 'destroyNode' }> => entry.op === 'destroyNode')
+const destroyed = (log: PixiLogEntry[]) => log
+    .filter((entry): entry is Extract<PixiLogEntry, { op: 'destroyNode' }> => entry.op === 'destroyNode')
     .map((entry) => (entry.node as FakeNode).props.label);
 
 function codeOf(action: () => unknown): string | undefined
@@ -32,13 +32,13 @@ function codeOf(action: () => unknown): string | undefined
     return undefined;
 }
 
-describe('scene bridge', () =>
+describe('Pixi bridge', () =>
 {
     it('constructs only through the session, with the root context', async () =>
     {
-        const { scene, runtime, root, node } = await setup();
+        const { pixi, runtime, root, node } = await setup();
         const created = node('a');
-        const entry = scene.log.find((item) => item.op === 'create');
+        const entry = pixi.log.find((item) => item.op === 'create');
 
         expect(entry).toMatchObject({ op: 'create', node: created, name: 'Node' });
         expect(entry?.op === 'create' && entry.context).toEqual({ app: root.app, runtime, root });
@@ -50,8 +50,8 @@ describe('scene bridge', () =>
         const created = node('a');
         const keys = Reflect.ownKeys(created);
 
-        root.scene.append(stage, created);
-        root.scene.setHidden(created, true);
+        root.pixi.append(stage, created);
+        root.pixi.setHidden(created, true);
 
         expect(Reflect.ownKeys(created)).toEqual(keys);
         expect(Object.getOwnPropertySymbols(created)).toEqual([]);
@@ -61,76 +61,76 @@ describe('scene bridge', () =>
 
     it('destroys a removed subtree after the commit, children first, each node once, with no options', async () =>
     {
-        const { scene, root, node, stage } = await setup();
+        const { pixi, root, node, stage } = await setup();
         const parent = node('parent');
         const child = node('child');
         const grandchild = node('grandchild');
 
-        root.scene.append(stage, parent);
-        root.scene.append(parent, child);
-        root.scene.append(child, grandchild);
-        root.scene.remove(stage, parent);
+        root.pixi.append(stage, parent);
+        root.pixi.append(parent, child);
+        root.pixi.append(child, grandchild);
+        root.pixi.remove(stage, parent);
 
-        expect(destroyed(scene.log)).toEqual([]);
+        expect(destroyed(pixi.log)).toEqual([]);
 
-        root.scene.flush();
-        root.scene.flush();
+        root.pixi.flush();
+        root.pixi.flush();
 
-        expect(destroyed(scene.log)).toEqual(['grandchild', 'child', 'parent']);
-        expect(scene.log.filter((entry) => entry.op === 'destroyNode').map((entry) => 'options' in entry && entry.options))
+        expect(destroyed(pixi.log)).toEqual(['grandchild', 'child', 'parent']);
+        expect(pixi.log.filter((entry) => entry.op === 'destroyNode').map((entry) => 'options' in entry && entry.options))
             .toEqual([undefined, undefined, undefined]);
-        expect(codeOf(() => root.scene.append(stage, parent))).toBe('UNSUPPORTED_NODE');
+        expect(codeOf(() => root.pixi.append(stage, parent))).toBe('UNSUPPORTED_NODE');
     });
 
     it('a node moved back into the tree before the flush is not destroyed', async () =>
     {
-        const { scene, root, node, stage } = await setup();
+        const { pixi, root, node, stage } = await setup();
         const a = node('a');
         const b = node('b');
 
-        root.scene.append(stage, a);
-        root.scene.append(stage, b);
-        root.scene.remove(stage, a);
-        root.scene.insertBefore(stage, a, b);
-        root.scene.flush();
+        root.pixi.append(stage, a);
+        root.pixi.append(stage, b);
+        root.pixi.remove(stage, a);
+        root.pixi.insertBefore(stage, a, b);
+        root.pixi.flush();
 
-        expect(destroyed(scene.log)).toEqual([]);
+        expect(destroyed(pixi.log)).toEqual([]);
         expect(stage.children.map((item) => item.props.label)).toEqual(['a', 'b']);
     });
 
     it('reparenting moves without destroying', async () =>
     {
-        const { scene, runtime, root, node, stage } = await setup();
+        const { pixi, runtime, root, node, stage } = await setup();
         const first = node('first');
         const second = node('second');
         const moved = node('moved');
 
-        root.scene.append(stage, first);
-        root.scene.append(stage, second);
-        root.scene.append(first, moved);
-        root.scene.append(second, moved);
-        root.scene.remove(stage, first);
-        root.scene.flush();
+        root.pixi.append(stage, first);
+        root.pixi.append(stage, second);
+        root.pixi.append(first, moved);
+        root.pixi.append(second, moved);
+        root.pixi.remove(stage, first);
+        root.pixi.flush();
 
-        expect(destroyed(scene.log)).toEqual(['first']);
+        expect(destroyed(pixi.log)).toEqual(['first']);
         expect(runtime.nodeInfo(moved)?.parent).toBe(second);
     });
 
     it('rejects attach-rule violations before any mutation', async () =>
     {
-        const { scene, root, node, stage } = await setup();
-        const filter = root.scene.create('Filter', {});
+        const { pixi, root, node, stage } = await setup();
+        const filter = root.pixi.create('Filter', {});
         const parent = node('parent');
-        const before = scene.log.length;
+        const before = pixi.log.length;
 
         // The container accepts only `child` roles; a filter accepts no children.
-        expect(codeOf(() => root.scene.append(stage, filter))).toBe('UNSUPPORTED_NODE');
-        expect(codeOf(() => root.scene.append(filter, parent))).toBe('UNSUPPORTED_NODE');
-        expect(scene.log.length).toBe(before);
+        expect(codeOf(() => root.pixi.append(stage, filter))).toBe('UNSUPPORTED_NODE');
+        expect(codeOf(() => root.pixi.append(filter, parent))).toBe('UNSUPPORTED_NODE');
+        expect(pixi.log.length).toBe(before);
 
-        root.scene.append(stage, parent);
-        root.scene.append(parent, filter);
-        expect(codeOf(() => root.scene.append(parent, stage))).toBe('UNSUPPORTED_NODE');
+        root.pixi.append(stage, parent);
+        root.pixi.append(parent, filter);
+        expect(codeOf(() => root.pixi.append(parent, stage))).toBe('UNSUPPORTED_NODE');
     });
 
     it('rejects cycles and mismatched reference nodes', async () =>
@@ -140,18 +140,18 @@ describe('scene bridge', () =>
         const child = node('child');
         const stranger = node('stranger');
 
-        root.scene.append(stage, parent);
-        root.scene.append(parent, child);
+        root.pixi.append(stage, parent);
+        root.pixi.append(parent, child);
 
-        expect(codeOf(() => root.scene.append(child, parent))).toBe('UNSUPPORTED_NODE');
-        expect(codeOf(() => root.scene.insertBefore(stage, stranger, child))).toBe('UNSUPPORTED_NODE');
-        expect(codeOf(() => root.scene.remove(stage, child))).toBe('UNSUPPORTED_NODE');
+        expect(codeOf(() => root.pixi.append(child, parent))).toBe('UNSUPPORTED_NODE');
+        expect(codeOf(() => root.pixi.insertBefore(stage, stranger, child))).toBe('UNSUPPORTED_NODE');
+        expect(codeOf(() => root.pixi.remove(stage, child))).toBe('UNSUPPORTED_NODE');
     });
 
     it('validates node capabilities before the first construction', async () =>
     {
-        const scene = new FakeSceneAdapter({ nodeCapabilities: { 'scene.particles': 1 } });
-        const runtime = composeFake(scene);
+        const pixi = new FakePixiAdapter({ nodeCapabilities: { 'pixi.particles': 1 } });
+        const runtime = composeFake(pixi);
 
         runtime.registry.extend({ Particle: FakeNode });
 
@@ -160,7 +160,7 @@ describe('scene bridge', () =>
 
         try
         {
-            root.scene.create('Particle', {});
+            root.pixi.create('Particle', {});
         }
         catch (caught)
         {
@@ -168,8 +168,8 @@ describe('scene bridge', () =>
         }
 
         expect(error?.code).toBe('UNSUPPORTED_NODE');
-        expect(error?.capability).toBe('scene.particles');
-        expect(scene.log.some((entry) => entry.op === 'create')).toBe(false);
+        expect(error?.capability).toBe('pixi.particles');
+        expect(pixi.log.some((entry) => entry.op === 'create')).toBe(false);
     });
 
     it('requires a ready root to construct', async () =>
@@ -180,50 +180,50 @@ describe('scene bridge', () =>
 
         const root = runtime.createRoot(document.createElement('canvas'));
 
-        expect(codeOf(() => root.scene.create('Node', {}))).toBe('core.ROOT_NOT_READY');
-        expect(codeOf(() => root.scene.create('Unknown', {}))).toBe('core.ROOT_NOT_READY');
+        expect(codeOf(() => root.pixi.create('Node', {}))).toBe('core.ROOT_NOT_READY');
+        expect(codeOf(() => root.pixi.create('Unknown', {}))).toBe('core.ROOT_NOT_READY');
     });
 
     it('throws UNKNOWN_ELEMENT for unregistered types and foreign definitions', async () =>
     {
         const { root } = await setup();
 
-        expect(codeOf(() => root.scene.create('Missing', {}))).toBe('UNKNOWN_ELEMENT');
-        expect(codeOf(() => root.scene.create({ name: 'Node', ctor: FakeNode, capabilities: {}, attach: { role: 'child', accepts: [] } }, {})))
+        expect(codeOf(() => root.pixi.create('Missing', {}))).toBe('UNKNOWN_ELEMENT');
+        expect(codeOf(() => root.pixi.create({ name: 'Node', ctor: FakeNode, capabilities: {}, attach: { role: 'child', accepts: [] } }, {})))
             .toBe('UNKNOWN_ELEMENT');
     });
 
     it('destroys every node still owned at teardown, with the root teardown options', async () =>
     {
-        const { scene, root, node, stage } = await setup();
+        const { pixi, root, node, stage } = await setup();
         const attached = node('attached');
         const nested = node('nested');
 
         node('never-attached');
-        root.scene.append(stage, attached);
-        root.scene.append(attached, nested);
+        root.pixi.append(stage, attached);
+        root.pixi.append(attached, nested);
 
         await root.dispose({ reason: 'teardown' });
 
-        expect(destroyed(scene.log).sort()).toEqual(['attached', 'nested', 'never-attached']);
-        expect(destroyed(scene.log).indexOf('nested')).toBeLessThan(destroyed(scene.log).indexOf('attached'));
-        expect(scene.log.filter((entry) => entry.op === 'destroyNode').every((entry) =>
+        expect(destroyed(pixi.log).sort()).toEqual(['attached', 'nested', 'never-attached']);
+        expect(destroyed(pixi.log).indexOf('nested')).toBeLessThan(destroyed(pixi.log).indexOf('attached'));
+        expect(pixi.log.filter((entry) => entry.op === 'destroyNode').every((entry) =>
             entry.op === 'destroyNode' && (entry.options as { reason: string }).reason === 'teardown')).toBe(true);
         // App destruction comes after every node.
-        expect(scene.log.at(-1)?.op).toBe('appDestroy');
+        expect(pixi.log.at(-1)?.op).toBe('appDestroy');
     });
 
-    it('removals made by framework teardown hooks use the teardown options and flush once', async () =>
+    it('removals made by React adapter teardown hooks use the teardown options and flush once', async () =>
     {
-        const { scene, root, node, stage } = await setup();
+        const { pixi, root, node, stage } = await setup();
         const top = node('top');
 
-        root.scene.append(stage, top);
-        root.onTeardown(() => root.scene.remove(stage, top));
+        root.pixi.append(stage, top);
+        root.onTeardown(() => root.pixi.remove(stage, top));
 
         await root.dispose({ reason: 'unmount' });
 
-        expect(scene.log.filter((entry) => entry.op === 'destroyNode')).toEqual([
+        expect(pixi.log.filter((entry) => entry.op === 'destroyNode')).toEqual([
             { op: 'destroyNode', node: top, options: { reason: 'unmount' } },
         ]);
     });
@@ -232,9 +232,9 @@ describe('scene bridge', () =>
     {
         const { root } = await setup();
         const ticks: number[] = [];
-        const unsubscribe = root.scene.subscribe({ callback: (tick) => ticks.push(tick) });
+        const unsubscribe = root.pixi.subscribe({ callback: (tick) => ticks.push(tick) });
 
-        root.scene.subscribe({ callback: (tick) => ticks.push(tick * 10) });
+        root.pixi.subscribe({ callback: (tick) => ticks.push(tick * 10) });
         expect(root.app.listeners.size).toBe(2);
 
         unsubscribe();
@@ -250,21 +250,21 @@ describe('scene bridge', () =>
         const { root, node, stage } = await setup();
         const created = node('a');
 
-        root.scene.append(stage, created);
-        root.scene.update(created, { label: 'a' }, { label: 'b' });
-        root.scene.setHidden(created, true);
-        root.scene.updateApplication({ label: 'app' });
+        root.pixi.append(stage, created);
+        root.pixi.update(created, { label: 'a' }, { label: 'b' });
+        root.pixi.setHidden(created, true);
+        root.pixi.updateApplication({ label: 'app' });
 
         expect(created.props).toEqual({ label: 'b' });
         expect(created.hidden).toBe(true);
-        expect(root.scene.publicInstance(created)).toBe(created);
+        expect(root.pixi.publicInstance(created)).toBe(created);
         expect((root.app as unknown as { label: string }).label).toBe('app');
     });
 });
 
 describe('ownership across roots', () =>
 {
-    async function twoRoots(): Promise<[Runtime<FakeSceneTypes>, RootRecord<FakeSceneTypes>, RootRecord<FakeSceneTypes>]>
+    async function twoRoots(): Promise<[Runtime<FakePixiTypes>, RootRecord<FakePixiTypes>, RootRecord<FakePixiTypes>]>
     {
         const runtime = composeFake();
 
@@ -276,18 +276,18 @@ describe('ownership across roots', () =>
     it('a node of one root cannot be used by another root of the same runtime', async () =>
     {
         const [, first, second] = await twoRoots();
-        const node = first.scene.create('Node', {});
+        const node = first.pixi.create('Node', {});
 
-        expect(codeOf(() => second.scene.append(second.session.container, node))).toBe('UNSUPPORTED_NODE');
-        expect(codeOf(() => second.scene.update(node, {}, {}))).toBe('UNSUPPORTED_NODE');
+        expect(codeOf(() => second.pixi.append(second.session.container, node))).toBe('UNSUPPORTED_NODE');
+        expect(codeOf(() => second.pixi.update(node, {}, {}))).toBe('UNSUPPORTED_NODE');
     });
 
     it('disposing one root leaves the other root, its app and its nodes untouched', async () =>
     {
         const [runtime, first, second] = await twoRoots();
-        const kept = second.scene.create('Node', { label: 'kept' });
+        const kept = second.pixi.create('Node', { label: 'kept' });
 
-        second.scene.append(second.session.container, kept);
+        second.pixi.append(second.session.container, kept);
         await first.dispose();
 
         expect(second.status).toBe('ready');

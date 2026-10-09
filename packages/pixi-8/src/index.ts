@@ -9,7 +9,7 @@ import type { Pixi8AdapterBase } from './adapter.js';
 
 const bound = bindPixi(pixi);
 
-/** The Pixi 8 scene adapter, bound to the loaded pixi.js module. */
+/** The Pixi 8 adapter, bound to the loaded pixi.js module. */
 export const Pixi8Adapter = bound.Pixi8Adapter;
 /** An instance of `Pixi8Adapter`. */
 // eslint-disable-next-line @typescript-eslint/no-redeclare -- the bound class value and its instance type share a name.
@@ -25,8 +25,8 @@ export const PIXI8_TESTED_VERSIONS = bound.PIXI8_TESTED_VERSIONS;
 export type { Pixi8AdapterBase, Pixi8AdapterConstructor, Pixi8AdapterOptions, Pixi8Manifest, Pixi8ManifestDetails } from './adapter.js';
 export type { BoundExports } from './bind.js';
 export { bindPixi } from './bind.js';
+export type { PixiFeatures } from './nodes.js';
 export type { OptionalPixiExports, ParticleContainerLike, ParticleLike, PixiModule } from './pixi.js';
-export type { PixiFeatures } from './scene.js';
 export type {
     ConstructorOptions,
     ConstructorOverrides,

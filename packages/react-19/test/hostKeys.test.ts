@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { EPOCHS } from './epochs';
 
-import type { Runtime, SceneTypes } from '@pixi-react-provisional/core';
+import type { PixiTypes, Runtime } from '@pixi-react-provisional/core';
 
 const require = createRequire(import.meta.url);
 
@@ -21,7 +21,7 @@ function bundleKeys(alias: string): { development: string[]; production: string[
 }
 
 /** The host config is a pure object: building it calls nothing on the runtime. */
-const runtime = {} as Runtime<SceneTypes>;
+const runtime = {} as Runtime<PixiTypes>;
 
 describe('host-config keys match each installed reconciler bundle exactly', () =>
 {

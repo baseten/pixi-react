@@ -1,21 +1,21 @@
 import type { ComponentType, ReactNode } from 'react';
-import type { SceneJournal } from './journal';
+import type { PixiJournal } from './journal';
 
 /**
  * Capability IDs a binding can provide. Scenarios list the capabilities they need; the runner skips a
  * scenario (with the missing IDs in its title) when the binding does not provide all of them.
  *
- * - `framework.react-19` / `framework.react-18`: the React line the composition renders with.
- * - `scene.globals`: the probe can observe scene-global state (extensions, default text style).
+ * - `react.19` / `react.18`: the React line the composition renders with.
+ * - `pixi.globals`: the probe can observe scene-global state (extensions, default text style).
  * - `dom.resize`: the scene application resizes to a DOM element (`resizeTo`).
  * - `parity.upstream`: the composition promises upstream `@pixi/react` behaviour (decision D4). Scenarios
  *   that need it record current upstream semantics for parity; they are not desired-behaviour claims for
  *   modular compositions, which may change them in a documented future major.
  */
 export type Capability =
-    | 'framework.react-19'
-    | 'framework.react-18'
-    | 'scene.globals'
+    | 'react.19'
+    | 'react.18'
+    | 'pixi.globals'
     | 'dom.resize'
     | 'parity.upstream'
     | `${string}.${string}`;
@@ -29,7 +29,7 @@ export type Constructor = new (...args: any[]) => object;
  * An element type that renders one scene node. The facade uses intrinsic tag strings (`'pixiSprite'`) and a
  * composition may use components; both are typed as a component so scenarios can use them in JSX.
  */
-export type SceneElement = ComponentType<any>;
+export type PixiElement = ComponentType<any>;
 
 /** Options accepted by `useTick`. */
 export interface TickOptionsLike
@@ -57,7 +57,7 @@ export interface RootLike
 /**
  * The React-facing API surface of one composition, shaped like the upstream facade's public exports so a
  * scenario reads the same against the facade and against a `createRenderer` composition. Types are
- * deliberately loose: scenarios are scene-neutral and observe the scene only through the `SceneProbe`.
+ * deliberately loose: scenarios are scene-neutral and observe the scene only through the `PixiProbe`.
  */
 export interface ReactBindingApi
 {
@@ -79,14 +79,14 @@ export interface InitAttempt
     readonly settled: Promise<void>;
 }
 
-/** Returned by `SceneProbe.holdNextInit`: the next application initialization waits for `release`. */
+/** Returned by `PixiProbe.holdNextInit`: the next application initialization waits for `release`. */
 export interface InitGate extends InitAttempt
 {
     release(): void;
 }
 
-/** Scene-global observations, available when the binding provides `scene.globals`. */
-export interface SceneGlobalsProbe
+/** Scene-global observations, available when the binding provides `pixi.globals`. */
+export interface PixiGlobalsProbe
 {
     /** A snapshot of the scene's global default text style. */
     defaultTextStyle(): Record<string, unknown>;
@@ -101,10 +101,10 @@ export interface SceneGlobalsProbe
  * scene library directly. Bindings implement it with spies installed when the composition is built (the
  * historical prototype's "rebuild the composition with spies" pattern), so each test sees a fresh journal.
  */
-export interface SceneProbe
+export interface PixiProbe
 {
     /** Ordered record of scene operations observed since the composition was created. */
-    readonly journal: SceneJournal;
+    readonly journal: PixiJournal;
 
     /** The root display node of an initialized application. */
     stage(app: unknown): unknown;
@@ -146,7 +146,7 @@ export interface SceneProbe
     /** Holds the next application initialization until the gate is released. */
     holdNextInit(): InitGate;
 
-    readonly globals?: SceneGlobalsProbe;
+    readonly globals?: PixiGlobalsProbe;
 }
 
 /** One freshly built, fully observable composition. Built per scenario and disposed afterwards. */
@@ -154,10 +154,10 @@ export interface Composition
 {
     readonly api: ReactBindingApi;
     /** Element types for the built-in kinds, after the binding registered its spied constructors. */
-    readonly elements: Readonly<Record<NodeKind, SceneElement>>;
+    readonly elements: Readonly<Record<NodeKind, PixiElement>>;
     /** The element type for a catalog name registered through `api.extend` or `api.useExtend`. */
-    elementFor(name: string): SceneElement;
-    readonly probe: SceneProbe;
+    elementFor(name: string): PixiElement;
+    readonly probe: PixiProbe;
     /** Application props that make the scene deterministic (manual ticker, fixed size). */
     readonly appOptions: Readonly<Record<string, unknown>>;
     /** Restores global state the composition touched. Called after every scenario, even on failure. */
@@ -177,7 +177,7 @@ export interface ExpectedFailure
 
 /**
  * The factory a renderer implementation provides to run the conformance suite. The baseline facade is the
- * first binding; later `createRenderer({ framework, scene })` compositions each provide their own.
+ * first binding; later `createRenderer({ react, pixi })` compositions each provide their own.
  */
 export interface ConformanceBinding
 {

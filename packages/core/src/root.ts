@@ -3,19 +3,19 @@ import { CompatibilityError, CoreErrorCodes, TeardownError } from './errors.js';
 import type {
     GenerationToken,
     NodeContext,
+    PixiBridge,
+    PixiSession,
     RootHooks,
     RootRecord,
     RootStatus,
     RootTarget,
     Runtime,
-    SceneBridge,
-    SceneSession,
 } from './contracts.js';
 import type { RuntimeRegistry } from './registry.js';
-import type { ApplicationState, CapabilityMap, NodeDefinition, SceneTypes, TickOptions } from './types.js';
+import type { ApplicationState, CapabilityMap, NodeDefinition, PixiTypes, TickOptions } from './types.js';
 
 /** Per-node ownership metadata. Lives in the runtime's WeakMap side table, never on the node. */
-export interface NodeMeta<S extends SceneTypes>
+export interface NodeMeta<S extends PixiTypes>
 {
     readonly root: Root<S>;
     readonly definition: NodeDefinition;
@@ -27,7 +27,7 @@ export interface NodeMeta<S extends SceneTypes>
 }
 
 /** What a root needs from its runtime. Not part of the public API. */
-export interface RuntimeInternals<S extends SceneTypes>
+export interface RuntimeInternals<S extends PixiTypes>
 {
     readonly runtime: Runtime<S>;
     readonly registry: RuntimeRegistry<S>;
@@ -66,15 +66,15 @@ function isThenable<T>(value: T | PromiseLike<T>): value is PromiseLike<T>
     return isObject(value) && typeof (value as { then?: unknown }).then === 'function';
 }
 
-/** The scene bridge of one root: ownership checks, attach rules, deferred destruction. */
-class RootSceneBridge<S extends SceneTypes> implements SceneBridge<S>
+/** The Pixi bridge of one root: ownership checks, attach rules, deferred destruction. */
+class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
 {
     private readonly pending: object[] = [];
 
     constructor(private readonly root: Root<S>)
     {}
 
-    private get session(): SceneSession<S>
+    private get session(): PixiSession<S>
     {
         return this.root.session;
     }
@@ -138,7 +138,7 @@ class RootSceneBridge<S extends SceneTypes> implements SceneBridge<S>
                 if (capabilities[capability] !== version)
                 {
                     throw this.unsupported(
-                        `"${definition.name}" needs scene capability "${capability}" version ${version}, which the `
+                        `"${definition.name}" needs Pixi capability "${capability}" version ${version}, which the `
                         + 'composed adapters do not provide.',
                         { capability, expected: { [capability]: version }, actual: { [capability]: capabilities[capability] ?? null } },
                     );
@@ -161,12 +161,12 @@ class RootSceneBridge<S extends SceneTypes> implements SceneBridge<S>
 
         if (!isObject(node))
         {
-            throw this.unsupported(`The scene session returned a non-object for "${definition.name}".`);
+            throw this.unsupported(`The Pixi session returned a non-object for "${definition.name}".`);
         }
 
         if (this.nodes.has(node))
         {
-            throw this.unsupported(`The scene session returned a node that is already owned, for "${definition.name}".`);
+            throw this.unsupported(`The Pixi session returned a node that is already owned, for "${definition.name}".`);
         }
 
         this.nodes.set(node, {
@@ -425,9 +425,9 @@ class RootSceneBridge<S extends SceneTypes> implements SceneBridge<S>
 }
 
 /** Core's root record: one target, one session, one lifecycle. */
-export class Root<S extends SceneTypes> implements RootRecord<S>
+export class Root<S extends PixiTypes> implements RootRecord<S>
 {
-    readonly scene: SceneBridge<S>;
+    readonly pixi: PixiBridge<S>;
     /** Every node this root constructed and has not destroyed. */
     readonly live = new Set<object>();
     readonly subscriptions = new Set<() => void>();
@@ -453,12 +453,12 @@ export class Root<S extends SceneTypes> implements RootRecord<S>
         readonly id: number,
         readonly target: RootTarget,
         readonly canvas: HTMLCanvasElement,
-        readonly session: SceneSession<S>,
+        readonly session: PixiSession<S>,
         /** DOM objects leased to the runtime for this root. */
         readonly leased: readonly object[],
     )
     {
-        this.scene = new RootSceneBridge(this);
+        this.pixi = new RootPixiBridge(this);
     }
 
     get runtime(): Runtime<S>
@@ -882,7 +882,7 @@ export class Root<S extends SceneTypes> implements RootRecord<S>
 
         this.teardownHooks.clear();
 
-        const bridge = this.scene as RootSceneBridge<S>;
+        const bridge = this.pixi as RootPixiBridge<S>;
 
         for (const step of [() => bridge.flush(), () => bridge.sweep()])
         {

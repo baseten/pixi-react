@@ -1,4 +1,4 @@
-import { SceneJournal } from '../journal';
+import { PixiJournal } from '../journal';
 import {
     FakeApplication,
     type FakeApplicationOptions,
@@ -15,7 +15,7 @@ import type { Constructor, TickOptionsLike } from '../binding';
  * Faults a negative control can inject. Each one reproduces a real regression class; the conformance suite
  * must fail when one is switched on.
  */
-export interface FakeSceneFaults
+export interface FakePixiFaults
 {
     /** Removing an event prop leaves the old handler attached. */
     skipEventCleanup?: boolean;
@@ -32,10 +32,10 @@ export interface FakeNodeDefinition
     readonly ctor: Constructor;
 }
 
-export interface FakeSceneSessionOptions
+export interface FakePixiSessionOptions
 {
-    journal?: SceneJournal;
-    faults?: FakeSceneFaults;
+    journal?: PixiJournal;
+    faults?: FakePixiFaults;
     /** Records the kind of a constructed node in the journal (`custom` when omitted). */
     kindOf?: (ctor: Constructor) => string;
     /** Wraps the application's initialization, so a test can hold or fail it. */
@@ -48,7 +48,7 @@ const RESERVED = new Set(['children', 'key', 'ref']);
 const EVENT_PROP = /^on[A-Z]/;
 
 /** `onPointerTap` → `pointertap`. */
-export function sceneEventName(prop: string): string
+export function pixiEventName(prop: string): string
 {
     return prop.slice(2).toLowerCase();
 }
@@ -147,7 +147,7 @@ function assign(node: any, key: string, value: unknown): void
  * graphics `draw` callback, and removal (restores the node's captured initial value). Used by the session's
  * `update` and by `applyProps`.
  */
-export function applyFakeProps(node: object, previous: Props, next: Props, faults: FakeSceneFaults = {}): void
+export function applyFakeProps(node: object, previous: Props, next: Props, faults: FakePixiFaults = {}): void
 {
     const state = stateOf(node);
     const removed = Object.keys(previous).filter((key) => !RESERVED.has(key) && !(key in next));
@@ -159,7 +159,7 @@ export function applyFakeProps(node: object, previous: Props, next: Props, fault
         {
             if (!faults.skipEventCleanup)
             {
-                state.handlers.delete(sceneEventName(key));
+                state.handlers.delete(pixiEventName(key));
             }
         }
         else if (key !== 'draw')
@@ -179,11 +179,11 @@ export function applyFakeProps(node: object, previous: Props, next: Props, fault
         {
             if (typeof value === 'function')
             {
-                state.handlers.set(sceneEventName(key), value as (event: unknown) => void);
+                state.handlers.set(pixiEventName(key), value as (event: unknown) => void);
             }
             else
             {
-                state.handlers.delete(sceneEventName(key));
+                state.handlers.delete(pixiEventName(key));
             }
         }
         else if (key === 'draw')
@@ -242,20 +242,20 @@ export function dispatchFakeEvent(node: object, type: string, event: unknown = {
 }
 
 /**
- * A fake implementation of the contract's `SceneSession`: the single owner of node construction and
+ * A fake implementation of the contract's `PixiSession`: the single owner of node construction and
  * destruction for one application. Its operations are journaled so scenarios can assert them.
  */
-export class FakeSceneSession
+export class FakePixiSession
 {
     readonly app = new FakeApplication();
-    readonly journal: SceneJournal;
-    readonly faults: FakeSceneFaults;
+    readonly journal: PixiJournal;
+    readonly faults: FakePixiFaults;
     private readonly kindOf: (ctor: Constructor) => string;
     private readonly interceptInit?: (init: () => Promise<void>) => Promise<void>;
 
-    constructor(options: FakeSceneSessionOptions = {})
+    constructor(options: FakePixiSessionOptions = {})
     {
-        this.journal = options.journal ?? new SceneJournal();
+        this.journal = options.journal ?? new PixiJournal();
         this.faults = options.faults ?? {};
         this.kindOf = options.kindOf ?? (() => 'custom');
         this.interceptInit = options.interceptInit;

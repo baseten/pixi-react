@@ -288,7 +288,7 @@ Feature `root.concurrency`.
 | Scenario | Kind | Expected outcome | Baseline |
 | --- | --- | --- | --- |
 | `root.concurrency.automatic-batching` | contract | Two updates from a non-React callback produce one scheduled render (concurrent root semantics). | pass |
-| `root.concurrency.react-18-concurrent-root` | contract | Automatic batching and non-synchronous transitions hold under React 18, proving a ConcurrentRoot. | not run: needs `framework.react-18` ([#12](https://github.com/baseten/pixi-react/issues/12)) |
+| `root.concurrency.react-18-concurrent-root` | contract | Automatic batching and non-synchronous transitions hold under React 18, proving a ConcurrentRoot. | not run: needs `react.18` ([#12](https://github.com/baseten/pixi-react/issues/12)) |
 
 ## Root error routing
 
@@ -297,8 +297,8 @@ Feature `root.errors`.
 | Scenario | Kind | Expected outcome | Baseline |
 | --- | --- | --- | --- |
 | `root.errors.render-error-reported` | contract | The error reaches the root error channel (console by default); the DOM host keeps its canvas. | pass |
-| `root.errors.react-18-recoverable-error` | contract | A component that throws once during a concurrent render is retried; the error goes to `onRecoverableError`. | not run: needs `framework.react-18` ([#12](https://github.com/baseten/pixi-react/issues/12)) |
-| `root.errors.react-18-modern-callbacks-rejected` | contract | `onCaughtError` / `onUncaughtError` passed to a React 18 root throw an explicit unsupported-option error. | not run: needs `framework.react-18` ([#12](https://github.com/baseten/pixi-react/issues/12)) |
+| `root.errors.react-18-recoverable-error` | contract | A component that throws once during a concurrent render is retried; the error goes to `onRecoverableError`. | not run: needs `react.18` ([#12](https://github.com/baseten/pixi-react/issues/12)) |
+| `root.errors.react-18-modern-callbacks-rejected` | contract | `onCaughtError` / `onUncaughtError` passed to a React 18 root throw an explicit unsupported-option error. | not run: needs `react.18` ([#12](https://github.com/baseten/pixi-react/issues/12)) |
 
 ## Summary
 

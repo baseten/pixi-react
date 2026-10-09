@@ -24,7 +24,7 @@ import {
  */
 function createCustom()
 {
-    return createRenderer({ framework: new React19Adapter(), scene: new Pixi8Adapter() });
+    return createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
 }
 
 const options = { autoStart: false, sharedTicker: false, width: 16, height: 16, preference: 'webgl' } as const;

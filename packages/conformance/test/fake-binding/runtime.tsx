@@ -1,6 +1,6 @@
 /**
- * A minimal React 19 renderer over the fake scene backend. It is a test double, not an adapter: it exists to
- * prove that the conformance binding interface is not shaped around the facade, to exercise the fake scene
+ * A minimal React 19 renderer over the fake Pixi backend. It is a test double, not an adapter: it exists to
+ * prove that the conformance binding interface is not shaped around the facade, to exercise the fake Pixi
  * backend, and to host committed negative controls (faulty variants that the suite must reject).
  *
  * It follows the adapter contract where the facade does not (one teardown per root, no late commits after
@@ -25,9 +25,9 @@ import {
     applyFakeProps,
     type FakeContainer,
     type FakeNodeDestroyOptions,
-    type FakeSceneFaults,
-    FakeSceneSession,
-} from '../../src/fake-scene';
+    type FakePixiFaults,
+    FakePixiSession,
+} from '../../src/fake-pixi';
 
 import type {
     ApplicationStateLike,
@@ -36,7 +36,7 @@ import type {
     RootLike,
     TickOptionsLike,
 } from '../../src/binding';
-import type { SceneJournal } from '../../src/journal';
+import type { PixiJournal } from '../../src/journal';
 
 type Props = Record<string, any>;
 
@@ -45,7 +45,7 @@ const NoEventPriority = 0;
 
 interface RootContainer
 {
-    session: FakeSceneSession;
+    session: FakePixiSession;
     root: InternalRoot;
 }
 
@@ -74,7 +74,7 @@ export interface FakeRoot extends RootLike
 {
     readonly status: Status;
     readonly applicationState: ApplicationStateLike;
-    readonly session: FakeSceneSession;
+    readonly session: FakePixiSession;
     render(children: ReactNode, options?: Props): Promise<unknown>;
     unmount(): Promise<void>;
     /** Teardown deferred by one microtask, cancelled by a StrictMode remount. */
@@ -92,7 +92,7 @@ interface InternalRoot extends FakeRoot
 export interface FakeRuntime
 {
     readonly api: ReactBindingApi;
-    readonly journal: SceneJournal;
+    readonly journal: PixiJournal;
     readonly roots: ReadonlySet<FakeRoot>;
     tagFor(name: string): string;
 }
@@ -100,7 +100,7 @@ export interface FakeRuntime
 const TAG_PREFIX = 'fake';
 
 /** Scene faults plus faults of the fake React runtime itself. */
-export interface FakeRuntimeFaults extends FakeSceneFaults
+export interface FakeRuntimeFaults extends FakePixiFaults
 {
     /** `<Application>` does not handle a rejected render, so an init failure becomes an unhandled rejection. */
     leakInitRejection?: boolean;
@@ -113,13 +113,13 @@ export interface FakeRuntimeOptions
     interceptInit?: (init: () => Promise<void>) => Promise<void>;
 }
 
-export function createFakeRuntime(journal: SceneJournal, options: FakeRuntimeOptions = {}): FakeRuntime
+export function createFakeRuntime(journal: PixiJournal, options: FakeRuntimeOptions = {}): FakeRuntime
 {
     const { faults = {}, kindOf, interceptInit } = options;
     const catalog = new Map<string, Constructor>();
     const rootsByTarget = new Map<Element, InternalRoot>();
     const roots = new Set<InternalRoot>();
-    const pendingDestroy: Array<{ session: FakeSceneSession; node: FakeContainer; options: FakeNodeDestroyOptions }> = [];
+    const pendingDestroy: Array<{ session: FakePixiSession; node: FakeContainer; options: FakeNodeDestroyOptions }> = [];
     let currentUpdatePriority: number = NoEventPriority;
 
     const extend = (objects: Record<string, Constructor>) =>
@@ -307,7 +307,7 @@ export function createFakeRuntime(journal: SceneJournal, options: FakeRuntimeOpt
         let teardown: Promise<void> | null = null;
         let scheduled = false;
         const pending: RenderRequest[] = [];
-        const session = new FakeSceneSession({ journal, faults, kindOf, interceptInit });
+        const session = new FakePixiSession({ journal, faults, kindOf, interceptInit });
         let applicationState: ApplicationStateLike = { app: session.app, isInitialised: false, isInitialising: false };
 
         const report = (key: 'onUncaughtError' | 'onCaughtError' | 'onRecoverableError') =>

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createRenderer } from '../src/index.js';
-import { Item, ItemSceneAdapter, manifest, ToolsFramework } from './fakes.js';
+import { Item, ItemPixiAdapter, manifest, ToolsReactAdapter } from './fakes.js';
 import { CompatibilityError } from '@pixi-react-provisional/core';
 
 function codeOf(action: () => unknown): string | undefined
@@ -19,23 +19,23 @@ function codeOf(action: () => unknown): string | undefined
 
 describe('createRenderer', () =>
 {
-    it('returns the framework bindings for a new runtime, plus that runtime', async () =>
+    it('returns the React bindings for a new runtime, plus that runtime', async () =>
     {
-        const scene = new ItemSceneAdapter();
-        const renderer = createRenderer({ framework: new ToolsFramework(), scene });
+        const pixi = new ItemPixiAdapter();
+        const renderer = createRenderer({ react: new ToolsReactAdapter(), pixi });
 
         expect(renderer.runtimeId).toBe(renderer.runtime.id);
-        expect(renderer.runtime.scene).toBe(scene);
-        expect(renderer.runtime.manifests.framework.id).toBe('test.tools');
+        expect(renderer.runtime.pixi).toBe(pixi);
+        expect(renderer.runtime.manifests.react.id).toBe('test.tools');
         expect(Object.getOwnPropertyDescriptor(renderer, 'runtime')).toMatchObject({ writable: false, configurable: false });
         await expect(renderer.mount(document.createElement('canvas'))).resolves.toEqual({ name: 'item-app' });
     });
 
     it('creates an isolated runtime per call: catalogs and roots are not shared', () =>
     {
-        const scene = new ItemSceneAdapter();
-        const first = createRenderer({ framework: new ToolsFramework(), scene });
-        const second = createRenderer({ framework: new ToolsFramework(), scene });
+        const pixi = new ItemPixiAdapter();
+        const first = createRenderer({ react: new ToolsReactAdapter(), pixi });
+        const second = createRenderer({ react: new ToolsReactAdapter(), pixi });
 
         class Other extends Item
         {}
@@ -56,34 +56,34 @@ describe('createRenderer', () =>
 
     it('rejects an invalid ABI or capability set before binding or creating sessions', () =>
     {
-        const scene = new ItemSceneAdapter();
-        const abi = new ToolsFramework({ abi: { major: 2 as 1, minor: 0 } });
-        const capability = new ToolsFramework({ requires: { 'scene.visibility': 1 } });
+        const pixi = new ItemPixiAdapter();
+        const abi = new ToolsReactAdapter({ abi: { major: 2 as 1, minor: 0 } });
+        const capability = new ToolsReactAdapter({ requires: { 'pixi.visibility': 1 } });
 
-        expect(codeOf(() => createRenderer({ framework: abi, scene }))).toBe('ABI_MISMATCH');
-        expect(codeOf(() => createRenderer({ framework: capability, scene }))).toBe('CAPABILITY_MISSING');
-        expect(codeOf(() => createRenderer({ framework: new ToolsFramework(), scene }, { requiredCapabilities: { 'scene.ticker': 1 } })))
+        expect(codeOf(() => createRenderer({ react: abi, pixi }))).toBe('ABI_MISMATCH');
+        expect(codeOf(() => createRenderer({ react: capability, pixi }))).toBe('CAPABILITY_MISSING');
+        expect(codeOf(() => createRenderer({ react: new ToolsReactAdapter(), pixi }, { requiredCapabilities: { 'pixi.ticker': 1 } })))
             .toBe('CAPABILITY_MISSING');
         expect(abi.calls + capability.calls).toBe(0);
-        expect(scene.sessions).toEqual([]);
+        expect(pixi.sessions).toEqual([]);
     });
 
     it('disposes the runtime and publishes nothing when bind throws', async () =>
     {
         const disposed = vi.fn();
         const failure = new Error('bind failed');
-        const framework = new ToolsFramework({}, () =>
+        const react = new ToolsReactAdapter({}, () =>
         {
             throw failure;
         });
-        const scene = new ItemSceneAdapter();
-        const spy = vi.spyOn(framework, 'bind').mockImplementation((runtime) =>
+        const pixi = new ItemPixiAdapter();
+        const spy = vi.spyOn(react, 'bind').mockImplementation((runtime) =>
         {
             runtime.onDispose(disposed);
             throw failure;
         });
 
-        expect(() => createRenderer({ framework, scene })).toThrow(failure);
+        expect(() => createRenderer({ react, pixi })).toThrow(failure);
         await vi.waitFor(() => expect(disposed).toHaveBeenCalledTimes(1));
         expect((spy.mock.calls[0][0]).status).toBe('disposed');
     });
@@ -92,8 +92,8 @@ describe('createRenderer', () =>
     {
         const disposed = vi.fn();
         const failure = new Error('defineProperty refused');
-        const framework = new ToolsFramework({}, () => ({}));
-        const spy = vi.spyOn(framework, 'bind').mockImplementation((runtime) =>
+        const react = new ToolsReactAdapter({}, () => ({}));
+        const spy = vi.spyOn(react, 'bind').mockImplementation((runtime) =>
         {
             runtime.onDispose(disposed);
 
@@ -102,10 +102,10 @@ describe('createRenderer', () =>
                 {
                     throw failure;
                 },
-            }) as ReturnType<typeof framework.bind>;
+            }) as ReturnType<typeof react.bind>;
         });
 
-        expect(() => createRenderer({ framework, scene: new ItemSceneAdapter() })).toThrow(failure);
+        expect(() => createRenderer({ react, pixi: new ItemPixiAdapter() })).toThrow(failure);
         await vi.waitFor(() => expect(disposed).toHaveBeenCalledTimes(1));
         expect((spy.mock.calls[0][0]).status).toBe('disposed');
     });
@@ -120,7 +120,7 @@ describe('createRenderer', () =>
 
         try
         {
-            createRenderer({ framework: new ToolsFramework({}, result), scene: new ItemSceneAdapter() });
+            createRenderer({ react: new ToolsReactAdapter({}, result), pixi: new ItemPixiAdapter() });
         }
         catch (caught)
         {
@@ -134,11 +134,11 @@ describe('createRenderer', () =>
 
     it('accepts frozen bindings and function bindings', () =>
     {
-        const frozen = createRenderer({ framework: new ToolsFramework({}, () => Object.freeze({ tag: 'frozen' })), scene: new ItemSceneAdapter() });
-        const fn = createRenderer({ framework: new ToolsFramework({}, () => () => 'called'), scene: new ItemSceneAdapter() });
+        const frozen = createRenderer({ react: new ToolsReactAdapter({}, () => Object.freeze({ tag: 'frozen' })), pixi: new ItemPixiAdapter() });
+        const fn = createRenderer({ react: new ToolsReactAdapter({}, () => () => 'called'), pixi: new ItemPixiAdapter() });
         const frozenFn = createRenderer({
-            framework: new ToolsFramework({}, () => Object.freeze(Object.assign(() => 'frozen call', { tag: 'fn' }))),
-            scene: new ItemSceneAdapter(),
+            react: new ToolsReactAdapter({}, () => Object.freeze(Object.assign(() => 'frozen call', { tag: 'fn' }))),
+            pixi: new ItemPixiAdapter(),
         });
 
         expect((frozen as unknown as { tag: string }).tag).toBe('frozen');
@@ -171,7 +171,7 @@ describe('createRenderer', () =>
         }
 
         const original = Object.freeze(new PrivateBindings());
-        const renderer = createRenderer({ framework: new ToolsFramework({}, () => original), scene: new ItemSceneAdapter() });
+        const renderer = createRenderer({ react: new ToolsReactAdapter({}, () => original), pixi: new ItemPixiAdapter() });
         const bindings = renderer as unknown as PrivateBindings;
 
         expect(bindings.increment()).toBe(1);
@@ -186,7 +186,7 @@ describe('createRenderer', () =>
         expect(increment()).toBe(3);
         expect(bindings.increment).toBe(bindings.increment);
         expect(renderer.runtime.status).toBe('active');
-        expect(renderer.runtime.manifests.framework.id).toBe('test.tools');
+        expect(renderer.runtime.manifests.react.id).toBe('test.tools');
     });
 
     it('writes the state of a non-extensible class instance to the original instance', () =>
@@ -204,7 +204,7 @@ describe('createRenderer', () =>
         }
 
         const original = Object.preventExtensions(new PublicBindings());
-        const renderer = createRenderer({ framework: new ToolsFramework({}, () => original), scene: new ItemSceneAdapter() });
+        const renderer = createRenderer({ react: new ToolsReactAdapter({}, () => original), pixi: new ItemPixiAdapter() });
         const bindings = renderer as unknown as PublicBindings;
 
         expect(bindings.increment()).toBe(1);
@@ -224,8 +224,8 @@ describe('createRenderer', () =>
     it('rejects a missing adapter pair', () =>
     {
         expect(() => createRenderer(undefined as never)).toThrow(TypeError);
-        expect(codeOf(() => createRenderer({ framework: new ToolsFramework(), scene: {} as never }))).toBe('ABI_MISMATCH');
-        expect(codeOf(() => createRenderer({ framework: new ToolsFramework(), scene: { manifest: manifest('x') } as never })))
+        expect(codeOf(() => createRenderer({ react: new ToolsReactAdapter(), pixi: {} as never }))).toBe('ABI_MISMATCH');
+        expect(codeOf(() => createRenderer({ react: new ToolsReactAdapter(), pixi: { manifest: manifest('x') } as never })))
             .toBe('ABI_MISMATCH');
     });
 });

@@ -110,7 +110,7 @@ export function createApplyProps(runtime: FacadeRuntime)
     {
         const props = isDiffSet(data) ? diffSetToProps(runtime, instance, data.changes, blanks) : data;
 
-        runtime.scene.applyProps(instance, props);
+        runtime.adapter.applyProps(instance, props);
 
         return instance;
     };

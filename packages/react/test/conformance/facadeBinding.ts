@@ -1,13 +1,13 @@
 import * as facade from '../../src/index';
 import { facadeCoreRuntime } from '../utils/facadeRuntime';
 import { expectedFailures } from './expectedFailures';
-import { createPixiProbe } from './pixiProbe';
+import { createPixi8Probe } from './pixiProbe';
 import {
     act,
     type Composition,
     type ConformanceBinding,
+    type PixiElement,
     type ReactBindingApi,
-    type SceneElement,
 } from '@pixi-react-provisional/conformance';
 
 import type { RootRecord } from '@pixi-react-provisional/core';
@@ -35,7 +35,7 @@ export const appOptions = Object.freeze({
     preference: 'webgl',
 });
 
-const element = (name: string) => `pixi${name}` as unknown as SceneElement;
+const element = (name: string) => `pixi${name}` as unknown as PixiElement;
 
 /**
  * Tears down roots a scenario left behind so the next scenario starts from an empty facade. The default facade is
@@ -61,12 +61,12 @@ async function releaseRoots(existing: ReadonlySet<RootRecord<any>>)
  */
 export const facadeBinding: ConformanceBinding = {
     id: '@pixi/react facade (React 19.3, Pixi 8)',
-    capabilities: ['framework.react-19', 'scene.globals', 'dom.resize', 'parity.upstream'],
+    capabilities: ['react.19', 'pixi.globals', 'dom.resize', 'parity.upstream'],
     expectedFailures,
     create(): Composition
     {
         const existingRoots = new Set(facadeCoreRuntime().roots());
-        const probe = createPixiProbe(() => facadeCoreRuntime().roots().length);
+        const probe = createPixi8Probe(() => facadeCoreRuntime().roots().length);
 
         facade.extend(probe.catalog);
 

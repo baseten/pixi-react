@@ -57,7 +57,7 @@ export const rootScenarios = [
     defineScenario({
         id: 'root.concurrency.react-18-concurrent-root',
         feature: 'root.concurrency',
-        requires: ['framework.react-18'],
+        requires: ['react.18'],
         pendingOn: REACT_18_ISSUE,
         title: 'the React 18 binding creates a ConcurrentRoot',
         expected: 'Automatic batching and non-synchronous transitions hold under React 18, proving a ConcurrentRoot.',
@@ -109,7 +109,7 @@ export const rootScenarios = [
     defineScenario({
         id: 'root.errors.react-18-recoverable-error',
         feature: 'root.errors',
-        requires: ['framework.react-18'],
+        requires: ['react.18'],
         pendingOn: REACT_18_ISSUE,
         title: 'a recovered concurrent render error is routed to onRecoverableError',
         expected: 'A component that throws once during a concurrent render is retried; the error goes to `onRecoverableError`.',
@@ -160,7 +160,7 @@ export const rootScenarios = [
     defineScenario({
         id: 'root.errors.react-18-modern-callbacks-rejected',
         feature: 'root.errors',
-        requires: ['framework.react-18'],
+        requires: ['react.18'],
         pendingOn: REACT_18_ISSUE,
         title: 'React 19-only root error callbacks are rejected on React 18',
         expected: '`onCaughtError` / `onUncaughtError` passed to a React 18 root throw an explicit unsupported-option error.',

@@ -1,11 +1,13 @@
 export type { AdapterRole, NegotiatedComposition } from './abi.js';
 export { CORE_ABI, negotiate, validateAdapterShape, validateManifest } from './abi.js';
-export { FrameworkAdapter, SceneAdapter } from './adapters.js';
+export { PixiAdapter, ReactAdapter } from './adapters.js';
 export type {
     CreateRootOptions,
     GenerationToken,
     NodeContext,
     NodeInfo,
+    PixiBridge,
+    PixiSession,
     Registry,
     RootHooks,
     RootRecord,
@@ -13,8 +15,6 @@ export type {
     RootTarget,
     Runtime,
     RuntimeStatus,
-    SceneBridge,
-    SceneSession,
 } from './contracts.js';
 export type {
     BuiltinCompatibilityErrorCode,
@@ -31,15 +31,15 @@ export type {
     ApplicationState,
     AttachRule,
     Bind,
-    BindingFamily,
     CapabilityMap,
     Catalog,
     Constructor,
     NodeDefinition,
+    PixiTypes,
     PropsFamily,
     PropsOf,
+    ReactBindingFamily,
     RegistryConflictPolicy,
     RendererOptions,
-    SceneTypes,
     TickOptions,
 } from './types.js';

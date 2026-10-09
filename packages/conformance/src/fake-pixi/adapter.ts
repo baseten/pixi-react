@@ -1,19 +1,19 @@
 /**
- * The fake scene backend as a core `SceneAdapter`, so a `createRenderer({ framework, scene })` composition can
- * run the conformance suite without a renderer. Exported as `@pixi-react-provisional/conformance/fake-scene-adapter`
+ * The fake Pixi backend as a core `PixiAdapter`, so a `createRenderer({ react, pixi })` composition can
+ * run the conformance suite without a renderer. Exported as `@pixi-react-provisional/conformance/fake-pixi-adapter`
  * (a separate entry, so the facade's conformance run never loads core).
  */
-import { applyFakeProps, type FakeNodeDefinition, FakeSceneSession, type FakeSceneSessionOptions } from './session';
+import { applyFakeProps, type FakeNodeDefinition, FakePixiSession, type FakePixiSessionOptions } from './session';
 import {
     type AdapterManifest,
     type Constructor,
     type NodeDefinition,
+    PixiAdapter,
+    type PixiSession,
+    type PixiTypes,
     type PropsFamily,
     type RootTarget,
     type Runtime,
-    SceneAdapter,
-    type SceneSession,
-    type SceneTypes,
     type TickOptions,
 } from '@pixi-react-provisional/core';
 
@@ -30,8 +30,8 @@ export interface FakeDestroyOptions
     rendererDestroyOptions?: unknown;
 }
 
-/** The fake backend's scene types. */
-export interface FakeSceneTypes extends SceneTypes
+/** The fake backend's Pixi types. */
+export interface FakePixiTypes extends PixiTypes
 {
     readonly node: FakeContainer;
     readonly app: FakeApplication;
@@ -43,23 +43,23 @@ export interface FakeSceneTypes extends SceneTypes
     readonly props: FakePropsFamily;
 }
 
-export const FAKE_SCENE_CAPABILITIES = Object.freeze({
-    'scene.mutation': 1,
-    'scene.visibility': 1,
-    'scene.application': 1,
-    'scene.ticker': 1,
+export const FAKE_PIXI_CAPABILITIES = Object.freeze({
+    'pixi.mutation': 1,
+    'pixi.visibility': 1,
+    'pixi.application': 1,
+    'pixi.ticker': 1,
 });
 
-export interface FakeSceneAdapterOptions extends FakeSceneSessionOptions
+export interface FakePixiAdapterOptions extends FakePixiSessionOptions
 {
     /** Element-name prefix stripped by `normalizeName` (e.g. `fake` for `fakeSprite`). */
     prefix?: string;
 }
 
-/** Adapts one `FakeSceneSession` to the core `SceneSession` protocol. */
-class CoreFakeSession implements SceneSession<FakeSceneTypes>
+/** Adapts one `FakePixiSession` to the core `PixiSession` protocol. */
+class CoreFakeSession implements PixiSession<FakePixiTypes>
 {
-    constructor(private readonly inner: FakeSceneSession)
+    constructor(private readonly inner: FakePixiSession)
     {}
 
     get app(): FakeApplication
@@ -126,7 +126,7 @@ class CoreFakeSession implements SceneSession<FakeSceneTypes>
 
     subscribe<C>(options: TickOptions<FakeTicker, C>): () => void
     {
-        return this.inner.subscribe(options as TickOptions<FakeTicker, unknown> as Parameters<FakeSceneSession['subscribe']>[0]);
+        return this.inner.subscribe(options as TickOptions<FakeTicker, unknown> as Parameters<FakePixiSession['subscribe']>[0]);
     }
 
     nodeDestroyOptions(options: FakeDestroyOptions | undefined): FakeNodeDestroyOptions | undefined
@@ -140,19 +140,19 @@ class CoreFakeSession implements SceneSession<FakeSceneTypes>
     }
 }
 
-/** A scene adapter over the fake backend. Every session shares the adapter's journal, faults and init interceptor. */
-export class FakeSceneAdapter extends SceneAdapter<FakeSceneTypes>
+/** A Pixi adapter over the fake backend. Every session shares the adapter's journal, faults and init interceptor. */
+export class FakePixiAdapter extends PixiAdapter<FakePixiTypes>
 {
     readonly manifest: AdapterManifest = {
         abi: { major: 1, minor: 0 },
-        id: 'conformance.fake-scene',
+        id: 'conformance.fake-pixi',
         packageVersion: '0.0.0',
         certification: 'none: conformance test double',
-        provides: FAKE_SCENE_CAPABILITIES,
+        provides: FAKE_PIXI_CAPABILITIES,
         requires: {},
     };
 
-    constructor(private readonly options: FakeSceneAdapterOptions = {})
+    constructor(private readonly options: FakePixiAdapterOptions = {})
     {
         super();
     }
@@ -166,12 +166,12 @@ export class FakeSceneAdapter extends SceneAdapter<FakeSceneTypes>
 
     describe<C extends Constructor>(ctor: C, name: string): NodeDefinition<C>
     {
-        return { name, ctor, capabilities: { 'scene.mutation': 1 }, attach: { role: 'child', accepts: ['child'] } };
+        return { name, ctor, capabilities: { 'pixi.mutation': 1 }, attach: { role: 'child', accepts: ['child'] } };
     }
 
-    createSession(_runtime: Runtime<FakeSceneTypes>, _target: RootTarget): SceneSession<FakeSceneTypes>
+    createSession(_runtime: Runtime<FakePixiTypes>, _target: RootTarget): PixiSession<FakePixiTypes>
     {
-        return new CoreFakeSession(new FakeSceneSession(this.options));
+        return new CoreFakeSession(new FakePixiSession(this.options));
     }
 
     applyProps(node: FakeContainer, props: unknown): void

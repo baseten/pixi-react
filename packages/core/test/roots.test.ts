@@ -4,7 +4,7 @@ import {
     canvasElement,
     composeFake,
     FakeNode,
-    FakeSceneAdapter,
+    FakePixiAdapter,
     hostElement,
     readyRoot,
 } from './fakes.js';
@@ -68,15 +68,15 @@ describe('root lifecycle state machine', () =>
 {
     it('moves new -> initialising -> ready, runs onInit once before queued work, in call order', async () =>
     {
-        const scene = new FakeSceneAdapter();
-        const runtime = composeFake(scene);
+        const pixi = new FakePixiAdapter();
+        const runtime = composeFake(pixi);
         const order: string[] = [];
         const root = runtime.createRoot(canvasElement(), { hooks: { onInit: () => order.push('onInit') } });
 
         expect(root.status).toBe('new');
         expect(root.applicationState).toEqual({ app: root.app, isInitialised: false, isInitialising: false });
 
-        const gate = scene.holdNextInit();
+        const gate = pixi.holdNextInit();
         const first = root.schedule(() => order.push('first'));
         const init = root.initialise({ width: 1 });
         const second = root.schedule(() => order.push('second'));
@@ -91,7 +91,7 @@ describe('root lifecycle state machine', () =>
 
         expect(root.status).toBe('ready');
         expect(order).toEqual(['onInit', 'first', 'second']);
-        expect(scene.log.filter((entry) => entry.op === 'init')).toEqual([
+        expect(pixi.log.filter((entry) => entry.op === 'init')).toEqual([
             { op: 'init', app: root.app, options: { width: 1 } },
         ]);
         // Once ready and idle, work runs synchronously.
@@ -107,13 +107,13 @@ describe('root lifecycle state machine', () =>
 
     it('fails once: onInitError gets the cause, queued and later work rejects INIT_FAILED, no retry', async () =>
     {
-        const scene = new FakeSceneAdapter();
-        const runtime = composeFake(scene);
+        const pixi = new FakePixiAdapter();
+        const runtime = composeFake(pixi);
         const onInitError = vi.fn();
         const onInit = vi.fn();
         const root = runtime.createRoot(canvasElement(), { hooks: { onInit, onInitError } });
         const cause = new Error('no GPU');
-        const gate = scene.holdNextInit();
+        const gate = pixi.holdNextInit();
         const queued = root.schedule(() => 'never');
         const init = root.initialise({});
 
@@ -137,21 +137,21 @@ describe('root lifecycle state machine', () =>
         await root.dispose();
         expect(root.status).toBe('disposed');
         // A failed init allocated nothing the root owns; the scene cleaned up after itself.
-        expect(scene.log.some((entry) => entry.op === 'appDestroy')).toBe(false);
+        expect(pixi.log.some((entry) => entry.op === 'appDestroy')).toBe(false);
         expect(runtime.roots()).toEqual([]);
     });
 
     it('never reports an ignored init rejection as unhandled', async () =>
     {
-        const scene = new FakeSceneAdapter();
+        const pixi = new FakePixiAdapter();
         const unhandled = vi.fn();
 
         process.on('unhandledRejection', unhandled);
 
         try
         {
-            const root = composeFake(scene).createRoot(canvasElement());
-            const gate = scene.holdNextInit();
+            const root = composeFake(pixi).createRoot(canvasElement());
+            const gate = pixi.holdNextInit();
 
             void root.initialise({});
             gate.fail(new Error('ignored'));
@@ -167,7 +167,7 @@ describe('root lifecycle state machine', () =>
     it('reports a throwing onInit without failing the root or rerunning init', async () =>
     {
         const reported: unknown[] = [];
-        const runtime = composeFake(new FakeSceneAdapter(), { onUnhandledError: (error) => reported.push(error) });
+        const runtime = composeFake(new FakePixiAdapter(), { onUnhandledError: (error) => reported.push(error) });
         const root = runtime.createRoot(canvasElement(), {
             hooks: {
                 onInit: () =>
@@ -185,12 +185,12 @@ describe('root lifecycle state machine', () =>
 
     it('unmount during init: waits for init, no onInit, no late work, destroys the app once', async () =>
     {
-        const scene = new FakeSceneAdapter();
-        const runtime = composeFake(scene);
+        const pixi = new FakePixiAdapter();
+        const runtime = composeFake(pixi);
         const onInit = vi.fn();
         const task = vi.fn();
         const root = runtime.createRoot(canvasElement(), { hooks: { onInit } });
-        const gate = scene.holdNextInit();
+        const gate = pixi.holdNextInit();
         const init = root.initialise({});
         const queued = root.schedule(task);
         const signal = root.signal;
@@ -206,7 +206,7 @@ describe('root lifecycle state machine', () =>
         expect((await rejection(init) as CompatibilityError).code).toBe('ROOT_DISPOSED');
         expect(onInit).not.toHaveBeenCalled();
         expect(task).not.toHaveBeenCalled();
-        expect(scene.sessions[0].destroyed).toBe(1);
+        expect(pixi.sessions[0].destroyed).toBe(1);
         expect(root.status).toBe('disposed');
     });
 
@@ -307,14 +307,14 @@ describe('root lifecycle state machine', () =>
 
     it('dispose is idempotent and returns one shared promise', async () =>
     {
-        const scene = new FakeSceneAdapter();
-        const root = await readyRoot(composeFake(scene));
+        const pixi = new FakePixiAdapter();
+        const root = await readyRoot(composeFake(pixi));
         const first = root.dispose();
 
         expect(root.dispose()).toBe(first);
         await first;
         expect(root.dispose()).toBe(first);
-        expect(scene.sessions[0].destroyed).toBe(1);
+        expect(pixi.sessions[0].destroyed).toBe(1);
     });
 
     it('rejects work after teardown starts with ROOT_DISPOSED', async () =>
@@ -324,22 +324,22 @@ describe('root lifecycle state machine', () =>
         void root.dispose();
 
         expect((await rejection(root.schedule(() => 1)) as CompatibilityError).code).toBe('ROOT_DISPOSED');
-        expect(() => root.scene.create('Node', {})).toThrow(/is dispos(ing|ed): no further work/);
+        expect(() => root.pixi.create('Node', {})).toThrow(/is dispos(ing|ed): no further work/);
     });
 
     it('continues teardown past failures, aggregates them, and still releases the root', async () =>
     {
-        const scene = new FakeSceneAdapter({ failDestroyFor: 'bad', failAppDestroy: new Error('app destroy failed') });
-        const runtime = composeFake(scene);
+        const pixi = new FakePixiAdapter({ failDestroyFor: 'bad', failAppDestroy: new Error('app destroy failed') });
+        const runtime = composeFake(pixi);
         const canvas = canvasElement();
         const root = await readyRoot(runtime, canvas);
         const hookAfter = vi.fn();
 
         runtime.registry.extend({ Node: FakeNode });
-        root.scene.append(root.session.container, root.scene.create('Node', { label: 'bad' }));
+        root.pixi.append(root.session.container, root.pixi.create('Node', { label: 'bad' }));
         root.onTeardown(() =>
         {
-            throw new Error('framework cleanup failed');
+            throw new Error('React adapter cleanup failed');
         });
         root.onTeardown(hookAfter);
 
@@ -348,7 +348,7 @@ describe('root lifecycle state machine', () =>
 
         expect(error).toBeInstanceOf(TeardownError);
         expect(error.errors.map((item: Error) => item.message)).toEqual([
-            'framework cleanup failed',
+            'React adapter cleanup failed',
             'destroy failed for bad',
             'app destroy failed',
         ]);
@@ -358,15 +358,15 @@ describe('root lifecycle state machine', () =>
         // Repeated unmount returns the same settled promise; nothing is destroyed twice.
         expect(root.dispose()).toBe(first);
         await rejection(root.dispose());
-        expect(scene.log.filter((entry) => entry.op === 'appDestroy')).toHaveLength(1);
+        expect(pixi.log.filter((entry) => entry.op === 'appDestroy')).toHaveLength(1);
         // The lease was released: another runtime may own the canvas now.
         expect(() => composeFake().createRoot(canvas)).not.toThrow();
     });
 
     it('defers teardown one turn so a StrictMode remount cancels it, and tracks generations', async () =>
     {
-        const scene = new FakeSceneAdapter();
-        const root = await readyRoot(composeFake(scene));
+        const pixi = new FakePixiAdapter();
+        const root = await readyRoot(composeFake(pixi));
         const token = root.token();
 
         expect(token.current).toBe(true);
@@ -387,7 +387,7 @@ describe('root lifecycle state machine', () =>
 
         root.deferDispose({ reason: 'final' });
         await vi.waitFor(() => expect(root.status).toBe('disposed'));
-        expect(scene.log.filter((entry) => entry.op === 'appDestroy')).toEqual([
+        expect(pixi.log.filter((entry) => entry.op === 'appDestroy')).toEqual([
             { op: 'appDestroy', app: root.app, options: { reason: 'final' } },
         ]);
         expect(remounted.current).toBe(false);

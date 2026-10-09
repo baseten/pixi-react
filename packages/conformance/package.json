@@ -2,14 +2,14 @@
   "name": "@pixi-react-provisional/conformance",
   "version": "0.0.0",
   "private": true,
-  "description": "Renderer conformance scenarios, a fake scene backend and a runner that binds them to a React/scene composition. Not published.",
+  "description": "Renderer conformance scenarios, a fake Pixi backend and a runner that binds them to a React/Pixi composition. Not published.",
   "license": "MIT",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./fake-scene": "./src/fake-scene/index.ts",
-    "./fake-scene-adapter": "./src/fake-scene/adapter.ts",
-    "./fake-react-framework": "./src/fake-react/framework.tsx",
+    "./fake-pixi": "./src/fake-pixi/index.ts",
+    "./fake-pixi-adapter": "./src/fake-pixi/adapter.ts",
+    "./fake-react-adapter": "./src/fake-react/adapter.tsx",
     "./fake-probe": "./test/fake-binding/probe.ts"
   },
   "main": "./src/index.ts",

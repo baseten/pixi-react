@@ -1,11 +1,11 @@
 /**
- * `Pixi8Adapter`: the Pixi 8 `SceneAdapter`. The class is created per loaded Pixi module by `bindPixi` (see
+ * `Pixi8Adapter`: the Pixi 8 `PixiAdapter`. The class is created per loaded Pixi module by `bindPixi` (see
  * `bind.ts`); the package entry points export the class bound to the Pixi module their own module system loads.
  */
-import { ADAPTER_ID, CAPABILITIES, type PixiFeatures } from './scene.js';
+import { ADAPTER_ID, CAPABILITIES, type PixiFeatures } from './nodes.js';
 import { Pixi8Session, type SessionGlobals } from './session.js';
 import { checkSupportedVersion, PIXI8_BOUNDS, PIXI8_PEER_RANGE, PIXI8_TESTED_VERSIONS } from './version.js';
-import { type AdapterManifest, type CapabilityMap, CompatibilityError, type Constructor, type NodeDefinition, type RootTarget, type Runtime, SceneAdapter, type SceneSession } from '@pixi-react-provisional/core';
+import { type AdapterManifest, type CapabilityMap, CompatibilityError, type Constructor, type NodeDefinition, PixiAdapter, type PixiSession, type RootTarget, type Runtime } from '@pixi-react-provisional/core';
 
 import type { Pixi8Types } from './types.js';
 
@@ -74,15 +74,15 @@ export interface Pixi8AdapterOptions
 /** What `bindPixi` hands each bound adapter class. */
 export interface AdapterBinding
 {
-    readonly globals: Omit<SessionGlobals, 'scene'> & { readonly createScene: (enabled: (capability: string) => boolean) => SessionGlobals['scene'] };
+    readonly globals: Omit<SessionGlobals, 'nodes'> & { readonly createNodes: (enabled: (capability: string) => boolean) => SessionGlobals['nodes'] };
 }
 
 /**
- * The Pixi 8 scene adapter. It owns every Pixi operation: node definitions, construction, props, tree operations,
+ * The Pixi 8 adapter. It owns every Pixi operation: node definitions, construction, props, tree operations,
  * visibility, destruction, the application lifecycle, the ticker and Pixi's global settings. Construct it through
  * the package's exported `Pixi8Adapter`, which is this class bound to the loaded pixi.js module.
  */
-export class Pixi8AdapterBase extends SceneAdapter<Pixi8Types>
+export class Pixi8AdapterBase extends PixiAdapter<Pixi8Types>
 {
     readonly manifest: Pixi8Manifest;
     /** The pixi.js module this adapter is bound to. */
@@ -99,8 +99,8 @@ export class Pixi8AdapterBase extends SceneAdapter<Pixi8Types>
         this.pixi = pixi;
 
         const disabled = new Set(options.disable ?? []);
-        const scene = globals.createScene((capability) => this.manifest.provides[capability] === 1);
-        const { features } = scene;
+        const nodes = globals.createNodes((capability) => this.manifest.provides[capability] === 1);
+        const { features } = nodes;
         const optional: Array<[string, boolean]> = [
             [CAPABILITIES.filter, true],
             [CAPABILITIES.particle, features.particles],
@@ -127,7 +127,7 @@ export class Pixi8AdapterBase extends SceneAdapter<Pixi8Types>
             abi: Object.freeze({ major: 1 as const, minor: 0 }),
             id: ADAPTER_ID,
             packageVersion: PACKAGE_VERSION,
-            certification: `pixi-8@${PACKAGE_VERSION}: browser conformance and scene cells on pixi.js `
+            certification: `pixi-8@${PACKAGE_VERSION}: browser conformance and Pixi cells on pixi.js `
                 + `${PIXI8_TESTED_VERSIONS.join(', ')} (packages/pixi-8/test); no issue-13 matrix certificate yet`,
             provides: Object.freeze(provides) as CapabilityMap,
             requires: Object.freeze({}),
@@ -139,7 +139,7 @@ export class Pixi8AdapterBase extends SceneAdapter<Pixi8Types>
                 features,
             }),
         });
-        this.sessionGlobals = { ...globals, scene };
+        this.sessionGlobals = { ...globals, nodes };
     }
 
     normalizeName(name: string): string
@@ -166,10 +166,10 @@ export class Pixi8AdapterBase extends SceneAdapter<Pixi8Types>
 
     describe<C extends Constructor>(ctor: C, name: string): NodeDefinition<C>
     {
-        return this.sessionGlobals.scene.describe(ctor, name);
+        return this.sessionGlobals.nodes.describe(ctor, name);
     }
 
-    createSession(_runtime: Runtime<Pixi8Types>, target: RootTarget): SceneSession<Pixi8Types>
+    createSession(_runtime: Runtime<Pixi8Types>, target: RootTarget): PixiSession<Pixi8Types>
     {
         // Check against the canvas constructor of the target's own window, so a canvas in an iframe or another
         // window (which is not an instance of this realm's HTMLCanvasElement) is accepted.
@@ -191,7 +191,7 @@ export class Pixi8AdapterBase extends SceneAdapter<Pixi8Types>
     /** Standalone `applyProps`: applies plain, dashed, point and event props to any instance. */
     applyProps(node: object, props: unknown): void
     {
-        this.sessionGlobals.scene.applyChanges(node, {}, props);
+        this.sessionGlobals.nodes.applyChanges(node, {}, props);
     }
 
     /**
@@ -200,7 +200,7 @@ export class Pixi8AdapterBase extends SceneAdapter<Pixi8Types>
      */
     removeParticles<P>(container: { particleChildren: P[] }, begin: number, end: number): P[]
     {
-        return this.sessionGlobals.scene.removeParticleRange(container as never, begin, end) as P[];
+        return this.sessionGlobals.nodes.removeParticleRange(container as never, begin, end) as P[];
     }
 }
 

@@ -1,5 +1,5 @@
 /**
- * The default facade's scene adapter: `Pixi8Adapter` plus two facade-side parity shims (D4). Neither changes the
+ * The default facade's Pixi adapter: `Pixi8Adapter` plus two facade-side parity shims (D4). Neither changes the
  * adapter's defaults; a `createRenderer` composition that uses `Pixi8Adapter` directly gets the modular behaviour.
  *
  * 1. **Event props reach the constructor.** Upstream passed every React event prop to the constructor under its own
@@ -12,7 +12,7 @@
  */
 import { ReactToPixiEventPropNames } from '../constants/EventPropNames';
 
-import type { Constructor, NodeContext, NodeDefinition, RootTarget, Runtime, SceneSession } from '@pixi-react-provisional/core';
+import type { Constructor, NodeContext, NodeDefinition, PixiSession, RootTarget, Runtime } from '@pixi-react-provisional/core';
 import type { Pixi8AdapterBase, Pixi8AdapterConstructor, Pixi8Types } from '@pixi-react-provisional/pixi-8';
 
 type Props = Record<string, unknown>;
@@ -20,8 +20,8 @@ type Props = Record<string, unknown>;
 /** The attach rule of a dropped node: core attaches it like a child, and it accepts no children. */
 export const DROPPED_NODE_ATTACH = Object.freeze({ role: 'child', accepts: Object.freeze([] as string[]) });
 
-/** The facade's scene adapter instance type. */
-export interface FacadeSceneAdapter extends Pixi8AdapterBase
+/** The facade's Pixi adapter instance type. */
+export interface FacadePixiAdapter extends Pixi8AdapterBase
 {
     /** Constructors `extend` registered although Pixi8Adapter does not support them as scene nodes. */
     readonly droppedConstructors: WeakSet<object>;
@@ -108,7 +108,7 @@ function withEventOptions(definition: NodeDefinition, props: unknown): NodeDefin
 }
 
 /** Installs the shims on one session. The session is the adapter's own object; only these methods are replaced. */
-function patchSession(session: SceneSession<Pixi8Types>, dropped: WeakSet<object>): SceneSession<Pixi8Types>
+function patchSession(session: PixiSession<Pixi8Types>, dropped: WeakSet<object>): PixiSession<Pixi8Types>
 {
     const droppedNodes = new WeakSet<object>();
     const create = session.create.bind(session);
@@ -192,14 +192,14 @@ function patchSession(session: SceneSession<Pixi8Types>, dropped: WeakSet<object
     return session;
 }
 
-/** Creates the facade's scene adapter over the `Pixi8Adapter` class bound to one loaded pixi.js module. */
-export function createFacadeSceneAdapter(Pixi8Adapter: Pixi8AdapterConstructor): FacadeSceneAdapter
+/** Creates the facade's Pixi adapter over the `Pixi8Adapter` class bound to one loaded pixi.js module. */
+export function createFacadePixiAdapter(Pixi8Adapter: Pixi8AdapterConstructor): FacadePixiAdapter
 {
-    class FacadePixi8Adapter extends Pixi8Adapter implements FacadeSceneAdapter
+    class FacadePixi8Adapter extends Pixi8Adapter implements FacadePixiAdapter
     {
         readonly droppedConstructors = new WeakSet<object>();
 
-        createSession(runtime: Runtime<Pixi8Types>, target: RootTarget): SceneSession<Pixi8Types>
+        createSession(runtime: Runtime<Pixi8Types>, target: RootTarget): PixiSession<Pixi8Types>
         {
             return patchSession(super.createSession(runtime, target), this.droppedConstructors);
         }

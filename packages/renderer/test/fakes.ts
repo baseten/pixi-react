@@ -1,17 +1,17 @@
 /** Minimal fake adapters built on the published core entry, as a third-party adapter would be. */
-import { FrameworkAdapter, SceneAdapter } from '@pixi-react-provisional/core';
+import { PixiAdapter, ReactAdapter } from '@pixi-react-provisional/core';
 
 import type {
     AdapterManifest,
     Bind,
-    BindingFamily,
     Constructor,
     NodeDefinition,
+    PixiSession,
+    PixiTypes,
     PropsFamily,
+    ReactBindingFamily,
     RootTarget,
     Runtime,
-    SceneSession,
-    SceneTypes,
 } from '@pixi-react-provisional/core';
 
 export const manifest = (id: string, extra: Partial<AdapterManifest> = {}): AdapterManifest => ({
@@ -30,7 +30,7 @@ export class Item
     {}
 }
 
-export interface ItemScene extends SceneTypes
+export interface ItemPixiTypes extends PixiTypes
 {
     readonly node: Item;
     readonly app: { readonly name: 'item-app' };
@@ -38,12 +38,12 @@ export interface ItemScene extends SceneTypes
     readonly props: PropsFamily;
 }
 
-export class ItemSceneAdapter extends SceneAdapter<ItemScene>
+export class ItemPixiAdapter extends PixiAdapter<ItemPixiTypes>
 {
-    readonly manifest = manifest('test.items', { provides: { 'scene.mutation': 1 } });
+    readonly manifest = manifest('test.items', { provides: { 'pixi.mutation': 1 } });
     readonly sessions: RootTarget[] = [];
 
-    createSession(_runtime: Runtime<ItemScene>, target: RootTarget): SceneSession<ItemScene>
+    createSession(_runtime: Runtime<ItemPixiTypes>, target: RootTarget): PixiSession<ItemPixiTypes>
     {
         this.sessions.push(target);
 
@@ -73,19 +73,19 @@ export class ItemSceneAdapter extends SceneAdapter<ItemScene>
     }
 }
 
-export interface Tools<S extends SceneTypes>
+export interface Tools<S extends PixiTypes>
 {
     readonly runtimeId: symbol;
     extend(catalog: Record<string, Constructor>): void;
     mount(target: RootTarget): Promise<S['app']>;
 }
 
-export interface ToolsFamily extends BindingFamily
+export interface ToolsFamily extends ReactBindingFamily
 {
-    readonly type: Tools<Extract<this['scene'], SceneTypes>>;
+    readonly type: Tools<Extract<this['pixi'], PixiTypes>>;
 }
 
-export class ToolsFramework extends FrameworkAdapter<ToolsFamily>
+export class ToolsReactAdapter extends ReactAdapter<ToolsFamily>
 {
     readonly manifest: AdapterManifest;
     calls = 0;
@@ -93,10 +93,10 @@ export class ToolsFramework extends FrameworkAdapter<ToolsFamily>
     constructor(extra: Partial<AdapterManifest> = {}, private readonly result?: () => unknown)
     {
         super();
-        this.manifest = manifest('test.tools', { requires: { 'scene.mutation': 1 }, ...extra });
+        this.manifest = manifest('test.tools', { requires: { 'pixi.mutation': 1 }, ...extra });
     }
 
-    bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<ToolsFamily, S>
+    bind<S extends PixiTypes>(runtime: Runtime<S>): Bind<ToolsFamily, S>
     {
         this.calls += 1;
 

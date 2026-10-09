@@ -48,11 +48,11 @@
       "@pixi-react-provisional/conformance/fake-probe": [
         "./node_modules/@pixi-react-provisional/conformance/test/fake-binding/probe.ts"
       ],
-      "@pixi-react-provisional/conformance/fake-scene-adapter": [
-        "./node_modules/@pixi-react-provisional/conformance/src/fake-scene/adapter.ts"
+      "@pixi-react-provisional/conformance/fake-pixi-adapter": [
+        "./node_modules/@pixi-react-provisional/conformance/src/fake-pixi/adapter.ts"
       ],
-      "@pixi-react-provisional/conformance/fake-scene": [
-        "./node_modules/@pixi-react-provisional/conformance/src/fake-scene/index.ts"
+      "@pixi-react-provisional/conformance/fake-pixi": [
+        "./node_modules/@pixi-react-provisional/conformance/src/fake-pixi/index.ts"
       ]
     }
   },

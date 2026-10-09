@@ -2,7 +2,7 @@ import { CompatibilityError, CoreErrorCodes } from './errors.js';
 
 /**
  * DOM target ownership leases. This is the only state core shares between runtimes, and it holds nothing but
- * the owning runtime's identity: no catalogs, roots or framework state.
+ * the owning runtime's identity: no catalogs, roots or React state.
  *
  * The table lives on `globalThis` under a registered symbol so that independently installed copies of core
  * (which are distinct runtimes) still cannot own one target concurrently. The key is versioned: a future

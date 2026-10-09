@@ -13,21 +13,21 @@ const manifest = (id, extra) => ({
     abi: { major: 1, minor: 0 }, id, packageVersion: '0.0.0', certification: 'test', provides: {}, requires: {}, ...extra,
 });
 
-// A scene adapter built on the ESM entry and a framework adapter built on the CJS entry compose together.
-class Scene extends esm.SceneAdapter
+// A Pixi adapter built on the ESM entry and a React adapter built on the CJS entry compose together.
+class TestPixiAdapter extends esm.PixiAdapter
 {
-    manifest = manifest('dual.scene', { provides: { 'scene.mutation': 1 } });
+    manifest = manifest('dual.pixi', { provides: { 'pixi.mutation': 1 } });
     createSession() { throw new Error('unused'); }
     describe(ctor, name) { return { name, ctor, capabilities: {}, attach: { role: 'child', accepts: [] } }; }
 }
 
-class Framework extends cjs.FrameworkAdapter
+class TestReactAdapter extends cjs.ReactAdapter
 {
-    manifest = manifest('dual.framework');
+    manifest = manifest('dual.react');
     bind() { return {}; }
 }
 
-const runtime = esm.compose({ framework: new Framework(), scene: new Scene() });
+const runtime = esm.compose({ react: new TestReactAdapter(), pixi: new TestPixiAdapter() });
 let unknownElement;
 
 try

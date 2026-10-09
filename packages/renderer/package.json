@@ -2,7 +2,7 @@
   "name": "@pixi-react-provisional/renderer",
   "version": "0.0.0",
   "private": true,
-  "description": "The neutral createRenderer({ framework, scene }) composition factory. Depends only on @pixi-react-provisional/core; no global JSX declarations.",
+  "description": "The neutral createRenderer({ react, pixi }) composition factory. Depends only on @pixi-react-provisional/core; no global JSX declarations.",
   "license": "MIT",
   "type": "commonjs",
   "exports": {

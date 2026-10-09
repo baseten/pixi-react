@@ -371,7 +371,7 @@ export const applicationScenarios = [
     defineScenario({
         id: 'Application.extensions.registers',
         feature: 'Application.extensions',
-        requires: ['scene.globals'],
+        requires: ['pixi.globals'],
         title: 'extensions passed to Application are registered',
         expected: 'An extension in `extensions` is active once the Application has mounted.',
         async run({ mountApp, probe })
@@ -386,7 +386,7 @@ export const applicationScenarios = [
     defineScenario({
         id: 'Application.extensions.swap',
         feature: 'Application.extensions',
-        requires: ['scene.globals'],
+        requires: ['pixi.globals'],
         title: 'replacing the extensions list removes the old one and adds the new one',
         expected: 'Changing `extensions` from [A] to [B] removes A and registers B.',
         async run({ mountApp, probe })
@@ -405,7 +405,7 @@ export const applicationScenarios = [
         id: 'Application.extensions.kept-after-unmount',
         feature: 'Application.extensions',
         kind: 'parity',
-        requires: ['scene.globals'],
+        requires: ['pixi.globals'],
         title: 'extensions stay registered after the Application unmounts',
         expected: 'Upstream never removes extensions on unmount: they stay in the global registry (D4).',
         async run({ mountApp, unmount, probe })
@@ -421,7 +421,7 @@ export const applicationScenarios = [
     defineScenario({
         id: 'Application.defaultTextStyle.applies',
         feature: 'Application.defaultTextStyle',
-        requires: ['scene.globals'],
+        requires: ['pixi.globals'],
         title: 'defaultTextStyle sets the global default used by new text',
         expected: 'Text created after the Application mounted inherits the default font size.',
         async run({ elements: { text: Text }, mountApp, probe })
@@ -436,7 +436,7 @@ export const applicationScenarios = [
         id: 'Application.defaultTextStyle.kept-after-unmount',
         feature: 'Application.defaultTextStyle',
         kind: 'parity',
-        requires: ['scene.globals'],
+        requires: ['pixi.globals'],
         title: 'the global default text style is not restored on unmount',
         expected: 'Upstream leaves its default text style in place after unmount (D4 keeps this in the facade).',
         async run({ mountApp, unmount, probe })
@@ -451,7 +451,7 @@ export const applicationScenarios = [
         id: 'Application.defaultTextStyle.removed-restores-load-time',
         feature: 'Application.defaultTextStyle',
         kind: 'parity',
-        requires: ['scene.globals'],
+        requires: ['pixi.globals'],
         title: 'removing defaultTextStyle restores the module-load default',
         expected: 'Upstream restores the default captured when the module loaded, not the value before this app.',
         async run({ mountApp, probe })
@@ -588,7 +588,7 @@ export const applicationScenarios = [
     defineScenario({
         id: 'multi-root.default-text-style-global',
         feature: 'multi-root',
-        requires: ['scene.globals'],
+        requires: ['pixi.globals'],
         title: 'defaultTextStyle is global and non-retroactive across applications',
         expected: 'One app\'s default style affects text created later in another app, but not existing text.',
         async run({ api: { Application }, composition, elements: { text: Text }, renderUntil, deferred, probe })

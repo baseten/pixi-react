@@ -2,7 +2,7 @@
   "name": "@pixi-react-provisional/react-19",
   "version": "0.0.0",
   "private": true,
-  "description": "React 19 framework adapters (React19Adapter) for the modular renderer. One subpath per audited React 19 epoch, each bundling its exact react-reconciler. No Pixi dependency.",
+  "description": "React 19 adapters (React19Adapter) for the modular renderer. One subpath per audited React 19 epoch, each bundling its exact react-reconciler. No Pixi dependency.",
   "license": "MIT",
   "type": "commonjs",
   "exports": {

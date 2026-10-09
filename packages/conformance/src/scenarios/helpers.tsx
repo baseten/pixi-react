@@ -1,16 +1,16 @@
 import { Component, type ReactNode } from 'react';
 
-import type { SceneProbe } from '../binding';
+import type { PixiProbe } from '../binding';
 import type { ScenarioContext } from '../context';
 
 /** Labels of a node's direct children, in scene order. */
-export function childLabels(probe: SceneProbe, node: unknown): Array<string | undefined>
+export function childLabels(probe: PixiProbe, node: unknown): Array<string | undefined>
 {
     return probe.children(node).map((child) => probe.label(child));
 }
 
 /** Depth-first search for the first descendant with `label`. */
-export function findByLabel(probe: SceneProbe, root: unknown, label: string): unknown
+export function findByLabel(probe: PixiProbe, root: unknown, label: string): unknown
 {
     for (const child of probe.children(root))
     {
@@ -31,7 +31,7 @@ export function findByLabel(probe: SceneProbe, root: unknown, label: string): un
 }
 
 /** Like `findByLabel`, but throws a descriptive error when the node is missing. */
-export function getByLabel(probe: SceneProbe, root: unknown, label: string): object
+export function getByLabel(probe: PixiProbe, root: unknown, label: string): object
 {
     const node = findByLabel(probe, root, label);
 

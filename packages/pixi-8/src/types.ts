@@ -1,5 +1,5 @@
 /**
- * Pixi 8 scene types. Every type is derived from the consumer's installed `pixi.js` declarations; nothing here
+ * Pixi 8 `PixiTypes`. Every type is derived from the consumer's installed `pixi.js` declarations; nothing here
  * names a type that the 8.2.6 floor does not declare (particles, RenderLayer and DOMContainer are typed by the
  * installed Pixi when a consumer passes their constructors). The complete public constructor/event/children
  * mapping is issue 11's work; these are ported from the contract sketch (`design/contract/pixi-8.d.ts`), which in
@@ -43,7 +43,7 @@ import type {
     TilingSprite,
     TilingSpriteOptions,
 } from 'pixi.js';
-import type { Constructor, PropsFamily, SceneTypes } from '@pixi-react-provisional/core';
+import type { Constructor, PixiTypes, PropsFamily } from '@pixi-react-provisional/core';
 
 /**
  * Version-owned constructor override table, from upstream `src/typedefs/ConstructorOverrides.ts` (30cf1f8).
@@ -109,7 +109,7 @@ export type DrawCallback<I> = (graphics: I) => void;
 
 type GraphicsProps<I> = I extends Graphics ? { draw?: DrawCallback<I> } : unknown;
 
-/** Element props of a constructor, minus the framework-owned ref/key/children. */
+/** Element props of a constructor, minus the React-owned ref/key/children. */
 export type Pixi8Props<C extends Constructor> =
     & GraphicsProps<InstanceType<C>>
     & OmitKeys<ExcludeFunctionProps<ConstructorOptions<C>>, TreeOwnedKeys & PixiToReactEventPropNames>
@@ -129,7 +129,7 @@ export interface Pixi8GlobalAppProps
     defaultTextStyle?: TextStyle | TextStyleOptions;
 }
 
-/** What `resizeTo` accepts once a framework has unwrapped its refs. `null` clears it. */
+/** What `resizeTo` accepts once React has unwrapped its refs. `null` clears it. */
 export type Pixi8ResizeTarget = HTMLElement | Window | null;
 
 /** Initialization options: Pixi's own options plus the global settings, applied before `Application.init`. */
@@ -153,7 +153,7 @@ export interface Pixi8DestroyOptions
     rendererDestroyOptions?: RendererDestroyOptions | boolean;
 }
 
-export interface Pixi8Types extends SceneTypes
+export interface Pixi8Types extends PixiTypes
 {
     readonly node: object;
     readonly app: Application;

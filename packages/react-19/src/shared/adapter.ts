@@ -6,9 +6,9 @@ import {
     type Bind,
     type CapabilityMap,
     CompatibilityError,
-    FrameworkAdapter,
+    type PixiTypes,
+    ReactAdapter,
     type Runtime,
-    type SceneTypes,
 } from '@pixi-react-provisional/core';
 
 import type { EpochRenderer } from './host.js';
@@ -27,12 +27,12 @@ export interface EpochInfo
     readonly provides: CapabilityMap;
 }
 
-/** The scene capabilities every React 19 epoch needs. */
-export const REQUIRED_SCENE_CAPABILITIES: CapabilityMap = Object.freeze({
-    'scene.mutation': 1,
-    'scene.visibility': 1,
-    'scene.application': 1,
-    'scene.ticker': 1,
+/** The Pixi capabilities every React 19 epoch needs. */
+export const REQUIRED_PIXI_CAPABILITIES: CapabilityMap = Object.freeze({
+    'pixi.mutation': 1,
+    'pixi.visibility': 1,
+    'pixi.application': 1,
+    'pixi.ticker': 1,
 });
 
 function minorOf(version: string): string | undefined
@@ -41,15 +41,15 @@ function minorOf(version: string): string | undefined
 }
 
 /**
- * The shared React 19 framework adapter. It owns everything React-side: the reconciler, roots, the host config,
- * the context bridge and the hook and component shells. All scene work goes through core's `SceneSession`
+ * The shared React 19 adapter. It owns everything React-side: the reconciler, roots, the host config,
+ * the context bridge and the hook and component shells. All scene work goes through core's `PixiSession`
  * protocol, so the adapter never names a scene library.
  *
  * Each subpath exports one concrete epoch subclass (`React190Adapter` … `React193Adapter`, also exported as
  * `React19Adapter` from that subpath). A subclass supplies the epoch's own host config and root factory, typed
  * against the exact react-reconciler that subpath bundles; no host config is shared across epochs through a cast.
  */
-export abstract class React19Adapter extends FrameworkAdapter<React19Family>
+export abstract class React19Adapter extends ReactAdapter<React19Family>
 {
     /** The audited epoch this subclass implements. */
     abstract readonly epoch: EpochInfo;
@@ -67,10 +67,10 @@ export abstract class React19Adapter extends FrameworkAdapter<React19Family>
                 id: `react-19/${epoch}`,
                 packageVersion: PACKAGE_VERSION,
                 provides,
-                requires: REQUIRED_SCENE_CAPABILITIES,
+                requires: REQUIRED_PIXI_CAPABILITIES,
                 certification: `@pixi-react-provisional/react-19/${epoch}: react ${testedReact.join(' | ')}; `
                     + `react-reconciler ${reconciler} (bundled); its-fine 2.1.1 (bundled). `
-                    + 'Tested against the fake scene backend; candidate-not-certified until the issue-13 matrix runs.',
+                    + 'Tested against the fake Pixi adapter; candidate-not-certified until the issue-13 matrix runs.',
             });
         }
 
@@ -108,7 +108,7 @@ export abstract class React19Adapter extends FrameworkAdapter<React19Family>
         }
     }
 
-    bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<React19Family, S>
+    bind<S extends PixiTypes>(runtime: Runtime<S>): Bind<React19Family, S>
     {
         const bindings = createBindings(runtime, {
             adapterId: this.manifest.id,
@@ -116,12 +116,12 @@ export abstract class React19Adapter extends FrameworkAdapter<React19Family>
             useParentActivity: this.parentActivityBridge(),
         });
 
-        // `Extract<S, SceneTypes>` is `S`; TypeScript cannot reduce it for a generic S (see core's README).
+        // `Extract<S, PixiTypes>` is `S`; TypeScript cannot reduce it for a generic S (see core's README).
         return bindings as Bind<React19Family, S>;
     }
 
     /** Builds this epoch's reconciler, host config and root factory for one runtime. */
-    protected abstract createRenderer<S extends SceneTypes>(runtime: Runtime<S>): EpochRenderer<S>;
+    protected abstract createRenderer<S extends PixiTypes>(runtime: Runtime<S>): EpochRenderer<S>;
 
     /**
      * A hook that forwards the parent tree's Activity visibility into the scene root, for epochs whose React has

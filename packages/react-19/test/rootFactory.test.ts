@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { EPOCHS } from './epochs';
 
 import type { EpochRootCallbacks, HostContainer } from '../src/shared/host';
-import type { SceneTypes } from '@pixi-react-provisional/core';
+import type { PixiTypes } from '@pixi-react-provisional/core';
 
 const require = createRequire(import.meta.url);
 
@@ -36,7 +36,7 @@ function recordArguments(createContainer: (typeof EPOCHS)[number]['hostConfig'][
         onRecoverableError: () => undefined,
     };
 
-    createContainer(reconciler as never, {} as HostContainer<SceneTypes>, callbacks, 'prefix');
+    createContainer(reconciler as never, {} as HostContainer<PixiTypes>, callbacks, 'prefix');
 
     return recorded;
 }

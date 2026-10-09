@@ -1,6 +1,6 @@
 /**
- * Scene-neutral ABI 1 types. Nothing here names React, a reconciler, its-fine or Pixi: a scene adapter supplies
- * its own types through `SceneTypes`, and a framework adapter substitutes them into its `BindingFamily`.
+ * Library-neutral ABI 1 types. Nothing here names React, a reconciler, its-fine or Pixi: a Pixi adapter supplies
+ * its own types through `PixiTypes`, and a React adapter substitutes them into its `ReactBindingFamily`.
  */
 
 /** Any constructor a catalog can hold. `never[]` parameters accept constructors with any argument list. */
@@ -8,21 +8,21 @@ export type Constructor = new (...args: never[]) => object;
 
 export type Catalog = Readonly<Record<string, Constructor>>;
 
-/** Capability IDs (namespaced strings such as `scene.mutation`) mapped to integer protocol versions. */
+/** Capability IDs (namespaced strings such as `pixi.mutation`) mapped to integer protocol versions. */
 export type CapabilityMap = Readonly<Record<string, number>>;
 
-/** Higher-kinded constructor-to-props mapping, supplied by the scene adapter. */
+/** Higher-kinded constructor-to-props mapping, supplied by the Pixi adapter. */
 export interface PropsFamily
 {
     readonly constructorType: unknown;
     readonly type: unknown;
 }
 
-export type PropsOf<S extends SceneTypes, C extends Constructor> =
+export type PropsOf<S extends PixiTypes, C extends Constructor> =
     (S['props'] & { readonly constructorType: C })['type'];
 
-/** The types one scene adapter works with. */
-export interface SceneTypes
+/** The types one Pixi adapter works with. */
+export interface PixiTypes
 {
     readonly node: object;
     readonly app: object;
@@ -48,7 +48,7 @@ export interface AttachRule
 }
 
 /**
- * Descriptive metadata only: no create/update/destroy. The `SceneSession` is the single owner of node
+ * Descriptive metadata only: no create/update/destroy. The `PixiSession` is the single owner of node
  * construction, update and destruction.
  */
 export interface NodeDefinition<C extends Constructor = Constructor>
@@ -56,7 +56,7 @@ export interface NodeDefinition<C extends Constructor = Constructor>
     /** Normalized catalog name. From `component(Ctor)`: the explicit name, else a WeakMap-assigned id; never `Ctor.name`. */
     readonly name: string;
     readonly ctor: C;
-    /** Scene capability IDs and protocol versions this node needs; validated before its first construction. */
+    /** Pixi capability IDs and protocol versions this node needs; validated before its first construction. */
     readonly capabilities: CapabilityMap;
     readonly attach: AttachRule;
 }
@@ -77,17 +77,17 @@ export interface TickOptions<T, Context = unknown>
 }
 
 /**
- * Open higher-kinded family: the framework substitutes the scene type into its API. A family declares
- * `readonly type: MyBindings<Extract<this['scene'], SceneTypes>>`. `scene` stays `unknown` (as in the ABI sketch):
- * `Bind` then substitutes exactly `S`, with no `SceneTypes & S` intersection for consumers to resolve.
+ * Open higher-kinded family: the React adapter substitutes the Pixi types into its API. A family declares
+ * `readonly type: MyBindings<Extract<this['pixi'], PixiTypes>>`. `pixi` stays `unknown` (as in the ABI sketch):
+ * `Bind` then substitutes exactly `S`, with no `PixiTypes & S` intersection for consumers to resolve.
  */
-export interface BindingFamily
+export interface ReactBindingFamily
 {
-    readonly scene: unknown;
+    readonly pixi: unknown;
     readonly type: unknown;
 }
 
-export type Bind<F extends BindingFamily, S extends SceneTypes> = (F & { readonly scene: S })['type'];
+export type Bind<F extends ReactBindingFamily, S extends PixiTypes> = (F & { readonly pixi: S })['type'];
 
 /** The ABI protocol version an adapter implements. Independent of npm package versions. */
 export interface AbiVersion

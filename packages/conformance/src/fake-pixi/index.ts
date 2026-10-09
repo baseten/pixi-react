@@ -10,5 +10,5 @@ export {
     FakeText,
     FakeTicker,
 } from './nodes';
-export type { FakeNodeDefinition, FakeSceneFaults, FakeSceneSessionOptions } from './session';
-export { applyFakeProps, dispatchFakeEvent, FakeSceneSession, sceneEventName } from './session';
+export type { FakeNodeDefinition, FakePixiFaults, FakePixiSessionOptions } from './session';
+export { applyFakeProps, dispatchFakeEvent, FakePixiSession, pixiEventName } from './session';

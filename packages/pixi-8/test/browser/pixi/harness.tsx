@@ -1,5 +1,5 @@
 /**
- * Harness for the Pixi-specific browser tests: a fresh composition (real Pixi8Adapter, fake React 19 framework
+ * Harness for the Pixi-specific browser tests: a fresh composition (real Pixi8Adapter, fake React 19
  * adapter) and the conformance scenario context that drives it, torn down after each test.
  */
 import { afterEach } from 'vitest';

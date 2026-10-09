@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { CompatibilityError } from '../src/index.js';
-import { composeFake, FakeFilter, FakeNode, FakeSceneAdapter } from './fakes.js';
+import { composeFake, FakeFilter, FakeNode, FakePixiAdapter } from './fakes.js';
 
 function codeOf(action: () => unknown): string | undefined
 {
@@ -36,7 +36,7 @@ describe('per-runtime registry', () =>
         expect(definition).toEqual({
             name: 'Node',
             ctor: FakeNode,
-            capabilities: { 'scene.mutation': 1 },
+            capabilities: { 'pixi.mutation': 1 },
             attach: { role: 'child', accepts: ['child', 'filter'] },
         });
         expect(Object.isFrozen(definition)).toBe(true);
@@ -82,7 +82,7 @@ describe('per-runtime registry', () =>
 
     it('lets the facade opt into upstream replacement (D4) with the replace policy', () =>
     {
-        const { registry } = composeFake(new FakeSceneAdapter(), { registryConflict: 'replace' });
+        const { registry } = composeFake(new FakePixiAdapter(), { registryConflict: 'replace' });
 
         class Other extends FakeNode
         {}
@@ -115,12 +115,12 @@ describe('per-runtime registry', () =>
 
         expect(error?.code).toBe('UNKNOWN_ELEMENT');
         expect(error?.message).toMatch(/"Missing" is not registered.*extend\(\{ Missing \}\)/);
-        expect(error?.adapterIds).toEqual(['test.framework', 'test.scene']);
+        expect(error?.adapterIds).toEqual(['test.react', 'test.pixi']);
     });
 
-    it('normalizes names once through the scene adapter', () =>
+    it('normalizes names once through the Pixi adapter', () =>
     {
-        const { registry } = composeFake(new FakeSceneAdapter({ prefix: 'fake' }));
+        const { registry } = composeFake(new FakePixiAdapter({ prefix: 'fake' }));
 
         registry.extend({ fakeNode: FakeNode });
 
@@ -132,7 +132,7 @@ describe('per-runtime registry', () =>
     {
         class Resource
         {}
-        const { registry } = composeFake(new FakeSceneAdapter({ unsupported: [Resource] }));
+        const { registry } = composeFake(new FakePixiAdapter({ unsupported: [Resource] }));
 
         expect(codeOf(() => registry.extend({ Node: FakeNode, Resource }))).toBe('UNSUPPORTED_NODE');
         expect(registry.has('Node')).toBe(false);
@@ -154,7 +154,7 @@ describe('per-runtime registry', () =>
     {
         it('uses an explicit name, normalized like extend keys', () =>
         {
-            const { registry } = composeFake(new FakeSceneAdapter({ prefix: 'fake' }));
+            const { registry } = composeFake(new FakePixiAdapter({ prefix: 'fake' }));
 
             expect(registry.define(FakeNode, 'fakeWidget').name).toBe('Widget');
             expect(registry.resolve('Widget').ctor).toBe(FakeNode);

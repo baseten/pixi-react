@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SceneJournal } from '../src/journal';
+import { PixiJournal } from '../src/journal';
 import { runExpectedFailure, runScenario, ScenarioErrors, validateBinding } from '../src/runner';
 import { defineScenario } from '../src/scenario';
 
@@ -12,7 +12,7 @@ function stubComposition(onDispose: () => void = () => undefined): Composition
         api: {} as Composition['api'],
         elements: {} as Composition['elements'],
         elementFor: () => (() => null),
-        probe: { journal: new SceneJournal() } as Composition['probe'],
+        probe: { journal: new PixiJournal() } as Composition['probe'],
         appOptions: {},
         dispose: onDispose,
     };

@@ -8,11 +8,11 @@ export type {
     InitAttempt,
     InitGate,
     NodeKind,
+    PixiElement,
+    PixiGlobalsProbe,
+    PixiProbe,
     ReactBindingApi,
     RootLike,
-    SceneElement,
-    SceneGlobalsProbe,
-    SceneProbe,
     TickOptionsLike,
 } from './binding';
 export type { Deferred, MountedApp, RenderOptions, ScenarioContext, ScenarioContextHandle } from './context';
@@ -21,7 +21,7 @@ export { renderFeatureMap } from './featureMap';
 export type { FeatureId } from './features';
 export { FEATURES } from './features';
 export type { JournalEntry, JournalOp } from './journal';
-export { SceneJournal } from './journal';
+export { PixiJournal } from './journal';
 export type { DescribeConformanceOptions } from './runner';
 export { describeConformance, missingCapabilities, runExpectedFailure, runScenario, ScenarioErrors, validateBinding } from './runner';
 export type { Scenario, ScenarioDefinition, ScenarioKind } from './scenario';
