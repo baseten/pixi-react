@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { loadReleaseConfig, makeRewriter, repoRoot } from './config.mjs';
+import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
 import { checkPolicy, readPlan } from './policy.mjs';
 import { releaseManifest, tarballName } from './stage.mjs';
@@ -224,5 +225,39 @@ test('syncVersionConstants copies package.json versions into the source constant
     finally
     {
         rmSync(root, { recursive: true, force: true });
+    }
+});
+
+test('the consumer tree check counts physical copies, not logical versions', () =>
+{
+    const dir = mkdtempSync(join(tmpdir(), 'release-installs-'));
+    const install = (location, name, version) =>
+    {
+        mkdirSync(join(dir, location), { recursive: true });
+        writeFileSync(join(dir, location, 'package.json'), JSON.stringify({ name, version }));
+    };
+
+    try
+    {
+        install('node_modules/@pixi/react-core', '@pixi/react-core', '1.0.0');
+        install('node_modules/@pixi/react-19.3', '@pixi/react-19.3', '1.0.0');
+        const scenario = { registry: {}, tree: { exactly: { '@pixi/react-core': '1.0.0' } } };
+        // `npm ls` shows the same version on both paths, so a version count alone cannot see the second copy.
+        const tree = {
+            dependencies: {
+                '@pixi/react-core': { version: '1.0.0' },
+                '@pixi/react-19.3': { version: '1.0.0', dependencies: { '@pixi/react-core': { version: '1.0.0' } } },
+            }
+        };
+
+        assert.deepEqual(checkTree(scenario, tree, scanInstalls(dir)).problems, []);
+
+        install('node_modules/@pixi/react-19.3/node_modules/@pixi/react-core', '@pixi/react-core', '1.0.0');
+        assert.deepEqual(scanInstalls(dir)['@pixi/react-core'].map((copy) => copy.location), ['node_modules/@pixi/react-19.3/node_modules/@pixi/react-core', 'node_modules/@pixi/react-core']);
+        assert.match(checkTree(scenario, tree, scanInstalls(dir)).problems.join('\n'), /@pixi\/react-core: installed 1\.0\.0 at node_modules\/@pixi\/react-19\.3\/node_modules\/@pixi\/react-core, 1\.0\.0 at node_modules\/@pixi\/react-core, expected exactly 1\.0\.0 once/);
+    }
+    finally
+    {
+        rmSync(dir, { recursive: true, force: true });
     }
 });

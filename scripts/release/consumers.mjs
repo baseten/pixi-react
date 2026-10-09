@@ -14,16 +14,16 @@
  *   that cell's reconciler and bridge may be installed; a React 18 consumer gets no React 19 package of any kind.
  * - `renderer-only` and `core-only`: the neutral factory and core install no React, no reconciler and no pixi.js.
  *
- * Each scenario runs `npm ls --all` (must be clean), the tree expectations, `consumer/check-modules.mjs` (import and
+ * Each scenario runs `npm ls --all` (must be clean), the tree expectations (pinned packages counted as physical copies), `consumer/check-modules.mjs` (import and
  * require, adapter manifests, composition and registration), `consumer/check-declarations.cjs` (NodeNext import and
  * require declarations, runtime/declaration parity) and `tsc` over the scenario's `.mts` and `.cts` programs.
  *
  * Usage: node scripts/release/consumers.mjs [--tarballs <dir>] [--only <scenario>]... [--skip-install] [--list]
  */
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadSeed, selectCells } from '../../design/compatibility/cells/matrix.mjs';
 import { loadReleaseConfig, repoRoot } from './config.mjs';
@@ -194,6 +194,45 @@ function flattenTree(node, out = [], trail = [])
     return out;
 }
 
+/**
+ * Every physical copy under `<dir>/node_modules`, nested `node_modules` included: `{ [name]: [{ location, version }] }`.
+ * `npm ls` reports the logical tree, which can show one version for two physical copies; two copies of core mean two
+ * registries, so the `exactly` expectations are checked against this instead.
+ */
+export function scanInstalls(dir)
+{
+    const installs = {};
+    const visit = (modules) =>
+    {
+        if (!existsSync(modules)) return;
+        for (const entry of readdirSync(modules, { withFileTypes: true }))
+        {
+            if (entry.name.startsWith('.') || !entry.isDirectory()) continue;
+            const packageDirs = entry.name.startsWith('@')
+                ? readdirSync(join(modules, entry.name), { withFileTypes: true }).filter((child) => child.isDirectory()).map((child) => join(modules, entry.name, child.name))
+                : [join(modules, entry.name)];
+
+            for (const packageDir of packageDirs)
+            {
+                const manifestPath = join(packageDir, 'package.json');
+
+                if (existsSync(manifestPath))
+                {
+                    const { name, version } = JSON.parse(readFileSync(manifestPath, 'utf8'));
+
+                    (installs[name] ??= []).push({ location: relative(dir, packageDir), version });
+                }
+                visit(join(packageDir, 'node_modules'));
+            }
+        }
+    };
+
+    visit(join(dir, 'node_modules'));
+    for (const copies of Object.values(installs)) copies.sort((a, b) => a.location.localeCompare(b.location));
+
+    return installs;
+}
+
 function satisfiesCaretMajor(version, range)
 {
     // Only the forms used above: `^<major>` and exact versions.
@@ -202,18 +241,23 @@ function satisfiesCaretMajor(version, range)
     return version === range;
 }
 
-export function checkTree(scenario, tree)
+/** `tree` is `npm ls --all --json`; `installs` is `scanInstalls(dir)`, the physical copies. */
+export function checkTree(scenario, tree, installs)
 {
     const problems = [];
     const nodes = flattenTree(tree);
-    const versionsOf = (name) => [...new Set(nodes.filter((node) => node.name === name).map((node) => node.version))];
+    const copiesOf = (name) => installs[name] ?? [];
+    const versionsOf = (name) => [...new Set([...nodes.filter((node) => node.name === name), ...copiesOf(name)].map((node) => node.version))];
 
     for (const node of nodes) if (node.missing || node.invalid) problems.push(`npm ls: ${node.path} is ${node.missing ? 'missing' : 'invalid'}`);
     for (const [name, version] of Object.entries(scenario.tree.exactly ?? {}))
     {
-        const versions = versionsOf(name);
+        const copies = copiesOf(name);
 
-        if (versions.length !== 1 || versions[0] !== version) problems.push(`${name}: installed ${versions.join(', ') || 'nothing'}, expected exactly ${version} once`);
+        if (copies.length !== 1 || copies[0].version !== version)
+        {
+            problems.push(`${name}: installed ${copies.map((copy) => `${copy.version} at ${copy.location}`).join(', ') || 'nothing'}, expected exactly ${version} once`);
+        }
     }
     for (const name of scenario.tree.absent ?? []) if (versionsOf(name).length) problems.push(`${name} is installed (${versionsOf(name).join(', ')}); this consumer must not get it`);
     for (const [name, ranges] of Object.entries(scenario.tree.forbiddenVersions ?? {}))
@@ -300,11 +344,11 @@ export function runScenario(scenario, { tarballDir, root: consumersRoot, skipIns
         step('tree', () =>
         {
             const tree = JSON.parse(run('npm', ['ls', '--all', '--json'], { cwd: dir }));
-            const { problems, packages } = checkTree(scenario, tree);
+            const { problems, packages } = checkTree(scenario, tree, scanInstalls(dir));
 
             if (problems.length) throw new Error(problems.join('\n'));
 
-            return `${packages} packages, npm ls clean`;
+            return `${packages} packages, npm ls clean, one physical copy of each pinned package`;
         });
         step('modules', () => run(process.execPath, ['check-modules.mjs'], { cwd: dir }).trim().split('\n').slice(1)
             .map((line) => line.trim())
