@@ -11,7 +11,8 @@ import { declarationSeries } from './declaration-series.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const manifest = JSON.parse(readFileSync(process.env.AUDIT_MANIFEST || join(here, 'seed.json')));
 const filter = process.argv[2];
-const selected = manifest.probes.filter((tuple) => !filter || tuple.id.includes(filter));
+// A leading `=` selects one tuple exactly (`=pixi-8.2.6`); otherwise the filter is a substring.
+const selected = manifest.probes.filter((tuple) => !filter || (filter.startsWith('=') ? tuple.id === filter.slice(1) : tuple.id.includes(filter)));
 
 assert.ok(selected.length > 0, `No audit tuples match filter ${JSON.stringify(filter)}`);
 const root = process.env.AUDIT_WORKDIR || mkdtempSync(join(tmpdir(), 'pixi-version-audit-'));

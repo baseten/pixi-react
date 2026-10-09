@@ -1,0 +1,84 @@
+# Adapter compatibility cells (issue 13)
+
+Isolated, data-driven compatibility cells for the modular adapters, run locally and in CI with the same command. The list of cells is [generated](COMPATIBILITY.md) from the #3 seed (`../seed.json`); nothing lists a cell by hand. This is not a support certificate: `advertisedRanges` stays empty until the owner promotes a range.
+
+```sh
+pnpm build
+pnpm test:compatibility            # PR tier: probes + cells + incompatible pairs, then the table
+
+node design/compatibility/cells/run-cells.mjs list --tier nightly
+node design/compatibility/cells/run-cells.mjs run --cell react-19.3.0_pixi-8.22.0
+node design/compatibility/cells/run-cells.mjs run --negative
+node design/compatibility/cells/run-cells.mjs probes --tier pr
+node design/compatibility/cells/run-cells.mjs key --cell react-18.3.1_pixi-8.2.6   # cache keys
+node design/compatibility/cells/run-cells.mjs doc > design/compatibility/cells/COMPATIBILITY.md
+node --test design/compatibility/cells/*.test.mjs   # offline
+```
+
+Browser cells need Chromium for the pinned Playwright (`npx playwright@1.50.1 install chromium`); set `CI=true` outside CI to run headless. Output goes to `.compat/` (git-ignored): `tarballs/`, `verdicts/`, `results/`, and `out/<cell>/` with logs, the `npm ls` dump, the lockfile, the generated project files and screenshots.
+
+## What a cell is
+
+A cell is one React adapter at one exact React version against one Pixi adapter at one exact pixi.js version. The runner:
+
+1. Packs the workspace artifacts with `pnpm pack` (what a registry would serve) and records per-file content hashes (`pack`).
+2. Creates a project in the OS temp directory, refuses to run when any ancestor directory has a `node_modules`, and installs only the packed tarballs plus the cell's exact `react`, `react-dom`, `@types/react`, `@types/react-dom`, `pixi.js` and the pinned toolchain, with `npm install --strict-peer-deps --ignore-scripts`. There is no workspace, no alias and no hoisting, so a missing peer or an unsatisfied declaration fails there.
+3. Runs the commands listed in `adapterMatrix.commands.order`, each with its own timeout:
+   - `install`: as above.
+   - `tree`: `npm ls --all` must be clean; each selected package resolves to exactly one version; whatever an adapter bundles (reconciler, its-fine) must be absent; the packed `peerDependencies` must equal the manifest's `declaredPeers`.
+   - `modules`: the adapter entries load through `import` and `require` in plain Node; the adapter manifest's ABI, id, `provides` and `requires` equal the manifest; the reconciler version it reports equals the epoch's; `checkEnvironment()` accepts the cell; `createRenderer` negotiates the pair; the ESM and CJS entries share one class where the manifest says they must (D6).
+   - `types`: `tsc` with the cell's own TypeScript, `@types/react` and Pixi declarations over a consumer probe (Bundler resolution, JSX) and over `.mts` and `.cts` consumers (NodeNext, which selects the `import` and `require` declaration conditions). `skipLibCheck` is on, as in the #3 audit; full dependency declaration correctness is not claimed.
+   - `conformance`: the whole conformance catalogue in Chromium (Vitest browser mode) against real Pixi.
+
+Cells use the same Pixi probe (`probeSource`) and conformance package as the package test suites; the adapter-specific suites stay in the packages' own fixtures (`pnpm test:conformance`, `pnpm test:e2e`).
+
+## Manifest: `adapterMatrix` in `../seed.json`
+
+| Key | Meaning |
+| --- | --- |
+| `toolchain` | Exact TypeScript, Vitest, `@vitest/browser`, Playwright and Vite versions installed in every cell. |
+| `commands` | Command order and per-command timeouts (seconds). |
+| `artifacts` | Packed workspace packages by id: `dir` and `package`. `commonArtifacts` are installed in every cell (core, renderer, the conformance harness). |
+| `reactAdapters` | Keyed by a `reactEpochs` id. Data about the adapter: `artifact`, `entry` (export subpath, `.` for the root), `className`, `hashScope` (`entry` or `package`), `adapterId`, `abi`, `provides`, `requires`, `declaredPeers`, `reconciler` (`via: bundled` or `dependency`, and the export that reports its version), `bundled` (packages that must not appear in the tree), `typesReactDom`, `conformanceCapabilities`, `typeProbes`, optional `expectedConformanceFailures`. |
+| `pixiAdapters` | The same for the Pixi adapter, plus `excludedVersions`, `capabilities` (always provided, and provided from a `pixiEpochs.capabilityBoundaries` boundary) and `probeSource`. |
+| `tiers` | `pr` and `nightly`: which React patches, which Pixi versions, which boundary probes. |
+| `negative` | Deliberately incompatible pairs: the command that must fail and the message it must contain. |
+
+Exact versions are not repeated here. React versions, `@types/react` and the reconciler come from the audited `probes` tuples (lowest and highest audited patch of each epoch's minor); Pixi versions are the highest audited non-excluded patch of each Pixi 8 minor between `pixiEpochs.pixi8.minimum` and `current`. Adding a probe tuple to the seed and promoting it is what adds a cell. `validate.mjs` runs `validateAdapterMatrix`, which checks the section against the rest of the seed.
+
+## Tiers and checks
+
+| Tier | Runs | Workflow, check |
+| --- | --- | --- |
+| PR | Each React epoch at its latest patch x pixi.js 8.2.6 and 8.22.0 (10 cells); fast probes at 8.2.6, 8.5.0 (excluded), 8.5.2, 8.7.0 (RenderLayer), 8.9.0 (DOMContainer), 8.10.0 (removeParticles), 8.22.0; the incompatible pairs | `Compatibility`; the one required check is **Compatibility (required)** |
+| Nightly | Each React epoch at its latest patch x every Pixi 8 minor at its latest audited patch (105 cells, or 168 with `patches: all`), every audited tuple as a probe, the incompatible pairs | `Compatibility nightly`; **Compatibility (nightly)** reports the table and fails on any failure; **Open or update the failure issue** (the only job with `issues: write`) files one issue |
+
+Boundary probes re-run the #3 audit runner against the registry and compare the result with `evidence.json` and the seed's pinned digests. A changed observation, declaration surface, React ABI, type diagnostic or expected known failure fails the probe ("unexpected API/type drift"): a minor or patch that moved is reviewed before any range is widened. A changed transitive resolution is a warning only.
+
+## Caching
+
+- pnpm store: keyed by the lockfile (the shared setup action).
+- Cell verdict (PR tier): `compat-verdict-<key>`. The key hashes the packed files of every installed artifact, the exact dependency versions, the toolchain, the command list, the harness and runner sources, and the platform. For an adapter with `hashScope: entry` only the files its export entry can reach are hashed (it follows relative imports and `.js` to `.d.ts`; an unresolvable import falls back to the whole package), so editing one subpath of a multi-entry package invalidates only that entry's cells. Only passes are cached. The nightly tier never reuses verdicts.
+- npm downloads: `compat-npm-<hash of the cell's dependency versions>`; Playwright browsers by version.
+
+## Failure diagnostics
+
+Failed jobs upload `.compat/out/<cell>` (per-command logs, `npm-ls.json`, `tree-report.json`, `package-lock.json`, `conformance.json`, generated project files, Vitest failure screenshots). Vitest 2.1 browser mode has no Playwright trace hook, so there is no trace; screenshots and the JSON report stand in for it.
+
+## Adding or changing a package layout (for example #49)
+
+The runner, harness and tests do not name a package or subpath; `cells.test.mjs` fails if they do. Only manifest rows change: each `reactAdapters` row's `artifact`, `entry`, `className`, `declaredPeers`, `reconciler` and `adapterId`; the `artifacts` rows; and the `negative` message signatures. One more React epoch is one more `reactEpochs` row plus one more `reactAdapters` row and probe tuples.
+
+## Showing that a cache key follows the adapter
+
+```sh
+R=design/compatibility/cells/run-cells.mjs
+node $R pack --out .compat/tarballs && node $R key --cell react-19.1.9_pixi-8.22.0 --tarballs .compat/tarballs
+# edit packages/react-19/src/19.1/index.ts, then:
+pnpm --filter @pixi-react-provisional/react-19 build && node $R pack --out .compat/tarballs-edited
+node $R key --cell react-19.1.9_pixi-8.22.0 --tarballs .compat/tarballs-edited   # changed
+node $R key --cell react-19.2.8_pixi-8.22.0 --tarballs .compat/tarballs-edited   # unchanged
+node $R run --tier pr --tarballs .compat/tarballs-edited                          # 19.1 cells re-run, the rest are CACHED-PASS
+```
+
+`cells.test.mjs` asserts the same on synthetic artifacts, and that repacking unchanged sources yields identical keys (`pnpm pack` does not keep dependency order stable, so manifests are hashed with sorted keys).

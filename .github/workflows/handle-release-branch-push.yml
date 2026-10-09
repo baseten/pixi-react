@@ -46,6 +46,12 @@ jobs:
           - name: E2E tests
             command: test:e2e
             installPlaywright: true
+          - name: Conformance tests
+            command: test:conformance
+            installPlaywright: true
+          - name: Contract tests
+            command: test:contract
+            installPlaywright: false
           - name: Docs
             command: build:docs
             installPlaywright: false

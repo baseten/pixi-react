@@ -1,0 +1,269 @@
+name: Compatibility
+
+# PR tier of the adapter compatibility matrix (issue 13). The cell list is generated from
+# design/compatibility/seed.json (`adapterMatrix`); nothing here names a React or Pixi version.
+# Branch protection should require the single check "Compatibility (required)". The full
+# cross-product runs nightly in compatibility-nightly.yml and is not a PR check.
+
+on:
+  merge_group:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  plan:
+    name: Plan compatibility cells
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      cells: ${{ steps.plan.outputs.cells }}
+      probes: ${{ steps.plan.outputs.probes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Validate the manifest and the runner
+        run: |
+          node design/compatibility/validate.mjs
+          node --test design/compatibility/*.test.mjs design/compatibility/cells/*.test.mjs
+      - name: Generate the matrices from the manifest
+        id: plan
+        run: |
+          echo "cells=$(node design/compatibility/cells/run-cells.mjs list --tier pr --format github)" >> "$GITHUB_OUTPUT"
+          echo "probes=$(node design/compatibility/cells/run-cells.mjs probe-list --tier pr)" >> "$GITHUB_OUTPUT"
+
+  pack:
+    name: Pack adapter artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      # Same Turbo cache as the Verify jobs: a task is restored only when its own input hash matches.
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ runner.arch }}-compat-pack-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ runner.arch }}-compat-pack-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-
+      - run: pnpm run build
+      - name: Pack the adapters like a registry would and record content hashes
+        run: node design/compatibility/cells/run-cells.mjs pack --out .compat/tarballs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compat-tarballs
+          path: .compat/tarballs
+          if-no-files-found: error
+          retention-days: 7
+
+  cell:
+    name: Cell react ${{ matrix.cell.react }} x pixi.js ${{ matrix.cell.pixi }}
+    needs: [plan, pack]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.cells) }}
+    env:
+      CELL: ${{ matrix.cell.id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        with:
+          name: compat-tarballs
+          path: .compat/tarballs
+      - name: Compute the cell cache keys
+        id: keys
+        run: |
+          node design/compatibility/cells/run-cells.mjs key --tier pr --cell "$CELL" --format github >> "$GITHUB_OUTPUT"
+          echo "playwright=$(node design/compatibility/cells/run-cells.mjs toolchain --name playwright)" >> "$GITHUB_OUTPUT"
+      # A passing verdict is reused only for the same packed adapter files (entry-scoped), exact dependency
+      # versions, toolchain, harness and runner. Only passes are saved, so a failure always re-runs.
+      - name: Restore the cell verdict
+        uses: actions/cache@v4
+        with:
+          path: .compat/verdicts
+          key: compat-verdict-${{ steps.keys.outputs.key }}
+      - name: Restore the npm download cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: compat-npm-${{ steps.keys.outputs.depsKey }}
+          restore-keys: compat-npm-
+      - name: Restore Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.keys.outputs.playwright }}
+      - name: Install Chromium
+        # A restored verdict means the cell is skipped, so the browser is not needed.
+        if: ${{ hashFiles('.compat/verdicts/*.json') == '' }}
+        env:
+          PLAYWRIGHT_VERSION: ${{ steps.keys.outputs.playwright }}
+        run: npx --yes "playwright@$PLAYWRIGHT_VERSION" install chromium
+      - name: Run the cell in an isolated project
+        run: node design/compatibility/cells/run-cells.mjs run --tier pr --cell "$CELL"
+      - name: Upload the cell result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-result-${{ matrix.cell.id }}
+          path: .compat/results
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-diagnostics-${{ matrix.cell.id }}
+          path: .compat/out
+          if-no-files-found: ignore
+          retention-days: 14
+
+  probes:
+    name: Probe ${{ matrix.probe.id }} (${{ matrix.probe.boundary }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.probes) }}
+    env:
+      PROBE: ${{ matrix.probe.id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Restore the npm download cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: compat-npm-probe-${{ matrix.probe.id }}
+          restore-keys: compat-npm-probe-
+      - name: Run the type/API probe and compare it with the audit evidence
+        run: node design/compatibility/cells/run-cells.mjs probes --tier pr --probe "$PROBE"
+      - name: Upload the probe result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-result-probe-${{ matrix.probe.id }}
+          path: .compat/results
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-diagnostics-probe-${{ matrix.probe.id }}
+          path: .compat/out
+          if-no-files-found: ignore
+          retention-days: 14
+
+  negative:
+    name: Incompatible pairs are rejected
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        with:
+          name: compat-tarballs
+          path: .compat/tarballs
+      - name: Restore the npm download cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: compat-npm-negative-${{ hashFiles('design/compatibility/seed.json') }}
+          restore-keys: compat-npm-negative-
+      - name: Each deliberately incompatible pair must fail with its actionable message
+        run: node design/compatibility/cells/run-cells.mjs run --negative
+      - name: Upload the results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-result-negative
+          path: .compat/results
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-diagnostics-negative
+          path: .compat/out
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # The one check branch protection requires. It also runs when an upstream job failed or was cancelled
+  # (`always()`), and counts a skipped job as a failure, so it cannot go green by omission.
+  compatibility:
+    name: Compatibility (required)
+    needs: [plan, pack, cell, probes, negative]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: compat-result-*
+          merge-multiple: true
+          path: .compat/results
+      - name: Compatibility table
+        id: report
+        run: |
+          node design/compatibility/cells/run-cells.mjs report --tier pr --out .compat/report >> "$GITHUB_OUTPUT"
+          cat .compat/report/compatibility-table.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-table
+          path: .compat/report
+          retention-days: 14
+      - name: Require every compatibility job to succeed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          CELL_FAILURES: ${{ steps.report.outputs.failed }}
+        run: |
+          echo "job results: $RESULTS; failing cells or probes: $CELL_FAILURES"
+          for result in $RESULTS; do
+            [ "$result" = success ] || { echo "::error::A compatibility job did not succeed ($RESULTS)"; exit 1; }
+          done
+          [ "$CELL_FAILURES" = false ] || { echo "::error::Cells or probes failed; see the table in the job summary"; exit 1; }
