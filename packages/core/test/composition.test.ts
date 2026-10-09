@@ -260,7 +260,7 @@ describe('third-party adapters (open subclasses, no closed name union)', () =>
 
     interface InspectorFamily extends BindingFamily
     {
-        readonly type: Inspection<this['scene']>;
+        readonly type: Inspection<Extract<this['scene'], SceneTypes>>;
     }
 
     class Inspector extends FrameworkAdapter<InspectorFamily>
@@ -269,7 +269,7 @@ describe('third-party adapters (open subclasses, no closed name union)', () =>
 
         bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<InspectorFamily, S>
         {
-            return { inspect: () => runtime };
+            return { inspect: () => runtime } as Inspection<SceneTypes> as Bind<InspectorFamily, S>;
         }
     }
 

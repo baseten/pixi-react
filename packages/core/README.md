@@ -96,8 +96,11 @@ errors that narrow using either entry's class.
 [`design/contract/core.d.ts`](../../design/contract/core.d.ts) is the normative sketch. This implementation is a
 superset of it, with these deliberate differences:
 
-- `BindingFamily.scene` is `SceneTypes`, not `unknown`. A family then writes `MyBindings<this['scene']>` without
-  `Extract`, and a generic `bind` type-checks without casts.
+- `BindingFamily.scene` stays `unknown`, as in the sketch, and a family writes
+  `MyBindings<Extract<this['scene'], SceneTypes>>`. Constraining `scene` to `SceneTypes` would let a generic `bind`
+  skip one cast, but every consumer type would then carry a `SceneTypes & S` intersection, which made props
+  inference through `component(Ctor)` hit TypeScript's instantiation depth limit. An adapter's generic `bind` therefore
+  ends with one `as Bind<F, S>`, because TypeScript cannot reduce `Extract<S, SceneTypes>` for a generic `S`.
 - `SceneSession.destroyNode` and `destroy` accept `undefined` for "the scene's default". `destroy` may return
   `void`.
 - `SceneSession` has an optional `nodeDestroyOptions(destroy)` method, which gives the node options implied by the

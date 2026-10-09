@@ -336,7 +336,7 @@ export interface FakeBindings<S extends SceneTypes>
 
 export interface FakeFamily extends BindingFamily
 {
-    readonly type: FakeBindings<this['scene']>;
+    readonly type: FakeBindings<Extract<this['scene'], SceneTypes>>;
 }
 
 export class FakeFrameworkAdapter extends FrameworkAdapter<FakeFamily>
@@ -359,13 +359,16 @@ export class FakeFrameworkAdapter extends FrameworkAdapter<FakeFamily>
 
         this.bound.push(runtime as unknown as Runtime<SceneTypes>);
 
-        return {
+        const bindings: FakeBindings<S> = {
             kind: 'fake-framework',
             createRoot: (target) => runtime.createRoot(target),
             extend: (catalog) => runtime.registry.extend(catalog),
             component: (ctor, name) => runtime.registry.define(ctor, name).name,
             app: (root) => root.app,
         };
+
+        // `Extract<S, SceneTypes>` is `S`, but TypeScript cannot reduce it for a generic S.
+        return bindings as Bind<FakeFamily, S>;
     }
 }
 

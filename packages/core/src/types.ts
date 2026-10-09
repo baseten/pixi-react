@@ -78,12 +78,12 @@ export interface TickOptions<T, Context = unknown>
 
 /**
  * Open higher-kinded family: the framework substitutes the scene type into its API. A family declares
- * `readonly type: MyBindings<this['scene']>`. `scene` is constrained to `SceneTypes` (the ABI sketch had
- * `unknown`) so that `this['scene']` needs no `Extract` and an adapter's generic `bind` type-checks without casts.
+ * `readonly type: MyBindings<Extract<this['scene'], SceneTypes>>`. `scene` stays `unknown` (as in the ABI sketch):
+ * `Bind` then substitutes exactly `S`, with no `SceneTypes & S` intersection for consumers to resolve.
  */
 export interface BindingFamily
 {
-    readonly scene: SceneTypes;
+    readonly scene: unknown;
     readonly type: unknown;
 }
 
