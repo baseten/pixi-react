@@ -309,7 +309,8 @@ export function validateAdapterMatrix(seed)
 export const fileSetHash = (files) => sha256(Object.keys(files).sort().map((path) => [path, files[path]]));
 
 /**
- * Cache key of a cell: everything that can change its verdict. `artifacts` is the pack step's `artifacts.json`;
+ * Cache key of a cell: everything that can change its verdict, including the cell's manifest rows. `artifacts` is
+ * the pack step's `artifacts.json`;
  * `harness` is a hash of the harness files and runner. Tarball bytes are not used (tar metadata may vary): the key
  * uses the content hash of the files, and for an adapter with `hashScope: "entry"` only the files its export entry
  * can reach, so an edit to one entry leaves the other entries' keys alone.
@@ -331,7 +332,9 @@ export function cellKey(seed, cell, artifacts, harness, environment)
         used[id] = scoped ? { scope: `entry ${adapter.entry}`, hash: scoped.hash } : { scope: 'package', hash: artifact.hash };
     }
 
-    const input = { schema: 1, id: cell.id, commands: cell.commands, deps: cell.deps, toolchain: cell.toolchain, artifacts: used, harness, environment, expect: cell.expect };
+    // The effective manifest rows (ABI, capabilities, peers, expected failures, probes) decide what the checks assert.
+    const config = { react: cell.react, pixi: cell.pixi, install: cell.install };
+    const input = { schema: 2, id: cell.id, commands: cell.commands, deps: cell.deps, toolchain: cell.toolchain, artifacts: used, harness, environment, expect: cell.expect, config };
 
     return { key: sha256(input).slice(0, 40), depsKey: sha256({ deps: cell.deps, toolchain: cell.toolchain, commands: cell.commands, environment }).slice(0, 40), input };
 }

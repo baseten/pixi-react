@@ -228,3 +228,23 @@ test('generated GitHub matrices use the keys the workflows read (matrix.<key>.*)
     assert.deepEqual([...keysUsed(read('compatibility.yml'))].sort(), ['cell', 'probe']);
     assert.deepEqual([...keysUsed(read('compatibility-nightly.yml'))].sort(), ['chunk']);
 });
+
+test('cache keys: a manifest expectation change invalidates the affected cells', () =>
+{
+    const artifacts = artifactsWith();
+    const keyed = (mutate) =>
+    {
+        const copy = structuredClone(seed);
+
+        mutate(copy.adapterMatrix);
+
+        return Object.fromEntries(selectCells(copy, 'pr').map((cell) => [cell.id, cellKey(copy, cell, artifacts, 'h', { platform: 'linux' }).key]));
+    };
+    const before = keyed(() => undefined);
+
+    assert.deepEqual(changed(before, keyed((m) => { m.reactAdapters.react190.expectedConformanceFailures = []; })),
+        ['react-19.0.8_pixi-8.22.0', 'react-19.0.8_pixi-8.2.6'].sort());
+    assert.deepEqual(changed(before, keyed((m) => { m.reactAdapters.react18.declaredPeers = { react: '18.3.2' }; })),
+        ['react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
+    assert.equal(changed(before, keyed((m) => { m.pixiAdapters.pixi8.declaredPeers = { 'pixi.js': '>=8.2.6' }; })).length, 10);
+});
