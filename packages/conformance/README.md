@@ -47,6 +47,7 @@ Current bindings:
 | Core + renderer: `createRenderer({ react, pixi })` with a fake React 19 adapter and the fake Pixi adapter | `test/core-binding/` | jsdom |
 | Core + renderer + the real `Pixi8Adapter`, driven by the same fake React 19 adapter, on pixi.js 8.2.6 and 8.22.0 | `packages/pixi-8/test/browser/` | Vitest browser mode, Playwright Chromium |
 | Each React 19 epoch (`@pixi-react-provisional/react-19/19.0` … `/19.3`, built) with the fake Pixi adapter, once per audited React version | `packages/react-19/fixtures/` | jsdom |
+| React 18: `createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() })` from the packed packages, with React 18.3.1 and the Pixi 8 adapter's probe, on pixi.js 8.2.6 and 8.22.0 | `packages/react-18/fixtures/` | Vitest browser mode, Playwright Chromium |
 
 The second binding shows that the interface is not shaped around the facade. The second and third bindings both
 host the committed negative controls.
@@ -69,7 +70,7 @@ The React adapter double owns only React concerns. Registry lookups, node owners
 leases, and init and teardown ordering all go through core.
 
 The binding provides `react.19` and `dom.resize`. Scenarios that need `pixi.globals` (bound by the Pixi 8
-binding), `react.18` (issue 12) or `parity.upstream` are skipped by capability, and the runner names the
+binding), `react.18` (bound by the React 18 binding) or `parity.upstream` are skipped by capability, and the runner names the
 missing capability in the title. The binding lists no expected failures. `createRoot.same-element`, an issue-7
 defect of the baseline facade, passes here because core maps an element target and its canvas to one root.
 
@@ -92,8 +93,11 @@ failures.
 - A scenario lists the capabilities it needs (`react.18`, `pixi.globals`, `dom.resize`,
   `parity.upstream`). The runner skips it, naming the missing capabilities, when a binding lacks one. The
   React 18 scenarios (ConcurrentRoot, recoverable-error routing, rejection of React 19-only root callbacks)
-  are defined now and run once [issue 12](https://github.com/baseten/pixi-react/issues/12) provides a
-  React 18 binding.
+  run in the React 18 binding ([issue 12](https://github.com/baseten/pixi-react/issues/12)), which provides
+  `react.18`, `pixi.globals` and `dom.resize`, lists no expected failures, and skips only the five
+  `parity.upstream` scenarios. A React 19 capability React 18 lacks (such as `react.activity`) is never
+  provided by that binding, so a scenario requiring it is skipped by capability, never listed as an expected
+  failure.
 - **contract** scenarios state required behaviour. **parity** scenarios record current upstream behaviour
   that decision D4 keeps in the facade (global extension and default-text-style behaviour, silent `extend`
   replacement, constructor option keys); they need `parity.upstream`.

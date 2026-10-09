@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - packages/react-19/fixtures/*
+  - packages/react-18/fixtures/*
   - apps/*
   - design/contract
 
@@ -11,8 +12,16 @@ overrides:
 # its-fine 2.x (react-19's bridge, and the conformance test doubles') imports React types without declaring @types/react as a peer, so
 # TypeScript would fall back to whichever @types/react pnpm hoists. With several React 19 type lines installed
 # (react-19 fixtures), that mixes two copies of React's types; resolve it from the dependent instead.
+# its-fine 1.x (react-18's bridge) has the same gap. Without the extension it would resolve the hoisted React 19 types
+# inside react-18, whose own types are @types/react 18; with it, each copy resolves the dependent's React type line.
 packageExtensions:
   its-fine@2:
+    peerDependencies:
+      '@types/react': '*'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+  its-fine@1:
     peerDependencies:
       '@types/react': '*'
     peerDependenciesMeta:

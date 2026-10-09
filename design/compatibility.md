@@ -87,7 +87,7 @@ The [audit seed](compatibility/seed.json) and [evidence](compatibility/evidence.
 | `>=19.1.0 <19.2.0` | 0.32.0 / 2.1.1 | 19.1.0, 19.1.9 | Same independently verified scene |
 | `>=19.2.0 <19.3.0` | 0.33.0 / 2.1.1 | 19.2.0, 19.2.8 | Activity visibility/effects included |
 | `>=19.3.0 <19.4.0` | 0.34.0 / 2.1.1 | 19.3.0 | Fragment-ref policy and explicit ViewTransition rejection included |
-| `18.3.1` | 0.29.2 / 1.2.5 | 18.3.1 | Same Pixi8, issue 12 after modern parity |
+| `18.3.1` | 0.29.2 / 1.2.5 | 18.3.1 (18.2.0 evaluated in issue 12, not certified: 0.29.2 declares `react@^18.3.1`) | Same, unchanged Pixi8Adapter; fixture cells 8.2.6 and 8.22.0 ([packages/react-18](../packages/react-18/README.md)) |
 
 Pixi8 candidate envelope is `>=8.2.6 <8.23.0` at this audit, with evidence sampled through 8.22.0. This does not certify unprobed patches. Preserve the exact 8.2.6 floor; implement capability boundaries at particles 8.5, cacheAsTexture 8.6, RenderLayer 8.7, DOMContainer 8.9, Canvas 8.16, visibleChanged 8.17 and contextmenu 8.22. Canvas is excluded until separately validated; WebGL/WebGPU are individually certified, never inferred from each other. Pixi8.5.0 particle destruction is an explicit failing feature cell; exclude that node capability there until a proven workaround, without declaring all ordinary 8.5.0 nodes broken. The sampled later passing patch is 8.5.2, not a discovered first fixed patch. Pixi7.4.2/7.4.3 are reserved wave-2 candidates. No React <=17, earlier Pixi7 or Pixi <=6 support is introduced.
 
