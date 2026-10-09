@@ -54,6 +54,12 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
 - **D8.** Claude merges after the Codex gate.
 - **D10.** Multiple React or Pixi versions in one app are not supported unless the support is trivial.
 - **Release 1 (#43).** The `@pixi/react` facade bundles its adapters (core, renderer, react-19/19.3, pixi-8). It ships separate production and development builds, and only `react`, `react-dom` and `pixi.js` are external. The modular packages are published later (#15/#40).
+- **D2 reversed (#49).** Each React minor gets its own package (react-19.0 to 19.3, react-18). Each package depends on an exact `react-reconciler`, `scheduler` and `its-fine` version, and only our own shared code is bundled.
+  - Release 1 facade: bundles our adapter code, with the reconciler, scheduler and its-fine as ordinary dependencies, as upstream does.
+  - Later facade: a thin package that depends on the published modular packages.
+- **Facade React peer (#49).** `^19.3.0`, with a runtime warning on uncertified minors. This amends D1/D5 for the facade only.
+- **Docs (#50).** Recommend the official `create-pixi.js` `framework-react` template (Vite) instead of CRA. Docs are bundler-first, and no new UMD/IIFE build is added.
+- **Modular JSX catalogue (#34).** Empty until the consumer augments `PixiCatalog`.
 
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
 
