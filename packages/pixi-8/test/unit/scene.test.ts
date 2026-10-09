@@ -87,6 +87,26 @@ describe.each(withParticles)('special nodes on pixi.js $version', ({ pixi }) =>
         });
     });
 
+    it('the Mesh family and the split texts accept filters but no children', () =>
+    {
+        const leaves = ['Mesh', 'MeshPlane', 'MeshRope', 'MeshSimple', 'PerspectiveMesh', 'SplitText', 'SplitBitmapText'] as const;
+        const present = leaves.filter((name) => typeof (pixi as Any)[name] === 'function');
+
+        expect(present).toContain('Mesh');
+
+        for (const name of present)
+        {
+            expect(scene.describe((pixi as Any)[name], name), name).toMatchObject({ attach: { role: 'child', accepts: ['filter'] } });
+        }
+
+        // A custom subclass inherits the rule; describe() constructs nothing.
+        class Custom extends pixi.MeshPlane
+        {}
+
+        expect(scene.describe(Custom, 'Custom').attach).toEqual({ role: 'child', accepts: ['filter'] });
+        expect(scene.describe(pixi.NineSliceSprite, 'NineSliceSprite').attach.accepts, 'unchanged').toEqual(['child', 'filter']);
+    });
+
     it('RenderLayer and DOMContainer are capability-gated leaves', () =>
     {
         expect(scene.describe(pixi.RenderLayer!, 'RenderLayer')).toMatchObject({
