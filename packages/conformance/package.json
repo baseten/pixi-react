@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./fake-scene": "./src/fake-scene/index.ts",
-    "./fake-scene-adapter": "./src/fake-scene/adapter.ts"
+    "./fake-scene-adapter": "./src/fake-scene/adapter.ts",
+    "./fake-probe": "./test/fake-binding/probe.ts"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",

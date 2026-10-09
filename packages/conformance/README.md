@@ -44,9 +44,14 @@ Current bindings:
 | Baseline facade, `@pixi/react` from `packages/react` (React 19, Pixi 8) | `packages/react/test/conformance/` | Vitest browser mode, Playwright Chromium |
 | Fake renderer over the fake scene (a test double, not an adapter) | `test/fake-binding/` | jsdom |
 | Core + renderer: `createRenderer({ framework, scene })` with a fake React 19 framework adapter and the fake scene adapter | `test/core-binding/` | jsdom |
+| Each React 19 epoch (`@pixi-react-provisional/react-19/19.0` … `/19.3`, built) with the fake scene adapter, once per audited React version | `packages/react-19/fixtures/` | jsdom |
 
 The second binding shows that the interface is not shaped around the facade. The second and third bindings both
 host the committed negative controls.
+
+The React 19 epoch bindings ([issue 9](https://github.com/baseten/pixi-react/issues/9)) reuse the fake scene
+adapter and the fake probe (`@pixi-react-provisional/conformance/fake-probe`) with the real adapters; see
+[the react-19 README](../react-19/README.md#fixtures-one-workspace-package-per-audited-react-version).
 
 The core binding ([issue 7](https://github.com/baseten/pixi-react/issues/7)) composes the real
 `@pixi-react-provisional/core` and `@pixi-react-provisional/renderer` builds with two adapters:
