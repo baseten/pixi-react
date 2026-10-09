@@ -38,7 +38,7 @@ describe('scenario catalogue', () =>
         }
     });
 
-    it('marks the React 18 scenarios as pending on issue 12', () =>
+    it('lists the React 18 scenarios, which the React 18 binding (issue 12) now runs: none is pending', () =>
     {
         const react18 = scenarios.filter((scenario) => scenario.requires.includes('react.18'));
 
@@ -47,6 +47,6 @@ describe('scenario catalogue', () =>
             'root.errors.react-18-recoverable-error',
             'root.errors.react-18-modern-callbacks-rejected',
         ]);
-        expect(react18.every((scenario) => scenario.pendingOn?.endsWith('/issues/12'))).toBe(true);
+        expect(react18.filter((scenario) => scenario.pendingOn !== undefined)).toEqual([]);
     });
 });

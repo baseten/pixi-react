@@ -1,0 +1,52 @@
+{
+  "name": "@pixi-react-provisional/react-18",
+  "version": "0.0.0",
+  "private": true,
+  "description": "React 18 adapter (React18Adapter) for the modular renderer. Bundles its exact react-reconciler (0.29.2) and its-fine (1.2.5). No Pixi dependency.",
+  "license": "MIT",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check:graph": "node ../../scripts/check-dependency-graph.mjs --allow @pixi-react-provisional/core --allow react",
+    "lint": "eslint --max-warnings 0 .",
+    "test:unit": "tsc --noEmit -p tsconfig.json && vitest run && pnpm run check:graph",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@pixi-react-provisional/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "@types/react": "18.3.31",
+    "esbuild": "0.21.5",
+    "eslint": "^9.16.0",
+    "its-fine": "1.2.5",
+    "jsdom": "^25.0.0",
+    "react": "18.3.1",
+    "react-reconciler-0.29": "npm:react-reconciler@0.29.2",
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.0"
+  },
+  "peerDependencies": {
+    "react": "18.3.1"
+  }
+}
