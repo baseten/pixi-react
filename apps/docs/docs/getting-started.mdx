@@ -70,7 +70,7 @@ export const MyComponent = () => {
 
 Only React 19.3 is certified. With any other React 19 minor, `@pixi/react` still runs but logs a single console warning naming the certified version. To silence it, pin `react` and `react-dom` to 19.3 (for example `"react": "~19.3.0"`). A React outside the 19 major, or a pixi.js outside its range, throws a `CompatibilityError` the first time you call into `@pixi/react`.
 
-If you must stay on an older React minor, you can stay on upstream `@pixi/react` 8.0.5, or compose your own renderer with `createRenderer` and the matching per-minor React adapter, which is available in the modular packages (see the release notes).
+If you must stay on an older React minor, stay on upstream `@pixi/react` 8.0.5 for now. Once the modular packages are published, you will also be able to compose your own renderer with `createRenderer` and the React adapter package for your minor; the release notes will say when.
 
 {/* TODO(#15): link the modular install recipes (design/release.md) once they exist on main. */}
 

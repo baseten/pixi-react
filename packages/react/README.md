@@ -131,8 +131,9 @@ bundles stay self-contained, as upstream's were.
 
 The React peer is a caret range so that installing next to a newer React never fails, but only React 19.3 is
 certified. With another React 19 minor, `@pixi/react` runs and logs **one** console warning naming the certified
-version and how to pin: pin `react` and `react-dom` to 19.3 (for example `"react": "~19.3.0"`), or compose your own
-renderer with `createRenderer` and the React adapter package for your React minor (see below). If you must stay on an
+version and how to pin: pin `react` and `react-dom` to 19.3 (for example `"react": "~19.3.0"`), or, once the modular
+packages are published, compose your own renderer with `createRenderer` and the React adapter package for your React
+minor (see below). If you must stay on an
 older React minor and do not need this release's features, upstream `@pixi/react` 8.0.5 remains available. A React outside the
 19 major, or a pixi.js outside its range, is reported the first time you call into `@pixi/react` (not at import),
 with a `CompatibilityError` naming the installed and expected versions.
