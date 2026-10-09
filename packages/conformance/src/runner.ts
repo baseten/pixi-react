@@ -11,9 +11,33 @@ export function missingCapabilities(binding: ConformanceBinding, scenario: Scena
     return scenario.requires.filter((capability) => !binding.capabilities.includes(capability));
 }
 
+/** Expands teardown errors, including the aggregate `context.cleanup()` throws, into their individual leaves. */
+function teardownLeaves(error: unknown): unknown[]
+{
+    return error instanceof AggregateError ? error.errors.flatMap(teardownLeaves) : [error];
+}
+
+/**
+ * Thrown by the runner whenever teardown fails. `errors` holds the scenario failure (if any) first, kept whole,
+ * followed by every individual teardown failure, with nested teardown aggregates flattened so each one is
+ * reported, and matched against expected failures, on its own.
+ */
+export class ScenarioErrors extends AggregateError
+{
+    constructor(scenarioId: string, failure: { error: unknown } | undefined, teardownErrors: unknown[])
+    {
+        const leaves = teardownErrors.flatMap(teardownLeaves);
+        const errors = failure ? [failure.error, ...leaves] : leaves;
+        const summary = failure ? `Scenario ${scenarioId} failed and its teardown also failed` : `Teardown of ${scenarioId} failed`;
+
+        super(errors, `${summary}: ${leaves.map((leaf) => (leaf instanceof Error ? leaf.message : String(leaf))).join('; ')}`);
+    }
+}
+
 /**
  * Builds a fresh composition, runs one scenario against it, then disposes everything. An exception during
- * cleanup or disposal fails the scenario: a renderer that throws while tearing down does not conform.
+ * cleanup or disposal fails the scenario: a renderer that throws while tearing down does not conform. Teardown
+ * failures are never discarded, even when the scenario itself also failed.
  */
 export async function runScenario(binding: ConformanceBinding, scenario: Scenario): Promise<void>
 {
@@ -52,16 +76,14 @@ export async function runScenario(binding: ConformanceBinding, scenario: Scenari
         teardownErrors.push(error);
     }
 
+    if (teardownErrors.length)
+    {
+        throw new ScenarioErrors(scenario.id, failed ? { error: failure } : undefined, teardownErrors);
+    }
+
     if (failed)
     {
         throw failure;
-    }
-
-    if (teardownErrors.length)
-    {
-        throw teardownErrors.length === 1
-            ? teardownErrors[0]
-            : new AggregateError(teardownErrors, `Teardown of ${scenario.id} failed`);
     }
 }
 
@@ -97,7 +119,9 @@ function messageOf(error: unknown): string
 /**
  * Runs an expected failure. It must throw an error matching `expected.match`. If it passes, the defect is
  * fixed (or the scenario was weakened) and the entry must be removed, so the test fails loudly. If it throws
- * something else, the scenario broke for a different reason and the test fails with that error.
+ * something else, the scenario broke for a different reason and the test fails with that error. When teardown
+ * fails, the scenario failure and every individual teardown failure must each match, so an unrelated teardown
+ * regression can never be accepted as the known defect.
  */
 export async function runExpectedFailure(
     binding: ConformanceBinding,
@@ -111,7 +135,9 @@ export async function runExpectedFailure(
     }
     catch (error)
     {
-        if (expected.match.test(messageOf(error)))
+        const reported = error instanceof ScenarioErrors ? error.errors : [error];
+
+        if (reported.every((entry) => expected.match.test(messageOf(entry))))
         {
             return;
         }
@@ -141,7 +167,9 @@ export function describeConformance(binding: ConformanceBinding, options: Descri
     const scenarios = options.scenarios ?? allScenarios;
     const expectedFailures = binding.expectedFailures ?? {};
 
-    validateBinding(binding, scenarios);
+    // Expected failures are validated against the whole catalogue, so a binding's table stays valid when
+    // `options.scenarios` selects a subset.
+    validateBinding(binding);
 
     describe(`conformance: ${binding.id}`, () =>
     {
