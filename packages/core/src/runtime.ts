@@ -14,7 +14,15 @@ import type {
     RuntimeStatus,
     SceneSession,
 } from './contracts.js';
-import type { AdapterManifest, BindingFamily, CapabilityMap, NodeDefinition, RendererOptions, SceneTypes } from './types.js';
+import type {
+    AdapterManifest,
+    BindingFamily,
+    CapabilityMap,
+    NodeDefinition,
+    RegistryConflictPolicy,
+    RendererOptions,
+    SceneTypes,
+} from './types.js';
 
 const SESSION_METHODS = [
     'init',
@@ -348,9 +356,38 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
     }
 }
 
+const REGISTRY_CONFLICT_POLICIES: readonly unknown[] = ['reject', 'replace'] satisfies RegistryConflictPolicy[];
+
+/** Throws `core.INVALID_OPTION` for option values core does not accept, so a typo never changes behaviour. */
+function validateOptions(options: RendererOptions, adapterIds: readonly string[]): void
+{
+    if (options.registryConflict === undefined)
+    {
+        return;
+    }
+
+    const policy: unknown = options.registryConflict;
+
+    if (!REGISTRY_CONFLICT_POLICIES.includes(policy))
+    {
+        throw new CompatibilityError(
+            `Unknown registryConflict policy ${typeof policy === 'string' ? `"${policy}"` : String(policy)}: `
+            + 'expected \'reject\' or \'replace\'.',
+            {
+                code: CoreErrorCodes.INVALID_OPTION,
+                adapterIds,
+                expected: { registryConflict: 'reject | replace' },
+                actual: { registryConflict: String(policy) },
+            },
+        );
+    }
+}
+
 /** Creates a runtime for an already negotiated composition. Prefer `compose`, which validates first. */
 export function createRuntime<S extends SceneTypes>(config: RuntimeConfig<S>): Runtime<S>
 {
+    validateOptions(config.options ?? {}, [config.composition.framework.id, config.composition.scene.id]);
+
     return new ComposedRuntime(config);
 }
 

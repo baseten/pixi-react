@@ -41,6 +41,7 @@ Every `compose` call returns a new runtime. Nothing below is module-global, and 
   `component(Ctor, name?)`). Names are normalized once by `SceneAdapter.normalizeName`. Registering the same name with
   the same constructor again does nothing. A different constructor throws `REGISTRY_CONFLICT` under the default
   `reject` policy. The facade can select `registryConflict: 'replace'` to keep upstream's silent replacement (D4).
+  Any other policy value throws `core.INVALID_OPTION` at composition.
   `component` names never read `Ctor.name`: they come from the explicit name, the constructor's `extend` key, or a
   per-runtime `WeakMap`-assigned `component:N`. Every check throws in every build.
 - **Roots.** `createRoot(target)` maps both the target and its canvas to one root. An `HTMLElement` target gets a
@@ -114,7 +115,9 @@ superset of it, with these deliberate differences:
 - `Runtime` adds roots, `createRoot`, `rootFor`, `nodeInfo`, `onDispose`, `capabilities` and `manifests`.
   `Registry` adds `define` and `has`. `NodeContext` also carries the root.
 - `RendererOptions` adds `registryConflict` and `onUnhandledError`.
-- Core raises two codes of its own in its reserved namespace: `core.TARGET_LEASED` and `core.ROOT_NOT_READY`.
+- Core raises three codes of its own in its reserved namespace: `core.TARGET_LEASED`, `core.ROOT_NOT_READY` and
+  `core.INVALID_OPTION`. `core.INVALID_OPTION` is thrown at composition for a renderer option value core does not
+  accept: today, a `registryConflict` other than `'reject'` or `'replace'` (or `undefined` for the default).
 - Capability versions must match exactly.
 
 ## Commands

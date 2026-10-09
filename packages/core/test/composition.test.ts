@@ -215,6 +215,34 @@ describe('compose', () =>
         expect(caught(() => compose({ framework: new StrictFramework(), scene: new FakeSceneAdapter() }))).toBe(original);
     });
 
+    it.each([
+        ['a typo', 'rejet'],
+        ['a different case', 'Replace'],
+        ['null', null],
+        ['a boolean', true],
+    ])('rejects a registry conflict policy that is %s with core.INVALID_OPTION, before allocating', (_name, policy) =>
+    {
+        const sceneAdapter = new FakeSceneAdapter();
+        const frameworkAdapter = new FakeFrameworkAdapter();
+        const error = caught(() => compose(
+            { framework: frameworkAdapter, scene: sceneAdapter },
+            { registryConflict: policy as never },
+        ));
+
+        expect(error.code).toBe('core.INVALID_OPTION');
+        expect(error.message).toMatch(/registryConflict.*'reject' or 'replace'/);
+        expect(error.expected).toEqual({ registryConflict: 'reject | replace' });
+        expect(error.actual).toEqual({ registryConflict: String(policy) });
+        expect(sceneAdapter.log).toEqual([]);
+        expect(frameworkAdapter.bound).toEqual([]);
+    });
+
+    it.each([undefined, 'reject', 'replace'] as const)('accepts the registry conflict policy %s', (policy) =>
+    {
+        expect(() => compose({ framework: new FakeFrameworkAdapter(), scene: new FakeSceneAdapter() }, { registryConflict: policy }))
+            .not.toThrow();
+    });
+
     it('creates a new runtime with frozen negotiated capabilities on every call', () =>
     {
         const sceneAdapter = new FakeSceneAdapter();
