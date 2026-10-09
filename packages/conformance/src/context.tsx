@@ -82,7 +82,7 @@ export interface ScenarioContext
     dispatch(app: unknown, node: unknown, type: string): Promise<void>;
     /** Yields one macrotask so the host can report unhandled rejections. Not a timed sleep. */
     yieldTask(): Promise<void>;
-    /** A detached-from-React DOM element of a fixed size, removed on cleanup. */
+    /** A DOM element of a fixed size outside the React tree, attached to the body and removed on cleanup. */
     createSizedElement(width: number, height: number): HTMLElement;
     /** Captures `console.error` calls for the rest of the scenario (silencing them). */
     captureConsoleErrors(): unknown[][];

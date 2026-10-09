@@ -12,8 +12,8 @@ export function missingCapabilities(binding: ConformanceBinding, scenario: Scena
 }
 
 /**
- * Builds a fresh composition, runs one scenario against it, then disposes everything. A cleanup error fails
- * the scenario: teardown faults (double destruction, leaked listeners) are conformance failures.
+ * Builds a fresh composition, runs one scenario against it, then disposes everything. An exception during
+ * cleanup or disposal fails the scenario: a renderer that throws while tearing down does not conform.
  */
 export async function runScenario(binding: ConformanceBinding, scenario: Scenario): Promise<void>
 {

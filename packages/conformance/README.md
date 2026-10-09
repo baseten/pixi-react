@@ -67,8 +67,9 @@ negative controls.
 Assets are generated locally (a 4×4 canvas texture, a graphics context). Tickers are advanced manually
 through the probe (`autoStart: false`, no shared ticker). Assertions read scene state and the journal, never
 pixels. There are no timed sleeps: scenarios wait on explicit promises (`onInit`, init gates) inside `act`.
-Two helpers yield macrotasks: `yieldTask` (one task, so a host can report unhandled rejections) and
-`waitFor` (until a condition driven by React's own scheduler holds, bounded by a task count).
+Three helpers yield macrotasks with a zero delay: `yieldTask` (one task, so a host can report unhandled
+rejections), `actUntil` (one task inside an act scope, so renderer continuations after a promise are
+flushed) and `waitFor` (until a condition driven by React's own scheduler holds, bounded by a task count).
 
 ## Commands
 
