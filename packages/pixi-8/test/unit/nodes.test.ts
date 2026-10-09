@@ -229,6 +229,44 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect(() => nodes.applyChanges(node, props, {})).not.toThrow();
     });
 
+    it('falls back to no kind default when a signature-only blank instance throws from its accessors', () =>
+    {
+        const blank = new WeakSet<object>();
+
+        class LooksLikeSprite extends pixi.Container
+        {
+            constructor(options?: Any)
+            {
+                super(options);
+                if (!options)
+                {
+                    blank.add(this);
+                }
+            }
+
+            get anchor() { return { x: 0, y: 0 }; }
+            set anchor(_value) { /* unused */ }
+            // Its zero-argument constructor succeeds, but a blank instance cannot report a texture.
+            get texture(): string
+            {
+                if (blank.has(this))
+                {
+                    throw new Error('LooksLikeSprite was built without options');
+                }
+
+                return 'set';
+            }
+
+            set texture(_value: string) { /* unused */ }
+            get sourceBounds() { return undefined; }
+        }
+        const props = { texture: 'set' };
+        const node = make(nodes, LooksLikeSprite, props);
+
+        expect(nodes.builtins.builtinOf(LooksLikeSprite, 'Sprite')).toBe(LooksLikeSprite);
+        expect(() => nodes.applyChanges(node, props, {})).not.toThrow();
+    });
+
     it('restores a custom class initial value, and never constructs a class that needs arguments', () =>
     {
         let constructions = 0;

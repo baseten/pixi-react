@@ -616,11 +616,19 @@ export class PixiNodes
 
         if (instance)
         {
-            const parent = readPath(instance, path.slice(0, -1));
-
-            if (isObjectLike(parent) && path[path.length - 1] in parent)
+            // A signature-only custom class (see defaultInstance) may throw from its accessors on a blank instance.
+            try
             {
-                return parent[path[path.length - 1]];
+                const parent = readPath(instance, path.slice(0, -1));
+
+                if (isObjectLike(parent) && path[path.length - 1] in parent)
+                {
+                    return parent[path[path.length - 1]];
+                }
+            }
+            catch
+            {
+                // No kind default from this instance.
             }
         }
 
