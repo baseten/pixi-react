@@ -21,6 +21,7 @@ Feature `elements`.
 | `elements.insert` | contract | The new node is constructed once and placed at its JSX position. | pass |
 | `elements.remove` | contract | The removed node is detached and destroyed exactly once; its siblings are untouched. | pass |
 | `elements.type-change` | contract | The old node is destroyed once; a node of the new kind takes its place. | pass |
+| `elements.top-level-fragment` | contract | Application children are the scene root's own children: a top-level unkeyed fragment around them keeps every keyed node, as React keeps DOM children of a host root. | pass |
 
 ## `extend` and custom constructors
 
@@ -302,4 +303,4 @@ Feature `root.errors`.
 
 ## Summary
 
-88 scenarios: 85 pass, 0 expected failures, 3 not run against the baseline.
+89 scenarios: 86 pass, 0 expected failures, 3 not run against the baseline.
