@@ -59,5 +59,27 @@ describe('applyProps', () =>
 
             expect(instance.alpha).toEqual(1);
         });
+
+        it('resets a removed dashed prop on a non-Container target to 0, as upstream', () =>
+        {
+            const instance = new Container({ scale: { x: 2, y: 3 } });
+
+            applyProps(node(instance), { changes: [['scale-x', '__defaultremove', false, ['scale', 'x']]] });
+
+            expect(instance.scale.x).toEqual(0);
+            expect(instance.scale.y).toEqual(3);
+        });
+
+        it('restores a removed dashed prop on a nested Container from a blank of the nested class', () =>
+        {
+            const instance = new Container();
+            const mask = new Container({ alpha: 0.25 });
+
+            instance.mask = mask;
+
+            applyProps(node(instance), { changes: [['mask-alpha', '__defaultremove', false, ['mask', 'alpha']]] });
+
+            expect(mask.alpha).toEqual(1);
+        });
     });
 });

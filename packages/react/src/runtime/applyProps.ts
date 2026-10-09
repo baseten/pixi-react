@@ -10,16 +10,41 @@ import type { FacadeRuntime } from './composition';
 /** Upstream's marker value for a removed prop in a diff set. */
 const REMOVED = '__defaultremove';
 
-function readPath(target: unknown, path: readonly string[]): unknown
+/** Upstream's dashed-key step: descends into a non-nullish value, otherwise stays on the current target. */
+function targetKeyReducer(target: unknown, key: string): unknown
 {
-    return path.reduce<unknown>((value, key) => (value !== null && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined), target);
+    const value = target !== null && typeof target === 'object' ? (target as Record<string, unknown>)[key] : undefined;
+
+    return value === undefined || value === null ? target : value;
+}
+
+/**
+ * Resolves the object and key a removed prop is reset on, as upstream did: a dashed prop whose final value has no
+ * `set` method is reset on its parent object (`scale-x` resets `x` on the `scale` point).
+ */
+function resolveRemovalTarget(instance: object, key: string, keys: readonly string[]): [target: unknown, name: string]
+{
+    if (!keys.length)
+    {
+        return [instance, key];
+    }
+
+    const resolved = keys.reduce(targetKeyReducer, instance as unknown);
+
+    if (resolved && typeof (resolved as { set?: unknown }).set === 'function')
+    {
+        return [instance, key];
+    }
+
+    return [keys.slice(0, -1).reduce(targetKeyReducer, instance as unknown), keys[keys.length - 1]];
 }
 
 /**
  * Converts the deprecated diff-set form (`{ changes: [key, value, isEvent, keys][] }`) into plain props.
  * A removed prop takes the value of a blank instance of the same class, as upstream did; when the class cannot be
  * constructed without arguments, the prop keeps its value (upstream threw there: an approved failure-path repair).
- * Removed props on a non-Container become 0 and removed event handlers become `null`, as upstream's.
+ * Dashed props are resolved to their nested target first, so a removed prop whose target is not a Container (such as
+ * `scale-x`) becomes 0, as upstream's. Removed event handlers become `null`.
  */
 function diffSetToProps(runtime: FacadeRuntime, instance: object, changes: readonly Change[], blanks: WeakMap<object, object | null>)
 {
@@ -35,9 +60,17 @@ function diffSetToProps(runtime: FacadeRuntime, instance: object, changes: reado
         {
             props[key] = null;
         }
-        else if (instance instanceof runtime.pixi.Container)
+        else
         {
-            const Ctor = instance.constructor as new () => object;
+            const [target, name] = resolveRemovalTarget(instance, key, keys);
+
+            if (!(target instanceof runtime.pixi.Container))
+            {
+                props[key] = 0;
+                continue;
+            }
+
+            const Ctor = target.constructor as new () => object;
             let blank = blanks.get(Ctor);
 
             if (blank === undefined)
@@ -56,12 +89,8 @@ function diffSetToProps(runtime: FacadeRuntime, instance: object, changes: reado
 
             if (blank)
             {
-                props[key] = readPath(blank, keys.length ? keys : [key]);
+                props[key] = (blank as Record<string, unknown>)[name];
             }
-        }
-        else
-        {
-            props[key] = 0;
         }
     }
 
