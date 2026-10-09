@@ -1,0 +1,5 @@
+{
+  "react": ["19"],
+  "codes": [2322],
+  "reason": "the facade keeps upstream's one-way ConstructorOverrides lookup (D4): a Container subclass that adds no members picks up Text's options; the modular mapping is exact (react-19/elements.tsx `pixiLabelled`)"
+}

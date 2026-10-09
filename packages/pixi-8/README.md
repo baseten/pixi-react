@@ -2,7 +2,8 @@
 
 The Pixi 8 adapter ([issue 8](https://github.com/baseten/pixi-react/issues/8)). `Pixi8Adapter` extends core's
 `PixiAdapter` and owns every Pixi 8 behaviour of the [adapter contract](../../design/adapter-architecture.md). It is
-the only package that imports `pixi.js`, and it has no React, `react-reconciler` or its-fine dependency. The package
+the only package that imports `pixi.js`, and it has no React, `react-reconciler` or its-fine dependency (its types-only
+`./jsx` entries name `@types/react`, an optional peer; see Types and JSX). The package
 is private and provisional: nothing here is published.
 
 ```ts
@@ -175,12 +176,63 @@ them whenever they share a Pixi instance, as in a bundler. `test/unit/dual-entry
 the implementation and core load once; each entry is bound to its own system's Pixi; the same Pixi instance yields the
 same class through either entry; and no React package loads.
 
+## Types and JSX
+
+Every public prop type is derived from the installed `pixi.js` declarations; nothing is relaxed to
+`Record<string, any>`. Exports added within the peer range are reached through `InstalledPixiExport<'Name'>`, never
+imported by name, so the declarations compile against 8.2.6 and the later classes appear where they are installed.
+
+| Type | What it is |
+| --- | --- |
+| `Pixi8Props<C>` | The element props of constructor `C` without React's half: Graphics `draw` (typed by the instance), the constructor's options minus function-valued, tree-owned and Pixi-cased event keys, the PascalCase pointer and wheel handlers with their own payloads, and `children?: never` on leaves (filters, particles, RenderLayer, DOMContainer). The adapter's `PropsFamily`, so `PropsOf<Pixi8Types, C>` is this |
+| `ConstructorOptions<C>`, `ConstructorOverrides` | Upstream's override table (30cf1f8) plus `AnimatedSprite`. Each row resolves to the installed options overload (`InstalledOptions`, `OverloadedOptions`): `CanvasTextOptions` for `Text` and `AnimatedSpriteOptions` on 8.22, the positional constructor's options on 8.2.6. Lookup is exact in both directions, so a custom subclass never picks up another row; a custom class's required options stay required |
+| `ExcludeFunctionProps`, `OmitKeys` | Upstream's utility types |
+| `Pixi8StandardCatalog` | The public, concrete built-in nodes of the installed version. Excludes abstract bases (`AbstractText`, `AbstractSplitText`, `ViewContainer`), internal classes (`BitmapTextGraphics`, `BlurFilterPass`, `MaskFilter`, `PassthroughFilter`, the blend-mode filters), `NineSlicePlane` and resources |
+| `Pixi8Node`, `Pixi8NodeConstructor`, `Pixi8LeafNode`, `Pixi8NodeKeys<Cat>` | What can be an element; the catalog keys whose values are concrete node constructors |
+| `Pixi8CanonicalName<K>`, `Pixi8PrefixedName<K>`, `Pixi8UnprefixedName<K>` | `normalizePixiName` as types: `HTMLText` is `pixiHtmlText`/`htmlText`, `DOMContainer` is `pixiDOMContainer` |
+
+### JSX entries (types only)
+
+Importing the package root declares no JSX. Three types-only subpaths do; each has a single declaration file for
+`import` and `require`, so a module augmentation always reaches the same interfaces. They name React's `Key`, `Ref` and
+`ReactNode` from the consumer's `@types/react` (an optional peer, 18.3 or 19).
+
+| Entry | Effect |
+| --- | --- |
+| `@pixi-react-provisional/pixi-8/jsx` | No augmentation. `PixiCatalog` (the registered catalogue, empty until augmented), `PixiElementProps<C>`, `PixiElements` (prefixed), `UnprefixedPixiElements`, and `PrefixedElementsOf<Cat>`/`UnprefixedElementsOf<Cat>` for any catalog |
+| `…/jsx/react-19` | Adds `PixiElements` to `React.JSX`, `react/jsx-runtime` and `react/jsx-dev-runtime` (classic, automatic and dev JSX) |
+| `…/jsx/react-18` | The same for `@types/react` 18.3, plus its deprecated global `JSX` (which 18.3 does not derive from `React.JSX`). The React 18 runtime adapter (issue 12) uses this entry as its JSX surface; its README should point here rather than add another |
+
+Tags follow the catalogue you register, not every Pixi export:
+
+```ts
+import { Container, Sprite } from 'pixi.js';
+import type {} from '@pixi-react-provisional/pixi-8/jsx/react-19';
+
+const catalog = { Container, Sprite, Viewport };
+extend(catalog); // from your createRenderer composition
+
+type Registered = typeof catalog; // or Pixi8StandardCatalog, or Pick<Pixi8StandardCatalog, ...> & typeof custom
+declare module '@pixi-react-provisional/pixi-8/jsx' { interface PixiCatalog extends Registered {} }
+```
+
+Unprefixed tags are opt-in, by your own augmentation:
+`declare module 'react' { namespace JSX { interface IntrinsicElements extends Omit<UnprefixedPixiElements, 'text' | 'filter'> {} } }`.
+`text` and `filter` are React DOM's SVG tags; the prefixed tags stay available.
+
+**One program, one declaration per tag.** A JSX augmentation is global to a TypeScript program. Two declarations of
+one tag with different props (the `@pixi/react` facade's all-constructors `PixiElements` next to this entry, an
+unprefixed `text` next to React DOM's, or two Pixi or React majors) are a compile error, not a merge. Put such
+compositions in separate TS projects or entrypoints, or use `component(Ctor)`, whose props need no global tag. Type
+arguments of `createRenderer` cannot select a JSX namespace. The consumer fixtures in
+[`packages/type-consumers`](../type-consumers/README.md) pin each of these cases.
+
 ## Tests and commands
 
 | Command | What runs |
 | --- | --- |
-| `pnpm --filter @pixi-react-provisional/pixi-8 build` | The CJS build, then the bound ESM wrapper |
-| `… typecheck` | The sources and tests against 8.2.6, and the sources against 8.22.0 (`tsconfig.current.json`) |
+| `pnpm --filter @pixi-react-provisional/pixi-8 build` | The CJS build, then the bound ESM wrapper, then the types-only JSX entries (`tsconfig.jsx.json`, into `dist/jsx`) |
+| `… typecheck` | The sources (with the JSX entries) and tests against 8.2.6, and the sources against 8.22.0 (`tsconfig.current.json`) |
 | `… test:unit` | Typecheck, then Node unit tests that bind 8.2.6, 8.9.2 and 8.22.0 side by side: version bounds, the global registries, node definitions, props, particles and the 8.10 semantics, the D6 entries and the built dependency graph. Then `check:graph` |
 | `… test:conformance` | The conformance suite in Chromium on 8.2.6 and 8.22.0 |
 | `… test:e2e` | The conformance cells plus scene tests on 8.2.6, 8.9.2 and 8.22.0: failures, shared textures, repeated cleanup, multiple apps, custom instances, filters, particles, gated special nodes and `removeParticles` |
@@ -212,5 +264,4 @@ with a facade-side shim, not by changing this adapter.
   before init. `appProps` is the complete mutable set, and `nodeDestroy` also accepts `boolean`.
 - `Pixi8Adapter` is a bound subclass of `Pixi8AdapterBase` (see D6 above). The exported `Pixi8Adapter` is its
   constructor, and `type Pixi8Adapter` is its instance type.
-- The props types port the sketch's representative override table. The complete constructor, event and children
-  mapping and the JSX surface are issue 11's work.
+- The props types start from the sketch's override table; issue 11 completed them (see Types and JSX above).

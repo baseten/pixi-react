@@ -8,7 +8,12 @@
     "jsx": "react-jsx",
     "allowImportingTsExtensions": true,
     "types": ["node", "react", "vite/client"],
-    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // The JSX entries import this package by name; resolve it to the sources.
+    "paths": {
+      "@pixi-react-provisional/pixi-8": ["./src/index.ts"]
+    }
   },
-  "include": ["src/**/*", "test/**/*", "*.mts"]
+  "include": ["src/**/*", "test/**/*", "*.mts"],
+  "exclude": []
 }

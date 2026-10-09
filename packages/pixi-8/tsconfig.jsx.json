@@ -1,0 +1,17 @@
+{
+  // The types-only JSX entries (`./jsx`, `./jsx/react-19`, `./jsx/react-18`), emitted to dist/jsx after the main
+  // build. They import this package by name, resolved here to its built declarations, so the emitted files keep the
+  // package specifier rather than a path into dist/cjs.
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "rootDir": "./src/jsx",
+    "outDir": "./dist/jsx",
+    "declarationMap": false,
+    "sourceMap": false,
+    "paths": {
+      "@pixi-react-provisional/pixi-8": ["./dist/cjs/index.d.ts"]
+    }
+  },
+  "include": ["src/jsx/**/*"],
+  "exclude": []
+}

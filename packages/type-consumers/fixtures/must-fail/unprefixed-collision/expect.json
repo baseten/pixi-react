@@ -1,0 +1,5 @@
+{
+  "react": ["19", "18"],
+  "codes": [2320, 2430],
+  "reason": "unprefixed `text` and `filter` collide with React DOM's SVG tags; one program cannot declare a tag twice"
+}
