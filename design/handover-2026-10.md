@@ -78,7 +78,7 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
 - **Pixi 7 (#16).** Deferred. It is kept open as a later or community item.
 - **Docs (#18/#19).** Build and E2E-test in CI only. Nothing is deployed yet.
 - **Conformance kit.** Published later, as part of #20, not with Release 1.
-- **Dependency updates.** Renovate. Installing the Renovate GitHub App is an owner action.
+- **Dependency updates.** Deferred until there is agreement to move to the upstream repo (#41). No Renovate or Dependabot config yet. A new React or Pixi minor is handled manually: run the nightly matrix with workflow_dispatch, then widen the peer range only if it passes.
 - **Wave 2 order.** #15, #50 and #17 first, then #40, then #18 and #19.
 
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
