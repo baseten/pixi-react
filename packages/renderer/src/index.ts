@@ -111,12 +111,22 @@ export function createRenderer<S extends SceneTypes, F extends BindingFamily>(
         throw error;
     }
 
-    if (!Object.isExtensible(bindings))
+    try
     {
-        return attachToNonExtensible(bindings, runtime) as Renderer<F, S>;
-    }
+        if (!Object.isExtensible(bindings))
+        {
+            return attachToNonExtensible(bindings, runtime) as Renderer<F, S>;
+        }
 
-    Object.defineProperty(bindings, 'runtime', { value: runtime, enumerable: true, writable: false, configurable: false });
+        // Throws if the bindings (for example an adapter's Proxy) refuse the property.
+        Object.defineProperty(bindings, 'runtime', { value: runtime, enumerable: true, writable: false, configurable: false });
+    }
+    catch (error)
+    {
+        // Attaching the runtime is part of composition: if it fails, nothing created by bind() stays alive.
+        runtime.dispose().catch(() => undefined);
+        throw error;
+    }
 
     return bindings as Renderer<F, S>;
 }

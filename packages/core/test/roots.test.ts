@@ -231,6 +231,39 @@ describe('root lifecycle state machine', () =>
         await teardown;
     });
 
+    it('rejects a task that disposes its own root before returning, instead of resolving or hanging', async () =>
+    {
+        const root = await readyRoot(composeFake());
+        let finish!: (value: string) => void;
+        let teardown!: Promise<void>;
+        const reentrant = root.schedule(() =>
+        {
+            teardown = root.dispose();
+
+            return new Promise<string>((resolve) =>
+            {
+                finish = resolve;
+            });
+        });
+
+        finish('late');
+
+        const error = await rejection(reentrant) as CompatibilityError;
+
+        expect(error.code).toBe('ROOT_DISPOSED');
+        await teardown;
+
+        const syncRoot = await readyRoot(composeFake());
+        const syncTask = syncRoot.schedule(() =>
+        {
+            void syncRoot.dispose();
+
+            return 'value';
+        });
+
+        expect(((await rejection(syncTask)) as CompatibilityError).code).toBe('ROOT_DISPOSED');
+    });
+
     it('rejects an async task that never settles when the root is disposed, instead of hanging', async () =>
     {
         const root = await readyRoot(composeFake());

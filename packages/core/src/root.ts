@@ -559,6 +559,21 @@ export class Root<S extends SceneTypes> implements RootRecord<S>
                     return;
                 }
 
+                // The task may have torn the root down itself (re-entrantly) before returning. Teardown has
+                // already rejected the running set by then, so settle this task as disposed instead of tracking
+                // it: its promise must never resolve after disposal started, nor stay pending.
+                if (this.isTornDown)
+                {
+                    if (isThenable(result))
+                    {
+                        Promise.resolve(result).catch(noop);
+                    }
+
+                    reject(this.disposedError('the root was torn down while a scheduled task was running'));
+
+                    return;
+                }
+
                 if (!isThenable(result))
                 {
                     resolve(result);

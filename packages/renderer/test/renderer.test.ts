@@ -88,6 +88,28 @@ describe('createRenderer', () =>
         expect((spy.mock.calls[0][0]).status).toBe('disposed');
     });
 
+    it('disposes the runtime when attaching it to the bindings fails', async () =>
+    {
+        const disposed = vi.fn();
+        const failure = new Error('defineProperty refused');
+        const framework = new ToolsFramework({}, () => ({}));
+        const spy = vi.spyOn(framework, 'bind').mockImplementation((runtime) =>
+        {
+            runtime.onDispose(disposed);
+
+            return new Proxy({}, {
+                defineProperty()
+                {
+                    throw failure;
+                },
+            }) as ReturnType<typeof framework.bind>;
+        });
+
+        expect(() => createRenderer({ framework, scene: new ItemSceneAdapter() })).toThrow(failure);
+        await vi.waitFor(() => expect(disposed).toHaveBeenCalledTimes(1));
+        expect((spy.mock.calls[0][0]).status).toBe('disposed');
+    });
+
     it.each([
         ['null', () => null, /returned null from bind/],
         ['a string', () => 'bindings', /returned string from bind/],
