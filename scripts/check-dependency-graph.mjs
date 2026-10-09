@@ -8,7 +8,8 @@
  *
  *   - relative specifiers must stay inside the package's dist directory;
  *   - bare specifiers must be in `--allow` (core allows none; renderer allows only core);
- *   - triple-slash `types`/`lib` references are reported like bare specifiers.
+ *   - triple-slash `types`/`lib` references are reported like bare specifiers;
+ *   - a quoted framework or scene package name anywhere in the output fails unless that package is allowed.
  *
  * It also checks that package.json declares no runtime or peer dependency outside the allowlist.
  *
@@ -143,6 +144,7 @@ for (const file of walk(dist))
     // Belt and braces: a quoted framework/scene package name anywhere (e.g. a computed require) also fails.
     for (const match of readFileSync(file, 'utf8').matchAll(FORBIDDEN_LITERAL))
     {
+        // An allowed dependency (e.g. `react` for a React adapter) may be named; every other one may not.
         if (!allow.has(packageNameOf(match[0].slice(1, -1))))
         {
             violations.push(`${name}: mentions forbidden module ${match[0]}`);
