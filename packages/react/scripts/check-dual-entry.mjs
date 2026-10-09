@@ -37,6 +37,13 @@ assert.deepEqual(Object.keys(esm).sort(), expected, 'import names');
 // One implementation module: the ESM entry imports the CJS lib/bind.js, and no ESM copy of it exists.
 assert.equal(loaded('/lib/bind.js').length, 1, 'lib/bind.js loaded once');
 assert.equal(loaded('/lib/adapters.js').length, 1, 'the bundled adapters (lib/adapters.js) loaded once');
+
+// lib/adapters.js selects one build of the bundled adapters by NODE_ENV, as React's packages do; both entries get it.
+const adaptersBuild = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+const otherBuild = adaptersBuild === 'production' ? 'development' : 'production';
+
+assert.equal(loaded(`/lib/adapters.${adaptersBuild}.js`).length, 1, `lib/adapters.${adaptersBuild}.js loaded once`);
+assert.equal(loaded(`/lib/adapters.${otherBuild}.js`).length, 0, `lib/adapters.${otherBuild}.js not loaded`);
 assert.deepEqual(Object.keys(require.cache).filter((file) => !file.startsWith(join(packageDir, 'lib')) && !file.includes('/node_modules/')), [],
     'no workspace adapter package loaded: the facade runs its bundled adapters');
 assert.equal(loaded('/react/index.js').length, 1, 'React loaded once');
@@ -69,7 +76,8 @@ assert.equal(bind.facadeRuntimeFor(pixi8Cjs).pixi.Container, pixiCjs.Container, 
 
 console.log(JSON.stringify({
     names: expected,
-    implementationFiles: [...loaded('/lib/bind.js'), ...loaded('/lib/adapters.js')].map((file) => relative(packageDir, file)),
+    implementationFiles: [...loaded('/lib/bind.js'), ...loaded('/lib/adapters.js'), ...loaded(`/lib/adapters.${adaptersBuild}.js`)]
+        .map((file) => relative(packageDir, file)),
     esmEntryUsesImplementation: true,
     oneRuntimePerPixiInstance: true,
     plainNodePixiInstances: separatePixi ? 2 : 1,

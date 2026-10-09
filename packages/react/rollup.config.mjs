@@ -39,7 +39,7 @@ const bundledEntries = {
 /**
  * @param {object} [options]
  * @param {boolean} [options.adaptersChunk] - Resolve the facade's runtime imports of the adapter packages to the
- * separately built `lib/adapters.js` (see the `lib-adapters` target) instead of bundling them into this build.
+ * separately built `lib/adapters.js` (see the `lib-adapters-*` targets) instead of bundling them into this build.
  */
 function bundleAdapters({ adaptersChunk = false } = {})
 {
@@ -83,8 +83,71 @@ function bundleAdapters({ adaptersChunk = false } = {})
     };
 }
 
-const plugins = ({ env, esmExternals = false, adaptersChunk = false } = {}) => [
+/**
+ * `lib/adapters.js` follows React's own pattern: it is a switch between `adapters.production.js` and
+ * `adapters.development.js`, each bundled with `process.env.NODE_ENV` replaced by a literal and tree-shaken, so each
+ * holds only one build of the bundled react-reconciler and scheduler. Without this, the one `lib/adapters.js` carried
+ * both builds behind a runtime `NODE_ENV` test that consumers' bundlers keep (an unused `__commonJS(...)` wrapper is
+ * not a pure call to them), where upstream's dependency on react-reconciler let them resolve only one build.
+ */
+const ADAPTERS_SWITCH = [
+    '\'use strict\';',
+    '',
+    '// The bundled adapters, as React ships its own packages: one build per NODE_ENV.',
+    'if (process.env.NODE_ENV === \'production\')',
+    '{',
+    '    module.exports = require(\'./adapters.production.js\');',
+    '}',
+    'else',
+    '{',
+    '    module.exports = require(\'./adapters.development.js\');',
+    '}',
+    '',
+].join('\n');
+
+/** Files of the other build: each per-NODE_ENV adapters bundle must not contain them. */
+const OTHER_BUILD = {
+    production: /(?:react-reconciler(?:-constants)?|scheduler)\.development\b/,
+    development: /(?:react-reconciler(?:-constants)?|scheduler)\.production\b/,
+};
+
+/**
+ * Replaces `process.env.NODE_ENV` with `nodeEnv` in every module before the CommonJS conversion, so tree-shaking
+ * drops the other build; then fails the build if any of it is left, and emits the `lib/adapters.js` switch.
+ * @param {'production' | 'development'} nodeEnv
+ */
+function adaptersForNodeEnv(nodeEnv)
+{
+    return {
+        name: 'adapters-for-node-env',
+        transform(code)
+        {
+            if (!code.includes('process.env.NODE_ENV')) return null;
+
+            return { code: code.replaceAll('process.env.NODE_ENV', JSON.stringify(nodeEnv)), map: null };
+        },
+        generateBundle(_options, bundle)
+        {
+            for (const [fileName, file] of Object.entries(bundle))
+            {
+                const match = file.type === 'chunk' && file.code.match(OTHER_BUILD[nodeEnv]);
+
+                if (match)
+                {
+                    this.error(`${fileName} is the ${nodeEnv} adapters build but contains ${match[0]}.`);
+                }
+            }
+            if (nodeEnv === 'production')
+            {
+                this.emitFile({ type: 'asset', fileName: 'adapters.js', source: ADAPTERS_SWITCH });
+            }
+        },
+    };
+}
+
+const plugins = ({ env, esmExternals = false, adaptersChunk = false, nodeEnv } = {}) => [
     bundleAdapters({ adaptersChunk }),
+    ...(nodeEnv ? [adaptersForNodeEnv(nodeEnv)] : []),
     json(),
     esbuild({ target: moduleTarget, minify: env === 'production' }),
     sourcemaps(),
@@ -120,17 +183,22 @@ function convertPackageNameToRegExp(packageName)
 const external = [...Object.keys(peerDependencies), 'react-dom'].map(convertPackageNameToRegExp);
 
 const targets = {
-    // The bundled adapters for `lib/`, as one CommonJS module: `src/adapters.ts` re-exports what the facade uses at
-    // runtime from core, renderer, react-19/19.3 and pixi-8 (pixi-8's `bind` module only).
-    'lib-adapters': {
+    // The bundled adapters for `lib/`, one CommonJS module per NODE_ENV behind the `lib/adapters.js` switch:
+    // `src/adapters.ts` re-exports what the facade uses at runtime from core, renderer, react-19/19.3 and pixi-8
+    // (pixi-8's `bind` module only).
+    ...Object.fromEntries(['production', 'development'].map((nodeEnv) => [`lib-adapters-${nodeEnv}`, {
         input: 'src/adapters.ts',
         path: paths.library,
-        entryFileNames: 'adapters',
+        entryFileNames: `adapters.${nodeEnv}`,
         env: undefined,
+        nodeEnv,
         preserveModules: false,
         esmExternals: false,
+        // Tree-shaking removes the other NODE_ENV's build. Module side effects are kept as written, whatever the
+        // bundled packages' `sideEffects` fields say.
+        treeshake: { moduleSideEffects: true },
         formats: ['cjs'],
-    },
+    }])),
     // One CommonJS implementation (D6). `lib/index.mjs` is not built here: scripts/write-esm-entry.mjs generates it
     // as a thin ESM wrapper over `lib/bind.js`, so `import` and `require` load the same implementation module. Its
     // runtime imports of the adapter packages load `lib/adapters.js`.
@@ -161,7 +229,7 @@ const targets = {
     },
 };
 
-export default ['lib-adapters', 'lib', 'dist-dev', 'dist-prod'].map((target) =>
+export default ['lib-adapters-production', 'lib-adapters-development', 'lib', 'dist-dev', 'dist-prod'].map((target) =>
     ({
         input: targets[target].input ?? 'src/index.ts',
         output: targets[target].formats.map((format) => ({
@@ -180,8 +248,9 @@ export default ['lib-adapters', 'lib', 'dist-dev', 'dist-prod'].map((target) =>
             env: targets[target].env,
             esmExternals: targets[target].esmExternals,
             adaptersChunk: targets[target].adaptersChunk,
+            nodeEnv: targets[target].nodeEnv,
         }),
         external,
         makeAbsoluteExternalsRelative: true,
-        treeshake: false
+        treeshake: targets[target].treeshake ?? false,
     }));
