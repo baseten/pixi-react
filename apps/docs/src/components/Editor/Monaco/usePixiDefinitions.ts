@@ -44,7 +44,8 @@ export const getPixiDefinitions = async (version: string) =>
     return value;
 };
 
-export const usePixiMonaco = (monaco: Monaco | null, version = 'latest') =>
+/** `version` is the exact pixi.js version the example pins (release-pins.json); never `latest`. */
+export const usePixiMonaco = (monaco: Monaco | null, version: string) =>
 {
     useEffect(() =>
     {

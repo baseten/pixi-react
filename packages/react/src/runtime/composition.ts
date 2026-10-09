@@ -1,11 +1,11 @@
 /**
- * The default composition behind `@pixi/react` (decisions D1 and D4): the newest certified React 19 epoch
+ * The default composition behind `@pixi/react` (decisions D1 and D4): the newest tested React 19 epoch
  * (`@pixi-react-provisional/react-19.3`) with `Pixi8Adapter`, through the neutral `createRenderer`, with upstream's
  * silent `extend` replacement (`registryConflict: 'replace'`).
  *
  * One composition exists per loaded pixi.js module (see `bind.ts`). It is created on first use, not at import: an
  * unsupported installation (a React outside the 19 major, a pixi.js outside the peer range) throws its
- * `CompatibilityError` from the first facade call instead of from `import`. An uncertified React 19 minor composes and
+ * `CompatibilityError` from the first facade call instead of from `import`. An untested React 19 minor composes and
  * logs one warning (see `reactVersion.ts`).
  */
 import { createFacadePixiAdapter, type FacadePixiAdapter } from './pixiAdapter';

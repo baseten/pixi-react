@@ -9,6 +9,8 @@
  *    `versionConstant`), which `changeset version` cannot see; each package's unit test keeps them equal.
  * 4. Records the ABI this release implements as `abi.released` in release.packages.json, the baseline the next
  *    policy check compares CORE_ABI against.
+ * 5. Regenerates the release compatibility table (compat-table.mjs) and the docs pins (docs-pins.mjs) for the new
+ *    versions, so the "Version packages" commit carries them.
  *
  * It never builds, packs or publishes. Usage: node scripts/release/version.mjs [--root <checkout>]
  */
@@ -16,7 +18,9 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeCompatibilityTable } from './compat-table.mjs';
 import { loadReleaseConfig, readJson, repoRoot } from './config.mjs';
+import { writeDocsPins } from './docs-pins.mjs';
 import { checkPolicy, readCoreAbi, readPlan } from './policy.mjs';
 
 export function syncVersionConstants(root, config = loadReleaseConfig({ root }))
@@ -62,6 +66,8 @@ export function version(root = repoRoot, { log = console.log } = {})
     const abi = recordReleasedAbi(root);
 
     log(`released ABI recorded: ${abi.major}.${abi.minor}`);
+    log(`generated: ${writeCompatibilityTable({ root })}`);
+    for (const file of writeDocsPins({ root })) log(`docs pins: ${file}`);
 
     return before.plan;
 }

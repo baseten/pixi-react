@@ -18,7 +18,7 @@ export const { Application, createRoot, extend, useApplication, useTick, compone
 
 ## Install
 
-Release 1 will publish this package as 1.0.0. React is a peer, limited to the versions this package certifies, so install one of them exactly. `react-reconciler` and its-fine are exact dependencies and come with the package:
+Release 1 will publish this package as 1.0.0. React is a peer, limited to the exact versions this package is tested with, so install one of them exactly. `react-reconciler` and its-fine are exact dependencies and come with the package:
 
 ```sh
 npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-19.2 @pixi-react-provisional/pixi-8 pixi.js react@19.2.8 react-dom@19.2.8
@@ -40,15 +40,18 @@ upstream `@pixi/react` does. The sibling packages are
 | Exports | `React192Adapter`, `React19Adapter` (the same class), `React19AdapterBase`, `EPOCH`, `REQUIRED_PIXI_CAPABILITIES`, the public types |
 | Adapter ID (manifest) | `react-19.2` |
 | `dependencies` | `react-reconciler` **0.33.0** (exact), `its-fine` **2.1.1** (exact), `@pixi-react-provisional/core` (workspace) |
-| `peerDependencies` | `react`: `19.2.0 || 19.2.8` (exactly the certified versions, D5) |
+| `peerDependencies` | `react`: `19.2.0 || 19.2.8` (exactly the tested versions, D5) |
 | Scheduler | not a direct dependency: react-reconciler 0.33.0 brings its own `scheduler@^0.27.0` |
 
 - **Composition check.** `checkEnvironment()` reads `React.version` and rejects another minor with a
   `CompatibilityError` (`UNSUPPORTED_TUPLE`, `expected.react` `19.2.x`, `actual.react`). The message names the
   per-minor package to install instead (for example `@pixi-react-provisional/react-19.1`). The check never selects
   an adapter.
-- **Certification.** The manifest's `certification` names the tested React versions (19.2.0, 19.2.8), the reconciler and
-  its-fine. It stays *candidate-not-certified* until the issue-13 matrix runs it with a real scene in a browser.
+- **Tested, not certified.** The manifest's `certification` names the tested React versions (19.2.0, 19.2.8), the
+  reconciler and its-fine. The [issue-13 compatibility cells](https://github.com/baseten/pixi-react/blob/main/design/compatibility/cells/COMPATIBILITY.md) run this package on every pull request
+  with React 19.2.8 and pixi.js 8.2.6 and 8.22.0 (packed install, types, and the conformance suite in Chromium), so
+  these versions are *tested*. They stay *candidate-not-certified*: no range is certified until the owner promotes one
+  in the compatibility manifest ([what "tested" means](https://github.com/baseten/pixi-react/blob/main/design/release.md#what-tested-means)).
 - **Reconciler builds.** The package ships one CommonJS file that `require`s `react-reconciler`; the consumer's
   bundler resolves that package's own `NODE_ENV` switch, so a production bundle contains only the production
   reconciler. React DOM keeps its own scheduler copy only if the package manager does not deduplicate them.

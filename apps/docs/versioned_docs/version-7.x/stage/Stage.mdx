@@ -39,13 +39,7 @@ render(<App />, document.getElementById('root'))
 <EmbeddedEditor version={'v7'}
     height={350}
     files={{ 'App.js': StageFile }}
-    dependencies={{
-        '@pixi/react-animated': '^7',
-        'react-spring': '^9',
-        'pixi.js': '^7',
-        '@pixi/react': '^7',
-        lodash: '^4',
-    }}
+    extras={['@pixi/react-animated', 'react-spring', 'lodash']}
 />
 ## Custom Updates
 

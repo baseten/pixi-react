@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import releasePins from '../../release-pins.json';
 import { dracula } from './defaults/theme';
 import { EditorLayout } from './Sandpack/Layout';
 import StylesFile from '!!raw-loader!./defaults/styles.css';
@@ -13,27 +14,36 @@ export interface EditorProps
     showConsole?: boolean;
     width?: number | string;
     height?: number | string;
+    /** The docs version whose pins the example uses: `v8` is the current docs, `v7` the 7.x snapshot. */
     version?: 'v7' | 'v8';
-    dependencies?: Record<string, string>;
+    /** Packages beyond the pinned four that the example imports; their exact versions are that docs version's `extras`. */
+    extras?: string[];
     files?: Record<string, { code: string; hidden?: boolean; active?: boolean } | string>;
     fontSize?: number;
     handleEditorCodeChanged?: (nextSourceCode: string | undefined) => void;
 }
 
-const v7Dependencies = {
-    'pixi.js': '^7',
-    '@pixi/react': '^7',
-    react: '^18',
-    'react-dom': '^18',
+/**
+ * Exact package versions per docs version, generated from the release (scripts/release/docs-pins.mjs). Examples never
+ * choose their own versions, so every example runs the release's tested React and pixi.js, never `latest`.
+ */
+const pins: Record<NonNullable<EditorProps['version']>, { dependencies: Record<string, string>; extras?: Record<string, string> }> = {
+    v7: releasePins.frozen['7.x'],
+    v8: releasePins.current,
 };
 
-const v8Dependencies = {
-    '@pixi/react': 'beta',
-    'pixi.js': '^8',
-    'pixi-viewport': '^6',
-    react: '^19',
-    'react-dom': '^19',
-};
+function pinnedDependencies(version: NonNullable<EditorProps['version']>, extras: string[]): Record<string, string>
+{
+    const { dependencies, extras: pinnedExtras = {} } = pins[version];
+    const missing = extras.filter((name) => !pinnedExtras[name]);
+
+    if (missing.length)
+    {
+        throw new Error(`release-pins.json has no ${version} pin for ${missing.join(', ')}`);
+    }
+
+    return { ...dependencies, ...Object.fromEntries(extras.map((name) => [name, pinnedExtras[name]])) };
+}
 
 export function Editor({
     viewType = 'both',
@@ -41,7 +51,7 @@ export function Editor({
     width = '100%',
     height = '100%',
     version = 'v8',
-    dependencies,
+    extras = [],
     files = {},
     fontSize = 12,
     handleEditorCodeChanged,
@@ -86,7 +96,7 @@ export function Editor({
         ...filesWithoutIndexJs,
     });
 
-    dependencies ??= version === 'v7' ? v7Dependencies : v8Dependencies;
+    const dependencies = pinnedDependencies(version, extras);
 
     return (
         <BrowserOnly>

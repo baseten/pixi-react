@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FacadeReactAdapter } from '../../../src/runtime/composition';
-import { CERTIFIED_REACT, createReactVersionCheck, uncertifiedReactWarning } from '../../../src/runtime/reactVersion';
+import { createReactVersionCheck, TESTED_REACT, untestedReactWarning } from '../../../src/runtime/reactVersion';
 import { React19Adapter } from '@pixi-react-provisional/react-19.3';
 
 /**
@@ -38,11 +38,11 @@ describe('the facade\'s React version policy (issue 49)', () =>
         vi.restoreAllMocks();
     });
 
-    it('is certified for React 19.3, matching its "^19.3.0" peer', async () =>
+    it('is tested with React 19.3, matching its "^19.3.0" peer', async () =>
     {
         const manifest = await import('../../../package.json');
 
-        expect(CERTIFIED_REACT).toEqual({ minor: '19.3', tested: ['19.3.0'] });
+        expect(TESTED_REACT).toEqual({ minor: '19.3', versions: ['19.3.0'] });
         expect(manifest.peerDependencies.react).toBe('^19.3.0');
     });
 
@@ -51,27 +51,29 @@ describe('the facade\'s React version policy (issue 49)', () =>
         const warn = vi.fn();
         const check = createReactVersionCheck(warn);
 
-        expect(check('19.3.0')).toBe('certified');
-        expect(check('19.3.7')).toBe('certified');
+        expect(check('19.3.0')).toBe('tested');
+        expect(check('19.3.7')).toBe('tested');
         expect(warn).not.toHaveBeenCalled();
     });
 
-    it('warns once, naming the certified version and how to pin, for an uncertified React 19 minor', () =>
+    it('warns once, naming the tested version and how to pin, for an untested React 19 minor', () =>
     {
         const warn = vi.fn();
         const check = createReactVersionCheck(warn);
 
-        expect(check('19.4.0')).toBe('uncertified-minor');
-        expect(check('19.4.0')).toBe('uncertified-minor');
-        expect(check('19.5.1')).toBe('uncertified-minor');
-        expect(check('19.2.0')).toBe('uncertified-minor');
+        expect(check('19.4.0')).toBe('untested-minor');
+        expect(check('19.4.0')).toBe('untested-minor');
+        expect(check('19.5.1')).toBe('untested-minor');
+        expect(check('19.2.0')).toBe('untested-minor');
         expect(warn).toHaveBeenCalledTimes(1);
 
         const [message] = warn.mock.calls[0] as [string];
 
-        expect(message).toBe(uncertifiedReactWarning('19.4.0'));
-        expect(message).toContain('@pixi/react is certified for React 19.3 (tested: 19.3.0)');
+        expect(message).toBe(untestedReactWarning('19.4.0'));
+        expect(message).toContain('@pixi/react is tested with React 19.3 (19.3.0)');
         expect(message).toContain('React 19.4.0 is installed');
+        expect(message).toContain('this React 19.4 combination is not tested');
+        expect(message).not.toMatch(/certif/);
         expect(message).toContain('pin react and react-dom to 19.3 (for example "react": "~19.3.0")');
         expect(message).toContain('compose your own renderer with createRenderer and the React adapter package for React 19.4');
     });
@@ -95,7 +97,7 @@ describe('the facade\'s React version policy (issue 49)', () =>
         expect(() => withReact(FacadeReactAdapter, '19.3.2').checkEnvironment()).not.toThrow();
 
         expect(warn).toHaveBeenCalledTimes(1);
-        expect(warn).toHaveBeenCalledWith(uncertifiedReactWarning('19.4.0'));
+        expect(warn).toHaveBeenCalledWith(untestedReactWarning('19.4.0'));
 
         const failure = failureOf(() => withReact(FacadeReactAdapter, '18.3.1').checkEnvironment());
 
