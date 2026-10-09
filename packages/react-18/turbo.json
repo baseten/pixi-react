@@ -3,7 +3,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "inputs": ["$TURBO_DEFAULT$", "!fixtures/**"],
+      "inputs": ["$TURBO_DEFAULT$", "!fixtures/**", "$TURBO_ROOT$/scripts/build-react-adapter.mjs"],
       "outputs": ["dist/**"]
     },
     "test:unit": {

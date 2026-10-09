@@ -53,13 +53,14 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "react-reconciler": "0.31.0"
+    "its-fine": "2.1.1",
+    "react-reconciler": "0.34.0"
   },
   "devDependencies": {
     "@pixi-react-provisional/conformance": "workspace:*",
     "@pixi-react-provisional/core": "workspace:*",
     "@pixi-react-provisional/pixi-8": "workspace:*",
-    "@pixi-react-provisional/react-19": "workspace:*",
+    "@pixi-react-provisional/react-19.3": "workspace:*",
     "@pixi-react-provisional/renderer": "workspace:*",
     "@pixi/extension-scripts": "^4.0.0",
     "@rollup/plugin-commonjs": "^25.0.8",
@@ -90,7 +91,7 @@
   },
   "peerDependencies": {
     "pixi.js": ">=8.2.6 <8.5.0 || >=8.5.1 <8.23.0",
-    "react": "19.3.0"
+    "react": "^19.3.0"
   },
   "publishConfig": {
     "access": "public"

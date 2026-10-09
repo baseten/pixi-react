@@ -1,5 +1,5 @@
 /**
- * `@pixi-react-provisional/react-18`: the React 18 adapter, bundling react-reconciler 0.29.2 and its-fine 1.2.5.
+ * `@pixi-react-provisional/react-18`: the React 18 adapter. Depends on exactly react-reconciler 0.29.2 and its-fine 1.2.5.
  * Requires React 18.3.x (certified: 18.3.1).
  *
  * ```ts

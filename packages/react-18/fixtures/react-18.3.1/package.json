@@ -2,7 +2,7 @@
   "name": "@pixi-react-provisional/react-18-fixture-18.3.1",
   "version": "0.0.0",
   "private": true,
-  "description": "Test fixture: the PACKED core, renderer, react-18 and pixi-8 packages installed with exactly React 18.3.1 / react-dom 18.3.1, run in Chromium on pixi.js 8.2.6 and 8.22.0. Not published.",
+  "description": "Test fixture: the PACKED core, renderer, react-18 and pixi-8 packages installed with exactly React 18.3.1 / react-dom 18.3.1, run in Chromium on pixi.js 8.2.6 and 8.22.0. The adapter's exact react-reconciler and its-fine are installed here, as a consumer's package manager would install them. Not published.",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -21,11 +21,13 @@
     "@types/react-dom": "18.3.7",
     "@vitest/browser": "^2.0.4",
     "eslint": "^9.16.0",
+    "its-fine": "1.2.5",
     "pixi.js": "8.2.6",
     "pixi.js-current": "npm:pixi.js@8.22.0",
     "playwright": "^1.45.3",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-reconciler": "0.29.2",
     "typescript": "^5.4.5",
     "vite": "^5.0.0",
     "vitest": "^2.0.0"

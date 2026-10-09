@@ -25,7 +25,7 @@ A cell is one React adapter at one exact React version against one Pixi adapter 
 2. Creates a project in the OS temp directory, refuses to run when any ancestor directory has a `node_modules`, and installs only the packed tarballs plus the cell's exact `react`, `react-dom`, `@types/react`, `@types/react-dom`, `pixi.js` and the pinned toolchain, with `npm install --strict-peer-deps --ignore-scripts`. There is no workspace, no alias and no hoisting, so a missing peer or an unsatisfied declaration fails there.
 3. Runs the commands listed in `adapterMatrix.commands.order`, each with its own timeout:
    - `install`: as above.
-   - `tree`: `npm ls --all` must be clean; each selected package resolves to exactly one version; whatever an adapter bundles (reconciler, its-fine) must be absent; the packed `peerDependencies` must equal the manifest's `declaredPeers`.
+   - `tree`: `npm ls --all` must be clean; each selected package resolves to exactly one version; whatever an adapter bundles (`bundled`) must be absent, and an adapter whose reconciler is a dependency (`reconciler.via: dependency`, every React adapter since issue 49) must resolve exactly its epoch's react-reconciler; the packed `peerDependencies` must equal the manifest's `declaredPeers`.
    - `modules`: the adapter entries load through `import` and `require` in plain Node; the adapter manifest's ABI, id, `provides` and `requires` equal the manifest; the reconciler version it reports equals the epoch's; `checkEnvironment()` accepts the cell; `createRenderer` negotiates the pair; the ESM and CJS entries share one class where the manifest says they must (D6).
    - `types`: `tsc` with the cell's own TypeScript, `@types/react` and Pixi declarations over a consumer probe (Bundler resolution, JSX) and over `.mts` and `.cts` consumers (NodeNext, which selects the `import` and `require` declaration conditions). `skipLibCheck` is on, as in the #3 audit; full dependency declaration correctness is not claimed.
    - `conformance`: the whole conformance catalogue in Chromium (Vitest browser mode) against real Pixi.
@@ -74,8 +74,8 @@ The runner, harness and tests do not name a package or subpath; `cells.test.mjs`
 ```sh
 R=design/compatibility/cells/run-cells.mjs
 node $R pack --out .compat/tarballs && node $R key --cell react-19.1.9_pixi-8.22.0 --tarballs .compat/tarballs
-# edit packages/react-19/src/19.1/index.ts, then:
-pnpm --filter @pixi-react-provisional/react-19 build && node $R pack --out .compat/tarballs-edited
+# edit packages/react-19.1/src/index.ts, then:
+pnpm --filter @pixi-react-provisional/react-19.1 build && node $R pack --out .compat/tarballs-edited
 node $R key --cell react-19.1.9_pixi-8.22.0 --tarballs .compat/tarballs-edited   # changed
 node $R key --cell react-19.2.8_pixi-8.22.0 --tarballs .compat/tarballs-edited   # unchanged
 node $R run --tier pr --tarballs .compat/tarballs-edited                          # 19.1 cells re-run, the rest are CACHED-PASS

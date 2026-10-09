@@ -3,7 +3,9 @@
  * Runs in plain Node (no bundler, no DOM) against the BUILT package through its own `exports` map, once with
  * `import` and once with `require`. Prints a JSON report; the D6 test asserts on it.
  */
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 
 const require = createRequire(import.meta.url);
 const exportNames = (module) => Object.keys(module).filter((name) => name !== 'default' && name !== '__esModule').sort();
@@ -20,6 +22,12 @@ console.log(JSON.stringify({
     sameAdapterClass: esm.React18Adapter === cjs.React18Adapter,
     implementationFiles: loaded.filter((file) => (/react-18[\\/]dist[\\/]index\.js$/).test(file)),
     reconcilerFiles: loaded.filter((file) => (/react-reconciler|its-fine|scheduler/).test(file)),
+    resolved: Object.fromEntries(['react-reconciler', 'its-fine'].map((name) =>
+    {
+        const entry = require.resolve(specifier);
+
+        return [name, JSON.parse(readFileSync(join(dirname(createRequire(entry).resolve(`${name}/package.json`)), 'package.json'), 'utf8')).version];
+    })),
     reactFiles: loaded.filter((file) => (/[\\/]react[\\/]/).test(file)),
     hasDom: typeof globalThis.HTMLElement !== 'undefined',
 }));

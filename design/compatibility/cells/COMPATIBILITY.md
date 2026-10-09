@@ -48,7 +48,7 @@ Nightly also re-runs all 42 audited tuples as boundary probes.
 
 | Case | Fails at | Expected message contains |
 | --- | --- | --- |
-| react-adapter-beside-wrong-minor: The React 19.3 adapter installed beside React 19.1.9. The peer list accepts the version, so only the adapter environment check can reject it. | modules | `UNSUPPORTED_TUPLE`, `supports React 19.3.x`, `React 19.1.9 is installed` |
+| react-adapter-beside-wrong-minor: The React 19.3 adapter installed beside React 19.1.9 by a consumer that ignores peers (--legacy-peer-deps): its exact peer (19.3.0) would refuse the install, so this checks that the adapter's own environment check still rejects the wrong minor and names the per-minor package to install. | modules | `UNSUPPORTED_TUPLE`, `supports React 19.3.x`, `React 19.1.9 is installed`, `@pixi-react-provisional/react-19.1` |
 | react-18-adapter-beside-react-19: The React 18 adapter installed beside React 19.3.0: the strict peer check must refuse the install. | install | `ERESOLVE`, `react@"18.3.1"` |
 | pixi-peer-range-excludes-8.5.0: The Pixi 8 adapter beside the excluded pixi.js 8.5.0: the strict peer check refuses the install. | install | `ERESOLVE`, `peer pixi.js` |
 | pixi-adapter-rejects-8.5.0-when-peers-ignored: The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the adapter's own environment check must still reject pixi.js 8.5.0. | modules | `UNSUPPORTED_TUPLE`, `8.5.0` |

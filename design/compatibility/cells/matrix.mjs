@@ -240,8 +240,8 @@ export function validateAdapterMatrix(seed)
     assert.equal(matrix.schemaVersion, 1);
     for (const [id, artifact] of Object.entries(matrix.artifacts))
     {
-        assert.match(artifact.dir, /^packages\/[a-z0-9-]+$/, `artifact ${id} dir`);
-        assert.match(artifact.package, /^@[a-z0-9-]+\/[a-z0-9-]+$/, `artifact ${id} package`);
+        assert.match(artifact.dir, /^packages\/[a-z0-9.-]+$/, `artifact ${id} dir`);
+        assert.match(artifact.package, /^@[a-z0-9-]+\/[a-z0-9.-]+$/, `artifact ${id} package`);
     }
     for (const id of matrix.commonArtifacts) assert.ok(matrix.artifacts[id], `common artifact ${id}`);
     for (const command of matrix.commands.order) assert.ok(Number.isInteger(matrix.commands.timeoutSeconds[command]), `timeout for ${command}`);

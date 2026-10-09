@@ -8,7 +8,7 @@ import type { HostContainer } from '../src/host';
 import type { PixiTypes } from '@pixi-react-provisional/core';
 
 const require = createRequire(import.meta.url);
-const ALIAS = 'react-reconciler-0.29';
+const ALIAS = 'react-reconciler';
 
 /**
  * Host-config keys the installed bundle reads (`$$$hostConfig.<key>`). 0.29 ships a development build and a minified
@@ -34,7 +34,7 @@ describe('host-config keys match the installed react-reconciler 0.29.2 bundle ex
     const implemented = Object.keys(hostConfig.createHostConfig()).sort();
     const unreachable = Object.keys(hostConfig.UNREACHABLE_HOST_KEYS).sort();
 
-    it('bundles the pinned reconciler version', () =>
+    it('depends on the pinned reconciler version', () =>
     {
         expect(require(`${ALIAS}/package.json`).version).toBe(hostConfig.RECONCILER_VERSION);
     });
@@ -170,7 +170,7 @@ describe('event priority (getCurrentEventPriority)', () =>
         expect(withEvent(undefined, hostConfig.getCurrentEventPriority)).toBe(16);
     });
 
-    it('uses the constants of the bundled reconciler', () =>
+    it('uses the constants of the reconciler it depends on', () =>
     {
         const constants = require(`${ALIAS}/constants`);
 

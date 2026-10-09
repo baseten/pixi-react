@@ -1,0 +1,5 @@
+{
+  "//": "Editor and lint project for the shared fixture sources; each fixture typechecks them against its own React types.",
+  "extends": "../../../react-19.3/fixtures/react-19.3.0/tsconfig.json",
+  "include": ["./**/*.ts", "./**/*.tsx", "./**/*.d.mts"]
+}

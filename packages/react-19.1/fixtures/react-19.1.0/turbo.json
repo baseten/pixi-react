@@ -1,0 +1,12 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "typecheck": {
+      "inputs": ["$TURBO_DEFAULT$", "!.installed/**", "$TURBO_ROOT$/packages/react-shared/fixtures/react-19/**"]
+    },
+    "lint": {
+      "inputs": ["$TURBO_DEFAULT$", "!.installed/**", "$TURBO_ROOT$/eslint.config.mjs"]
+    }
+  }
+}

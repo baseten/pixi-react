@@ -94,9 +94,9 @@ describe('React18Adapter', () =>
         expect(manifest.peerDependencies).toEqual({ react: REACT18.testedReact.join(' || ') });
     });
 
-    it('pins the reconciler and bridge it bundles', () =>
+    it('pins the reconciler and bridge it depends on, exactly', () =>
     {
-        expect(manifest.devDependencies['react-reconciler-0.29']).toBe(`npm:react-reconciler@${REACT18.reconciler}`);
-        expect(manifest.devDependencies['its-fine']).toBe(REACT18.bridge);
+        expect(manifest.dependencies['react-reconciler']).toBe(REACT18.reconciler);
+        expect(manifest.dependencies['its-fine']).toBe(REACT18.bridge);
     });
 });

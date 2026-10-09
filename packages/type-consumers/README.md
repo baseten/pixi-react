@@ -6,7 +6,7 @@ Private; nothing here is published.
 `pnpm --filter @pixi-react-provisional/type-consumers typecheck` (part of `pnpm test:types`) runs
 [`scripts/run.mjs`](scripts/run.mjs):
 
-1. `pnpm pack` the built `core`, `renderer`, `react-19`, `pixi-8` and the `@pixi/react` facade.
+1. `pnpm pack` the built `core`, `renderer`, `react-19.3`, `pixi-8` and the `@pixi/react` facade. The `react-19.3` and facade tarballs bring their exact `react-reconciler` and `its-fine` dependencies from the registry.
 2. For each cell, install a consumer **outside the repository** (`$PIXI_REACT_TYPE_CELLS`, default
    `<os tmpdir>/pixi-react-type-consumers`) with `pnpm install --ignore-workspace`: the tarballs plus exact React,
    `@types/react`, pixi.js and TypeScript from the registry. No workspace link, tsconfig path or parent
@@ -19,8 +19,8 @@ Private; nothing here is published.
 
 | Cell | React / `@types/react` | pixi.js | TypeScript | Programs |
 | --- | --- | --- | --- | --- |
-| `react-19-pixi-8.2.6` | 19.3.0 / 19.3.0 | 8.2.6 | 5.6.3 | `react-19`, `facade`, must-fail |
-| `react-19-pixi-8.22.0` | 19.3.0 / 19.3.0 | 8.22.0 | 5.7.3 | `react-19`, `facade`, must-fail |
+| `react-19-pixi-8.2.6` | 19.3.0 / 19.3.0 | 8.2.6 | 5.6.3 | `react-19` (the `react-19.3` package), `facade`, must-fail |
+| `react-19-pixi-8.22.0` | 19.3.0 / 19.3.0 | 8.22.0 | 5.7.3 | `react-19` (the `react-19.3` package), `facade`, must-fail |
 | `react-18-pixi-8.2.6` | 18.3.1 / 18.3.31 | 8.2.6 | 5.6.3 | `react-18`, must-fail |
 | `react-18-pixi-8.22.0` | 18.3.1 / 18.3.31 | 8.22.0 | 5.7.3 | `react-18`, must-fail |
 

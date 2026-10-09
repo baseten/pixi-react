@@ -3,7 +3,8 @@
 /**
  * Checks decision D6 on the BUILT facade in plain Node, through the package's own `exports` map: `import` and
  * `require` reach one implementation module (`lib/bind.js`, with the adapters bundled in `lib/adapters.js`) and one
- * default runtime per pixi.js instance.
+ * default runtime per pixi.js instance, and that `lib/` requires the adapter's react-reconciler and its-fine as
+ * dependencies instead of bundling them (issue 49).
  *
  * In plain Node, pixi.js itself loads twice (its ESM and CJS builds), so the ESM and CJS entries are bound to two
  * Pixi instances and get two runtimes, as the modular Pixi 8 adapter package does. A bundler resolves one Pixi
@@ -11,7 +12,7 @@
  * namespace objects. Run after `pnpm build`.
  */
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,14 +39,25 @@ assert.deepEqual(Object.keys(esm).sort(), expected, 'import names');
 assert.equal(loaded('/lib/bind.js').length, 1, 'lib/bind.js loaded once');
 assert.equal(loaded('/lib/adapters.js').length, 1, 'the bundled adapters (lib/adapters.js) loaded once');
 
-// lib/adapters.js selects one build of the bundled adapters by NODE_ENV, as React's packages do; both entries get it.
-const adaptersBuild = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-const otherBuild = adaptersBuild === 'production' ? 'development' : 'production';
+// Issue 49: lib/ bundles only our own adapter code. The React 19.3 adapter's react-reconciler and its-fine are this
+// package's dependencies, loaded from node_modules (react-reconciler picks its own build by NODE_ENV), once.
+const manifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
 
-assert.equal(loaded(`/lib/adapters.${adaptersBuild}.js`).length, 1, `lib/adapters.${adaptersBuild}.js loaded once`);
-assert.equal(loaded(`/lib/adapters.${otherBuild}.js`).length, 0, `lib/adapters.${otherBuild}.js not loaded`);
+assert.deepEqual(manifest.dependencies, { 'its-fine': '2.1.1', 'react-reconciler': '0.34.0' }, 'the adapter\'s dependencies, exact');
 assert.deepEqual(Object.keys(require.cache).filter((file) => !file.startsWith(join(packageDir, 'lib')) && !file.includes('/node_modules/')), [],
     'no workspace adapter package loaded: the facade runs its bundled adapters');
+assert.equal(loaded('/react-reconciler/index.js').length, 1, 'react-reconciler loaded once, as a dependency');
+assert.equal(require(join(dirname(require.resolve('react-reconciler/package.json')), 'package.json')).version, '0.34.0', 'react-reconciler 0.34.0');
+assert.equal(loaded('/its-fine/dist/index.cjs').length, 1, 'its-fine loaded once, as a dependency');
+assert.deepEqual(readdirSync(join(packageDir, 'lib'), { recursive: true }).map(String).filter((file) => (/^adapters\./).test(file)).sort(),
+    ['adapters.js', 'adapters.js.map'], 'one adapters chunk: no per-NODE_ENV split');
+
+for (const file of readdirSync(join(packageDir, 'lib'), { recursive: true }).map(String).filter((name) => name.endsWith('.js')))
+{
+    assert.doesNotMatch(readFileSync(join(packageDir, 'lib', file), 'utf8'),
+        /react-reconciler\.(?:development|production)|scheduler\.(?:development|production)|reconcilerVersion:|unstable_scheduleCallback/,
+        `lib/${file} contains no reconciler, scheduler or its-fine source`);
+}
 assert.equal(loaded('/react/index.js').length, 1, 'React loaded once');
 assert.deepEqual(readdirSync(join(packageDir, 'lib'), { recursive: true }).filter((file) => String(file).endsWith('.mjs')), ['index.mjs'],
     'lib/index.mjs is the only ESM file');
@@ -76,8 +88,9 @@ assert.equal(bind.facadeRuntimeFor(pixi8Cjs).pixi.Container, pixiCjs.Container, 
 
 console.log(JSON.stringify({
     names: expected,
-    implementationFiles: [...loaded('/lib/bind.js'), ...loaded('/lib/adapters.js'), ...loaded(`/lib/adapters.${adaptersBuild}.js`)]
-        .map((file) => relative(packageDir, file)),
+    implementationFiles: [...loaded('/lib/bind.js'), ...loaded('/lib/adapters.js')].map((file) => relative(packageDir, file)),
+    dependencies: Object.keys(require.cache).filter((file) => (/[\\/]node_modules[\\/](?:react-reconciler|scheduler|its-fine)[\\/]/).test(file))
+        .map((file) => file.slice(file.lastIndexOf('node_modules/') + 'node_modules/'.length)),
     esmEntryUsesImplementation: true,
     oneRuntimePerPixiInstance: true,
     plainNodePixiInstances: separatePixi ? 2 : 1,

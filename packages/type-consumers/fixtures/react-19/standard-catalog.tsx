@@ -10,7 +10,7 @@ import {
 } from 'pixi.js';
 import { createRenderer } from '@pixi-react-provisional/renderer';
 import { Pixi8Adapter, type Pixi8FloorCatalog, type Pixi8StandardCatalog, type Pixi8Types } from '@pixi-react-provisional/pixi-8';
-import { type ComponentsOf, React19Adapter } from '@pixi-react-provisional/react-19/19.3';
+import { type ComponentsOf, React19Adapter } from '@pixi-react-provisional/react-19.3';
 
 import type { Catalog } from '@pixi-react-provisional/core';
 

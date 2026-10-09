@@ -25,9 +25,10 @@ describe('ESM and CJS entries share one instance (D6)', () =>
         expect(report.implementationFiles).toHaveLength(1);
     });
 
-    it('resolves no reconciler, scheduler or its-fine module at runtime: they are bundled', () =>
+    it('resolves its exact react-reconciler and its-fine dependencies at runtime instead of bundling them', () =>
     {
-        expect(report.reconcilerFiles).toEqual([]);
+        expect(report.resolved).toEqual({ 'react-reconciler': '0.29.2', 'its-fine': '1.2.5' });
+        expect(report.reconcilerFiles.some((file: string) => (/[\\/]react-reconciler[\\/]/).test(file))).toBe(true);
     });
 
     it('loads without a DOM', () =>
@@ -43,26 +44,30 @@ describe('package shape', () =>
         expect(Object.keys(manifest.exports).sort()).toEqual(['.', './package.json']);
     });
 
-    it('declares only core at runtime and only react as a peer', () =>
+    it('declares exactly core, react-reconciler and its-fine, pinned, and only react as a peer', () =>
     {
-        expect(Object.keys(manifest.dependencies)).toEqual(['@pixi-react-provisional/core']);
+        expect(manifest.dependencies).toEqual({
+            '@pixi-react-provisional/core': 'workspace:*',
+            'its-fine': '1.2.5',
+            'react-reconciler': '0.29.2',
+        });
         expect(Object.keys(manifest.peerDependencies)).toEqual(['react']);
     });
 
-    it('bundles exactly react-reconciler 0.29.2 (built for React 18.3.1), its scheduler and its-fine 1.x', () =>
+    it('bundles only its own code: no reconciler, scheduler or its-fine source, no react-shared import', () =>
     {
         const code = readFileSync(dist('index.js'), 'utf8');
-        const reconcilers = new Set([...code.matchAll(/(?:reconcilerVersion|version): ['"](18\.[^'"]+)['"]/g)].map((match) => match[1]));
 
-        expect([...reconcilers]).toEqual(['18.3.1']);
-        expect(code).toMatch(/unstable_scheduleCallback/);
-        expect(code).toMatch(/FiberProvider/);
-        expect(code).not.toMatch(/require\(["'](react-reconciler|scheduler|its-fine|react-dom)/);
+        expect(code).not.toMatch(/reconcilerVersion|unstable_scheduleCallback|\$\$\$hostConfig/);
+        expect(code).toMatch(/require\("react-reconciler"\)/);
+        expect(code).toMatch(/require\("its-fine"\)/);
+        expect(code).not.toMatch(/require\(["'](scheduler|react-dom)/);
+        expect(code).not.toContain('@pixi-react-provisional/react-shared');
         // No React 19 reconciler API leaked into the bundle.
         expect(code).not.toMatch(/updateContainerSync|onDefaultTransitionIndicator/);
     });
 
-    it('publishes declarations that name no bundled module', () =>
+    it('publishes declarations that name no reconciler and no unpublished package', () =>
     {
         const declarations = readdirSync(dist(''), { recursive: true }).map(String).filter((file) => (/\.d\.m?ts$/).test(file));
 
@@ -71,7 +76,7 @@ describe('package shape', () =>
 
         for (const file of declarations)
         {
-            expect(readFileSync(dist(file), 'utf8'), file).not.toMatch(/(?:from |import\()['"](?:react-reconciler|its-fine|scheduler)/);
+            expect(readFileSync(dist(file), 'utf8'), file).not.toMatch(/(?:from |import\()['"](?:react-reconciler|its-fine|scheduler|@pixi-react-provisional\/react-shared)/);
         }
     });
 });

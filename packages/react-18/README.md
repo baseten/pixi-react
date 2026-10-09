@@ -16,35 +16,40 @@ export const { Application, createRoot, extend, useApplication, useTick, compone
     createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() });
 ```
 
-Selecting React 18 means installing this package instead of `@pixi-react-provisional/react-19`: it bundles its own
-reconciler, so a React 18 application never installs a second reconciler, and the default facade (`@pixi/react`,
-React 19) is not involved. One application uses one React version.
+Selecting React 18 means installing this package instead of a React 19 minor package
+(`@pixi-react-provisional/react-19.x`): it depends on its own exact reconciler, so a React 18 application installs
+only react-reconciler 0.29.2, and the default facade (`@pixi/react`, React 19) is not involved. One application uses
+one React version. Like the React 19 minors, this package was converted by issue 49 (D2 reversed): the reconciler and
+its-fine are ordinary dependencies instead of bundled code, and the code it shares with them comes from the private
+[react-shared](../react-shared/README.md) package, bundled at build time.
 
 ## Bounds (D5)
 
 | | Exact version | How |
 | --- | --- | --- |
 | React and react-dom (peer, certified tuple) | **18.3.1** | `peerDependencies.react` is exactly `18.3.1`; the fixture runs 18.3.1 / react-dom 18.3.1 |
-| react-reconciler | **0.29.2** (latest 0.29.x, built for React 18.3.1), with scheduler 0.23.2 | bundled into `dist/index.js` |
-| Context bridge | **its-fine 1.2.5** (latest 1.x; 2.x requires React 19) | bundled |
+| react-reconciler | **0.29.2** (latest 0.29.x, built for React 18.3.1), which brings `scheduler@^0.23.2` | exact `dependencies` entry |
+| Context bridge | **its-fine 1.2.5** (latest 1.x; 2.x requires React 19) | exact `dependencies` entry |
 | Pixi | the unchanged `Pixi8Adapter`; fixture cells pixi.js **8.2.6** and **8.22.0** | packed `@pixi-react-provisional/pixi-8` |
 
 - **Composition check.** `checkEnvironment()` reads `React.version` and rejects anything outside the 18.3 line with a
-  `CompatibilityError` (`UNSUPPORTED_TUPLE`, `expected.react` `18.3.x`, `actual.react`). React 19 is pointed at
-  `@pixi-react-provisional/react-19`. The check never selects an adapter.
+  `CompatibilityError` (`UNSUPPORTED_TUPLE`, `expected.react` `18.3.x`, `actual.react`). React 19 is pointed at the
+  matching per-minor package (for example `@pixi-react-provisional/react-19.1`). The check never selects an adapter.
 - **React 18.2 is not certified.** With the version check bypassed and the conformance harness given
   `react-dom/test-utils`' `act` (React 18.2 has no `React.act`), the whole fixture suite also passed on React 18.2.0 /
   react-dom 18.2.0 with this bundle. It stays outside the certificate: react-reconciler 0.29.2 declares
   `react@^18.3.1`, the reconciler line for 18.2 is 0.29.0, and the shared harness itself needs React 18.3's `act`.
   Supporting 18.2 would be a separate, owner-approved cell.
-- **Certification.** The manifest's `certification` names the tested React version, the bundled reconciler and
+- **Certification.** The manifest's `certification` names the tested React version, the reconciler and
   its-fine. Like every row, it stays *candidate-not-certified* until the issue-13 matrix runs it.
 
 ## How React 18 differs from the React 19 epochs
 
-This is an independent implementation against declarations of the bundled reconciler
-(`src/reconciler/react-reconciler-0.29.d.ts`, written from the installed 0.29.2 bundle). Nothing is shared with, or
-cast from, `@pixi-react-provisional/react-19`.
+This is an independent implementation against declarations of its own reconciler
+(`src/reconciler/react-reconciler.d.ts`, written from the installed 0.29.2 bundle and imported through the package's
+private `#reconciler` alias). Only the runtime-independent mutation host, the node → runtime map and the DOM-event
+priority mapping are shared with the React 19 minors (react-shared's `common` entry, which is identical for both);
+nothing is cast from a React 19 package.
 
 | | React 18 (0.29.2) | React 19 epochs (0.31–0.34) |
 | --- | --- | --- |
@@ -57,7 +62,7 @@ cast from, `@pixi-react-provisional/react-19`.
 | Refs | `forwardRef` for `Application` and `component(Ctor)`; a callback ref gets `null` on detach | `ref` is a prop; callback-ref cleanup functions |
 | Context bridge | its-fine 1.2.5 (`FiberProvider`, `useContextBridge`) | its-fine 2.1.1 |
 | Activity | none: `react.activity` is not provided, so a consumer that requires it fails at composition | 19.2+ provides `react.activity` |
-| Reconciler instances | **one shared reconciler** for every runtime of the package copy (see below) | one per runtime |
+| Reconciler instances | **one shared reconciler** for every runtime of the package copy (see below) | the same since issue 49 |
 
 **One shared reconciler.** React 18 marks a context provider with the secondary renderer that last rendered it and, in
 development, warns ("Detected multiple renderers concurrently rendering the same context provider") as soon as a
@@ -65,7 +70,9 @@ different reconciler instance renders it. With a reconciler per runtime, the ada
 bridged context would trip it when a second runtime renders. The adapter therefore creates one reconciler (and one
 host config) per loaded package copy, as React DOM does for all its roots. The host config is runtime-independent:
 each container carries its runtime and core root record, and each node is traced to the runtime that created it,
-whose core node table still decides ownership. Roots, catalogs and node metadata stay per runtime.
+whose core node table still decides ownership (`detachDeletedInstance` drops the link). Roots, catalogs and node
+metadata stay per runtime. Issue 49 gave every React 19 minor the same design. Two installed copies of this package
+still have two reconcilers: deduplicate the package so an app loads one copy.
 
 `UNSUPPORTED_CAPABILITIES` lists the React 19 capabilities React 18 lacks (`react.activity`,
 `react.root-error-callbacks`). Neither is in the manifest's `provides`, so
@@ -89,17 +96,19 @@ and a `<StrictMode>` inside the scene replays scene effects as React 18 does.
 
 ## Packaging (D6) and isolation
 
-`scripts/build.mjs` emits declarations with `tsc`, then bundles `src/index.ts` with esbuild into one CommonJS file,
-`dist/index.js`, with only `react` and `@pixi-react-provisional/core` external, and generates the ESM wrapper
-`dist/index.mjs` and `dist/index.d.mts`. The host-config declaration (which names the bundled reconciler) is pruned.
-Like the React 19 package, the bundle keeps react-reconciler's own `NODE_ENV` switch; splitting production and
-development builds (as the facade does since af815e1) is a follow-up for both adapter packages
-([#40](https://github.com/baseten/pixi-react/issues/40)).
+[`scripts/build-react-adapter.mjs`](../../scripts/build-react-adapter.mjs) (shared with the React 19 minors) emits
+declarations with `tsc`, then bundles `src/index.ts` with esbuild into one CommonJS file, `dist/index.js`. Only our own
+code is bundled (this package's sources and react-shared's `common`); `react`, `react-reconciler`, `its-fine` and core
+stay external. It generates the ESM wrapper `dist/index.mjs` and `dist/index.d.mts`, copies the react-shared
+declarations the entry reaches into `dist/shared/`, and prunes the host-config declaration (which names the
+reconciler). The consumer's bundler resolves react-reconciler's own `NODE_ENV` switch, so a production bundle holds
+only the production reconciler.
 
 - `test/dist.test.ts` loads the built package in plain Node through its `exports` map and checks that `import` and
-  `require` give identical values from one implementation file, that no reconciler, scheduler or its-fine module is
-  resolved at runtime, and that the bundle holds only react-reconciler 0.29.2.
-- `pnpm check:graph` allows only `react` and core in every emitted file and in `package.json`.
+  `require` give identical values from one implementation file, that react-reconciler 0.29.2 and its-fine 1.2.5
+  resolve as dependencies at runtime, and that the bundle holds no reconciler, scheduler or its-fine code.
+- `pnpm check:graph` allows only `react`, `react-reconciler`, `its-fine` and core in every emitted file and in
+  `package.json`.
 
 ## Fixture: a separate React 18 install with packed packages
 
@@ -109,9 +118,11 @@ development builds (as the facade does since af815e1) is a follow-up for both ad
 1. `pnpm pack`s the built core, renderer (the version-neutral factory), react-18 and pixi-8 packages and extracts the
    tarballs into the fixture's `.installed/node_modules`, so the tests run the published file sets with the fixture's
    own React 18 and pixi.js;
-2. checks the resolved React tree: every installed package resolves React 18.3.1, nothing resolves a React 19 or a
-   `react-reconciler`, no installed package declares one, and `pnpm ls` finds only `react@18.3.1` and
-   `react-dom@18.3.1` in the fixture (written to `.installed/react-tree.json`).
+2. checks the resolved React tree: every installed package resolves React 18.3.1, nothing resolves a React 19, the
+   only reconciler is react-18's exact react-reconciler 0.29.2 (with its-fine 1.2.5), which the fixture installs as a
+   consumer's package manager would, no other installed package declares one, and `pnpm ls` finds only
+   `react@18.3.1`, `react-dom@18.3.1` and `react-reconciler@0.29.2` in the fixture (written to
+   `.installed/react-tree.json`).
 
 The browser suite runs in Chromium on two Pixi cells (8.2.6 and 8.22.0):
 

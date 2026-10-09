@@ -1,0 +1,42 @@
+{
+  "name": "@pixi-react-provisional/react-shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Private, unpublished: the code the React adapter packages share (react-18 and react-19.0 \u2026 react-19.3). Each adapter package bundles these sources at build time; this package is never installed by consumers. `build` emits only the declarations the adapter packages copy into their own dist.",
+  "license": "MIT",
+  "type": "commonjs",
+  "exports": {
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "default": "./src/common/index.ts"
+    },
+    "./react-19": {
+      "types": "./dist/react-19/index.d.ts",
+      "default": "./src/react-19/index.ts"
+    },
+    "./react-19/public": {
+      "types": "./dist/react-19/public.d.ts",
+      "default": "./src/react-19/public.ts"
+    },
+    "./test-support/react-19": {
+      "types": "./test-support/react-19.ts",
+      "default": "./test-support/react-19.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint --max-warnings 0 .",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@pixi-react-provisional/core": "workspace:*",
+    "@types/node": "^22.13.1",
+    "@types/react": "19.3.0",
+    "eslint": "^9.16.0",
+    "its-fine": "2.1.1",
+    "react": "19.3.0",
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.0"
+  }
+}

@@ -3,16 +3,13 @@
  * (`hostConfig.ts`), plus the errors both raise. Nothing here names a reconciler type: the bindings see a root as
  * "schedule an update" and "unmount synchronously".
  */
-import { CompatibilityError, type PixiTypes, type RootRecord, type Runtime } from '@pixi-react-provisional/core';
+import { CompatibilityError, type PixiTypes } from '@pixi-react-provisional/core';
 
 import type { ReactNode } from 'react';
+import type { HostContainer } from '@pixi-react-provisional/react-shared/common';
 
-/** The reconciler container of one root: its core record and the runtime that owns it. */
-export interface HostContainer<S extends PixiTypes>
-{
-    readonly runtime: Runtime<S>;
-    readonly record: RootRecord<S>;
-}
+export type { HostContainer };
+export { rawTextError } from '@pixi-react-provisional/react-shared/common';
 
 /** What React 18 passes to `onRecoverableError`. */
 export interface RecoverableErrorInfoLike
@@ -43,14 +40,6 @@ export interface ReconcilerRoot
 export interface SceneRenderer<S extends PixiTypes>
 {
     createRoot(container: HostContainer<S>, callbacks: RootCallbacks, identifierPrefix: string): ReconcilerRoot;
-}
-
-/** Thrown for a raw string child: the scene has no text nodes. */
-export function rawTextError(text: string): Error
-{
-    return new Error(
-        `Raw text "${text}" cannot be rendered in the scene. Use a text component (for example <pixiText text="…" />).`,
-    );
 }
 
 /** Capabilities React 18 does not have, which the React 19 epochs provide or accept. */

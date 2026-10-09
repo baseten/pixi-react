@@ -253,9 +253,12 @@ importers:
 
   packages/react:
     dependencies:
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
       react-reconciler:
-        specifier: 0.31.0
-        version: 0.31.0(react@19.3.0)
+        specifier: 0.34.0
+        version: 0.34.0(react@19.3.0)
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*
@@ -266,9 +269,9 @@ importers:
       '@pixi-react-provisional/pixi-8':
         specifier: workspace:*
         version: link:../pixi-8
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.3':
         specifier: workspace:*
-        version: link:../react-19
+        version: link:../react-19.3
       '@pixi-react-provisional/renderer':
         specifier: workspace:*
         version: link:../renderer
@@ -356,7 +359,16 @@ importers:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../core
+      its-fine:
+        specifier: 1.2.5
+        version: 1.2.5(@types/react@18.3.31)(react@18.3.1)
+      react-reconciler:
+        specifier: 0.29.2
+        version: 0.29.2(react@18.3.1)
     devDependencies:
+      '@pixi-react-provisional/react-shared':
+        specifier: workspace:*
+        version: link:../react-shared
       '@types/node':
         specifier: ^22.13.1
         version: 22.13.1
@@ -369,18 +381,12 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
-      its-fine:
-        specifier: 1.2.5
-        version: 1.2.5(@types/react@18.3.31)(react@18.3.1)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
       react:
         specifier: 18.3.1
         version: 18.3.1
-      react-reconciler-0.29:
-        specifier: npm:react-reconciler@0.29.2
-        version: react-reconciler@0.29.2(react@18.3.1)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -417,6 +423,9 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 1.2.5
+        version: 1.2.5(@types/react@18.3.31)(react@18.3.1)
       pixi.js:
         specifier: 8.2.6
         version: 8.2.6
@@ -432,6 +441,9 @@ importers:
       react-dom:
         specifier: 18.3.1
         version: 18.3.1(react@18.3.1)
+      react-reconciler:
+        specifier: 0.29.2
+        version: 0.29.2(react@18.3.1)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -442,12 +454,21 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
-  packages/react-19:
+  packages/react-19.0:
     dependencies:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../core
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
+      react-reconciler:
+        specifier: 0.31.0
+        version: 0.31.0(react@19.3.0)
     devDependencies:
+      '@pixi-react-provisional/react-shared':
+        specifier: workspace:*
+        version: link:../react-shared
       '@types/node':
         specifier: ^22.13.1
         version: 22.13.1
@@ -460,27 +481,12 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
-      its-fine:
-        specifier: 2.1.1
-        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
       react:
         specifier: 19.3.0
         version: 19.3.0
-      react-reconciler-0.31:
-        specifier: npm:react-reconciler@0.31.0
-        version: react-reconciler@0.31.0(react@19.3.0)
-      react-reconciler-0.32:
-        specifier: npm:react-reconciler@0.32.0
-        version: react-reconciler@0.32.0(react@19.3.0)
-      react-reconciler-0.33:
-        specifier: npm:react-reconciler@0.33.0
-        version: react-reconciler@0.33.0(react@19.3.0)
-      react-reconciler-0.34:
-        specifier: npm:react-reconciler@0.34.0
-        version: react-reconciler@0.34.0(react@19.3.0)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -488,7 +494,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
-  packages/react-19/fixtures/react-19.0.0:
+  packages/react-19.0/fixtures/react-19.0.0:
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*
@@ -496,7 +502,7 @@ importers:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../../../core
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.0':
         specifier: workspace:*
         version: link:../..
       '@pixi-react-provisional/renderer':
@@ -511,6 +517,9 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.0.14)(react@19.0.0)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -520,6 +529,9 @@ importers:
       react-dom:
         specifier: 19.0.0
         version: 19.0.0(react@19.0.0)
+      react-reconciler:
+        specifier: 0.31.0
+        version: 0.31.0(react@19.0.0)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -527,7 +539,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
-  packages/react-19/fixtures/react-19.0.8:
+  packages/react-19.0/fixtures/react-19.0.8:
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*
@@ -535,7 +547,7 @@ importers:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../../../core
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.0':
         specifier: workspace:*
         version: link:../..
       '@pixi-react-provisional/renderer':
@@ -550,6 +562,9 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.0.14)(react@19.0.8)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -559,6 +574,9 @@ importers:
       react-dom:
         specifier: 19.0.8
         version: 19.0.8(react@19.0.8)
+      react-reconciler:
+        specifier: 0.31.0
+        version: 0.31.0(react@19.0.8)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -566,7 +584,47 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
-  packages/react-19/fixtures/react-19.1.0:
+  packages/react-19.1:
+    dependencies:
+      '@pixi-react-provisional/core':
+        specifier: workspace:*
+        version: link:../core
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
+      react-reconciler:
+        specifier: 0.32.0
+        version: 0.32.0(react@19.3.0)
+    devDependencies:
+      '@pixi-react-provisional/react-shared':
+        specifier: workspace:*
+        version: link:../react-shared
+      '@types/node':
+        specifier: ^22.13.1
+        version: 22.13.1
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      esbuild:
+        specifier: 0.21.5
+        version: 0.21.5
+      eslint:
+        specifier: ^9.16.0
+        version: 9.19.0(jiti@1.21.7)
+      jsdom:
+        specifier: ^25.0.0
+        version: 25.0.1
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      typescript:
+        specifier: ^5.4.5
+        version: 5.7.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
+
+  packages/react-19.1/fixtures/react-19.1.0:
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*
@@ -574,7 +632,7 @@ importers:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../../../core
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.1':
         specifier: workspace:*
         version: link:../..
       '@pixi-react-provisional/renderer':
@@ -589,6 +647,9 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.1.17)(react@19.1.0)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -598,6 +659,9 @@ importers:
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
+      react-reconciler:
+        specifier: 0.32.0
+        version: 0.32.0(react@19.1.0)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -605,7 +669,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
-  packages/react-19/fixtures/react-19.1.9:
+  packages/react-19.1/fixtures/react-19.1.9:
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*
@@ -613,7 +677,7 @@ importers:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../../../core
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.1':
         specifier: workspace:*
         version: link:../..
       '@pixi-react-provisional/renderer':
@@ -628,6 +692,9 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.1.17)(react@19.1.9)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -637,6 +704,9 @@ importers:
       react-dom:
         specifier: 19.1.9
         version: 19.1.9(react@19.1.9)
+      react-reconciler:
+        specifier: 0.32.0
+        version: 0.32.0(react@19.1.9)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -644,7 +714,47 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
-  packages/react-19/fixtures/react-19.2.0:
+  packages/react-19.2:
+    dependencies:
+      '@pixi-react-provisional/core':
+        specifier: workspace:*
+        version: link:../core
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
+      react-reconciler:
+        specifier: 0.33.0
+        version: 0.33.0(react@19.3.0)
+    devDependencies:
+      '@pixi-react-provisional/react-shared':
+        specifier: workspace:*
+        version: link:../react-shared
+      '@types/node':
+        specifier: ^22.13.1
+        version: 22.13.1
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      esbuild:
+        specifier: 0.21.5
+        version: 0.21.5
+      eslint:
+        specifier: ^9.16.0
+        version: 9.19.0(jiti@1.21.7)
+      jsdom:
+        specifier: ^25.0.0
+        version: 25.0.1
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      typescript:
+        specifier: ^5.4.5
+        version: 5.7.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
+
+  packages/react-19.2/fixtures/react-19.2.0:
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*
@@ -652,7 +762,7 @@ importers:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../../../core
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.2':
         specifier: workspace:*
         version: link:../..
       '@pixi-react-provisional/renderer':
@@ -667,6 +777,9 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.2.18)(react@19.2.0)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -676,6 +789,9 @@ importers:
       react-dom:
         specifier: 19.2.0
         version: 19.2.0(react@19.2.0)
+      react-reconciler:
+        specifier: 0.33.0
+        version: 0.33.0(react@19.2.0)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -683,7 +799,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
-  packages/react-19/fixtures/react-19.2.8:
+  packages/react-19.2/fixtures/react-19.2.8:
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*
@@ -691,7 +807,7 @@ importers:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../../../core
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.2':
         specifier: workspace:*
         version: link:../..
       '@pixi-react-provisional/renderer':
@@ -706,6 +822,9 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.2.18)(react@19.2.8)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -715,6 +834,9 @@ importers:
       react-dom:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
+      react-reconciler:
+        specifier: 0.33.0
+        version: 0.33.0(react@19.2.8)
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -722,7 +844,47 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
-  packages/react-19/fixtures/react-19.3.0:
+  packages/react-19.3:
+    dependencies:
+      '@pixi-react-provisional/core':
+        specifier: workspace:*
+        version: link:../core
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
+      react-reconciler:
+        specifier: 0.34.0
+        version: 0.34.0(react@19.3.0)
+    devDependencies:
+      '@pixi-react-provisional/react-shared':
+        specifier: workspace:*
+        version: link:../react-shared
+      '@types/node':
+        specifier: ^22.13.1
+        version: 22.13.1
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      esbuild:
+        specifier: 0.21.5
+        version: 0.21.5
+      eslint:
+        specifier: ^9.16.0
+        version: 9.19.0(jiti@1.21.7)
+      jsdom:
+        specifier: ^25.0.0
+        version: 25.0.1
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      typescript:
+        specifier: ^5.4.5
+        version: 5.7.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
+
+  packages/react-19.3/fixtures/react-19.3.0:
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*
@@ -730,7 +892,7 @@ importers:
       '@pixi-react-provisional/core':
         specifier: workspace:*
         version: link:../../../core
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.3':
         specifier: workspace:*
         version: link:../..
       '@pixi-react-provisional/renderer':
@@ -745,6 +907,9 @@ importers:
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -754,6 +919,36 @@ importers:
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
+      react-reconciler:
+        specifier: 0.34.0
+        version: 0.34.0(react@19.3.0)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.7.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
+
+  packages/react-shared:
+    devDependencies:
+      '@pixi-react-provisional/core':
+        specifier: workspace:*
+        version: link:../core
+      '@types/node':
+        specifier: ^22.13.1
+        version: 22.13.1
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      eslint:
+        specifier: ^9.16.0
+        version: 9.19.0(jiti@1.21.7)
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
       typescript:
         specifier: ^5.4.5
         version: 5.7.3
@@ -791,9 +986,9 @@ importers:
       '@pixi-react-provisional/pixi-8':
         specifier: workspace:*
         version: link:../pixi-8
-      '@pixi-react-provisional/react-19':
+      '@pixi-react-provisional/react-19.3':
         specifier: workspace:*
-        version: link:../react-19
+        version: link:../react-19.3
       '@pixi-react-provisional/renderer':
         specifier: workspace:*
         version: link:../renderer
@@ -13420,9 +13615,21 @@ snapshots:
     dependencies:
       '@types/react': 18.3.31
 
+  '@types/react-reconciler@0.28.9(@types/react@19.0.14)':
+    dependencies:
+      '@types/react': 19.0.14
+
   '@types/react-reconciler@0.28.9(@types/react@19.0.8)':
     dependencies:
       '@types/react': 19.0.8
+
+  '@types/react-reconciler@0.28.9(@types/react@19.1.17)':
+    dependencies:
+      '@types/react': 19.1.17
+
+  '@types/react-reconciler@0.28.9(@types/react@19.2.18)':
+    dependencies:
+      '@types/react': 19.2.18
 
   '@types/react-reconciler@0.28.9(@types/react@19.3.0)':
     dependencies:
@@ -16848,6 +17055,48 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.0.8
 
+  its-fine@2.1.1(@types/react@19.0.14)(react@19.0.0):
+    dependencies:
+      '@types/react-reconciler': 0.28.9(@types/react@19.0.14)
+      react: 19.0.0
+    optionalDependencies:
+      '@types/react': 19.0.14
+
+  its-fine@2.1.1(@types/react@19.0.14)(react@19.0.8):
+    dependencies:
+      '@types/react-reconciler': 0.28.9(@types/react@19.0.14)
+      react: 19.0.8
+    optionalDependencies:
+      '@types/react': 19.0.14
+
+  its-fine@2.1.1(@types/react@19.1.17)(react@19.1.0):
+    dependencies:
+      '@types/react-reconciler': 0.28.9(@types/react@19.1.17)
+      react: 19.1.0
+    optionalDependencies:
+      '@types/react': 19.1.17
+
+  its-fine@2.1.1(@types/react@19.1.17)(react@19.1.9):
+    dependencies:
+      '@types/react-reconciler': 0.28.9(@types/react@19.1.17)
+      react: 19.1.9
+    optionalDependencies:
+      '@types/react': 19.1.17
+
+  its-fine@2.1.1(@types/react@19.2.18)(react@19.2.0):
+    dependencies:
+      '@types/react-reconciler': 0.28.9(@types/react@19.2.18)
+      react: 19.2.0
+    optionalDependencies:
+      '@types/react': 19.2.18
+
+  its-fine@2.1.1(@types/react@19.2.18)(react@19.2.8):
+    dependencies:
+      '@types/react-reconciler': 0.28.9(@types/react@19.2.18)
+      react: 19.2.8
+    optionalDependencies:
+      '@types/react': 19.2.18
+
   its-fine@2.1.1(@types/react@19.3.0)(react@19.3.0):
     dependencies:
       '@types/react-reconciler': 0.28.9(@types/react@19.3.0)
@@ -19340,15 +19589,40 @@ snapshots:
       react: 19.0.0
       scheduler: 0.25.0
 
+  react-reconciler@0.31.0(react@19.0.8):
+    dependencies:
+      react: 19.0.8
+      scheduler: 0.25.0
+
   react-reconciler@0.31.0(react@19.3.0):
     dependencies:
       react: 19.3.0
       scheduler: 0.25.0
 
+  react-reconciler@0.32.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      scheduler: 0.26.0
+
+  react-reconciler@0.32.0(react@19.1.9):
+    dependencies:
+      react: 19.1.9
+      scheduler: 0.26.0
+
   react-reconciler@0.32.0(react@19.3.0):
     dependencies:
       react: 19.3.0
       scheduler: 0.26.0
+
+  react-reconciler@0.33.0(react@19.2.0):
+    dependencies:
+      react: 19.2.0
+      scheduler: 0.27.0
+
+  react-reconciler@0.33.0(react@19.2.8):
+    dependencies:
+      react: 19.2.8
+      scheduler: 0.27.0
 
   react-reconciler@0.33.0(react@19.3.0):
     dependencies:
