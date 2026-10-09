@@ -8,6 +8,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 for (const [id, surfacePath] of [
+    ...['6.5.1', '6.5.10'].map((version) => [`pixi-${version}`, '@pixi/extensions/index.d.ts']),
     ['pixi-7.4.2', '@pixi/extensions/lib/index.d.ts'],
     ['pixi-8.2.6', 'pixi.js/lib/extensions/Extensions.d.ts'],
 ])
@@ -17,9 +18,13 @@ for (const [id, surfacePath] of [
         const root = mkdtempSync(join(tmpdir(), 'audit-runner-test-'));
 
         t.after(() => rmSync(root, { recursive: true, force: true }));
-        const seed = JSON.parse(readFileSync(new URL('seed.json', import.meta.url)));
+        const manifest = new URL(id.startsWith('pixi-6.') ? 'historical-seed.json' : 'seed.json', import.meta.url);
+        const seed = JSON.parse(readFileSync(manifest));
         const tuple = seed.probes.find((probe) => probe.id === id);
         const cwd = join(root, id);
+        const fixtureManifest = join(root, 'seed.json');
+
+        writeFileSync(fixtureManifest, JSON.stringify({ probes: [tuple] }));
 
         for (const [name, version] of Object.entries(tuple.packages))
         {
@@ -29,6 +34,7 @@ for (const [id, surfacePath] of [
             writeFileSync(join(directory, 'package.json'), JSON.stringify({ name, version }));
         }
         for (const name of ['app', 'display', 'sprite', 'text', 'ticker', 'events', 'particle-container', 'extensions']) mkdirSync(join(cwd, 'node_modules', '@pixi', name), { recursive: true });
+        for (const name of tuple.surfaceRoots || []) mkdirSync(join(cwd, 'node_modules', name), { recursive: true });
         const path = join(cwd, 'node_modules', surfacePath);
         const declaration = 'declare const extensions: {\n    remove(...extensions: any[]): any;\n    add(...extensions: any[]): any;\n};\n';
 
@@ -37,7 +43,7 @@ for (const [id, surfacePath] of [
         writeFileSync(join(cwd, 'package-lock.json'), JSON.stringify({ packages: {} }));
         const run = spawnSync(process.execPath, [fileURLToPath(new URL('run.mjs', import.meta.url)), id], {
             encoding: 'utf8',
-            env: { ...process.env, AUDIT_WORKDIR: root, AUDIT_REUSE_INSTALL: '1' },
+            env: { ...process.env, AUDIT_MANIFEST: fixtureManifest, AUDIT_WORKDIR: root, AUDIT_REUSE_INSTALL: '1' },
         });
 
         // This fixture contains declarations only; runtime and type programs cannot succeed.

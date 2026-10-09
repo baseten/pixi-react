@@ -21,7 +21,8 @@
     "test:e2e": "turbo run test:e2e",
     "test:unit": "turbo run test:unit",
     "test:lint": "turbo run lint",
-    "test:types": "turbo run typecheck --filter=!docs"
+    "test:types": "turbo run typecheck --filter=!docs",
+    "test:contract": "npx -y -p typescript@5.6.3 tsc -p design/contract/tsconfig.json && npx -y -p typescript@5.6.3 tsc -p design/contract/tsconfig.json --module ESNext --moduleResolution Bundler"
   },
   "husky": {
     "hooks": {

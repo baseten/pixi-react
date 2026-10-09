@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { declarationSeries } from './declaration-series.mjs';
 import { processDiagnosticsSha256 } from './process-diagnostics.mjs';
 import { reactAbiSha256 } from './react-abi.mjs';
 import { resolvedPackagesSha256 } from './resolved-packages.mjs';
 import { surfaceMapSha256 } from './surface-map.mjs';
+import { validateHistoricalObservation } from './validate-historical.mjs';
 
 const read = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url)));
-const seed = read('seed.json');
+const historical = process.argv[2] === '--historical';
+const seed = read(historical ? 'historical-seed.json' : 'seed.json');
 const evidence = read(seed.evidence);
 const nonemptyObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0;
 const strings = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string');
@@ -18,7 +21,7 @@ assert.equal(new Set(seed.probes.map((p) => p.id)).size, seed.probes.length);
 assert.equal(evidence.results.length, seed.probes.length);
 assert.deepEqual(evidence.results.map((row) => row.id), seed.probes.map((tuple) => tuple.id), 'evidence tuple order');
 let previousReact = [];
-let previousPixi = {};
+const previousPixi = new Map();
 
 for (const tuple of seed.probes)
 {
@@ -26,10 +29,43 @@ for (const tuple of seed.probes)
     const row = evidence.results.find((r) => r.id === tuple.id);
 
     assert.ok(row, tuple.id);
+    const series = declarationSeries(tuple);
+
+    assert.equal(declarationSeries(row), series, `${row.id}: declarationSeries`);
     assert.deepEqual(row.packages, tuple.packages);
     assert.equal(row.certification, 'not-certified');
     assert.equal(row.installExit, 0);
     assert.equal(row.typeExit, 0);
+    for (const check of tuple.additionalTypeChecks || [])
+    {
+        assert.equal(row.typeVariants?.[check.name]?.status, check.expectedExit, `${row.id}: ${check.name}`);
+        const stdout = row.typeVariants[check.name].stdout;
+        const signatures = check.signatures ?? [check.signature];
+
+        if (check.name === 'NodeNext' && tuple.packages['its-fine'])
+        {
+            assert.deepEqual(signatures, ['FiberProvider', 'useContextBridge'].map((name) => `Module '"its-fine"' has no exported member '${name}'.`), `${row.id}: NodeNext its-fine signatures`);
+        }
+
+        assert.ok(signatures.every((signature) => typeof signature === 'string' && signature.length > 0), `${row.id}: ${check.name} signatures`);
+        for (const signature of signatures) assert.ok(stdout.includes(signature), `${row.id}: ${check.name} diagnostic ${signature}`);
+        if (check.signatures)
+        {
+            const diagnostics = stdout.split('\n').filter((line) => line.includes('error TS'));
+
+            assert.equal(diagnostics.length, signatures.length, `${row.id}: ${check.name} unexpected diagnostics`);
+            const matched = diagnostics.map((line) =>
+            {
+                const signature = signatures.find((candidate) => line.endsWith(candidate));
+
+                assert.ok(signature, `${row.id}: ${check.name} unexpected diagnostic ${line}`);
+
+                return signature;
+            });
+
+            assert.deepEqual([...matched].sort(), [...signatures].sort(), `${row.id}: ${check.name} diagnostics must match signatures one-to-one`);
+        }
+    }
     for (const field of ['surfaces', 'resolvedPackages']) assert.ok(nonemptyObject(row[field]), `${row.id}: ${field}`);
     for (const [path, surface] of Object.entries(row.surfaces))
     {
@@ -73,7 +109,7 @@ for (const tuple of seed.probes)
             assert.ok(nonemptyObject(expectedPeers), `registry.react-reconciler.${reconcilerVersion}.peerDependencies`);
             assert.deepEqual(observation.peers, expectedPeers, `${row.id}: observation.peers`);
             // Published React 19.2/19.3 builds omit the tagged source's eleventh parameter.
-            assert.equal(observation.createContainerArity, major === 18 ? 8 : 10, `${row.id}: observation.createContainerArity`);
+            assert.equal(observation.createContainerArity, { 17: 4, 18: 8, 19: 10 }[major], `${row.id}: observation.createContainerArity`);
 
             assert.equal(features.contextBridge, 'mount-update-unmount', `${row.id}: observation.features.contextBridge`);
             assert.equal(features.activity, major === 19 && minor >= 2 ? 'hide-restore' : 'not-available', `${row.id}: observation.features.activity`);
@@ -91,20 +127,20 @@ for (const tuple of seed.probes)
             assert.ok(nonemptyObject(observation.capabilities), `${row.id}: observation.capabilities`);
             const [major, minor] = tuple.packages['pixi.js'].split('.').map(Number);
             const v8 = major === 8;
-            const expectedCapabilities = { asyncInit: v8, particle: v8 && minor >= 5, particleContainer: major === 7 || (v8 && minor >= 5), cacheAsTexture: v8 && minor >= 6, renderLayer: v8 && minor >= 7, domContainer: v8 && minor >= 9, canvasRenderer: v8 && minor >= 16 };
+            const expectedCapabilities = { asyncInit: v8, particle: v8 && minor >= 5, particleContainer: major === 6 || major === 7 || (v8 && minor >= 5), cacheAsTexture: v8 && minor >= 6, renderLayer: v8 && minor >= 7, domContainer: v8 && minor >= 9, canvasRenderer: v8 && minor >= 16 };
 
             for (const [key, expected] of Object.entries(expectedCapabilities)) assert.equal(observation.capabilities[key], expected, `${row.id}: observation.capabilities.${key}`);
             assert.ok(nonemptyObject(observation.observations), `${row.id}: observation.observations`);
             const observed = observation.observations;
 
-            assert.equal(observed.visibleChanged, v8 && minor >= 17 ? 1 : 0, `${row.id}: observation.observations.visibleChanged`);
+            if (major !== 6) assert.equal(observed.visibleChanged, v8 && minor >= 17 ? 1 : 0, `${row.id}: observation.observations.visibleChanged`);
             // Version boundaries keep edited capability flags from hiding required observations.
             if (major === 8 && minor >= 5)
             {
                 assert.equal(observed.particleIsContainer, false, `${row.id}: observation.observations.particleIsContainer`);
                 assert.equal(observed.removeParticlesDefaultCount, minor >= 10 ? 1 : 0, `${row.id}: observation.observations.removeParticlesDefaultCount`);
             }
-            if (major !== 7)
+            if (major === 8)
             {
                 assert.deepEqual(observed.zeroScale, minor >= 19 ? [0, 0] : [1, 1], `${row.id}: observation.observations.zeroScale`);
                 assert.ok(nonemptyObject(observed.mirroredTransform), `${row.id}: observation.observations.mirroredTransform`);
@@ -122,6 +158,7 @@ for (const tuple of seed.probes)
             }
         }
     }
+    if (historical) validateHistoricalObservation(row, tuple);
     if (row.runtimeExit !== 0)
     {
         const diagnostics = row.runtimeDiagnostics;
@@ -150,12 +187,12 @@ for (const tuple of seed.probes)
     }
     else
     {
-        const previousSurfaces = previousPixi;
+        const previousSurfaces = previousPixi.get(series) || {};
         const paths = new Set([...Object.keys(row.surfaces), ...Object.keys(previousSurfaces)]);
         const expected = Object.fromEntries([...paths].map((path) => [path, { before: previousSurfaces[path]?.declarations ?? null, after: row.surfaces[path]?.declarations ?? null }]).filter(([, delta]) => JSON.stringify(delta.before) !== JSON.stringify(delta.after)));
 
         assert.deepEqual(row.declarationDelta, expected, `${row.id}: declarationDelta`);
-        previousPixi = row.surfaces;
+        previousPixi.set(series, row.surfaces);
     }
     assert.ok(typeof tuple.surfacesSha256 === 'string' && (/^[a-f0-9]{64}$/).test(tuple.surfacesSha256), `${row.id}: surfacesSha256`);
     assert.equal(surfaceMapSha256(row.surfaces), tuple.surfacesSha256, `${row.id}: surfaces captured map digest`);
@@ -180,6 +217,19 @@ for (const failure of seed.knownFailures)
         assert.ok(row.failure?.includes(failure.signature), failure.id);
     }
 }
-for (let minor = 2; minor <= 22; minor++) assert.ok(seed.probes.some((p) => p.packages['pixi.js']?.startsWith(`8.${minor}.`)));
-for (let minor = 0; minor <= 3; minor++) assert.ok(seed.probes.some((p) => p.packages.react?.startsWith(`19.${minor}.`)));
+if (historical)
+{
+    for (const version of ['17.0.0', '17.0.1', '17.0.2'])
+    {
+        for (const bridge of ['1.2.0', '1.2.2'])
+        { assert.ok(seed.probes.some((p) => p.packages.react === version && p.packages['its-fine'] === bridge)); }
+    }
+    for (const version of ['6.0.0', '6.0.4', '6.1.0', '6.1.3', '6.2.0', '6.2.2', '6.3.0', '6.3.2', '6.4.0', '6.4.2', '6.5.0', '6.5.1', '6.5.10'])
+    { assert.ok(seed.probes.some((p) => p.packages['pixi.js'] === version)); }
+}
+else
+{
+    for (let minor = 2; minor <= 22; minor++) assert.ok(seed.probes.some((p) => p.packages['pixi.js']?.startsWith(`8.${minor}.`)));
+    for (let minor = 0; minor <= 3; minor++) assert.ok(seed.probes.some((p) => p.packages.react?.startsWith(`19.${minor}.`)));
+}
 process.stdout.write(`Validated ${seed.probes.length} exact tuples; known failures remain excluded from certification.\n`);

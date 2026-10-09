@@ -1,0 +1,170 @@
+# Adapter implementation contract (ABI 1)
+
+Decision for [issue 4](https://github.com/baseten/pixi-react/issues/4), based on the [version audit](version-support.md) at e03e3edbeadc68512d3d0c935ea02a3c6a93cfee and the current `src/index.ts` implementation. This is a specification, not a shipped runtime or a support certificate. The [compatibility inventory](compatibility.md) is part of this contract. Declaration sketches and installed consumer examples are in [contract/](contract/README.md); they make the generic composition boundary executable without rewriting production.
+
+## Owner decisions (D1–D6)
+
+These decisions are the owner's rulings from the [2026-10 handover audit](https://github.com/baseten/pixi-react/blob/claude/pixi-react-modular-handover-t5hnsg/design/handover-2026-10.md#owner-decisions), recorded here so this contract is self-contained. They override any earlier wording in this file or in issue bodies.
+
+| ID | Decision | Where it applies |
+| --- | --- | --- |
+| D1 | The default facade imports the newest certified React 19 epoch. Its React peer range covers that minor only. The docs show how to pin an older certified epoch through `createRenderer`. | Facade row below; [pinning an older epoch](#pinning-an-older-react-19-epoch) |
+| D2 | One `react-19` package with real `exports` subpaths `/19.0`, `/19.1`, `/19.2` and `/19.3`. Each subpath bundles its exact `react-reconciler`. This replaces four separately packed workspaces. | Package table; [epoch plan](#epoch-implementation-plan-and-scope-decision) |
+| D3 | `createRenderer` option keys are neutral: `framework` and `scene`. | [Composition](#composition-classes-and-open-extension); [renderer.d.ts](contract/renderer.d.ts) |
+| D4 | Strict upstream parity in the facade. New APIs (`useContextBridge`, `component(Ctor)`, root error props on `Application`, `Root.status`) come only from the modular packages. Behaviour-changing corrections are deferred to a documented future major. | Rows labelled in [compatibility.md](compatibility.md#owner-decisions-applied-here) |
+| D5 | Peer ranges cover exactly-certified versions only. | [Certification policy](compatibility.md#certification-policy) |
+| D6 | ESM and CJS ship with a single canonical runtime instance. The mechanism is chosen in [#5](https://github.com/baseten/pixi-react/issues/5) or [#7](https://github.com/baseten/pixi-react/issues/7). | [Globals and ownership](#globals-and-ownership); packaging |
+
+## Packages and dependency arrows
+
+Names below use the **unpublished placeholder** `@pixi-react-provisional/`. The owner must select and verify control of the npm namespace before any publication; this issue authorizes no publication. Package versions are independent, coordinated by pnpm workspaces, Turborepo build tasks and Changesets. Issue [5](https://github.com/baseten/pixi-react/issues/5) implements workspace/build wiring, [7](https://github.com/baseten/pixi-react/issues/7) core and renderer, [8](https://github.com/baseten/pixi-react/issues/8) Pixi, [9](https://github.com/baseten/pixi-react/issues/9) modern React, [10](https://github.com/baseten/pixi-react/issues/10) facade, [11](https://github.com/baseten/pixi-react/issues/11) complete declarations and [12](https://github.com/baseten/pixi-react/issues/12) legacy React.
+
+| Logical package / physical workspace | Runtime and declaration dependencies | Responsibility |
+| --- | --- | --- |
+| `core`, `packages/core` | No React, reconciler, its-fine, Pixi, or adapter imports | Public abstract classes, ABI, generic runtime, registry and ownership metadata |
+| `renderer`, `packages/renderer` | Only `core` | Public `createRenderer` composition factory; no global JSX declarations |
+| `react-19`, `packages/react-19`, subpath `/19.0` | `core`; bundles exact reconciler 0.31.0; bridge 2.1.1 | `React19Adapter`, alias `React190Adapter` |
+| `react-19`, subpath `/19.1` | `core`; bundles exact reconciler 0.32.0; bridge 2.1.1 | `React19Adapter`, alias `React191Adapter` |
+| `react-19`, subpath `/19.2` | `core`; bundles exact reconciler 0.33.0; bridge 2.1.1 | `React19Adapter`, alias `React192Adapter` |
+| `react-19`, subpath `/19.3` | `core`; bundles exact reconciler 0.34.0; bridge 2.1.1 | `React19Adapter`, alias `React193Adapter` |
+| `react-18`, `packages/react-18` | `core`; peer React 18.3.1; exact reconciler 0.29.2, bridge 1.2.5 | `React18Adapter`, independent root/error/priority/JSX implementation |
+| `pixi-8`, `packages/pixi-8` | `core`; peer Pixi 8 within certified bounds | `Pixi8Adapter`, all scene and resource behavior; no React imports |
+| `react`, `packages/react` | `renderer`, `core`, `react-19` (newest certified subpath, D1) + `pixi-8`; React peer covers that minor only | Upstream-parity API (D4) and opt-in JSX surface, one default runtime |
+| `pixi-7`, `packages/pixi-7` | Reserved, not implemented or required in wave 1 | Future legacy scene adapter; no speculative declarations |
+
+No package depends on the facade except consumers. The `react-19` package is one issue-9 ownership boundary and one install target (D2). Its `exports` map has a real `import`/`require`/`types` entry for each of `/19.0`, `/19.1`, `/19.2` and `/19.3`. There is no bare `.` entry and no aggregate entrypoint that imports all four reconcilers; importing one subpath loads only its own reconciler. Each subpath bundles its exact `react-reconciler` at build time, so the package declares no runtime `react-reconciler` dependency and no package manager can substitute another epoch's reconciler. Whether each subpath also bundles the `scheduler` version its reconciler was built against, or declares it, is decided and tested in #9. Shared host-independent source can be compiled into each subpath; it must not introduce another React installation or merge incompatible host configurations. Under D5 the package's React peer range is the union of the exactly-certified versions of its subpaths, and each subpath's manifest certificate and dev type dependencies match its row. Consumers choose an epoch with an explicit subpath import; no installation-time builds, package-manager overrides, version sniffing to select an adapter, dynamic adapter selection, or declaration references to source workspaces.
+
+## Composition, classes and open extension
+
+The normative neutral signatures are [core.d.ts](contract/core.d.ts) and [renderer.d.ts](contract/renderer.d.ts). `SceneAdapter<S>` supplies scene types and sessions; `FrameworkAdapter<F>` substitutes the selected scene into an open `BindingFamily`. `createRenderer<S,F>` returns `Bind<F,S> & { runtime: Runtime<S> }`. A type-only `bindingFamily: F` witness preserves inference through a subclass (implementations declare the field without emitting it). The higher-kinded family contains the framework's own components/hooks: core never names ReactNode, JSX, a React component type, Pixi Application or Container. A third-party adapter subclasses either public abstract class and supplies its family; there is no closed adapter-name union, private constructor, registration allowlist, or assumption that the framework must be React. The option keys are the neutral `framework` and `scene` (D3); the generic types remain open.
+
+```ts
+import { createRenderer } from '@pixi-react-provisional/renderer';
+import { React19Adapter } from '@pixi-react-provisional/react-19/19.3';
+import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
+import { Sprite } from 'pixi.js';
+const renderer = createRenderer({ framework: new React19Adapter(), scene: new Pixi8Adapter() });
+renderer.extend({ Sprite });
+const SpriteComponent = renderer.component(Sprite);
+// renderer.useApplication().app and renderer.useTick's callback infer Pixi8 types.
+```
+
+React18 replaces only the React import/class. Another React 19 epoch replaces only the subpath; installing the neutral renderer does not install the default pair. Calling `component(Ctor, name?)` registers that constructor in the runtime, returns a stable component for that constructor, and retains its exact instance/ref/options type without ambient tags. The default facade exports bindings from one module-local composition, preserving familiar calls to `extend`, `Application` and hooks. Explicit compositions each get a new runtime.
+
+### Pinning an older React 19 epoch
+
+Under D1 the facade (`@pixi-react-provisional/react`) always composes the newest certified epoch, and its React peer range covers only that minor. An application that must stay on an older certified React 19 minor does not use the facade. It composes the renderer itself and imports that epoch's subpath:
+
+```ts
+import { createRenderer } from '@pixi-react-provisional/renderer';
+import { React19Adapter } from '@pixi-react-provisional/react-19/19.1'; // React 19.1.x
+import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
+export const { Application, extend, useApplication, useTick, createRoot } =
+    createRenderer({ framework: new React19Adapter(), scene: new Pixi8Adapter() });
+```
+
+The subpath rejects an installed React outside its certified versions when the renderer is composed. The facade README carries this example.
+
+### Stable type names for `component(Ctor)`
+
+`component(Ctor, name?)` needs a catalog name that is stable for the life of the runtime and identical across production and development builds. The registry derives it in this order:
+
+1. If the caller passes `name`, normalize it with the same rules as `extend` keys and use it.
+2. Otherwise, look `Ctor` up in a per-runtime `WeakMap<Constructor, string>`. On a miss, assign a fresh unique id from a runtime-local counter (for example `component:1`) and store it. Later calls with the same constructor return the same id and the same component.
+
+The registry never reads `Ctor.name`: minifiers rename and deduplicate class names, so two different classes can share a name or a name can change between builds. Without `name`, a constructor already registered through `extend` reuses its `extend` key. An explicit `name` that is already bound to a different constructor throws `REGISTRY_CONFLICT`; `component` exists only in the modular packages (D4), so this check changes no facade behaviour. Generated ids are internal: they are never added to `PixiElements` or offered as tag names.
+
+`manifest.abi` uses major/minor protocol versions, independently of npm package versions. ABI major mismatch rejects composition before allocation; required minor methods must exist. Capabilities are an open map of namespaced string IDs to integer protocol versions, e.g. `scene.mutation:1`, `scene.visibility:1`, `scene.application:1`, `scene.ticker:1`, `react.activity:1`. Validate each adapter's `requires` against its counterpart's `provides`, plus consumer `requiredCapabilities`, before binding. Feature support is not inferred from class names. Unknown optional capabilities are ignored; missing required IDs or wrong versions throw a `CompatibilityError` naming package IDs, requirements and available versions. The exported `CompatibilityError` class and its code/details/value types in `core.d.ts` define the shared failure contract, extending `Error` with `{ code, adapterIds, capability?, expected?, actual?, cause? }`. `adapterIds` is a readonly list of manifest IDs; `capability` is the failing capability ID. `expected` and `actual` are readonly maps with matching diagnostic keys (numeric protocol versions, string package versions/ranges or node names, booleans, or null for a known missing value); absence of a map means no diagnostic was supplied. `cause` remains unknown until narrowed. Built-in codes are `ABI_MISMATCH`, `CAPABILITY_MISSING`, `UNSUPPORTED_TUPLE`, `UNKNOWN_ELEMENT`, `UNSUPPORTED_NODE`, `REGISTRY_CONFLICT`, `ROOT_DISPOSED` and `INIT_FAILED`; third-party adapters may add dotted namespaced codes such as `community.shader.UNSUPPORTED_FORMAT` with the same field representations. Adapters use the shared core class so consumers of that core instance can narrow unknown errors with `instanceof CompatibilityError`; no React/Pixi types enter this contract.
+
+A manifest's `certification` points to its exact tested tuple/feature record. Dependency peer validation and explicit adapter assertions reject unsupported installed tuples; they do not automatically pick adapters. Capability declarations and installed package versions are necessary but not sufficient evidence for certification. No claim of third-party certification follows merely from ABI compatibility.
+
+## Scene and registry protocol
+
+`S['node']` is an opaque object type: Container, Filter, Particle, resource wrappers and community nodes may require different operations. Core uses WeakMap metadata; it does not inject `__pixireact`, inspect `instanceof Container`, call `addChild`, or assume `visible`, `destroy` or `parent` exists. The Pixi adapter's session interprets append/insert/remove/visibility using registered node descriptors. Unsupported constructor/parent/child combinations throw before mutation; an exported Pixi constructor is not automatically a renderable scene node. Filter attachment and ordering are explicit separate paths. Resource constructors require explicit attachment semantics rather than silently disappearing.
+
+`Registry.extend<C extends Catalog>(catalog:C):void` keeps the raw-constructor user API. The scene adapter's `describe(Ctor, name)` returns a `NodeDefinition`: descriptive metadata only (name, constructor, required capabilities and attach rules). It constructs, updates and destroys nothing. `register(definition)` is the advanced descriptor route. The registry retains definitions internally; `resolve` returns a validated definition because JSX strings cross a runtime boundary. Unknown props remain `unknown` there, never public `any`. A name is normalized once using the baseline prefixed/unprefixed and HTMLText rules. Repeating the same name/constructor is idempotent; replacing it with a different constructor rejects, preventing one component from silently changing another's future instances. Under D4 the facade keeps upstream's silent replacement until the future major. A registration persists until runtime disposal. `useExtend` uses the same idempotent path, does not unregister on React cleanup, and promises no side-effect isolation for an abandoned render. Prefer module-level `extend` for a known catalog.
+
+Pixi owns constructor overload selection, excluded method/readonly props, event translation, removed/default props, nested dashed props, Graphics draw, extensions, styles, resize and ticker. Public props derive from selected installed declarations plus a version-owned override table, not `Record<string, any>`. Core's `PropsFamily` carries that mapping through React's component/ref wrapper. The standalone `applyProps<typeof Sprite>(instance, props)` form uses an explicit constructor type when exact constructor overrides are needed; a runtime instance alone cannot recover its constructor overload list. The sketch demonstrates representative constructors; the complete override and event tables remain issue 8/11 work. Removing a prop restores an instance's captured initial value or a descriptor's explicit default; it must not construct arbitrary custom classes with missing arguments or reset non-Containers to zero.
+
+`SceneSession` owns one application's lifecycle and scene bridge, and it is the single owner of node construction and destruction. `create(definition, props, context)` is the only construction path; `context` carries the session's `app` and `runtime`, so a node never reaches for a global application. `update(node, previous, next)` applies props. `destroyNode(node, options)` is the only destruction path, and receives the scene's node destroy options (`S['nodeDestroy']`, Pixi's `DestroyOptions`). Neither the registry nor the framework adapter calls a constructor or `destroy` directly. `remove` detaches and, after commit, destroys renderer-owned nodes exactly once through `destroyNode`; reparenting must use a move path and never destroy the moved node. `setHidden` layers framework visibility over user `visible`/`enabled` values and restores their latest committed values. A raw JSX text node throws with guidance to use a Text component. Scene mutation errors reach the framework adapter's error handling; an invalid insertion must leave the previous tree intact. After an unrecoverable partial commit, dispose that root rather than retrying a half-applied mutation invisibly.
+
+### Implementation rules
+
+These rules bind every core, scene and framework package. The historical prototype broke each of them.
+
+1. **Core types never mirror `react-reconciler` signatures.** Core declares its own scene protocol (`SceneSession`, `NodeDefinition`, `Registry`). Host-config shapes, root arguments, update payloads, priorities and Fiber types stay inside each React epoch, which translates between the reconciler and the core protocol.
+2. **Registry checks throw in production.** Unknown elements, unsupported nodes, attach-rule violations and registry conflicts throw `CompatibilityError` (`UNKNOWN_ELEMENT`, `UNSUPPORTED_NODE`, `REGISTRY_CONFLICT`) in every build. They are never dev-only `invariant` calls or warnings stripped from production bundles. Where D4 keeps upstream behaviour in the facade (an `extend` name clash, unsupported nodes that upstream silently drops), the facade behaves the same in development and production until the future major.
+3. **Per-node state lives in a WeakMap side table.** Runtime ownership, the creating root, captured defaults, the hidden flag and filter attachment are kept in a `WeakMap` keyed by the node. Nothing is written onto Pixi objects as expando properties (no `__pixireact`, no symbol keys). A node with no entry is not owned by this runtime.
+
+## Framework and root lifecycle
+
+[react-19.d.ts](contract/react-19.d.ts) specifies `Root`, `RootOptions`, `ApplicationProps`, `ApplicationRef`, context, hooks and refs. React owns Fiber containers, host-config signatures, reconciler constants, priority/scheduler calls, root error callbacks, effect timing, its-fine/FiberProvider/context capture and reconciliation. Core never stores or exposes a typed Fiber. `applicationState` is a public snapshot containing typed `app`, `isInitialised`, `isInitialising`; old `fiber`/`internalState` return fields were incidental and become private. Root `render(children, options?)` resolves to the initialized app after that request's commit, and `unmount()` resolves after cleanup. `Application` catches render/init rejections and delivers `onInitError`; errors must never become unhandled async effect rejections. Render errors route to the epoch's root callbacks, defaulting to console reporting.
+
+A runtime maps both target and canvas to one root; repeated `createRoot` returns it and warns, preserving the intent of baseline canvas reuse and correcting duplicate HTMLElement roots. A target cannot be concurrently owned by two runtimes: a small DOM target ownership lease rejects the second, but contains no catalogs, Fiber or root state. Release it after teardown. Creating a canvas in an HTMLElement preserves the baseline replacement of that target's children; do not remove a caller-owned canvas unless explicit renderer destruction options request it.
+
+State transitions and failure paths are required behavior:
+
+| Multi-step operation | Persisted state / failure handling | Retry and safety property |
+| --- | --- | --- |
+| Composition → capability validation → binding | Validate before sessions; on binding throw, dispose runtime allocations | Caller may create a fresh runtime; failed composition publishes no usable bindings |
+| `new` → `initialising` → `ready` | One init promise and abort controller; serialize render requests in call order; options used by the first request initialize renderer; later requests apply only documented mutable options | Concurrent renders do not initialize twice or commit out of order; each promise settles after its own commit |
+| Initialization rejects | `failed`, retain cause; adapter cleans partially allocated renderer/listeners/leases, `onInitError` once; all queued renders reject | No automatic retry of a partially initialized app; `unmount`, then `createRoot` for a new session |
+| Unmount while init/commit pending | Mark `disposing`, invalidate generation, abort requested work, await non-cancellable init before destruction; never commit late children or call onInit after disposal | Pending render promises reject with cancellation; one shared teardown promise makes repeated unmount safe |
+| Init succeeds → callback throws | App ownership remains with root; report callback error, dispose on fatal root failure, never rerun initialization callback as retry | Repeated render cannot allocate another app to hide callback failure |
+| Teardown operation throws | Continue independent unsubscribe/listener/lease cleanup in finally; aggregate errors; mark disposed and remove runtime root records | Repeated unmount returns same settled promise; no duplicate destruction; unreleased external resource recorded, not silently claimed freed |
+| StrictMode cleanup → remount | Framework adapter defers destruction for one scheduled turn and cancels same-root pending teardown when remounted; each root has a generation token | Final unmount flushes without waiting for another Application; no global unmount queue |
+| Runtime dispose with several roots | Freeze new work, snapshot root set, await each teardown, aggregate failures | Single bounded pass, no recursive drain over mutable roots; log unresolved work if bounded adapter cleanup exhausts |
+
+`onInit` runs once after successful initialization and before first child commit; context state updates with initialization. `useApplication` reads the nearest provider from this exact runtime and throws outside it. It must validate a runtime token rather than `instanceof` a fixed Pixi Application. `useContextBridge` captures contexts inside the parent React tree, wraps the separate reconciler root, and propagates updates; its-fine is internal to each React epoch. The same component that creates Application cannot consume its future child provider. `useTick` accepts callback or `{callback, context, isEnabled, priority}`; its subscription returns idempotent cleanup and unregisters the exact callback/context. The selected Pixi adapter determines the tick argument. Memoization remains the caller's choice; callback replacement must not leak subscriptions.
+
+## Globals and ownership
+
+Each runtime owns catalog, roots, node metadata, pending cleanup and hook/provider identities. No implicit cross-runtime lookup is permitted. Under D6 every package ships both ESM and CJS, and the two entries of one installed package share a single canonical runtime instance, so mixing `import` and `require` cannot create two default facade registries. #5 or #7 chooses the mechanism (for example a CJS implementation with a thin ESM wrapper) and tests it with packed consumers. Independent installed copies are distinct runtimes and still obey the target lease.
+
+Pixi owns process/module-global extensions, TextStyle defaults, Assets caches and shared ticker instances. Adapter isolation cannot isolate these objects. Under D4 the facade keeps upstream's extension removal and default-style behaviour; the extension leases and the default-style writer registry below are the future-major behaviour (see the labelled rows in [compatibility.md](compatibility.md)). Within one loaded Pixi adapter module, maintain extension leases by extension identity: acquire before init, reference-count across apps, release only the adapter's acquisition on final use. Externally registered extensions are borrowed and never removed. A partially failed acquisition rolls back only new leases; a retry can acquire again. Detecting unrelated direct changes to Pixi's extension registry is not reliable: callers must coordinate those mutations, and separate package copies cannot promise cross-copy reference counting.
+
+Default text style preserves baseline global, non-retroactive behavior with **last explicit writer wins per property**, affecting subsequently created text in other applications using the same Pixi module. Within one loaded adapter module, share a writer registry across runtimes for each Pixi TextStyle defaults object. For each property, retain its baseline value (including whether the property existed), active writers' values and explicit-write order, and the last value the registry installed. An explicit setting update replaces that writer's entries and advances their order; removing a property, removing the setting, or disposing the session removes its entries. Cleanup never counts as a new explicit write. Recompute each affected property's newest surviving writer, or its baseline when none survive; never restore a departing writer's private snapshot. This handles both overlapping and disjoint partial styles.
+
+Cleanup may write only while the current property's presence/value still matches the registry's last installed presence/value. If a direct external change is observed before any update or cleanup, preserve it as the new baseline and retire all earlier writer entries for that property; those sessions may contribute again only through a subsequent explicit setting update. Removal still releases their ownership records, but cannot resurrect values from before the external change. A later explicit write may replace the external baseline and must restore it when its last surviving writer leaves. Identical external writes and mutations inside shared object values cannot be reliably detected; callers must coordinate them, as must independent adapter package copies. No claim of per-root style isolation; explicit Text styles are the isolated alternative. Style/extension cleanup is best effort and reported if Pixi rejects it.
+
+The Pixi implementation must demonstrate these obligations with real defaults and application cleanup; this design does not supply a production ownership algorithm:
+
+| Explicit operations on one property (initial baseline O) | Required current value |
+| --- | --- |
+| A writes X; B writes Y; A leaves; B leaves | Y after A leaves, then O; never restore defunct X |
+| A writes X; B writes Y; B leaves; A leaves | X after B leaves, then O |
+| A writes X; B writes Y; A updates to Z; A removes the property | Z after the update, then Y; B leaving restores O |
+| A writes X; external code writes E; A leaves | E remains |
+| A writes X; external code writes E; B writes Y; B leaves while A remains | E; A's retired X does not return |
+| A writes only fill; B writes only fontSize; either leaves | Restore only that writer's property; keep the other's current value |
+| A introduces a property absent from O; A leaves twice | Property absent again; repeated cleanup makes no write |
+
+
+Textures, Assets-loaded resources, shared ticker and other supplied objects are borrowed by default. Unmount destroys owned display objects/application resources but not shared texture sources or global asset caches. Explicit `destroyOptions`/`rendererDestroyOptions` may transfer destructive responsibility to the caller, including consequences for other apps; forward those options faithfully. Never call global Assets unload/reset to implement root cleanup. Resource ownership metadata distinguishes allocated, borrowed and explicitly transferred objects; callback errors do not alter ownership.
+
+## Epoch implementation plan and scope decision
+
+Issue [9](https://github.com/baseten/pixi-react/issues/9) already explicitly requires every audited modern epoch. Keep it **one reviewable implementation PR** with the four subpaths of the single `react-19` package (D2) and per-epoch bindings/fixtures. This decision rests on one shared scene protocol and a bounded four-row API delta, not a claim that one host config works everywhere. No child tickets are created and the epic's implementation set is unchanged. If implementation reveals a larger independent feature project, stop and amend the epic with explicit child tickets before dispatching that work; do not omit an epoch or silently broaden this run.
+
+| Epoch / subpath | Required concrete issue-9 implementation and evidence |
+| --- | --- |
+| 19.0 / `react-19/19.0` | Extract baseline mutation host, ten-argument root with three error callbacks, update/resolve priorities; remove mismatched reconciler declaration cast; real React + fake scene effects/refs/Suspense/StrictMode/context tests |
+| 19.1 / `react-19/19.1` | Separate pinned 0.32 host bindings including scheduler instrumentation; only enabled installed-bundle host paths; do not copy removed blur/singleton hooks as guarantees; own mount/update/unmount and parent-context fixture |
+| 19.2 / `react-19/19.2` | Bind 0.33's changed tenth root argument to `onDefaultTransitionIndicator` (not legacy transition callbacks); root-factory argument test below; explicit Activity hide/restore and effect reconnection, suspension hooks, DOM/Pixi context behavior |
+| 19.3 / `react-19/19.3` | Pin 0.34; same tenth-argument binding and root-factory argument test as 19.2; implement Fragment-instance bookkeeping and supported fragment-ref operations through scene capabilities; negative tests reject DOM-only focus/measurement operations the backend cannot provide; explicit ViewTransition policy below; own fragment/Activity/context/root-error fixtures |
+
+**Root argument 10.** In `react-reconciler` 0.31 and 0.32, `createContainer` argument 10 (1-indexed) is `transitionCallbacks`. In 0.33 and 0.34 argument 10 is `onDefaultTransitionIndicator: () => void | (() => void)`; tagged source moves `transitionCallbacks` to argument 11, and the published stable bundles drop it, so runtime arity stays ten ([evidence](version-support.md#react-epochs)). Reusing the 19.0 argument list on 19.2/19.3 passes `null` where the reconciler expects a function, and arity checks cannot detect it. Each of the 19.2 and 19.3 root factories must have a test that records the arguments it passes to `createContainer`, asserts that argument 10 is a function bound to the epoch's default-transition-indicator handling, and fails if the 19.0 argument shape is reused.
+
+ViewTransition DOM animations are **not** promised by the Pixi renderer. Epoch 19.3 must deliberately reject unsupported ViewTransition usage with a capability error, rather than claim a successful basic mount certifies it. Fragment refs are supported only with a descriptor of scene-supported operations; advertising that capability requires real multi-child membership/order/remove/ref-cleanup tests. Unsupported DOM operations must fail explicitly and be documented in the epoch README. React18 independently implements 0.29.2's recoverable-error-only root and payload-based updates in issue 12; modern root callbacks unavailable there produce an explicit unsupported-option error, never silent acceptance.
+
+## Packaging, JSX and certification
+
+Every published entry emits JS and declarations, exports explicit `import`/`require` branches with matching API behavior and one shared runtime instance (D6), and includes no source-path alias in declarations. Issue 11/13 installs packed artifacts in NodeNext and bundler consumers for ESM and CJS; issue 5 wires build outputs and Turbo dependency order. The package manager never chooses an epoch. Changing an epoch's reconciler is an adapter release and requires its matrix again.
+
+The neutral factory and both adapter roots have no JSX global side effects. The default facade retains its current React, `react/jsx-runtime`, and `react/jsx-dev-runtime` augmentation of `PixiElements`; custom compositions select a pair-specific `jsx` entry or declare their own module augmentation. `PixiReactElementProps<C>` and the open `PixiElements` interface remain available from the facade. Unprefixed types are opt-in; prefixed tags remain available and HTMLText name normalization is retained. React18's dedicated JSX entry covers its classic/automatic namespaces using its installed type line. No import automatically brings every epoch's JSX into a consumer.
+
+One TypeScript program cannot globally declare the same tag with conflicting Pixi types; generic arguments to `createRenderer` do not select global JSX. Use separate TS programs or local `renderer.component(Ctor)` values for mixed scene versions. The local route needs only React's selected component/JSX types and the selected scene props; two incompatible React type majors still require separate programs. Components carrying children are restricted by the scene's descriptor/type catalog in issue 11; the small sketch's universal children field is not the final full catalog.
+
+All ranges begin **candidate-not-certified**. [compatibility.md](compatibility.md#certification-policy) defines bounded candidates and promotion. First delivery is React19/Pixi8, then React18/Pixi8. Pixi7 remains wave 2. An adapter accepts only certified tuples/features after implementation; under D5 its peer ranges cover exactly-certified versions only. No arbitrary versions, future React minors or new backends are promised by this design.
+
+Issue 13 must cover every audited React ABI epoch and every Pixi8 minor boundary with fast type/API probes, then full browser cells for incompatible epochs and minimum/current representatives. Reconciler host-key/root-argument drift and Pixi declaration/runtime capability drift block promotion even when ordinary mount still works; follow the seed's named failures rather than replacing the matrix with broad major-only peers.
