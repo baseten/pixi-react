@@ -396,8 +396,19 @@ export class PixiScene
         const touched: string[] = [];
         const reapply = new Set<string>();
 
+        const removedKeys = new Set(removed);
+
         for (const key of removed)
         {
+            const path = pathOf(key);
+
+            // A dashed child removed together with one of its ancestors is covered by that ancestor's restoration;
+            // restoring it separately would overwrite the ancestor's captured value with a class default.
+            if (path.slice(1).some((_, i) => removedKeys.has(path.slice(0, i + 1).join('-'))))
+            {
+                continue;
+            }
+
             if (isReactEventProp(key))
             {
                 this.setHandler(node, key, null);

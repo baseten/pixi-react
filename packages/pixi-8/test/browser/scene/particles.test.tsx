@@ -88,9 +88,11 @@ describe.runIf(hasParticles)(`Particle on pixi.js ${pixi.VERSION}`, () =>
             thrown = error;
         }
 
-        const reported = leaves([thrown, ...errors.flat()]).find((error) => error instanceof CompatibilityError);
+        const all = leaves([thrown, ...errors.flat()]);
+        const reported = all.find((error) => error instanceof CompatibilityError);
 
         expect(reported).toMatchObject({ code: 'UNSUPPORTED_NODE' });
+        expect(all.filter((error) => error instanceof TypeError), 'rejected by the attach rule, not by a failed call').toEqual([]);
         expect(ctx.probe.children(mounted.stage)).toEqual([]);
     });
 

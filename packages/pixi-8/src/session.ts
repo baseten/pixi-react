@@ -2,6 +2,7 @@
  * One Pixi `Application`'s lifecycle and scene bridge: the `SceneSession` core drives for one root.
  */
 import { throwCollected } from './globals.js';
+import { ROLES } from './scene.js';
 
 import type { Application, Ticker } from 'pixi.js';
 import type { DefaultStyleRegistry, ExtensionLeaseHolder, ExtensionLeaseTable } from './globals.js';
@@ -43,6 +44,8 @@ function styleValues(pixi: PixiModule, style: unknown): Record<string, unknown> 
 export class Pixi8Session implements SceneSession<Pixi8Types>
 {
     readonly app: Application;
+    /** The root is the application stage, a Container: it takes children and filters, never particles. */
+    readonly containerAttach = { role: ROLES.child, accepts: [ROLES.child, ROLES.filter] } as const;
     private status: SessionStatus = 'new';
     private readonly leases: ExtensionLeaseHolder;
     private resizeTarget: Pixi8ResizeTarget = null;

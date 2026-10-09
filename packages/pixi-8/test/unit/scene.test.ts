@@ -171,6 +171,24 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect(constructions).toBe(2);
     });
 
+    it('removing a parent and its dashed child together restores the parent\'s captured value', () =>
+    {
+        class Offset extends pixi.Container
+        {
+            constructor()
+            {
+                super();
+                this.position.set(7, 8);
+            }
+        }
+
+        const node = make(scene, Offset, { position: { x: 1, y: 2 }, 'position-x': 10 }, 'Offset');
+
+        expect(node.x).toBe(10);
+        scene.applyChanges(node, { position: { x: 1, y: 2 }, 'position-x': 10 }, {});
+        expect([node.x, node.y]).toEqual([7, 8]);
+    });
+
     it('dashed props: removal resets only the nested field; a changed parent re-applies its dashed child', () =>
     {
         const node = make(scene, pixi.Container, { position: { x: 1, y: 2 }, 'position-x': 10 });

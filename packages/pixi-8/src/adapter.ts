@@ -171,7 +171,13 @@ export class Pixi8AdapterBase extends SceneAdapter<Pixi8Types>
 
     createSession(_runtime: Runtime<Pixi8Types>, target: RootTarget): SceneSession<Pixi8Types>
     {
-        if (!(target instanceof HTMLCanvasElement))
+        // Check against the canvas constructor of the target's own window, so a canvas in an iframe or another
+        // window (which is not an instance of this realm's HTMLCanvasElement) is accepted.
+        const view = (target as { ownerDocument?: { defaultView?: { HTMLCanvasElement?: typeof HTMLCanvasElement } | null } })
+            ?.ownerDocument?.defaultView;
+        const CanvasElement = view?.HTMLCanvasElement ?? globalThis.HTMLCanvasElement;
+
+        if (!CanvasElement || !(target instanceof CanvasElement))
         {
             throw new CompatibilityError('The Pixi 8 adapter renders into the canvas core created for the root.', {
                 code: 'ABI_MISMATCH',
