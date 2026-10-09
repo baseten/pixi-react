@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - apps/*
+  - design/contract
 
 # Carried over from the npm `overrides` field of the single-package manifest.
 overrides:

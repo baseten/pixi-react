@@ -17,6 +17,7 @@
     "lint:fix": "pnpm --filter @pixi/react run lint:fix && pnpm --filter docs run lint --fix",
     "prepare": "husky install",
     "test": "turbo run test:unit test:e2e",
+    "test:contract": "pnpm --filter @pixi-react-provisional/design-contract test:contract",
     "test:conformance": "turbo run test:conformance",
     "test:e2e": "turbo run test:e2e",
     "test:unit": "turbo run test:unit",

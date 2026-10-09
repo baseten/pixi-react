@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
-function summarize(t, results)
+function summarize(t, results, expectedStatus = 0)
 {
     const root = mkdtempSync(join(tmpdir(), 'audit-summary-test-'));
 
@@ -17,7 +17,8 @@ function summarize(t, results)
     writeFileSync(input, JSON.stringify({ results }));
     const run = spawnSync(process.execPath, [new URL('summarize.mjs', import.meta.url).pathname, input, output], { encoding: 'utf8' });
 
-    assert.equal(run.status, 0, run.stderr);
+    assert.equal(run.status, expectedStatus, run.stderr);
+    if (expectedStatus !== 0) return run.stderr;
 
     return JSON.parse(readFileSync(output)).results;
 }
@@ -168,6 +169,54 @@ test('separator-only changes do not appear as declaration additions or removals'
     assert.deepEqual(rows[0].surfaces, selected);
     assert.deepEqual(rows[1].surfaces, selected);
     assert.deepEqual(rows[1].declarationDelta, {});
+});
+
+test('interleaved baseline, federated and assets declarations keep independent histories', (t) =>
+{
+    const row = (id, series, surfaces) => ({
+        ...installed(id, { 'pixi.js': '6.5.1', ...(series === 'pixi6-federated' ? { '@pixi/events': '6.5.1' } : {}), ...(series === 'pixi6-assets' ? { '@pixi/assets': '6.5.1' } : {}) }),
+        declarationSeries: series,
+        surfaces: Object.fromEntries(Object.entries(surfaces).map(([name, declarations]) => [`pixi.js/${name}.d.ts`, { declarations }])),
+    });
+    const rows = summarize(t, [
+        row('base-before', 'pixi6-baseline', { Container: ['base old'], Sprite: ['stable'], Particle: [] }),
+        row('events-before', 'pixi6-federated', { Container: ['events old'] }),
+        row('base-after', 'pixi6-baseline', { Container: ['base new'], Sprite: ['stable'], Ticker: ['added'] }),
+        row('assets-before', 'pixi6-assets', { Container: ['assets old'] }),
+        row('events-after', 'pixi6-federated', { Container: ['events new'] }),
+        row('assets-after', 'pixi6-assets', { Container: ['assets old'] }),
+    ]);
+
+    assert.deepEqual(rows[2].declarationDelta, {
+        'pixi.js/Container.d.ts': { before: ['base old'], after: ['base new'] },
+        'pixi.js/Ticker.d.ts': { before: null, after: ['added'] },
+        'pixi.js/Particle.d.ts': { before: [], after: null },
+    });
+    assert.deepEqual(rows[1].declarationDelta, { 'pixi.js/Container.d.ts': { before: null, after: ['events old'] } });
+    assert.deepEqual(rows[4].declarationDelta, { 'pixi.js/Container.d.ts': { before: ['events old'], after: ['events new'] } });
+    assert.deepEqual(rows[3].declarationDelta, { 'pixi.js/Container.d.ts': { before: null, after: ['assets old'] } });
+    assert.deepEqual(rows[5].declarationDelta, {});
+    assert.equal(rows[4].declarationSeries, 'pixi6-federated');
+});
+
+for (const series of [undefined, 'unknown', 'pixi6-baseline', 'pixi6-assets'])
+{
+    test(`rejects federated raw evidence with declarationSeries ${series}`, (t) =>
+    {
+        const row = { ...installed('events', { 'pixi.js': '6.5.1', '@pixi/events': '6.5.1' }), declarationSeries: series };
+
+        assert.match(summarize(t, [row], 1), /events: declarationSeries/);
+    });
+}
+
+test('failed historical installs preserve their series without replacing its preceding surface', (t) =>
+{
+    const before = { ...installed('before', { 'pixi.js': '6.5.1' }), declarationSeries: 'pixi6-baseline' };
+    const failed = { id: 'failed', packages: before.packages, declarationSeries: before.declarationSeries, install: { status: 1 } };
+    const rows = summarize(t, [before, failed, { ...before, id: 'after' }]);
+
+    assert.equal(rows[1].declarationSeries, 'pixi6-baseline');
+    assert.deepEqual(rows[2].declarationDelta, {});
 });
 
 for (const separator of ['/', '\\'])

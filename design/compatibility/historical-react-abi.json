@@ -1,0 +1,1816 @@
+{
+  "observedAt": "2026-10-08T16:23:20.947305+00:00",
+  "status": "installed-source ABI inspection; runtime outcomes owned by parent",
+  "tuples": [
+    {
+      "tuple": "react-17.0.0-bridge-1.2.0",
+      "react": "17.0.0",
+      "reconciler": "0.26.0",
+      "hostKeys": [
+        "afterActiveInstanceBlur",
+        "appendChild",
+        "appendChildToContainer",
+        "appendChildToContainerChildSet",
+        "appendInitialChild",
+        "beforeActiveInstanceBlur",
+        "canHydrateInstance",
+        "canHydrateSuspenseInstance",
+        "canHydrateTextInstance",
+        "cancelTimeout",
+        "clearContainer",
+        "clearSuspenseBoundary",
+        "clearSuspenseBoundaryFromContainer",
+        "cloneHiddenInstance",
+        "cloneHiddenTextInstance",
+        "cloneInstance",
+        "commitHydratedContainer",
+        "commitHydratedSuspenseInstance",
+        "commitMount",
+        "commitTextUpdate",
+        "commitUpdate",
+        "createContainerChildSet",
+        "createInstance",
+        "createTextInstance",
+        "didNotFindHydratableContainerInstance",
+        "didNotFindHydratableContainerSuspenseInstance",
+        "didNotFindHydratableContainerTextInstance",
+        "didNotFindHydratableInstance",
+        "didNotFindHydratableSuspenseInstance",
+        "didNotFindHydratableTextInstance",
+        "didNotHydrateContainerInstance",
+        "didNotHydrateInstance",
+        "didNotMatchHydratedContainerTextInstance",
+        "didNotMatchHydratedTextInstance",
+        "finalizeContainerChildren",
+        "finalizeInitialChildren",
+        "findFiberRoot",
+        "getBoundingRect",
+        "getChildHostContext",
+        "getFirstHydratableChild",
+        "getFundamentalComponentInstance",
+        "getInstanceFromNode",
+        "getInstanceFromScope",
+        "getNextHydratableInstanceAfterSuspenseInstance",
+        "getNextHydratableSibling",
+        "getPublicInstance",
+        "getRootHostContext",
+        "getTextContent",
+        "hideInstance",
+        "hideTextInstance",
+        "hydrateInstance",
+        "hydrateSuspenseInstance",
+        "hydrateTextInstance",
+        "insertBefore",
+        "insertInContainerBefore",
+        "isHiddenSubtree",
+        "isOpaqueHydratingObject",
+        "isPrimaryRenderer",
+        "isSuspenseInstanceFallback",
+        "isSuspenseInstancePending",
+        "makeClientId",
+        "makeClientIdInDEV",
+        "makeOpaqueHydratingObject",
+        "matchAccessibilityRole",
+        "mountFundamentalComponent",
+        "noTimeout",
+        "now",
+        "prepareForCommit",
+        "preparePortalMount",
+        "prepareUpdate",
+        "registerSuspenseInstanceRetry",
+        "removeChild",
+        "removeChildFromContainer",
+        "replaceContainerChildren",
+        "resetAfterCommit",
+        "resetTextContent",
+        "scheduleTimeout",
+        "setFocusIfFocusable",
+        "setupIntersectionObserver",
+        "shouldSetTextContent",
+        "shouldUpdateFundamentalComponent",
+        "supportsHydration",
+        "supportsMutation",
+        "supportsPersistence",
+        "supportsTestSelectors",
+        "unhideInstance",
+        "unhideTextInstance",
+        "unmountFundamentalComponent",
+        "updateFundamentalComponent",
+        "warnsIfNotActing"
+      ],
+      "hostKeysSha256": "80be2de6e6e059b0f62f05c332f79c510c55977b722791ee34d69aaa9cea46f6",
+      "bundleSha256": "5762a9d8e6b9b7309a35c9a442b2a59ed2d92fea9c8cdc871c0ef9d210847f44",
+      "exports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "rootSignature": "containerInfo, tag, hydrate, hydrationCallbacks",
+      "hostKeysAbsentFromPublishedBundle": [],
+      "publishedKeysAbsentFromTaggedSource": [],
+      "taggedHostConfigURL": "https://raw.githubusercontent.com/facebook/react/v17.0.0/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js",
+      "taggedHostConfigSha256": "8b7ba1c7c3d6eedc639c77ccd00ba2d1f8b3cd4cc70dcc0d69fc146f8197ce3e",
+      "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.0",
+      "dist": {
+        "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.0.tgz",
+        "integrity": "sha512-n2FJE9vPSiZ0Dn/jaV/iOAO6rXepnk74QGRcgwPSgmN/2syUJnbfEz7Bw5yodBfJhjA3L7cu1YdImYISTj4KZQ==",
+        "shasum": "053ae2fd1607e38a960e7a694ad694732e4989b6"
+      },
+      "gitHead": null,
+      "files": {
+        "its-fine/dist/index.js": {
+          "sha256": "94b07b53897f4f448dd39bc45a8a80c86ab0302f59c001b55a1c1a36fde3ffcf"
+        },
+        "its-fine/src/index.ts": {
+          "sha256": "92704c9d724f049f8fc22ee7e57f7a7c5c9c2af8bb9452899958afa490c8ae65"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "7645238ebcb9ee7d40356267916f8fbfa45b024f54a05703073e06fd5fc91b9a"
+        },
+        "@types/react-reconciler/index.d.ts": {
+          "sha256": "097ddb99d443f0fafd23af7a3ce196ba07cb879ec64de8600fd528626bd24b10"
+        }
+      },
+      "packages": {
+        "react": {
+          "version": "17.0.0",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/react/17.0.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react/-/react-17.0.0.tgz",
+            "integrity": "sha512-rG9bqS3LMuetoSUKHN8G3fMNuQOePKDThK6+2yXFWtoeTDLVNh/QCaxT+Jr+rNf4lwNXpx+atdn3Aa0oi8/6eQ==",
+            "shasum": "ad96d5fa1a33bb9b06d0cc52672f7992d84aa662"
+          }
+        },
+        "react-reconciler": {
+          "version": "0.26.0",
+          "peerDependencies": {
+            "react": "^17.0.0"
+          },
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1",
+            "scheduler": "^0.20.0"
+          },
+          "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.0.tgz",
+            "integrity": "sha512-n2FJE9vPSiZ0Dn/jaV/iOAO6rXepnk74QGRcgwPSgmN/2syUJnbfEz7Bw5yodBfJhjA3L7cu1YdImYISTj4KZQ==",
+            "shasum": "053ae2fd1607e38a960e7a694ad694732e4989b6"
+          }
+        },
+        "scheduler": {
+          "version": "0.20.0",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/scheduler/0.20.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/scheduler/-/scheduler-0.20.0.tgz",
+            "integrity": "sha512-XegIgta1bIaz2LdaL6eg1GEcE42g0BY9qFXCqlZ/+s2MuEKfigFCW6DEGBlZzeVFlwDmVusrWEyFtBo4sbkkdA==",
+            "shasum": "3ff543696b169613afadb09d3fb3fe998d234dd2"
+          }
+        },
+        "its-fine": {
+          "version": "1.2.0",
+          "peerDependencies": {
+            "react": ">=16.8"
+          },
+          "dependencies": {
+            "@types/react": "*",
+            "@types/react-reconciler": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/its-fine/1.2.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/its-fine/-/its-fine-1.2.0.tgz",
+            "integrity": "sha512-518vLgHK/dgGxyZj4MdLrDRryziqR1M+JbVtjw1tmdgvZQYsJvB2Leoe2qFOHPalZ5KiAOK18wTmIC0XszYc0w==",
+            "shasum": "989805d4f940cba5c8c059ecf4a94a054882e354"
+          }
+        },
+        "@types/react": {
+          "version": "17.0.93",
+          "peerDependencies": {},
+          "dependencies": {
+            "@types/prop-types": "*",
+            "@types/scheduler": "^0.16",
+            "csstype": "^3.2.2"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react/17.0.93",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react/-/react-17.0.93.tgz",
+            "integrity": "sha512-KM4Ty/ZTLZupiYxZVAlP+InNJS3De6uBMdq0ePa6/04+eG9Y7ftnWfst1xTLQ5rwAhgHwQ4momt/O4KepdGBTw==",
+            "shasum": "1f8d44a7ea97fb0cbd3935235949d7fda43f64ea"
+          }
+        },
+        "@types/react-reconciler": {
+          "version": "0.26.7",
+          "peerDependencies": null,
+          "dependencies": {
+            "@types/react": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react-reconciler/0.26.7",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react-reconciler/-/react-reconciler-0.26.7.tgz",
+            "integrity": "sha512-mBDYl8x+oyPX/VBb3E638N0B7xG+SPk/EAMcVPeexqus/5aTpTphQi0curhhshOqRrc9t6OPoJfEUkbymse/lQ==",
+            "shasum": "0c4643f30821ae057e401b0d9037e03e8e9b2a36"
+          }
+        }
+      },
+      "taggedReconcilerURL": "https://raw.githubusercontent.com/facebook/react/v17.0.0/packages/react-reconciler/src/ReactFiberReconciler.old.js",
+      "taggedReconcilerSha256": "e04a55272b8b969aaff759e216ac1a2493fd6785b283f074fe96fc747c481a18",
+      "sourceExports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "sourceExportsAbsentFromBundle": [],
+      "bundleExportsAbsentFromSource": [],
+      "exportNamesSha256": "820afe4d34e6f12844f5ade5c42ef06aa5938e3407995612805ac95795faae95"
+    },
+    {
+      "tuple": "react-17.0.0-bridge-1.2.2",
+      "react": "17.0.0",
+      "reconciler": "0.26.0",
+      "hostKeys": [
+        "afterActiveInstanceBlur",
+        "appendChild",
+        "appendChildToContainer",
+        "appendChildToContainerChildSet",
+        "appendInitialChild",
+        "beforeActiveInstanceBlur",
+        "canHydrateInstance",
+        "canHydrateSuspenseInstance",
+        "canHydrateTextInstance",
+        "cancelTimeout",
+        "clearContainer",
+        "clearSuspenseBoundary",
+        "clearSuspenseBoundaryFromContainer",
+        "cloneHiddenInstance",
+        "cloneHiddenTextInstance",
+        "cloneInstance",
+        "commitHydratedContainer",
+        "commitHydratedSuspenseInstance",
+        "commitMount",
+        "commitTextUpdate",
+        "commitUpdate",
+        "createContainerChildSet",
+        "createInstance",
+        "createTextInstance",
+        "didNotFindHydratableContainerInstance",
+        "didNotFindHydratableContainerSuspenseInstance",
+        "didNotFindHydratableContainerTextInstance",
+        "didNotFindHydratableInstance",
+        "didNotFindHydratableSuspenseInstance",
+        "didNotFindHydratableTextInstance",
+        "didNotHydrateContainerInstance",
+        "didNotHydrateInstance",
+        "didNotMatchHydratedContainerTextInstance",
+        "didNotMatchHydratedTextInstance",
+        "finalizeContainerChildren",
+        "finalizeInitialChildren",
+        "findFiberRoot",
+        "getBoundingRect",
+        "getChildHostContext",
+        "getFirstHydratableChild",
+        "getFundamentalComponentInstance",
+        "getInstanceFromNode",
+        "getInstanceFromScope",
+        "getNextHydratableInstanceAfterSuspenseInstance",
+        "getNextHydratableSibling",
+        "getPublicInstance",
+        "getRootHostContext",
+        "getTextContent",
+        "hideInstance",
+        "hideTextInstance",
+        "hydrateInstance",
+        "hydrateSuspenseInstance",
+        "hydrateTextInstance",
+        "insertBefore",
+        "insertInContainerBefore",
+        "isHiddenSubtree",
+        "isOpaqueHydratingObject",
+        "isPrimaryRenderer",
+        "isSuspenseInstanceFallback",
+        "isSuspenseInstancePending",
+        "makeClientId",
+        "makeClientIdInDEV",
+        "makeOpaqueHydratingObject",
+        "matchAccessibilityRole",
+        "mountFundamentalComponent",
+        "noTimeout",
+        "now",
+        "prepareForCommit",
+        "preparePortalMount",
+        "prepareUpdate",
+        "registerSuspenseInstanceRetry",
+        "removeChild",
+        "removeChildFromContainer",
+        "replaceContainerChildren",
+        "resetAfterCommit",
+        "resetTextContent",
+        "scheduleTimeout",
+        "setFocusIfFocusable",
+        "setupIntersectionObserver",
+        "shouldSetTextContent",
+        "shouldUpdateFundamentalComponent",
+        "supportsHydration",
+        "supportsMutation",
+        "supportsPersistence",
+        "supportsTestSelectors",
+        "unhideInstance",
+        "unhideTextInstance",
+        "unmountFundamentalComponent",
+        "updateFundamentalComponent",
+        "warnsIfNotActing"
+      ],
+      "hostKeysSha256": "80be2de6e6e059b0f62f05c332f79c510c55977b722791ee34d69aaa9cea46f6",
+      "bundleSha256": "5762a9d8e6b9b7309a35c9a442b2a59ed2d92fea9c8cdc871c0ef9d210847f44",
+      "exports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "rootSignature": "containerInfo, tag, hydrate, hydrationCallbacks",
+      "hostKeysAbsentFromPublishedBundle": [],
+      "publishedKeysAbsentFromTaggedSource": [],
+      "taggedHostConfigURL": "https://raw.githubusercontent.com/facebook/react/v17.0.0/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js",
+      "taggedHostConfigSha256": "8b7ba1c7c3d6eedc639c77ccd00ba2d1f8b3cd4cc70dcc0d69fc146f8197ce3e",
+      "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.0",
+      "dist": {
+        "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.0.tgz",
+        "integrity": "sha512-n2FJE9vPSiZ0Dn/jaV/iOAO6rXepnk74QGRcgwPSgmN/2syUJnbfEz7Bw5yodBfJhjA3L7cu1YdImYISTj4KZQ==",
+        "shasum": "053ae2fd1607e38a960e7a694ad694732e4989b6"
+      },
+      "gitHead": null,
+      "files": {
+        "its-fine/dist/index.js": {
+          "sha256": "f4e2973504d23e229290c44dbd08da4703184fbfe5ec1e35d02412791bf23e2d"
+        },
+        "its-fine/src/index.ts": {
+          "sha256": "f1d2fe3f89c7fccb3fe59b1bea2ae3d4d0c35a8f746495681389093c7bf3a8e2"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "7645238ebcb9ee7d40356267916f8fbfa45b024f54a05703073e06fd5fc91b9a"
+        },
+        "@types/react-reconciler/index.d.ts": {
+          "sha256": "097ddb99d443f0fafd23af7a3ce196ba07cb879ec64de8600fd528626bd24b10"
+        }
+      },
+      "packages": {
+        "react": {
+          "version": "17.0.0",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/react/17.0.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react/-/react-17.0.0.tgz",
+            "integrity": "sha512-rG9bqS3LMuetoSUKHN8G3fMNuQOePKDThK6+2yXFWtoeTDLVNh/QCaxT+Jr+rNf4lwNXpx+atdn3Aa0oi8/6eQ==",
+            "shasum": "ad96d5fa1a33bb9b06d0cc52672f7992d84aa662"
+          }
+        },
+        "react-reconciler": {
+          "version": "0.26.0",
+          "peerDependencies": {
+            "react": "^17.0.0"
+          },
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1",
+            "scheduler": "^0.20.0"
+          },
+          "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.0.tgz",
+            "integrity": "sha512-n2FJE9vPSiZ0Dn/jaV/iOAO6rXepnk74QGRcgwPSgmN/2syUJnbfEz7Bw5yodBfJhjA3L7cu1YdImYISTj4KZQ==",
+            "shasum": "053ae2fd1607e38a960e7a694ad694732e4989b6"
+          }
+        },
+        "scheduler": {
+          "version": "0.20.0",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/scheduler/0.20.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/scheduler/-/scheduler-0.20.0.tgz",
+            "integrity": "sha512-XegIgta1bIaz2LdaL6eg1GEcE42g0BY9qFXCqlZ/+s2MuEKfigFCW6DEGBlZzeVFlwDmVusrWEyFtBo4sbkkdA==",
+            "shasum": "3ff543696b169613afadb09d3fb3fe998d234dd2"
+          }
+        },
+        "its-fine": {
+          "version": "1.2.2",
+          "peerDependencies": {
+            "react": ">=16.8"
+          },
+          "dependencies": {
+            "@types/react": "*",
+            "@types/react-reconciler": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/its-fine/1.2.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/its-fine/-/its-fine-1.2.2.tgz",
+            "integrity": "sha512-XypfEXrJfZ4C6cui8lnVVGjU+/iLkH82/EC7HqImFutSTn/HZY2oWCBWlKqd4m+DjXMNZczNMYXbWoh+JxzKtA==",
+            "shasum": "1d70ec68d52c29a06c6649ca20cacdf3028e92d5"
+          }
+        },
+        "@types/react": {
+          "version": "17.0.93",
+          "peerDependencies": {},
+          "dependencies": {
+            "@types/prop-types": "*",
+            "@types/scheduler": "^0.16",
+            "csstype": "^3.2.2"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react/17.0.93",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react/-/react-17.0.93.tgz",
+            "integrity": "sha512-KM4Ty/ZTLZupiYxZVAlP+InNJS3De6uBMdq0ePa6/04+eG9Y7ftnWfst1xTLQ5rwAhgHwQ4momt/O4KepdGBTw==",
+            "shasum": "1f8d44a7ea97fb0cbd3935235949d7fda43f64ea"
+          }
+        },
+        "@types/react-reconciler": {
+          "version": "0.26.7",
+          "peerDependencies": null,
+          "dependencies": {
+            "@types/react": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react-reconciler/0.26.7",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react-reconciler/-/react-reconciler-0.26.7.tgz",
+            "integrity": "sha512-mBDYl8x+oyPX/VBb3E638N0B7xG+SPk/EAMcVPeexqus/5aTpTphQi0curhhshOqRrc9t6OPoJfEUkbymse/lQ==",
+            "shasum": "0c4643f30821ae057e401b0d9037e03e8e9b2a36"
+          }
+        }
+      },
+      "taggedReconcilerURL": "https://raw.githubusercontent.com/facebook/react/v17.0.0/packages/react-reconciler/src/ReactFiberReconciler.old.js",
+      "taggedReconcilerSha256": "e04a55272b8b969aaff759e216ac1a2493fd6785b283f074fe96fc747c481a18",
+      "sourceExports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "sourceExportsAbsentFromBundle": [],
+      "bundleExportsAbsentFromSource": [],
+      "exportNamesSha256": "820afe4d34e6f12844f5ade5c42ef06aa5938e3407995612805ac95795faae95"
+    },
+    {
+      "tuple": "react-17.0.1-bridge-1.2.0",
+      "react": "17.0.1",
+      "reconciler": "0.26.1",
+      "hostKeys": [
+        "afterActiveInstanceBlur",
+        "appendChild",
+        "appendChildToContainer",
+        "appendChildToContainerChildSet",
+        "appendInitialChild",
+        "beforeActiveInstanceBlur",
+        "canHydrateInstance",
+        "canHydrateSuspenseInstance",
+        "canHydrateTextInstance",
+        "cancelTimeout",
+        "clearContainer",
+        "clearSuspenseBoundary",
+        "clearSuspenseBoundaryFromContainer",
+        "cloneHiddenInstance",
+        "cloneHiddenTextInstance",
+        "cloneInstance",
+        "commitHydratedContainer",
+        "commitHydratedSuspenseInstance",
+        "commitMount",
+        "commitTextUpdate",
+        "commitUpdate",
+        "createContainerChildSet",
+        "createInstance",
+        "createTextInstance",
+        "didNotFindHydratableContainerInstance",
+        "didNotFindHydratableContainerSuspenseInstance",
+        "didNotFindHydratableContainerTextInstance",
+        "didNotFindHydratableInstance",
+        "didNotFindHydratableSuspenseInstance",
+        "didNotFindHydratableTextInstance",
+        "didNotHydrateContainerInstance",
+        "didNotHydrateInstance",
+        "didNotMatchHydratedContainerTextInstance",
+        "didNotMatchHydratedTextInstance",
+        "finalizeContainerChildren",
+        "finalizeInitialChildren",
+        "findFiberRoot",
+        "getBoundingRect",
+        "getChildHostContext",
+        "getFirstHydratableChild",
+        "getFundamentalComponentInstance",
+        "getInstanceFromNode",
+        "getInstanceFromScope",
+        "getNextHydratableInstanceAfterSuspenseInstance",
+        "getNextHydratableSibling",
+        "getPublicInstance",
+        "getRootHostContext",
+        "getTextContent",
+        "hideInstance",
+        "hideTextInstance",
+        "hydrateInstance",
+        "hydrateSuspenseInstance",
+        "hydrateTextInstance",
+        "insertBefore",
+        "insertInContainerBefore",
+        "isHiddenSubtree",
+        "isOpaqueHydratingObject",
+        "isPrimaryRenderer",
+        "isSuspenseInstanceFallback",
+        "isSuspenseInstancePending",
+        "makeClientId",
+        "makeClientIdInDEV",
+        "makeOpaqueHydratingObject",
+        "matchAccessibilityRole",
+        "mountFundamentalComponent",
+        "noTimeout",
+        "now",
+        "prepareForCommit",
+        "preparePortalMount",
+        "prepareUpdate",
+        "registerSuspenseInstanceRetry",
+        "removeChild",
+        "removeChildFromContainer",
+        "replaceContainerChildren",
+        "resetAfterCommit",
+        "resetTextContent",
+        "scheduleTimeout",
+        "setFocusIfFocusable",
+        "setupIntersectionObserver",
+        "shouldSetTextContent",
+        "shouldUpdateFundamentalComponent",
+        "supportsHydration",
+        "supportsMutation",
+        "supportsPersistence",
+        "supportsTestSelectors",
+        "unhideInstance",
+        "unhideTextInstance",
+        "unmountFundamentalComponent",
+        "updateFundamentalComponent",
+        "warnsIfNotActing"
+      ],
+      "hostKeysSha256": "80be2de6e6e059b0f62f05c332f79c510c55977b722791ee34d69aaa9cea46f6",
+      "bundleSha256": "3610114637f40b545369b2d295d48467563fe9e23496b064cf303b6a9c12fcea",
+      "exports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "rootSignature": "containerInfo, tag, hydrate, hydrationCallbacks",
+      "hostKeysAbsentFromPublishedBundle": [],
+      "publishedKeysAbsentFromTaggedSource": [],
+      "taggedHostConfigURL": "https://raw.githubusercontent.com/facebook/react/v17.0.1/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js",
+      "taggedHostConfigSha256": "8b7ba1c7c3d6eedc639c77ccd00ba2d1f8b3cd4cc70dcc0d69fc146f8197ce3e",
+      "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.1",
+      "dist": {
+        "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.1.tgz",
+        "integrity": "sha512-6E/CvH9zcDmHjhiNJlP0qJ8+3ufnY2b5RWs774Uy8XKWN0l6qfnlkz0XnDacxqj2rbJdq76w9dlFXjPPOQrmqA==",
+        "shasum": "860952dd359fd870f94895c254271e3a9de3b2d6"
+      },
+      "gitHead": null,
+      "files": {
+        "its-fine/dist/index.js": {
+          "sha256": "94b07b53897f4f448dd39bc45a8a80c86ab0302f59c001b55a1c1a36fde3ffcf"
+        },
+        "its-fine/src/index.ts": {
+          "sha256": "92704c9d724f049f8fc22ee7e57f7a7c5c9c2af8bb9452899958afa490c8ae65"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "7645238ebcb9ee7d40356267916f8fbfa45b024f54a05703073e06fd5fc91b9a"
+        },
+        "@types/react-reconciler/index.d.ts": {
+          "sha256": "097ddb99d443f0fafd23af7a3ce196ba07cb879ec64de8600fd528626bd24b10"
+        }
+      },
+      "packages": {
+        "react": {
+          "version": "17.0.1",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/react/17.0.1",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react/-/react-17.0.1.tgz",
+            "integrity": "sha512-lG9c9UuMHdcAexXtigOZLX8exLWkW0Ku29qPRU8uhF2R9BN96dLCt0psvzPLlHc5OWkgymP3qwTRgbnw5BKx3w==",
+            "shasum": "6e0600416bd57574e3f86d92edba3d9008726127"
+          }
+        },
+        "react-reconciler": {
+          "version": "0.26.1",
+          "peerDependencies": {
+            "react": "^17.0.1"
+          },
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1",
+            "scheduler": "^0.20.1"
+          },
+          "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.1",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.1.tgz",
+            "integrity": "sha512-6E/CvH9zcDmHjhiNJlP0qJ8+3ufnY2b5RWs774Uy8XKWN0l6qfnlkz0XnDacxqj2rbJdq76w9dlFXjPPOQrmqA==",
+            "shasum": "860952dd359fd870f94895c254271e3a9de3b2d6"
+          }
+        },
+        "scheduler": {
+          "version": "0.20.1",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/scheduler/0.20.1",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/scheduler/-/scheduler-0.20.1.tgz",
+            "integrity": "sha512-LKTe+2xNJBNxu/QhHvDR14wUXHRQbVY5ZOYpOGWRzhydZUqrLb2JBvLPY7cAqFmqrWuDED0Mjk7013SZiOz6Bw==",
+            "shasum": "da0b907e24026b01181ecbc75efdc7f27b5a000c"
+          }
+        },
+        "its-fine": {
+          "version": "1.2.0",
+          "peerDependencies": {
+            "react": ">=16.8"
+          },
+          "dependencies": {
+            "@types/react": "*",
+            "@types/react-reconciler": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/its-fine/1.2.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/its-fine/-/its-fine-1.2.0.tgz",
+            "integrity": "sha512-518vLgHK/dgGxyZj4MdLrDRryziqR1M+JbVtjw1tmdgvZQYsJvB2Leoe2qFOHPalZ5KiAOK18wTmIC0XszYc0w==",
+            "shasum": "989805d4f940cba5c8c059ecf4a94a054882e354"
+          }
+        },
+        "@types/react": {
+          "version": "17.0.93",
+          "peerDependencies": {},
+          "dependencies": {
+            "@types/prop-types": "*",
+            "@types/scheduler": "^0.16",
+            "csstype": "^3.2.2"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react/17.0.93",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react/-/react-17.0.93.tgz",
+            "integrity": "sha512-KM4Ty/ZTLZupiYxZVAlP+InNJS3De6uBMdq0ePa6/04+eG9Y7ftnWfst1xTLQ5rwAhgHwQ4momt/O4KepdGBTw==",
+            "shasum": "1f8d44a7ea97fb0cbd3935235949d7fda43f64ea"
+          }
+        },
+        "@types/react-reconciler": {
+          "version": "0.26.7",
+          "peerDependencies": null,
+          "dependencies": {
+            "@types/react": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react-reconciler/0.26.7",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react-reconciler/-/react-reconciler-0.26.7.tgz",
+            "integrity": "sha512-mBDYl8x+oyPX/VBb3E638N0B7xG+SPk/EAMcVPeexqus/5aTpTphQi0curhhshOqRrc9t6OPoJfEUkbymse/lQ==",
+            "shasum": "0c4643f30821ae057e401b0d9037e03e8e9b2a36"
+          }
+        }
+      },
+      "taggedReconcilerURL": "https://raw.githubusercontent.com/facebook/react/v17.0.1/packages/react-reconciler/src/ReactFiberReconciler.old.js",
+      "taggedReconcilerSha256": "e04a55272b8b969aaff759e216ac1a2493fd6785b283f074fe96fc747c481a18",
+      "sourceExports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "sourceExportsAbsentFromBundle": [],
+      "bundleExportsAbsentFromSource": [],
+      "exportNamesSha256": "820afe4d34e6f12844f5ade5c42ef06aa5938e3407995612805ac95795faae95"
+    },
+    {
+      "tuple": "react-17.0.1-bridge-1.2.2",
+      "react": "17.0.1",
+      "reconciler": "0.26.1",
+      "hostKeys": [
+        "afterActiveInstanceBlur",
+        "appendChild",
+        "appendChildToContainer",
+        "appendChildToContainerChildSet",
+        "appendInitialChild",
+        "beforeActiveInstanceBlur",
+        "canHydrateInstance",
+        "canHydrateSuspenseInstance",
+        "canHydrateTextInstance",
+        "cancelTimeout",
+        "clearContainer",
+        "clearSuspenseBoundary",
+        "clearSuspenseBoundaryFromContainer",
+        "cloneHiddenInstance",
+        "cloneHiddenTextInstance",
+        "cloneInstance",
+        "commitHydratedContainer",
+        "commitHydratedSuspenseInstance",
+        "commitMount",
+        "commitTextUpdate",
+        "commitUpdate",
+        "createContainerChildSet",
+        "createInstance",
+        "createTextInstance",
+        "didNotFindHydratableContainerInstance",
+        "didNotFindHydratableContainerSuspenseInstance",
+        "didNotFindHydratableContainerTextInstance",
+        "didNotFindHydratableInstance",
+        "didNotFindHydratableSuspenseInstance",
+        "didNotFindHydratableTextInstance",
+        "didNotHydrateContainerInstance",
+        "didNotHydrateInstance",
+        "didNotMatchHydratedContainerTextInstance",
+        "didNotMatchHydratedTextInstance",
+        "finalizeContainerChildren",
+        "finalizeInitialChildren",
+        "findFiberRoot",
+        "getBoundingRect",
+        "getChildHostContext",
+        "getFirstHydratableChild",
+        "getFundamentalComponentInstance",
+        "getInstanceFromNode",
+        "getInstanceFromScope",
+        "getNextHydratableInstanceAfterSuspenseInstance",
+        "getNextHydratableSibling",
+        "getPublicInstance",
+        "getRootHostContext",
+        "getTextContent",
+        "hideInstance",
+        "hideTextInstance",
+        "hydrateInstance",
+        "hydrateSuspenseInstance",
+        "hydrateTextInstance",
+        "insertBefore",
+        "insertInContainerBefore",
+        "isHiddenSubtree",
+        "isOpaqueHydratingObject",
+        "isPrimaryRenderer",
+        "isSuspenseInstanceFallback",
+        "isSuspenseInstancePending",
+        "makeClientId",
+        "makeClientIdInDEV",
+        "makeOpaqueHydratingObject",
+        "matchAccessibilityRole",
+        "mountFundamentalComponent",
+        "noTimeout",
+        "now",
+        "prepareForCommit",
+        "preparePortalMount",
+        "prepareUpdate",
+        "registerSuspenseInstanceRetry",
+        "removeChild",
+        "removeChildFromContainer",
+        "replaceContainerChildren",
+        "resetAfterCommit",
+        "resetTextContent",
+        "scheduleTimeout",
+        "setFocusIfFocusable",
+        "setupIntersectionObserver",
+        "shouldSetTextContent",
+        "shouldUpdateFundamentalComponent",
+        "supportsHydration",
+        "supportsMutation",
+        "supportsPersistence",
+        "supportsTestSelectors",
+        "unhideInstance",
+        "unhideTextInstance",
+        "unmountFundamentalComponent",
+        "updateFundamentalComponent",
+        "warnsIfNotActing"
+      ],
+      "hostKeysSha256": "80be2de6e6e059b0f62f05c332f79c510c55977b722791ee34d69aaa9cea46f6",
+      "bundleSha256": "3610114637f40b545369b2d295d48467563fe9e23496b064cf303b6a9c12fcea",
+      "exports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "rootSignature": "containerInfo, tag, hydrate, hydrationCallbacks",
+      "hostKeysAbsentFromPublishedBundle": [],
+      "publishedKeysAbsentFromTaggedSource": [],
+      "taggedHostConfigURL": "https://raw.githubusercontent.com/facebook/react/v17.0.1/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js",
+      "taggedHostConfigSha256": "8b7ba1c7c3d6eedc639c77ccd00ba2d1f8b3cd4cc70dcc0d69fc146f8197ce3e",
+      "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.1",
+      "dist": {
+        "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.1.tgz",
+        "integrity": "sha512-6E/CvH9zcDmHjhiNJlP0qJ8+3ufnY2b5RWs774Uy8XKWN0l6qfnlkz0XnDacxqj2rbJdq76w9dlFXjPPOQrmqA==",
+        "shasum": "860952dd359fd870f94895c254271e3a9de3b2d6"
+      },
+      "gitHead": null,
+      "files": {
+        "its-fine/dist/index.js": {
+          "sha256": "f4e2973504d23e229290c44dbd08da4703184fbfe5ec1e35d02412791bf23e2d"
+        },
+        "its-fine/src/index.ts": {
+          "sha256": "f1d2fe3f89c7fccb3fe59b1bea2ae3d4d0c35a8f746495681389093c7bf3a8e2"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "7645238ebcb9ee7d40356267916f8fbfa45b024f54a05703073e06fd5fc91b9a"
+        },
+        "@types/react-reconciler/index.d.ts": {
+          "sha256": "097ddb99d443f0fafd23af7a3ce196ba07cb879ec64de8600fd528626bd24b10"
+        }
+      },
+      "packages": {
+        "react": {
+          "version": "17.0.1",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/react/17.0.1",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react/-/react-17.0.1.tgz",
+            "integrity": "sha512-lG9c9UuMHdcAexXtigOZLX8exLWkW0Ku29qPRU8uhF2R9BN96dLCt0psvzPLlHc5OWkgymP3qwTRgbnw5BKx3w==",
+            "shasum": "6e0600416bd57574e3f86d92edba3d9008726127"
+          }
+        },
+        "react-reconciler": {
+          "version": "0.26.1",
+          "peerDependencies": {
+            "react": "^17.0.1"
+          },
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1",
+            "scheduler": "^0.20.1"
+          },
+          "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.1",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.1.tgz",
+            "integrity": "sha512-6E/CvH9zcDmHjhiNJlP0qJ8+3ufnY2b5RWs774Uy8XKWN0l6qfnlkz0XnDacxqj2rbJdq76w9dlFXjPPOQrmqA==",
+            "shasum": "860952dd359fd870f94895c254271e3a9de3b2d6"
+          }
+        },
+        "scheduler": {
+          "version": "0.20.1",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/scheduler/0.20.1",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/scheduler/-/scheduler-0.20.1.tgz",
+            "integrity": "sha512-LKTe+2xNJBNxu/QhHvDR14wUXHRQbVY5ZOYpOGWRzhydZUqrLb2JBvLPY7cAqFmqrWuDED0Mjk7013SZiOz6Bw==",
+            "shasum": "da0b907e24026b01181ecbc75efdc7f27b5a000c"
+          }
+        },
+        "its-fine": {
+          "version": "1.2.2",
+          "peerDependencies": {
+            "react": ">=16.8"
+          },
+          "dependencies": {
+            "@types/react": "*",
+            "@types/react-reconciler": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/its-fine/1.2.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/its-fine/-/its-fine-1.2.2.tgz",
+            "integrity": "sha512-XypfEXrJfZ4C6cui8lnVVGjU+/iLkH82/EC7HqImFutSTn/HZY2oWCBWlKqd4m+DjXMNZczNMYXbWoh+JxzKtA==",
+            "shasum": "1d70ec68d52c29a06c6649ca20cacdf3028e92d5"
+          }
+        },
+        "@types/react": {
+          "version": "17.0.93",
+          "peerDependencies": {},
+          "dependencies": {
+            "@types/prop-types": "*",
+            "@types/scheduler": "^0.16",
+            "csstype": "^3.2.2"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react/17.0.93",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react/-/react-17.0.93.tgz",
+            "integrity": "sha512-KM4Ty/ZTLZupiYxZVAlP+InNJS3De6uBMdq0ePa6/04+eG9Y7ftnWfst1xTLQ5rwAhgHwQ4momt/O4KepdGBTw==",
+            "shasum": "1f8d44a7ea97fb0cbd3935235949d7fda43f64ea"
+          }
+        },
+        "@types/react-reconciler": {
+          "version": "0.26.7",
+          "peerDependencies": null,
+          "dependencies": {
+            "@types/react": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react-reconciler/0.26.7",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react-reconciler/-/react-reconciler-0.26.7.tgz",
+            "integrity": "sha512-mBDYl8x+oyPX/VBb3E638N0B7xG+SPk/EAMcVPeexqus/5aTpTphQi0curhhshOqRrc9t6OPoJfEUkbymse/lQ==",
+            "shasum": "0c4643f30821ae057e401b0d9037e03e8e9b2a36"
+          }
+        }
+      },
+      "taggedReconcilerURL": "https://raw.githubusercontent.com/facebook/react/v17.0.1/packages/react-reconciler/src/ReactFiberReconciler.old.js",
+      "taggedReconcilerSha256": "e04a55272b8b969aaff759e216ac1a2493fd6785b283f074fe96fc747c481a18",
+      "sourceExports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "sourceExportsAbsentFromBundle": [],
+      "bundleExportsAbsentFromSource": [],
+      "exportNamesSha256": "820afe4d34e6f12844f5ade5c42ef06aa5938e3407995612805ac95795faae95"
+    },
+    {
+      "tuple": "react-17.0.2-bridge-1.2.0",
+      "react": "17.0.2",
+      "reconciler": "0.26.2",
+      "hostKeys": [
+        "afterActiveInstanceBlur",
+        "appendChild",
+        "appendChildToContainer",
+        "appendChildToContainerChildSet",
+        "appendInitialChild",
+        "beforeActiveInstanceBlur",
+        "canHydrateInstance",
+        "canHydrateSuspenseInstance",
+        "canHydrateTextInstance",
+        "cancelTimeout",
+        "clearContainer",
+        "clearSuspenseBoundary",
+        "clearSuspenseBoundaryFromContainer",
+        "cloneHiddenInstance",
+        "cloneHiddenTextInstance",
+        "cloneInstance",
+        "commitHydratedContainer",
+        "commitHydratedSuspenseInstance",
+        "commitMount",
+        "commitTextUpdate",
+        "commitUpdate",
+        "createContainerChildSet",
+        "createInstance",
+        "createTextInstance",
+        "didNotFindHydratableContainerInstance",
+        "didNotFindHydratableContainerSuspenseInstance",
+        "didNotFindHydratableContainerTextInstance",
+        "didNotFindHydratableInstance",
+        "didNotFindHydratableSuspenseInstance",
+        "didNotFindHydratableTextInstance",
+        "didNotHydrateContainerInstance",
+        "didNotHydrateInstance",
+        "didNotMatchHydratedContainerTextInstance",
+        "didNotMatchHydratedTextInstance",
+        "finalizeContainerChildren",
+        "finalizeInitialChildren",
+        "findFiberRoot",
+        "getBoundingRect",
+        "getChildHostContext",
+        "getFirstHydratableChild",
+        "getFundamentalComponentInstance",
+        "getInstanceFromNode",
+        "getInstanceFromScope",
+        "getNextHydratableInstanceAfterSuspenseInstance",
+        "getNextHydratableSibling",
+        "getPublicInstance",
+        "getRootHostContext",
+        "getTextContent",
+        "hideInstance",
+        "hideTextInstance",
+        "hydrateInstance",
+        "hydrateSuspenseInstance",
+        "hydrateTextInstance",
+        "insertBefore",
+        "insertInContainerBefore",
+        "isHiddenSubtree",
+        "isOpaqueHydratingObject",
+        "isPrimaryRenderer",
+        "isSuspenseInstanceFallback",
+        "isSuspenseInstancePending",
+        "makeClientId",
+        "makeClientIdInDEV",
+        "makeOpaqueHydratingObject",
+        "matchAccessibilityRole",
+        "mountFundamentalComponent",
+        "noTimeout",
+        "now",
+        "prepareForCommit",
+        "preparePortalMount",
+        "prepareUpdate",
+        "registerSuspenseInstanceRetry",
+        "removeChild",
+        "removeChildFromContainer",
+        "replaceContainerChildren",
+        "resetAfterCommit",
+        "resetTextContent",
+        "scheduleTimeout",
+        "setFocusIfFocusable",
+        "setupIntersectionObserver",
+        "shouldSetTextContent",
+        "shouldUpdateFundamentalComponent",
+        "supportsHydration",
+        "supportsMutation",
+        "supportsPersistence",
+        "supportsTestSelectors",
+        "unhideInstance",
+        "unhideTextInstance",
+        "unmountFundamentalComponent",
+        "updateFundamentalComponent",
+        "warnsIfNotActing"
+      ],
+      "hostKeysSha256": "80be2de6e6e059b0f62f05c332f79c510c55977b722791ee34d69aaa9cea46f6",
+      "bundleSha256": "baa62d064b733839278a45cbb66b4579218b1c1db9079404159162b323364613",
+      "exports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "rootSignature": "containerInfo, tag, hydrate, hydrationCallbacks",
+      "hostKeysAbsentFromPublishedBundle": [],
+      "publishedKeysAbsentFromTaggedSource": [],
+      "taggedHostConfigURL": "https://raw.githubusercontent.com/facebook/react/v17.0.2/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js",
+      "taggedHostConfigSha256": "8b7ba1c7c3d6eedc639c77ccd00ba2d1f8b3cd4cc70dcc0d69fc146f8197ce3e",
+      "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.2",
+      "dist": {
+        "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.2.tgz",
+        "integrity": "sha512-nK6kgY28HwrMNwDnMui3dvm3rCFjZrcGiuwLc5COUipBK5hWHLOxMJhSnSomirqWwjPBJKV1QcbkI0VJr7Gl1Q==",
+        "shasum": "bbad0e2d1309423f76cf3c3309ac6c96e05e9d91"
+      },
+      "gitHead": null,
+      "files": {
+        "its-fine/dist/index.js": {
+          "sha256": "94b07b53897f4f448dd39bc45a8a80c86ab0302f59c001b55a1c1a36fde3ffcf"
+        },
+        "its-fine/src/index.ts": {
+          "sha256": "92704c9d724f049f8fc22ee7e57f7a7c5c9c2af8bb9452899958afa490c8ae65"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "7645238ebcb9ee7d40356267916f8fbfa45b024f54a05703073e06fd5fc91b9a"
+        },
+        "@types/react-reconciler/index.d.ts": {
+          "sha256": "097ddb99d443f0fafd23af7a3ce196ba07cb879ec64de8600fd528626bd24b10"
+        }
+      },
+      "packages": {
+        "react": {
+          "version": "17.0.2",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/react/17.0.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react/-/react-17.0.2.tgz",
+            "integrity": "sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==",
+            "shasum": "d0b5cc516d29eb3eee383f75b62864cfb6800037"
+          }
+        },
+        "react-reconciler": {
+          "version": "0.26.2",
+          "peerDependencies": {
+            "react": "^17.0.2"
+          },
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1",
+            "scheduler": "^0.20.2"
+          },
+          "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.2.tgz",
+            "integrity": "sha512-nK6kgY28HwrMNwDnMui3dvm3rCFjZrcGiuwLc5COUipBK5hWHLOxMJhSnSomirqWwjPBJKV1QcbkI0VJr7Gl1Q==",
+            "shasum": "bbad0e2d1309423f76cf3c3309ac6c96e05e9d91"
+          }
+        },
+        "scheduler": {
+          "version": "0.20.2",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/scheduler/0.20.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/scheduler/-/scheduler-0.20.2.tgz",
+            "integrity": "sha512-2eWfGgAqqWFGqtdMmcL5zCMK1U8KlXv8SQFGglL3CEtd0aDVDWgeF/YoCmvln55m5zSk3J/20hTaSBeSObsQDQ==",
+            "shasum": "4baee39436e34aa93b4874bddcbf0fe8b8b50e91"
+          }
+        },
+        "its-fine": {
+          "version": "1.2.0",
+          "peerDependencies": {
+            "react": ">=16.8"
+          },
+          "dependencies": {
+            "@types/react": "*",
+            "@types/react-reconciler": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/its-fine/1.2.0",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/its-fine/-/its-fine-1.2.0.tgz",
+            "integrity": "sha512-518vLgHK/dgGxyZj4MdLrDRryziqR1M+JbVtjw1tmdgvZQYsJvB2Leoe2qFOHPalZ5KiAOK18wTmIC0XszYc0w==",
+            "shasum": "989805d4f940cba5c8c059ecf4a94a054882e354"
+          }
+        },
+        "@types/react": {
+          "version": "17.0.93",
+          "peerDependencies": {},
+          "dependencies": {
+            "@types/prop-types": "*",
+            "@types/scheduler": "^0.16",
+            "csstype": "^3.2.2"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react/17.0.93",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react/-/react-17.0.93.tgz",
+            "integrity": "sha512-KM4Ty/ZTLZupiYxZVAlP+InNJS3De6uBMdq0ePa6/04+eG9Y7ftnWfst1xTLQ5rwAhgHwQ4momt/O4KepdGBTw==",
+            "shasum": "1f8d44a7ea97fb0cbd3935235949d7fda43f64ea"
+          }
+        },
+        "@types/react-reconciler": {
+          "version": "0.26.7",
+          "peerDependencies": null,
+          "dependencies": {
+            "@types/react": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react-reconciler/0.26.7",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react-reconciler/-/react-reconciler-0.26.7.tgz",
+            "integrity": "sha512-mBDYl8x+oyPX/VBb3E638N0B7xG+SPk/EAMcVPeexqus/5aTpTphQi0curhhshOqRrc9t6OPoJfEUkbymse/lQ==",
+            "shasum": "0c4643f30821ae057e401b0d9037e03e8e9b2a36"
+          }
+        }
+      },
+      "taggedReconcilerURL": "https://raw.githubusercontent.com/facebook/react/v17.0.2/packages/react-reconciler/src/ReactFiberReconciler.old.js",
+      "taggedReconcilerSha256": "e04a55272b8b969aaff759e216ac1a2493fd6785b283f074fe96fc747c481a18",
+      "sourceExports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "sourceExportsAbsentFromBundle": [],
+      "bundleExportsAbsentFromSource": [],
+      "exportNamesSha256": "820afe4d34e6f12844f5ade5c42ef06aa5938e3407995612805ac95795faae95"
+    },
+    {
+      "tuple": "react-17.0.2-bridge-1.2.2",
+      "react": "17.0.2",
+      "reconciler": "0.26.2",
+      "hostKeys": [
+        "afterActiveInstanceBlur",
+        "appendChild",
+        "appendChildToContainer",
+        "appendChildToContainerChildSet",
+        "appendInitialChild",
+        "beforeActiveInstanceBlur",
+        "canHydrateInstance",
+        "canHydrateSuspenseInstance",
+        "canHydrateTextInstance",
+        "cancelTimeout",
+        "clearContainer",
+        "clearSuspenseBoundary",
+        "clearSuspenseBoundaryFromContainer",
+        "cloneHiddenInstance",
+        "cloneHiddenTextInstance",
+        "cloneInstance",
+        "commitHydratedContainer",
+        "commitHydratedSuspenseInstance",
+        "commitMount",
+        "commitTextUpdate",
+        "commitUpdate",
+        "createContainerChildSet",
+        "createInstance",
+        "createTextInstance",
+        "didNotFindHydratableContainerInstance",
+        "didNotFindHydratableContainerSuspenseInstance",
+        "didNotFindHydratableContainerTextInstance",
+        "didNotFindHydratableInstance",
+        "didNotFindHydratableSuspenseInstance",
+        "didNotFindHydratableTextInstance",
+        "didNotHydrateContainerInstance",
+        "didNotHydrateInstance",
+        "didNotMatchHydratedContainerTextInstance",
+        "didNotMatchHydratedTextInstance",
+        "finalizeContainerChildren",
+        "finalizeInitialChildren",
+        "findFiberRoot",
+        "getBoundingRect",
+        "getChildHostContext",
+        "getFirstHydratableChild",
+        "getFundamentalComponentInstance",
+        "getInstanceFromNode",
+        "getInstanceFromScope",
+        "getNextHydratableInstanceAfterSuspenseInstance",
+        "getNextHydratableSibling",
+        "getPublicInstance",
+        "getRootHostContext",
+        "getTextContent",
+        "hideInstance",
+        "hideTextInstance",
+        "hydrateInstance",
+        "hydrateSuspenseInstance",
+        "hydrateTextInstance",
+        "insertBefore",
+        "insertInContainerBefore",
+        "isHiddenSubtree",
+        "isOpaqueHydratingObject",
+        "isPrimaryRenderer",
+        "isSuspenseInstanceFallback",
+        "isSuspenseInstancePending",
+        "makeClientId",
+        "makeClientIdInDEV",
+        "makeOpaqueHydratingObject",
+        "matchAccessibilityRole",
+        "mountFundamentalComponent",
+        "noTimeout",
+        "now",
+        "prepareForCommit",
+        "preparePortalMount",
+        "prepareUpdate",
+        "registerSuspenseInstanceRetry",
+        "removeChild",
+        "removeChildFromContainer",
+        "replaceContainerChildren",
+        "resetAfterCommit",
+        "resetTextContent",
+        "scheduleTimeout",
+        "setFocusIfFocusable",
+        "setupIntersectionObserver",
+        "shouldSetTextContent",
+        "shouldUpdateFundamentalComponent",
+        "supportsHydration",
+        "supportsMutation",
+        "supportsPersistence",
+        "supportsTestSelectors",
+        "unhideInstance",
+        "unhideTextInstance",
+        "unmountFundamentalComponent",
+        "updateFundamentalComponent",
+        "warnsIfNotActing"
+      ],
+      "hostKeysSha256": "80be2de6e6e059b0f62f05c332f79c510c55977b722791ee34d69aaa9cea46f6",
+      "bundleSha256": "baa62d064b733839278a45cbb66b4579218b1c1db9079404159162b323364613",
+      "exports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "rootSignature": "containerInfo, tag, hydrate, hydrationCallbacks",
+      "hostKeysAbsentFromPublishedBundle": [],
+      "publishedKeysAbsentFromTaggedSource": [],
+      "taggedHostConfigURL": "https://raw.githubusercontent.com/facebook/react/v17.0.2/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js",
+      "taggedHostConfigSha256": "8b7ba1c7c3d6eedc639c77ccd00ba2d1f8b3cd4cc70dcc0d69fc146f8197ce3e",
+      "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.2",
+      "dist": {
+        "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.2.tgz",
+        "integrity": "sha512-nK6kgY28HwrMNwDnMui3dvm3rCFjZrcGiuwLc5COUipBK5hWHLOxMJhSnSomirqWwjPBJKV1QcbkI0VJr7Gl1Q==",
+        "shasum": "bbad0e2d1309423f76cf3c3309ac6c96e05e9d91"
+      },
+      "gitHead": null,
+      "files": {
+        "its-fine/dist/index.js": {
+          "sha256": "f4e2973504d23e229290c44dbd08da4703184fbfe5ec1e35d02412791bf23e2d"
+        },
+        "its-fine/src/index.ts": {
+          "sha256": "f1d2fe3f89c7fccb3fe59b1bea2ae3d4d0c35a8f746495681389093c7bf3a8e2"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "7645238ebcb9ee7d40356267916f8fbfa45b024f54a05703073e06fd5fc91b9a"
+        },
+        "@types/react-reconciler/index.d.ts": {
+          "sha256": "097ddb99d443f0fafd23af7a3ce196ba07cb879ec64de8600fd528626bd24b10"
+        }
+      },
+      "packages": {
+        "react": {
+          "version": "17.0.2",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/react/17.0.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react/-/react-17.0.2.tgz",
+            "integrity": "sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==",
+            "shasum": "d0b5cc516d29eb3eee383f75b62864cfb6800037"
+          }
+        },
+        "react-reconciler": {
+          "version": "0.26.2",
+          "peerDependencies": {
+            "react": "^17.0.2"
+          },
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1",
+            "scheduler": "^0.20.2"
+          },
+          "registryURL": "https://registry.npmjs.org/react-reconciler/0.26.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/react-reconciler/-/react-reconciler-0.26.2.tgz",
+            "integrity": "sha512-nK6kgY28HwrMNwDnMui3dvm3rCFjZrcGiuwLc5COUipBK5hWHLOxMJhSnSomirqWwjPBJKV1QcbkI0VJr7Gl1Q==",
+            "shasum": "bbad0e2d1309423f76cf3c3309ac6c96e05e9d91"
+          }
+        },
+        "scheduler": {
+          "version": "0.20.2",
+          "peerDependencies": null,
+          "dependencies": {
+            "loose-envify": "^1.1.0",
+            "object-assign": "^4.1.1"
+          },
+          "registryURL": "https://registry.npmjs.org/scheduler/0.20.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/scheduler/-/scheduler-0.20.2.tgz",
+            "integrity": "sha512-2eWfGgAqqWFGqtdMmcL5zCMK1U8KlXv8SQFGglL3CEtd0aDVDWgeF/YoCmvln55m5zSk3J/20hTaSBeSObsQDQ==",
+            "shasum": "4baee39436e34aa93b4874bddcbf0fe8b8b50e91"
+          }
+        },
+        "its-fine": {
+          "version": "1.2.2",
+          "peerDependencies": {
+            "react": ">=16.8"
+          },
+          "dependencies": {
+            "@types/react": "*",
+            "@types/react-reconciler": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/its-fine/1.2.2",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/its-fine/-/its-fine-1.2.2.tgz",
+            "integrity": "sha512-XypfEXrJfZ4C6cui8lnVVGjU+/iLkH82/EC7HqImFutSTn/HZY2oWCBWlKqd4m+DjXMNZczNMYXbWoh+JxzKtA==",
+            "shasum": "1d70ec68d52c29a06c6649ca20cacdf3028e92d5"
+          }
+        },
+        "@types/react": {
+          "version": "17.0.93",
+          "peerDependencies": {},
+          "dependencies": {
+            "@types/prop-types": "*",
+            "@types/scheduler": "^0.16",
+            "csstype": "^3.2.2"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react/17.0.93",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react/-/react-17.0.93.tgz",
+            "integrity": "sha512-KM4Ty/ZTLZupiYxZVAlP+InNJS3De6uBMdq0ePa6/04+eG9Y7ftnWfst1xTLQ5rwAhgHwQ4momt/O4KepdGBTw==",
+            "shasum": "1f8d44a7ea97fb0cbd3935235949d7fda43f64ea"
+          }
+        },
+        "@types/react-reconciler": {
+          "version": "0.26.7",
+          "peerDependencies": null,
+          "dependencies": {
+            "@types/react": "*"
+          },
+          "registryURL": "https://registry.npmjs.org/@types/react-reconciler/0.26.7",
+          "dist": {
+            "tarball": "https://registry.npmjs.org/@types/react-reconciler/-/react-reconciler-0.26.7.tgz",
+            "integrity": "sha512-mBDYl8x+oyPX/VBb3E638N0B7xG+SPk/EAMcVPeexqus/5aTpTphQi0curhhshOqRrc9t6OPoJfEUkbymse/lQ==",
+            "shasum": "0c4643f30821ae057e401b0d9037e03e8e9b2a36"
+          }
+        }
+      },
+      "taggedReconcilerURL": "https://raw.githubusercontent.com/facebook/react/v17.0.2/packages/react-reconciler/src/ReactFiberReconciler.old.js",
+      "taggedReconcilerSha256": "e04a55272b8b969aaff759e216ac1a2493fd6785b283f074fe96fc747c481a18",
+      "sourceExports": [
+        "IsThisRendererActing",
+        "act",
+        "attemptContinuousHydration",
+        "attemptHydrationAtCurrentPriority",
+        "attemptSynchronousHydration",
+        "attemptUserBlockingHydration",
+        "batchedEventUpdates",
+        "batchedUpdates",
+        "createComponentSelector",
+        "createContainer",
+        "createHasPsuedoClassSelector",
+        "createPortal",
+        "createRoleSelector",
+        "createTestNameSelector",
+        "createTextSelector",
+        "deferredUpdates",
+        "discreteUpdates",
+        "findAllNodes",
+        "findBoundingRects",
+        "findHostInstance",
+        "findHostInstanceWithNoPortals",
+        "findHostInstanceWithWarning",
+        "flushControlled",
+        "flushDiscreteUpdates",
+        "flushPassiveEffects",
+        "flushSync",
+        "focusWithin",
+        "getCurrentUpdateLanePriority",
+        "getFindAllNodesFailureDescription",
+        "getPublicRootInstance",
+        "injectIntoDevTools",
+        "observeVisibleRects",
+        "registerMutableSourceForHydration",
+        "runWithPriority",
+        "shouldSuspend",
+        "unbatchedUpdates",
+        "updateContainer"
+      ],
+      "sourceExportsAbsentFromBundle": [],
+      "bundleExportsAbsentFromSource": [],
+      "exportNamesSha256": "820afe4d34e6f12844f5ade5c42ef06aa5938e3407995612805ac95795faae95"
+    }
+  ],
+  "contractAssessment": {
+    "neutralABIChangeIndicated": false,
+    "rootSignature": "createContainer(containerInfo, tag, hydrate, hydrationCallbacks)",
+    "publicUnsupportedOptions": [
+      "onCaughtError",
+      "onUncaughtError",
+      "onRecoverableError",
+      "identifierPrefix"
+    ],
+    "bridgeReads": "context._currentValue",
+    "secondarySourceUses": "context._currentValue2",
+    "bridgeFixtureRequirement": "primary source, secondary scene target; production/browser outcomes not established",
+    "typeMismatch": "@types/react-reconciler 0.26.7 declares eight arguments against installed four-argument runtime",
+    "nodeNextPackagingIssue": "its-fine dist/index.d.ts exports ../src directory",
+    "runtimeOutcomes": "not read; owned by parent"
+  }
+}

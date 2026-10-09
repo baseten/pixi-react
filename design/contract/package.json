@@ -1,0 +1,15 @@
+{
+  "name": "@pixi-react-provisional/design-contract",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Type-level design contract for the modular adapters; compiled with the audit's TypeScript 5.6.3.",
+  "scripts": {
+    "test:contract": "tsc -p tsconfig.json && tsc -p tsconfig.json --module ESNext --moduleResolution Bundler"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.8",
+    "pixi.js": "8.2.6",
+    "react": "19.0.0",
+    "typescript": "5.6.3"
+  }
+}
