@@ -108,6 +108,25 @@ describe('runner', () =>
             .resolves.toBeUndefined();
     });
 
+    it('matches each nested teardown failure on its own', async () =>
+    {
+        // context.cleanup() reports several failures as one AggregateError; each must match individually.
+        const nested = binding({
+            create: () => stubComposition(() =>
+            {
+                throw new AggregateError([new Error('value was 0 again'), new Error('unrelated leak')], 'cleanup failed');
+            }),
+        });
+        const error = await runScenario(nested, failing).catch((e: unknown) => e);
+
+        expect((error as ScenarioErrors).errors.map((e) => (e as Error).message))
+            .toEqual(['known defect: value was 0', 'value was 0 again', 'unrelated leak']);
+        await expect(runExpectedFailure(nested, failing, { reason: 'r', match: /value was 0/ }))
+            .rejects.toBeInstanceOf(ScenarioErrors);
+        await expect(runExpectedFailure(nested, passing, { reason: 'r', match: /value was 0/ }))
+            .rejects.toBeInstanceOf(ScenarioErrors);
+    });
+
     it('validates expected failures against the whole catalogue when running a subset', () =>
     {
         const known = binding({ expectedFailures: { 'elements.mount': { reason: 'r', match: /x/ } } });
