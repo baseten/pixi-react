@@ -16,7 +16,7 @@ describe('core + renderer: render promises across unmount', () =>
 {
     it('rejects an in-flight render with ROOT_DISPOSED when the root unmounts before its commit', async () =>
     {
-        const composition = createCoreBinding().create();
+        const composition = await createCoreBinding().create();
 
         try
         {
