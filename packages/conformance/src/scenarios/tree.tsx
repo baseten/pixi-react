@@ -140,6 +140,35 @@ export const treeScenarios = [
         },
     }),
     defineScenario({
+        id: 'elements.top-level-fragment',
+        feature: 'elements',
+        title: 'keeps keyed Application children when they are wrapped in or unwrapped from a fragment',
+        expected: 'Application children are the scene root\'s own children: a top-level unkeyed fragment around them '
+            + 'keeps every keyed node, as React keeps DOM children of a host root.',
+        async run({ elements: { container: Container }, mountApp, probe, journal })
+        {
+            // The children change from one keyed element to an unkeyed fragment and back. React unwraps one unkeyed
+            // fragment at the top of a child list, so the keyed node keeps its fiber, provided the renderer places the
+            // children directly in a child slot and adds no fragment of its own around them (issue 51).
+            const mounted = await mountApp(<Container key="a" label="a" />);
+            const node = getByLabel(probe, mounted.stage, 'a');
+
+            await mounted.rerender(<><Container key="a" label="a" /><Container key="b" label="b" /></>);
+
+            expect(childLabels(probe, mounted.stage), 'stage children with the fragment').toEqual(['a', 'b']);
+            expect(getByLabel(probe, mounted.stage, 'a'), 'node identity with the fragment').toBe(node);
+            const added = getByLabel(probe, mounted.stage, 'b');
+
+            await mounted.rerender(<Container key="a" label="a" />);
+
+            expect(childLabels(probe, mounted.stage), 'stage children without the fragment').toEqual(['a']);
+            expect(getByLabel(probe, mounted.stage, 'a'), 'node identity without the fragment').toBe(node);
+            expect(journal.destroyCount(node), 'destroy count of the kept node').toBe(0);
+            expect(journal.destroyCount(added), 'destroy count of the removed node').toBe(1);
+            expect(journal.constructed('container').length, 'constructed containers').toBe(2);
+        },
+    }),
+    defineScenario({
         id: 'destruction.once',
         feature: 'destruction',
         title: 'destroys every removed top-level node exactly once',

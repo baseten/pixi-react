@@ -1727,14 +1727,7 @@
         "typeProbes": [
           "react19"
         ],
-        "sameClassAcrossFormats": true,
-        "expectedConformanceFailures": {
-          "multi-root.default-text-style-global": {
-            "reason": "On React 19.0 and 19.1 the Text that existed before a second Application set defaultTextStyle reports the new fontSize (41) instead of the baseline: the style change is not non-retroactive. React 18.3, 19.2 and 19.3 pass the same scenario, on Pixi 8.2.6 and 8.22.0 alike. First observed by the issue-13 cells; the fake-Pixi fixtures never exercised it.",
-            "match": "existing text",
-            "owner": "React 19 epoch owner (issue 9); follow-up issue not yet filed"
-          }
-        }
+        "sameClassAcrossFormats": true
       },
       "react191": {
         "id": "react-19.1",
@@ -1772,14 +1765,7 @@
         "typeProbes": [
           "react19"
         ],
-        "sameClassAcrossFormats": true,
-        "expectedConformanceFailures": {
-          "multi-root.default-text-style-global": {
-            "reason": "On React 19.0 and 19.1 the Text that existed before a second Application set defaultTextStyle reports the new fontSize (41) instead of the baseline: the style change is not non-retroactive. React 18.3, 19.2 and 19.3 pass the same scenario, on Pixi 8.2.6 and 8.22.0 alike. First observed by the issue-13 cells; the fake-Pixi fixtures never exercised it.",
-            "match": "existing text",
-            "owner": "React 19 epoch owner (issue 9); follow-up issue not yet filed"
-          }
-        }
+        "sameClassAcrossFormats": true
       },
       "react192": {
         "id": "react-19.2",

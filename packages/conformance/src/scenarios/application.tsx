@@ -601,6 +601,8 @@ export const applicationScenarios = [
             );
 
             await renderUntil(otherApp(<Text key="early" label="early" text="early" />), other.promise);
+            const early = getByLabel(probe, probe.stage(await other.promise), 'early');
+
             await renderUntil(
                 <>
                     <Application key="styled" {...composition.appOptions} defaultTextStyle={{ fontSize: 41 }} onInit={styled.resolve} />
@@ -610,7 +612,10 @@ export const applicationScenarios = [
             );
             const stage = probe.stage(await other.promise);
 
-            expect(probe.get(getByLabel(probe, stage, 'early'), 'style.fontSize'), 'existing text').toBe(baseline);
+            // The keyed text survives its children becoming a fragment (elements.top-level-fragment), so it is the
+            // text that existed before the style was written.
+            expect(getByLabel(probe, stage, 'early'), 'existing text identity').toBe(early);
+            expect(probe.get(early, 'style.fontSize'), 'existing text').toBe(baseline);
             expect(probe.get(getByLabel(probe, stage, 'late'), 'style.fontSize'), 'text created later').toBe(41);
         },
     }),

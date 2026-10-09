@@ -344,7 +344,11 @@ export function createBindings<S extends PixiTypes>(runtime: Runtime<S>, config:
         return (resizeTo as HTMLElement | Window | null | undefined) ?? null;
     }
 
-    const PassThrough = ({ children }: { children?: ReactNode }) => <>{children}</>;
+    // Returns `children` itself, never `<>{children}</>`: React unwraps only one unkeyed fragment at the top of a child
+    // list, so a wrapper fragment here would take that unwrap and a keyed child would remount whenever the
+    // Application's children became (or stopped being) a fragment around it. Upstream places the children directly
+    // in a provider; the React 19.2+ Activity bridge places them directly in `<Activity>` (issue 51).
+    const PassThrough = ({ children }: { children?: ReactNode }) => children;
     const useNoActivity = () => PassThrough;
     const useActivity = useParentActivity ?? useNoActivity;
 
