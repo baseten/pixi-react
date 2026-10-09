@@ -113,7 +113,14 @@ importers:
         version: 5.6.3
 
   packages/conformance:
+    dependencies:
+      '@pixi-react-provisional/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
+      '@pixi-react-provisional/renderer':
+        specifier: workspace:*
+        version: link:../renderer
       '@types/react':
         specifier: ^19.0.0
         version: 19.0.8
@@ -156,6 +163,24 @@ importers:
       vite:
         specifier: ^5.0.0
         version: 5.4.14(@types/node@22.13.1)(lightningcss@1.29.1)(terser@5.38.0)
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
+
+  packages/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.1
+        version: 22.13.1
+      eslint:
+        specifier: ^9.16.0
+        version: 9.19.0(jiti@1.21.7)
+      jsdom:
+        specifier: ^25.0.0
+        version: 25.0.1
+      typescript:
+        specifier: ^5.4.5
+        version: 5.7.3
       vitest:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
@@ -247,6 +272,28 @@ importers:
       vite:
         specifier: ^5.0.0
         version: 5.4.14(@types/node@22.13.1)(lightningcss@1.29.1)(terser@5.38.0)
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
+
+  packages/renderer:
+    dependencies:
+      '@pixi-react-provisional/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.1
+        version: 22.13.1
+      eslint:
+        specifier: ^9.16.0
+        version: 9.19.0(jiti@1.21.7)
+      jsdom:
+        specifier: ^25.0.0
+        version: 25.0.1
+      typescript:
+        specifier: ^5.4.5
+        version: 5.7.3
       vitest:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)

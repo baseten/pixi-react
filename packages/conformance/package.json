@@ -7,16 +7,22 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./fake-scene": "./src/fake-scene/index.ts"
+    "./fake-scene": "./src/fake-scene/index.ts",
+    "./fake-scene-adapter": "./src/fake-scene/adapter.ts"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
     "lint": "eslint --max-warnings 0 .",
+    "test:conformance": "vitest run test/core.conformance.test.tsx",
     "test:unit": "tsc --noEmit -p tsconfig.json && vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
+  "dependencies": {
+    "@pixi-react-provisional/core": "workspace:*"
+  },
   "devDependencies": {
+    "@pixi-react-provisional/renderer": "workspace:*",
     "@types/react": "^19.0.0",
     "@types/react-dom": "~19.0.0",
     "@types/react-reconciler": "^0.28.9",

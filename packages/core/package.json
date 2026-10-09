@@ -1,0 +1,41 @@
+{
+  "name": "@pixi-react-provisional/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Version-independent adapter core: ABI 1 contracts, capability negotiation, per-runtime registry, roots and node ownership. No React, reconciler, its-fine or Pixi dependency.",
+  "license": "MIT",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "node ../../scripts/build-dual-package.mjs",
+    "check:graph": "node ../../scripts/check-dependency-graph.mjs",
+    "lint": "eslint --max-warnings 0 .",
+    "test:unit": "tsc --noEmit -p tsconfig.json && vitest run && pnpm run check:graph",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "eslint": "^9.16.0",
+    "jsdom": "^25.0.0",
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.0"
+  }
+}

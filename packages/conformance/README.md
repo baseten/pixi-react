@@ -43,9 +43,28 @@ Current bindings:
 | --- | --- | --- |
 | Baseline facade, `@pixi/react` from `packages/react` (React 19, Pixi 8) | `packages/react/test/conformance/` | Vitest browser mode, Playwright Chromium |
 | Fake renderer over the fake scene (a test double, not an adapter) | `test/fake-binding/` | jsdom |
+| Core + renderer: `createRenderer({ framework, scene })` with a fake React 19 framework adapter and the fake scene adapter | `test/core-binding/` | jsdom |
 
-The second binding shows that the interface is not shaped around the facade, and it hosts the committed
-negative controls.
+The second binding shows that the interface is not shaped around the facade. The second and third bindings both
+host the committed negative controls.
+
+The core binding ([issue 7](https://github.com/baseten/pixi-react/issues/7)) composes the real
+`@pixi-react-provisional/core` and `@pixi-react-provisional/renderer` builds with two adapters:
+
+- `FakeSceneAdapter`, a core `SceneAdapter` over the fake backend, exported as
+  `@pixi-react-provisional/conformance/fake-scene-adapter`.
+- `test/core-binding/framework.tsx`, a `FrameworkAdapter` test double over react-reconciler 0.31.
+
+The framework double owns only React concerns. Registry lookups, node ownership and destruction, roots, target
+leases, and init and teardown ordering all go through core.
+
+The binding provides `framework.react-19` and `dom.resize`. Scenarios that need `scene.globals` (issue 8, with
+Pixi), `framework.react-18` (issue 12) or `parity.upstream` are skipped by capability, and the runner names the
+missing capability in the title. The binding lists no expected failures. `createRoot.same-element`, an issue-7
+defect that the facade still lists, passes here because core maps an element target and its canvas to one root.
+
+A second core binding selects `registryConflict: 'replace'`, the policy the facade uses for D4 parity, and runs
+`extend.replace-name`.
 
 ### Capabilities, kinds and expected failures
 
@@ -75,9 +94,9 @@ flushed) and `waitFor` (until a condition driven by React's own scheduler holds,
 
 | Command | What runs |
 | --- | --- |
-| `pnpm test:conformance` | The baseline suite against the facade in Chromium (Turbo task `test:conformance`; no modular runtime) |
+| `pnpm test:conformance` | The suite against the facade in Chromium, and against the core + renderer binding in jsdom (Turbo task `test:conformance`) |
 | `pnpm test:e2e` | The existing browser tests plus the same conformance suite |
-| `pnpm test:unit` | Includes this package's fast tests: the fake binding run, runner semantics, the scenario catalogue and the negative controls |
+| `pnpm test:unit` | Includes this package's fast tests: the fake and core binding runs, runner semantics, the scenario catalogue and the negative controls |
 
 The facade run is part of `test:e2e` so the existing CI E2E job runs it without a workflow change (workflow
 edits need owner approval). `pnpm test:conformance` runs it alone.

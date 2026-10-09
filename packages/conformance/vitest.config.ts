@@ -7,5 +7,12 @@ export default defineConfig({
     test: {
         environment: 'jsdom',
         include: ['test/**/*.test.ts?(x)'],
+        server: {
+            deps: {
+                // Load the built core/renderer packages with Node's loader, as an installed copy would be, so the
+                // ESM wrapper imports their single CJS implementation natively (D6).
+                external: [/[\\/]packages[\\/](core|renderer)[\\/]dist[\\/]/],
+            },
+        },
     },
 });
