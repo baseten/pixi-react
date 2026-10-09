@@ -51,6 +51,12 @@ function parseArguments(argv)
 }
 
 const options = parseArguments(process.argv.slice(2));
+
+// A selector passed but empty (an unset CI matrix value) must not fall back to running everything.
+for (const selector of ['cell', 'probe', 'chunk'])
+{
+    assert.ok(!(selector in options) || options[selector]?.trim(), `--${selector} was given an empty value`);
+}
 const work = resolve(options.work ?? join(root, '.compat'));
 const csv = (value) => (value ? value.split(',').map((part) => part.trim()).filter(Boolean) : undefined);
 const tail = (text, lines = 40) => text.split('\n').slice(-lines).join('\n');
@@ -445,19 +451,19 @@ switch (options.command)
         const cells = options.flags.has('negative') ? negativeCells(seed) : selectCells(seed, options.tier ?? 'pr', { patches: options.patches, filter: csv(options.filter) });
         const brief = (cell) => ({ id: cell.id, label: cell.label, react: cell.react.version, pixi: cell.pixi.version, commands: cell.commands });
 
-        if (options.format === 'github') process.stdout.write(JSON.stringify({ include: cells.map(brief) }));
+        if (options.format === 'github') process.stdout.write(JSON.stringify({ cell: cells.map(brief) }));
         else if (options.format === 'chunks')
         {
             // Nightly: one job per Pixi version, running every React cell of that version (installs and browser start-up amortised).
             const groups = Object.groupBy(cells.map(brief), (cell) => cell.pixi);
 
-            process.stdout.write(JSON.stringify({ include: Object.entries(groups).map(([pixi, list]) => ({ name: `pixi.js ${pixi}`, pixi, cells: list.map((cell) => cell.id).join(',') })) }));
+            process.stdout.write(JSON.stringify({ chunk: Object.entries(groups).map(([pixi, list]) => ({ name: `pixi.js ${pixi}`, pixi, cells: list.map((cell) => cell.id).join(',') })) }));
         }
         else process.stdout.write(`${cells.map((cell) => `${cell.id}\t${cell.label}`).join('\n')}\n`);
         break;
     }
     case 'probe-list':
-        process.stdout.write(JSON.stringify({ include: boundaryProbes(seed, options.tier ?? 'pr').map((probe) => ({ id: probe.id, boundary: probe.boundary })) }));
+        process.stdout.write(JSON.stringify({ probe: boundaryProbes(seed, options.tier ?? 'pr').map((probe) => ({ id: probe.id, boundary: probe.boundary })) }));
         break;
     case 'pack':
     {

@@ -204,3 +204,27 @@ test('COMPATIBILITY.md is current', () =>
 {
     assert.equal(readFileSync(join(here, 'COMPATIBILITY.md'), 'utf8'), renderCompatibilityDoc(seed), 'run: node design/compatibility/cells/run-cells.mjs doc > design/compatibility/cells/COMPATIBILITY.md');
 });
+
+test('generated GitHub matrices use the keys the workflows read (matrix.<key>.*)', async () =>
+{
+    const { execFileSync } = await import('node:child_process');
+    const cli = join(here, 'run-cells.mjs');
+    const emit = (...args) => JSON.parse(execFileSync(process.execPath, [cli, ...args], { encoding: 'utf8' }));
+    const workflows = join(here, '../../../.github/workflows');
+    const read = (file) => readFileSync(join(workflows, file), 'utf8');
+    const keysUsed = (text) => new Set([...text.matchAll(/matrix\.(\w+)\./g)].map((match) => match[1]));
+    const generated = {
+        cell: emit('list', '--tier', 'pr', '--format', 'github'),
+        probe: emit('probe-list', '--tier', 'pr'),
+        chunk: emit('list', '--tier', 'nightly', '--format', 'chunks'),
+    };
+
+    for (const [key, value] of Object.entries(generated))
+    {
+        assert.deepEqual(Object.keys(value), [key], `${key} matrix has the single axis "${key}"`);
+        assert.ok(value[key].length > 0 && value[key].every((entry) => entry.id ?? entry.cells), `${key} entries are named`);
+    }
+
+    assert.deepEqual([...keysUsed(read('compatibility.yml'))].sort(), ['cell', 'probe']);
+    assert.deepEqual([...keysUsed(read('compatibility-nightly.yml'))].sort(), ['chunk']);
+});
