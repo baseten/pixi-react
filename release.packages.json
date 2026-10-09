@@ -1,0 +1,99 @@
+{
+  "$comment": "Single source of truth for the public npm names of the publishable workspace packages (issue 15). The workspace keeps its provisional names; scripts/release/stage.mjs rewrites them into the selected namespace when it packs release tarballs. See design/release.md.",
+  "namespace": "target",
+  "namespaces": {
+    "target": {
+      "status": "Owner ruling 2026-10-09: upstream's @pixi scope, pending agreement with the pixijs maintainers (issue 41).",
+      "facade": "@pixi/react",
+      "modulePrefix": "@pixi/react-"
+    },
+    "fallback": {
+      "status": "Placeholder for a fork-owned scope if issue 41 does not grant @pixi. The owner has not chosen this name.",
+      "facade": "@baseten/pixi-react",
+      "modulePrefix": "@baseten/pixi-react-"
+    }
+  },
+  "provisionalScope": "@pixi-react-provisional",
+  "publish": {
+    "enabled": false,
+    "registry": null,
+    "reason": "Nothing is published until the owner configures a destination (issue 15, issue 41). Staged tarballs keep \"private\": true while this is false."
+  },
+  "abi": {
+    "$comment": "The ABI the last released core implemented (null before Release 1). scripts/release/version.mjs records CORE_ABI here after `changeset version`; policy.mjs compares the source CORE_ABI against it.",
+    "released": null
+  },
+  "packages": {
+    "packages/react": {
+      "workspaceName": "@pixi/react",
+      "facade": true,
+      "release1": "8.1.0"
+    },
+    "packages/core": {
+      "workspaceName": "@pixi-react-provisional/core",
+      "suffix": "core",
+      "release1": "1.0.0"
+    },
+    "packages/renderer": {
+      "workspaceName": "@pixi-react-provisional/renderer",
+      "suffix": "renderer",
+      "release1": "1.0.0"
+    },
+    "packages/react-19.0": {
+      "workspaceName": "@pixi-react-provisional/react-19.0",
+      "suffix": "19.0",
+      "release1": "1.0.0",
+      "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
+    },
+    "packages/react-19.1": {
+      "workspaceName": "@pixi-react-provisional/react-19.1",
+      "suffix": "19.1",
+      "release1": "1.0.0",
+      "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
+    },
+    "packages/react-19.2": {
+      "workspaceName": "@pixi-react-provisional/react-19.2",
+      "suffix": "19.2",
+      "release1": "1.0.0",
+      "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
+    },
+    "packages/react-19.3": {
+      "workspaceName": "@pixi-react-provisional/react-19.3",
+      "suffix": "19.3",
+      "release1": "1.0.0",
+      "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
+    },
+    "packages/react-18": {
+      "workspaceName": "@pixi-react-provisional/react-18",
+      "suffix": "18",
+      "release1": "1.0.0",
+      "versionConstant": { "file": "src/version.ts", "pattern": "PACKAGE_VERSION = '(?<version>[^']*)'" }
+    },
+    "packages/pixi-8": {
+      "workspaceName": "@pixi-react-provisional/pixi-8",
+      "suffix": "pixi-8",
+      "release1": "1.0.0",
+      "versionConstant": { "file": "src/adapter.ts", "pattern": "PACKAGE_VERSION = '(?<version>[^']*)'" }
+    }
+  },
+  "neverPublished": {
+    "$comment": "Workspace packages that are never released. Each must be private, and .changeset/config.json must ignore exactly these.",
+    "names": [
+      "pixi-react-workspace",
+      "docs",
+      "@pixi-react-provisional/conformance",
+      "@pixi-react-provisional/design-contract",
+      "@pixi-react-provisional/react-shared",
+      "@pixi-react-provisional/type-consumers"
+    ],
+    "patterns": [
+      "@pixi-react-provisional/*-fixture-*"
+    ]
+  },
+  "textRewrites": {
+    "$comment": "Provisional tokens in packed files that are not package names. `react-${` is the template literal the React 18 adapter uses to name a per-minor package; react-shared is private, so its mentions become the bare workspace name.",
+    "@pixi-react-provisional/react-${": "{modulePrefix}${",
+    "@pixi-react-provisional/react-19.x": "{modulePrefix}19.x",
+    "@pixi-react-provisional/react-shared": "react-shared"
+  }
+}

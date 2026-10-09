@@ -31,6 +31,7 @@ The root scripts run Turbo tasks, which build workspace dependencies first:
 | `pnpm test:conformance` | `test:conformance` | The conformance suite alone: against the baseline facade and the Pixi 8 adapter (pixi.js 8.2.6 and 8.22.0) in Chromium, and against core + renderer in jsdom; never cached |
 | `pnpm build:docs` | `build` (`docs`) | Builds the library, then the Docusaurus site |
 | `pnpm test:contract` | design-contract package | Type-level adapter contract under NodeNext and Bundler resolution |
+| `pnpm test:release` | none (Node script) | Offline: the release tooling tests and the release-policy check on the pending Changesets plan. `pnpm release:dry-run` runs the whole release in a disposable checkout and publishes nothing. See `design/release.md` |
 | `pnpm test:compatibility` | none (Node script) | The required PR-tier compatibility check, locally: audit probes, packed-adapter cells in isolated projects, and the deliberately incompatible pairs. Run `pnpm build` first. See `design/compatibility/cells/README.md` |
 
 Browser tests need Chromium:
@@ -103,9 +104,13 @@ Release and preview remain blocked while `packages/react/package.json` is named
 manifest; the private workspace root is never published. semantic-release
 publishes from `packages/react` (`pkgRoot`), and previews publish
 `./packages/react` with `pkg.pr.new`. This is still the inherited
-single-package flow, not a multi-package release strategy. A package split must
-define its own publication policy (for example Changesets) before enabling
-releases. Previews require the `pkg.pr.new` app to be configured for this fork.
+single-package flow. The multi-package release policy (independent Changesets
+versions, public names from `release.packages.json`, staged and verified
+tarballs) is in [design/release.md](design/release.md) (issue 15). It publishes
+nothing: `publish.enabled` in `release.packages.json` is false, the modular
+packages stay private, and the facade's `prepublishOnly` guard fails every
+`npm publish` of it, including the semantic-release path above, until an owner
+enables publishing there. Previews require the `pkg.pr.new` app to be configured for this fork.
 Release uses `https://registry.npmjs.org` and GitHub releases in
 `baseten/pixi-react`. No command in the review path publishes an artifact.
 

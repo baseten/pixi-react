@@ -16,3 +16,6 @@ apps/docs/build
 
 # Adapter compatibility cells: packed tarballs, verdicts and diagnostics (design/compatibility/cells)
 .compat/
+
+# Release staging: tarballs, consumer projects and bundle reports (scripts/release)
+.release/

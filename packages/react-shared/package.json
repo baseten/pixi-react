@@ -2,7 +2,7 @@
   "name": "@pixi-react-provisional/react-shared",
   "version": "0.0.0",
   "private": true,
-  "description": "Private, unpublished: the code the React adapter packages share (react-18 and react-19.0 \u2026 react-19.3). Each adapter package bundles these sources at build time; this package is never installed by consumers. `build` emits only the declarations the adapter packages copy into their own dist.",
+  "description": "Private, unpublished: the code the React adapter packages share (react-18 and react-19.0 … react-19.3). Each adapter package bundles these sources at build time; this package is never installed by consumers. `build` emits only the declarations the adapter packages copy into their own dist.",
   "license": "MIT",
   "type": "commonjs",
   "exports": {

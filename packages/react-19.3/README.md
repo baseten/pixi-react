@@ -16,6 +16,16 @@ export const { Application, createRoot, extend, useApplication, useTick, compone
     createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
 ```
 
+## Install
+
+Release 1 will publish this package as 1.0.0. React is a peer, limited to the versions this package certifies, so install one of them exactly. `react-reconciler` and its-fine are exact dependencies and come with the package:
+
+```sh
+npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-19.3 @pixi-react-provisional/pixi-8 pixi.js react@19.3.0 react-dom@19.3.0
+```
+
+Nothing is published yet. Release tarballs carry the public names from `release.packages.json` (target scope `@pixi`, pending [issue 41](https://github.com/baseten/pixi-react/issues/41)). The [release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md) covers versions, install recipes, tested pairs and migration.
+
 ## One package per React minor (D2 reversed)
 
 D2 shipped every React 19 minor as one `react-19` package with `/19.x` subpaths, each **bundling** its exact

@@ -32,7 +32,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && node scripts/check-consumer-types.mjs"
   },
   "dependencies": {
-    "@pixi-react-provisional/core": "workspace:*"
+    "@pixi-react-provisional/core": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^22.13.1",

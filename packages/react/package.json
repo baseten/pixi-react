@@ -1,6 +1,6 @@
 {
   "name": "@pixi/react",
-  "version": "0.0.0-development",
+  "version": "8.0.5",
   "description": "Write PixiJS applications using React declarative style.",
   "keywords": [
     "react",
@@ -41,6 +41,7 @@
     "docs": "xs docs",
     "lint": "xs lint",
     "lint:fix": "xs lint --fix",
+    "prepublishOnly": "node ../../scripts/release/guard-publish.mjs",
     "prerelease": "pnpm run test:lint && pnpm run build",
     "release": "xs bump,publish,git-push",
     "test": "tsc --project tsconfig.test.json && vitest run",
