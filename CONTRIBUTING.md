@@ -23,12 +23,12 @@ The root scripts run Turbo tasks, which build workspace dependencies first:
 
 | Command | Turbo task | Notes |
 | --- | --- | --- |
-| `pnpm build` | `build` (every package except docs) | `@pixi/react`: Rollup ESM/CJS output plus declarations. `core`/`renderer`: one CJS implementation plus an ESM wrapper (D6, see `packages/core/README.md`) |
+| `pnpm build` | `build` (every package except docs) | `@pixi/react`: Rollup ESM/CJS output plus declarations. `core`/`renderer`/`pixi-8`: one CJS implementation plus an ESM wrapper (D6, see `packages/core/README.md`; `pixi-8` binds each entry to its own pixi.js instance, see `packages/pixi-8/README.md`) |
 | `pnpm test:types` | `typecheck` | Excludes the docs app (see below) |
 | `pnpm test:lint` | `lint` | Library and docs, shared root `eslint.config.mjs` |
-| `pnpm test:unit` | `test:unit` | jsdom unit tests; for `core`/`renderer` also the D6 entry test and the built dependency-graph check |
+| `pnpm test:unit` | `test:unit` | jsdom/Node unit tests; for `core`/`renderer`/`pixi-8` also the D6 entry test and the built dependency-graph check |
 | `pnpm test:e2e` | `test:e2e` | Vitest browser mode with Playwright Chromium, including the conformance suite; never cached |
-| `pnpm test:conformance` | `test:conformance` | The conformance suite alone: against the baseline facade in Chromium, and against core + renderer in jsdom; never cached |
+| `pnpm test:conformance` | `test:conformance` | The conformance suite alone: against the baseline facade and the Pixi 8 adapter (pixi.js 8.2.6 and 8.22.0) in Chromium, and against core + renderer in jsdom; never cached |
 | `pnpm build:docs` | `build` (`docs`) | Builds the library, then the Docusaurus site |
 
 Browser tests need Chromium:
