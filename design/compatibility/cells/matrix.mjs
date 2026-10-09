@@ -315,7 +315,7 @@ export const fileSetHash = (files) => sha256(Object.keys(files).sort().map((path
  * uses the content hash of the files, and for an adapter with `hashScope: "entry"` only the files its export entry
  * can reach, so an edit to one entry leaves the other entries' keys alone.
  */
-export function cellKey(seed, cell, artifacts, harness, environment)
+export function cellKey(seed, cell, artifacts, harness, environment, effective = null)
 {
     const used = {};
     const adapterArtifacts = new Map([[cell.react.adapter.artifact, cell.react.adapter], [cell.pixi.adapter.artifact, cell.pixi.adapter]]);
@@ -333,8 +333,10 @@ export function cellKey(seed, cell, artifacts, harness, environment)
     }
 
     // The effective manifest rows (ABI, capabilities, peers, expected failures, probes) decide what the checks assert.
-    const config = { react: cell.react, pixi: cell.pixi, install: cell.install };
-    const input = { schema: 2, id: cell.id, commands: cell.commands, deps: cell.deps, toolchain: cell.toolchain, artifacts: used, harness, environment, expect: cell.expect, config };
+    // `effective` is the generated cell configuration the harness asserts (derived capabilities, formats, tree);
+    // callers that run cells pass it so indirect manifest inputs also invalidate the verdict.
+    const config = { react: cell.react, pixi: cell.pixi, install: cell.install, effective };
+    const input = { schema: 3, id: cell.id, commands: cell.commands, deps: cell.deps, toolchain: cell.toolchain, artifacts: used, harness, environment, expect: cell.expect, config };
 
     return { key: sha256(input).slice(0, 40), depsKey: sha256({ deps: cell.deps, toolchain: cell.toolchain, commands: cell.commands, environment }).slice(0, 40), input };
 }

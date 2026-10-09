@@ -159,6 +159,9 @@ function cellConfig(cell, artifacts)
     };
 }
 
+/** The generated configuration a cell's checks assert; negative cells assert their own expectation instead. */
+const effectiveConfig = (cell, artifacts) => (cell.kind === 'cell' ? cellConfig(cell, artifacts) : null);
+
 const TOOLCHAIN_FOR = { types: ['typescript'], conformance: ['vitest', '@vitest/browser', 'playwright', 'vite'] };
 
 function writeProject(cell, dir, artifacts, config)
@@ -225,7 +228,7 @@ function assertIsolated(dir)
 function runCell(cell, artifacts, { harness, verdicts, out, results })
 {
     const started = Date.now();
-    const { key, depsKey } = cellKey(seed, cell, artifacts, harness, environment());
+    const { key, depsKey } = cellKey(seed, cell, artifacts, harness, environment(), effectiveConfig(cell, artifacts));
     const outDir = join(out, cell.id);
     const base = { id: cell.id, kind: cell.kind, label: cell.label, adapterLabel: cell.react.adapter.id, reactVersion: cell.react.version, pixiVersion: cell.pixi.version, key, depsKey, expect: cell.expect, description: cell.description, commands: {} };
     const verdictFile = join(verdicts, `${key}.json`);
@@ -475,7 +478,8 @@ switch (options.command)
     case 'key':
     {
         const [cell] = [...selectedCells()];
-        const { key, depsKey } = cellKey(seed, cell, getArtifacts(), harnessHash(), environment());
+        const artifacts = getArtifacts();
+        const { key, depsKey } = cellKey(seed, cell, artifacts, harnessHash(), environment(), effectiveConfig(cell, artifacts));
 
         if (options.format === 'github') process.stdout.write(`key=${key}\ndepsKey=${depsKey}\n`);
         else process.stdout.write(`${cell.id} key ${key} depsKey ${depsKey}\n`);
@@ -492,7 +496,9 @@ switch (options.command)
         break;
     case 'all':
         // The local equivalent of the required PR check: boundary probes, the tier's cells, then the negative cases.
+        // Repack unless tarballs were supplied, so a rebuilt adapter is never tested from stale tarballs.
         rmSync(join(work, 'results'), { recursive: true, force: true });
+        if (!options.tarballs) packArtifacts(seed, join(work, 'tarballs'), root);
         commandProbes();
         commandRun(selectCells(seed, options.tier ?? 'pr', { patches: options.patches }));
         commandRun(negativeCells(seed));

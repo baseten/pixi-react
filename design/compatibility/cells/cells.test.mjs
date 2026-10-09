@@ -248,3 +248,13 @@ test('cache keys: a manifest expectation change invalidates the affected cells',
         ['react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
     assert.equal(changed(before, keyed((m) => { m.pixiAdapters.pixi8.declaredPeers = { 'pixi.js': '>=8.2.6' }; })).length, 10);
 });
+
+test('cache keys: the generated effective configuration is part of the key', () =>
+{
+    const [cell] = selectCells(seed, 'pr');
+    const artifacts = artifactsWith();
+    const key = (effective) => cellKey(seed, cell, artifacts, 'h', {}, effective).key;
+
+    assert.notEqual(key({ formats: ['esm', 'cjs'] }), key({ formats: ['esm'] }));
+    assert.notEqual(key({ adapters: { pixi: { provides: ['pixi.renderLayer'] } } }), key({ adapters: { pixi: { provides: [] } } }));
+});
