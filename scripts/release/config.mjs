@@ -1,12 +1,52 @@
 // Reads release.packages.json, the single source of truth for public package names (issue 15), and resolves the
 // selected namespace. Every release script goes through this module; nothing else maps workspace names to public ones.
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const repoRoot = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 
 export const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
+
+/** The file a release work directory carries once a dry run has created it; only such a directory may be wiped. */
+export const WORK_MARKER = '.pixi-react-release-work';
+
+/** Resolves symlinks through the nearest existing ancestor, so a link into the checkout counts as the checkout. */
+function realPath(path)
+{
+    const absolute = resolve(path);
+
+    if (existsSync(absolute)) return realpathSync(absolute);
+    const parent = dirname(absolute);
+
+    return parent === absolute ? absolute : join(realPath(parent), absolute.slice(parent.length + 1));
+}
+
+const contains = (outer, inner) =>
+{
+    const path = relative(outer, inner);
+
+    return path === '' || (path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path));
+};
+
+/**
+ * Why `work` must not be removed and recreated, or null. It must not be the source checkout, an ancestor of it or a
+ * directory inside it, and an existing non-empty directory must carry `WORK_MARKER` (written by an earlier dry run).
+ */
+export function workDirProblem(work, root = repoRoot)
+{
+    const target = realPath(work);
+    const source = realPath(root);
+
+    if (contains(target, source)) return `${work} contains the source checkout ${root}`;
+    if (contains(source, target)) return `${work} is inside the source checkout ${root}`;
+    if (existsSync(target) && readdirSync(target).length && !existsSync(join(target, WORK_MARKER)))
+    {
+        return `${work} is not empty and was not created by a release dry run (no ${WORK_MARKER})`;
+    }
+
+    return null;
+}
 
 /** `*` matches any run of characters within a package name; nothing else is special. */
 const globToRegExp = (glob) => new RegExp(`^${glob.split('*').map((part) => part.replace(/[.+?^${}()|[\]\\/]/g, '\\$&')).join('.*')}$`);

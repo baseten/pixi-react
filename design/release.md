@@ -150,6 +150,8 @@ pnpm release:dry-run      # everything below, in a disposable copy; this checkou
 
 The output (tarballs, `dry-run.json`, `dry-run.md`, `consumers.json`, `bundles.json`) goes to
 `<os tmpdir>/pixi-react-release-dry-run/tarballs`, or to the directory given with `--work`.
+The work directory is deleted and recreated on each run, so `--work` refuses the source checkout, any directory
+inside or above it, and a non-empty directory without the `.pixi-react-release-work` marker an earlier run left.
 
 ### What is checked before a release
 

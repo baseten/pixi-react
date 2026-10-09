@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { loadReleaseConfig, makeRewriter, repoRoot } from './config.mjs';
+import { loadReleaseConfig, makeRewriter, repoRoot, WORK_MARKER, workDirProblem } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
 import { checkPolicy, readPlan } from './policy.mjs';
@@ -255,6 +255,38 @@ test('the consumer tree check counts physical copies, not logical versions', () 
         install('node_modules/@pixi/react-19.3/node_modules/@pixi/react-core', '@pixi/react-core', '1.0.0');
         assert.deepEqual(scanInstalls(dir)['@pixi/react-core'].map((copy) => copy.location), ['node_modules/@pixi/react-19.3/node_modules/@pixi/react-core', 'node_modules/@pixi/react-core']);
         assert.match(checkTree(scenario, tree, scanInstalls(dir)).problems.join('\n'), /@pixi\/react-core: installed 1\.0\.0 at node_modules\/@pixi\/react-19\.3\/node_modules\/@pixi\/react-core, 1\.0\.0 at node_modules\/@pixi\/react-core, expected exactly 1\.0\.0 once/);
+    }
+    finally
+    {
+        rmSync(dir, { recursive: true, force: true });
+    }
+});
+
+test('the dry run refuses work directories it must not wipe', () =>
+{
+    const dir = mkdtempSync(join(tmpdir(), 'release-work-'));
+    const source = join(dir, 'source');
+    const stray = join(dir, 'stray');
+    const previous = join(dir, 'previous');
+
+    try
+    {
+        mkdirSync(join(source, 'scripts'), { recursive: true });
+        mkdirSync(stray);
+        writeFileSync(join(stray, 'notes.txt'), 'keep');
+        mkdirSync(previous);
+        writeFileSync(join(previous, WORK_MARKER), '');
+        writeFileSync(join(previous, 'old.txt'), '');
+
+        assert.match(workDirProblem(source, source), /contains the source checkout/);
+        assert.match(workDirProblem(dir, source), /contains the source checkout/);
+        assert.match(workDirProblem(join(source, 'scripts'), source), /inside the source checkout/);
+        assert.match(workDirProblem(join(source, 'new'), source), /inside the source checkout/);
+        assert.match(workDirProblem(stray, source), /not empty and was not created by a release dry run/);
+        assert.equal(workDirProblem(previous, source), null);
+        assert.equal(workDirProblem(join(dir, 'fresh'), source), null);
+        assert.equal(workDirProblem(join(dir, 'source-sibling'), source), null);
+        assert.match(workDirProblem(repoRoot), /contains the source checkout/);
     }
     finally
     {

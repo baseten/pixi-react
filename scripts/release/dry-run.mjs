@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { loadReleaseConfig, readJson, repoRoot } from './config.mjs';
+import { loadReleaseConfig, readJson, repoRoot, WORK_MARKER, workDirProblem } from './config.mjs';
 
 const args = process.argv.slice(2);
 const option = (name) =>
@@ -28,6 +28,13 @@ const option = (name) =>
     return index >= 0 ? args[index + 1] : undefined;
 };
 const work = resolve(option('--work') ?? join(tmpdir(), 'pixi-react-release-dry-run'));
+const unsafeWork = workDirProblem(work);
+
+if (unsafeWork)
+{
+    console.error(`refusing --work: ${unsafeWork}`);
+    process.exit(1);
+}
 const namespace = option('--namespace');
 const checkout = join(work, 'checkout');
 const tarballs = join(work, 'tarballs');
@@ -81,6 +88,7 @@ step('disposable checkout', () =>
 {
     rmSync(work, { recursive: true, force: true });
     mkdirSync(checkout, { recursive: true });
+    writeFileSync(join(work, WORK_MARKER), 'Created by scripts/release/dry-run.mjs; the next dry run may delete this directory.\n');
     const files = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: repoRoot, encoding: 'utf8' }).split('\0').filter(Boolean);
     let copied = 0;
 
