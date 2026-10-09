@@ -90,7 +90,10 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
   - #17 is deferred with #16.
   - #57 merged as #59: named Pixi binding and recognition of built-ins by signature. The facade keeps upstream's 381 Pixi modules, and its bundle went from 330 KiB to 223 KiB gzip.
   - #58 (open, owner decision): the facade is still 27 KiB gzip above upstream's 196 KiB. The extra is react-reconciler 0.34 plus our own CJS adapter code. One option is an upstream-style dual ESM/CJS build with `Symbol.for` singletons, which would replace D6; the proposal is to measure how much of our code is unreachable first.
-  - Next: #40, then #18 and #19.
+  - #40 merged as #60, covering the release rules, the generated compatibility table, the docs pins, and the Release 1 notes and migration guide. Release 1 says "tested", not "certified", until the nightly matrix and certificate records exist.
+  - #18 merged as #61. It adds the `apps/examples` app, built from the local packages, with test hooks for #19. The smoke test runs in the existing E2E job.
+  - Measurement on #58: ESM tree shaking would save only about 4 KiB gzip. The owner ruled that bundle size does not block Release 1.
+  - Next: #19. It needs a required CI job, which needs owner approval for the workflow edit.
 
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
 
