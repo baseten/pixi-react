@@ -12,8 +12,15 @@ export function missingCapabilities(binding: ConformanceBinding, scenario: Scena
 }
 
 /**
+ * Thrown by the runner when more than one error has to be reported for a scenario: a scenario failure plus
+ * teardown failures, or several teardown failures. Each entry of `errors` is reported on its own.
+ */
+export class ScenarioErrors extends AggregateError {}
+
+/**
  * Builds a fresh composition, runs one scenario against it, then disposes everything. An exception during
- * cleanup or disposal fails the scenario: a renderer that throws while tearing down does not conform.
+ * cleanup or disposal fails the scenario: a renderer that throws while tearing down does not conform. Teardown
+ * failures are never discarded, even when the scenario itself also failed.
  */
 export async function runScenario(binding: ConformanceBinding, scenario: Scenario): Promise<void>
 {
@@ -52,6 +59,11 @@ export async function runScenario(binding: ConformanceBinding, scenario: Scenari
         teardownErrors.push(error);
     }
 
+    if (failed && teardownErrors.length)
+    {
+        throw new ScenarioErrors([failure, ...teardownErrors], `Scenario ${scenario.id} failed and its teardown also failed`);
+    }
+
     if (failed)
     {
         throw failure;
@@ -61,7 +73,7 @@ export async function runScenario(binding: ConformanceBinding, scenario: Scenari
     {
         throw teardownErrors.length === 1
             ? teardownErrors[0]
-            : new AggregateError(teardownErrors, `Teardown of ${scenario.id} failed`);
+            : new ScenarioErrors(teardownErrors, `Teardown of ${scenario.id} failed`);
     }
 }
 
@@ -97,7 +109,9 @@ function messageOf(error: unknown): string
 /**
  * Runs an expected failure. It must throw an error matching `expected.match`. If it passes, the defect is
  * fixed (or the scenario was weakened) and the entry must be removed, so the test fails loudly. If it throws
- * something else, the scenario broke for a different reason and the test fails with that error.
+ * something else, the scenario broke for a different reason and the test fails with that error. When the
+ * runner reports several errors (a scenario failure plus teardown failures), every one of them must match, so
+ * an unrelated teardown regression can never be accepted as the known defect.
  */
 export async function runExpectedFailure(
     binding: ConformanceBinding,
@@ -111,7 +125,9 @@ export async function runExpectedFailure(
     }
     catch (error)
     {
-        if (expected.match.test(messageOf(error)))
+        const reported = error instanceof ScenarioErrors ? error.errors : [error];
+
+        if (reported.every((entry) => expected.match.test(messageOf(entry))))
         {
             return;
         }
@@ -141,7 +157,9 @@ export function describeConformance(binding: ConformanceBinding, options: Descri
     const scenarios = options.scenarios ?? allScenarios;
     const expectedFailures = binding.expectedFailures ?? {};
 
-    validateBinding(binding, scenarios);
+    // Expected failures are validated against the whole catalogue, so a binding's table stays valid when
+    // `options.scenarios` selects a subset.
+    validateBinding(binding);
 
     describe(`conformance: ${binding.id}`, () =>
     {

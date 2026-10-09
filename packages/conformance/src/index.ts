@@ -23,7 +23,7 @@ export { FEATURES } from './features';
 export type { JournalEntry, JournalOp } from './journal';
 export { SceneJournal } from './journal';
 export type { DescribeConformanceOptions } from './runner';
-export { describeConformance, missingCapabilities, runExpectedFailure, runScenario, validateBinding } from './runner';
+export { describeConformance, missingCapabilities, runExpectedFailure, runScenario, ScenarioErrors, validateBinding } from './runner';
 export type { Scenario, ScenarioDefinition, ScenarioKind } from './scenario';
 export { defineScenario } from './scenario';
 export { scenarios } from './scenarios';

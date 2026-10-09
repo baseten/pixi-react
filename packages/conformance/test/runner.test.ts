@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SceneJournal } from '../src/journal';
-import { runExpectedFailure, runScenario, validateBinding } from '../src/runner';
+import { runExpectedFailure, runScenario, ScenarioErrors, validateBinding } from '../src/runner';
 import { defineScenario } from '../src/scenario';
 
 import type { Composition, ConformanceBinding } from '../src/binding';
@@ -75,6 +75,47 @@ describe('runner', () =>
             .rejects.toThrow('known defect');
         await expect(runExpectedFailure(binding(), passing, { reason: 'r', match: /.*/ }))
             .rejects.toThrow(/passed .* but is listed as an expected failure/);
+    });
+
+    it('reports teardown failures together with a scenario failure', async () =>
+    {
+        const faulty = binding({
+            create: () => stubComposition(() =>
+            {
+                throw new Error('teardown fault');
+            }),
+        });
+        const error = await runScenario(faulty, failing).catch((e: unknown) => e);
+
+        expect(error).toBeInstanceOf(ScenarioErrors);
+        expect((error as ScenarioErrors).errors.map((e) => (e as Error).message))
+            .toEqual(['known defect: value was 0', 'teardown fault']);
+    });
+
+    it('never accepts an unrelated teardown failure as the recorded defect', async () =>
+    {
+        const faulty = binding({
+            create: () => stubComposition(() =>
+            {
+                throw new Error('teardown fault');
+            }),
+        });
+
+        await expect(runExpectedFailure(faulty, failing, { reason: 'r', match: /value was 0/ }))
+            .rejects.toBeInstanceOf(ScenarioErrors);
+        // A defect that shows up in both the scenario and its teardown is still accepted.
+        await expect(runExpectedFailure(faulty, failing, { reason: 'r', match: /value was 0|teardown fault/ }))
+            .resolves.toBeUndefined();
+    });
+
+    it('validates expected failures against the whole catalogue when running a subset', () =>
+    {
+        const known = binding({ expectedFailures: { 'elements.mount': { reason: 'r', match: /x/ } } });
+
+        // describeConformance validates with the default (full) catalogue, whatever subset it then runs.
+        expect(() => validateBinding(known)).not.toThrow();
+        expect(() => validateBinding(binding({ expectedFailures: { 'no.such': { reason: 'r', match: /x/ } } })))
+            .toThrow(/unknown scenario "no.such"/);
     });
 
     it('rejects expected-failure tables that name unknown scenarios or omit reasons', () =>
