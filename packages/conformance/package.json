@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./fake-scene": "./src/fake-scene/index.ts",
     "./fake-scene-adapter": "./src/fake-scene/adapter.ts",
+    "./fake-react-framework": "./src/fake-react/framework.tsx",
     "./fake-probe": "./test/fake-binding/probe.ts"
   },
   "main": "./src/index.ts",
