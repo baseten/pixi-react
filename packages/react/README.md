@@ -50,7 +50,7 @@ and is not recommended.
 dependencies:
 
 ```bash
-npm install pixi.js@8.22.0 react@19.3.0 react-dom@19.3.0 @pixi/react
+npm install pixi.js@8.22.0 react@19.3.0 react-dom@19.3.0 @pixi/react@8.1.0
 ```
 
 See [Supported versions](#supported-versions) for the exact React and PixiJS versions this release supports.
@@ -104,7 +104,7 @@ browser ESM build (`dist/pixi.mjs`):
       "react/": "https://esm.sh/react@19.3.0/",
       "react-dom/": "https://esm.sh/react-dom@19.3.0/",
       "pixi.js": "https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.mjs",
-      "@pixi/react": "https://cdn.jsdelivr.net/npm/@pixi/react/dist/pixi-react.mjs"
+      "@pixi/react": "https://cdn.jsdelivr.net/npm/@pixi/react@8.1.0/dist/pixi-react.mjs"
     }
   }
 </script>
@@ -116,7 +116,7 @@ browser ESM build (`dist/pixi.mjs`):
 
 ### Supported versions
 
-`@pixi/react` is composed from modular adapters: the React 19 adapter for the newest certified React minor (19.3) and
+`@pixi/react` is composed from modular adapters: the React 19 adapter for the newest tested React minor (19.3) and
 the PixiJS 8 adapter, joined by a neutral renderer factory. The adapter code ships **bundled inside `@pixi/react`**: it
 has no runtime dependency on a separate adapter package. Like upstream `@pixi/react`, which depends on
 `react-reconciler`, it lists the React 19.3 adapter's own third-party code as ordinary dependencies, pinned exactly:
@@ -126,28 +126,68 @@ bundles stay self-contained, as upstream's were.
 
 | Peer | Range |
 | --- | --- |
-| `react` | `^19.3.0` (certified: 19.3.0) |
+| `react` | `^19.3.0` (tested: 19.3.0) |
 | `pixi.js` | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` (8.5.0 is excluded: its `ParticleContainer.destroy` fails) |
 
+"Tested" means the release's compatibility cells run that combination on every change: React 19.3.0 with pixi.js
+8.2.6 and 8.22.0, plus probes at every Pixi 8 boundary; a nightly run covers every Pixi 8 minor. No range is called
+*certified* until the maintainers promote one. The
+[release compatibility table](https://github.com/baseten/pixi-react/blob/main/design/release-compatibility.md) lists
+the tested versions of each release and of the modular packages.
+
 The React peer is a caret range so that installing next to a newer React never fails, but only React 19.3 is
-certified. With another React 19 minor, `@pixi/react` runs and logs **one** console warning naming the certified
-version and how to pin: pin `react` and `react-dom` to 19.3 (for example `"react": "~19.3.0"`), or, once the modular
-packages are published, compose your own renderer with `createRenderer` and the React adapter package for your React
-minor (see below). If you must stay on an
-older React minor and do not need this release's features, upstream `@pixi/react` 8.0.5 remains available. A React outside the
-19 major, or a pixi.js outside its range, is reported the first time you call into `@pixi/react` (not at import),
-with a `CompatibilityError` naming the installed and expected versions.
+tested. With another React 19 minor, `@pixi/react` runs and logs **one** console warning naming the tested version and
+how to pin: pin `react` and `react-dom` to 19.3 (for example `"react": "~19.3.0"`), or compose your own renderer with
+`createRenderer` and the React adapter package for your React minor (below). A React outside the 19 major, or a
+pixi.js outside its range, is reported the first time you call into `@pixi/react` (not at import), with a
+`CompatibilityError` naming the installed and expected versions.
 
-#### Staying on an older React 19 minor
+#### Upgrading from 8.0.x
 
-The install recipes for the modular packages are in [design/release.md](https://github.com/baseten/pixi-react/blob/main/design/release.md#installing).
+8.1.0 has upstream 8.0.x's API and documented behaviour. Three things change:
 
-`@pixi/react` always composes the newest certified React 19 epoch. The modular adapter packages (core, the renderer
-factory, one React adapter package per React minor, and the PixiJS 8 adapter) are not published yet; they
-will be released separately ([#15](https://github.com/baseten/pixi-react/issues/15),
-[#40](https://github.com/baseten/pixi-react/issues/40)). Once they are, an application that must stay on an older
-certified React 19 minor composes the same pair itself, installing the adapter package of its React minor, instead of importing
-`@pixi/react` (see [the adapter architecture](https://github.com/baseten/pixi-react/blob/main/design/adapter-architecture.md#the-default-facade-ships-its-adapters-bundled)).
+- **The React peer narrows from `>=19.0.0` to `^19.3.0`.** Upstream 8.0.x bundled the React 19.0 reconciler whatever
+  React 19 minor was installed; 8.1.0 builds in the React 19.3 one. With npm 7 or later, installing 8.1.0 next to
+  React 19.0, 19.1 or 19.2 fails with `ERESOLVE`. Upgrade React to 19.3, or use the recipe below.
+- **Failure-path repairs.** Sixteen upstream defects found by the conformance suite are fixed, for example an
+  unhandled rejection when `Application` init fails, nested nodes that were never destroyed, and roots leaked by an
+  unmount before init. The list is in the
+  [migration guide](https://github.com/baseten/pixi-react/blob/main/apps/docs/docs/migrating-to-8.1.mdx).
+- **Bundle size.** The Pixi code in your bundle is the same as with 8.0.5, but the rest is larger: a minified
+  production bundle of a small app grows from 663.6 KiB (196.2 KiB gzip) to 751.7 KiB (222.9 KiB gzip), +88 KiB
+  (+27 KiB gzip). Most of it is about 55 KiB of adapter code the app can reach and react-reconciler 0.34, which
+  React 19.3 needs (+18.6 KiB over 8.0.5's 0.31). [#58](https://github.com/baseten/pixi-react/issues/58) tracks
+  reducing it.
+
+#### Staying on an older React 19 minor, or on React 18
+
+Release 1 also publishes the modular packages that `@pixi/react` is built from: core, the renderer factory, one React
+adapter package per React minor (19.0, 19.1, 19.2, 19.3 and 18), and the PixiJS 8 adapter. An application on an older
+React minor composes the same pieces itself with `createRenderer`, choosing the adapter package of its React minor:
+
+```sh
+# React 19.1, for example; use react-19.0, -19.2 or -19.3 with a React version from that package's peer range
+npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-19.1 @pixi-react-provisional/pixi-8 pixi.js react@19.1.9 react-dom@19.1.9
+# React 18
+npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-18 @pixi-react-provisional/pixi-8 pixi.js react@18.3.1 react-dom@18.3.1
+```
+
+```ts
+// pixi-react.ts: create the renderer once, at module level, and import from here instead of '@pixi/react'
+import { createRenderer } from '@pixi-react-provisional/renderer';
+import { React19Adapter } from '@pixi-react-provisional/react-19.1'; // or: import { React18Adapter } from '@pixi-react-provisional/react-18'
+import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
+
+export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
+    createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
+```
+
+Package names are shown as in this repository; the published packages carry the public names of the release (see the
+[release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md#installing)). Each adapter package
+accepts only the React versions it is tested with and rejects another minor with a `CompatibilityError` that names the
+package to install instead. Pinning the last `@pixi/react` release whose peer covered your React minor is the other
+option: for React 19.0, 19.1 or 19.2 that is upstream 8.0.5.
+
 A composition made this way is a separate runtime with its own catalog and roots, and it gets the modular behaviour
 rather than `@pixi/react`'s upstream-compatible behaviour: `extend` rejects a name clash, and `extensions` and
 `defaultTextStyle` are reference-counted and restored on unmount.

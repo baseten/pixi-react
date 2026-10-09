@@ -1,0 +1,98 @@
+---
+sidebar_position: 2
+title: Migrating to 8.1
+---
+
+`@pixi/react` 8.1 is a drop-in replacement for 8.0.x: the same API and the same documented behaviour, rebuilt on modular React and PixiJS adapters. No code changes are needed if you use React 19.3. Three things are different, and this page covers each one:
+
+1. the React peer range is narrower;
+2. sixteen failure-path bugs are fixed;
+3. the bundle is somewhat larger.
+
+```bash
+npm install pixi.js@8.22.0 react@19.3.0 react-dom@19.3.0 @pixi/react@8.1.0
+```
+
+## The React peer range
+
+| | 8.0.x (upstream) | 8.1.0 |
+| --- | --- | --- |
+| `react` peer | `>=19.0.0` | `^19.3.0` (tested: 19.3.0) |
+| `pixi.js` peer | `^8.2.6` | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` (tested on every change: 8.2.6 and 8.22.0; the nightly cells cover every 8.x minor) |
+| Reconciler | react-reconciler 0.31.0, the React 19.0 one, whatever React 19 minor was installed | react-reconciler 0.34.0, the React 19.3 one |
+
+8.0.x ran React 19.0's reconciler on every React 19 minor, which no one had tested on 19.1 and later (from 19.2, React reinterprets one of the reconciler's root arguments). 8.1 builds in the reconciler of React 19.3 and declares the React versions it is tested with.
+
+**Who is affected:** apps on React 19.0, 19.1 or 19.2. With npm 7 or later, installing 8.1.0 next to one of those fails with `ERESOLVE`. Choose one:
+
+- **Upgrade React to 19.3.** This is the simplest path.
+- **Stay on 8.0.5.** Pin `"@pixi/react": "8.0.5"`, the last release whose peer range covers your React minor.
+- **Compose your own renderer** with `createRenderer` and the React adapter package of your React minor, described next.
+
+On a React 19 minor newer than 19.3, 8.1.0 installs (the peer is a caret range), runs, and logs one console warning naming the tested version. The next 8.x minor that tests the new React minor widens the range.
+
+### Older React 19 minors and React 18: `createRenderer`
+
+`@pixi/react` is built from modular packages, which Release 1 publishes alongside it: core, the renderer factory, one React adapter per React minor, and the PixiJS 8 adapter. Install the renderer, the adapter for your React minor, the PixiJS adapter, and a React version from that adapter's peer range:
+
+```bash
+# React 19.1 (use @pixi/react-19.0 with React 19.0.8, or @pixi/react-19.2 with React 19.2.8)
+npm install @pixi/react-renderer @pixi/react-19.1 @pixi/react-pixi-8 pixi.js react@19.1.9 react-dom@19.1.9
+
+# React 18
+npm install @pixi/react-renderer @pixi/react-18 @pixi/react-pixi-8 pixi.js react@18.3.1 react-dom@18.3.1
+```
+
+Then create the renderer once, in a module of your own, and import from it instead of from `@pixi/react`:
+
+```ts
+// src/pixi-react.ts
+import { createRenderer } from '@pixi/react-renderer';
+import { React19Adapter } from '@pixi/react-19.1'; // React 18: import { React18Adapter } from '@pixi/react-18'
+import { Pixi8Adapter } from '@pixi/react-pixi-8';
+
+export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
+    createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
+```
+
+For JSX element types, add `import '@pixi/react-pixi-8/jsx/react-19';` (or `/jsx/react-18`) to a `.d.ts` file and declare the components you register.
+
+Each adapter package accepts only the React versions it is tested with, and rejects another minor with a `CompatibilityError` that names the package to install. The renderer you compose behaves like the modular packages, not like `@pixi/react`'s upstream-compatible defaults: `extend` rejects a name that is already registered to another class, and `extensions` and `defaultTextStyle` are reference-counted and restored on unmount. It also offers APIs `@pixi/react` does not, such as `useContextBridge`, `component(Ctor)`, root error callbacks on `Application` and `Root.status`.
+
+The package names above are the planned public names; they depend on the npm scope agreed with the PixiJS maintainers.
+
+## Bug fixes
+
+The conformance suite found sixteen defects in upstream 8.0.x. They are fixed in 8.1, because a working program cannot depend on them:
+
+| Area | Fixed in 8.1 |
+| --- | --- |
+| Destruction | Removing a node destroys its descendants too (`destroy({ children: true })`); 8.0.x destroyed only the node itself. |
+| Destruction | Unmounting `<Application>` destroys nested nodes as well as top-level ones. |
+| Destruction | `destroyOptions` (for example `texture: true`) reach the children destroyed with the application. |
+| Suspense | When a suspended subtree is shown again, a node you set to `visible={false}` stays hidden. |
+| Props | Removing a prop from a class whose constructor needs arguments no longer throws. |
+| Props | Dashed props such as `position-x` are applied when a node mounts. |
+| `Application` | Swapping one entry of `extensions` adds the new extension instead of dropping the last one. |
+| `Application` | A failing `init` no longer causes an unhandled promise rejection. |
+| `Application` | A root whose `init` failed is released on unmount. |
+| `Application` | A failed root no longer breaks the next `Application`'s `init` (`_cancelResize is not a function`). |
+| `Application` | Unmounting before `init` finishes no longer commits children late and leaves them undestroyed. |
+| `Application` | Unmounting before `init` finishes no longer calls `onInit`. |
+| `Application` | Under `StrictMode`, children are not committed before `init` has finished. |
+| `createRoot` | `root.render()` resolves after the commit, not before. |
+| `createRoot` | A root can be torn down with `root.unmount()`; 8.0.x roots had no `unmount` and could only be torn down through `<Application>`. The `Root` type is unchanged. |
+| `createRoot` | A second `createRoot` on the same element reuses its root instead of creating a second application. |
+
+Other behaviour stays as in 8.0.x, including the parts a later major may correct: `extend` silently replaces an existing name, `extensions` and `defaultTextStyle` stay global, and `PixiElements` covers every PixiJS class.
+
+## Bundle size
+
+The PixiJS code in your bundle is the same as with 8.0.5: the same 381 pixi.js modules for the same imports. The React side is larger. For a small app (minified, production, pixi.js 8.22.0, React 19.3.0, esbuild):
+
+| Bundle | Minified | Gzip |
+| --- | --- | --- |
+| `@pixi/react` 8.0.5 | 663.6 KiB | 196.2 KiB |
+| `@pixi/react` 8.1.0 | 751.7 KiB | 222.9 KiB |
+
+That is 88 KiB more (27 KiB gzip). Most of it is about 55 KiB of adapter code the app can reach, and react-reconciler 0.34, which React 19.3 needs (18.6 KiB more than 8.0.5's 0.31). Work to reduce it is tracked in [#58](https://github.com/baseten/pixi-react/issues/58).

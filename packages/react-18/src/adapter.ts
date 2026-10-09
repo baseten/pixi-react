@@ -81,7 +81,7 @@ export class React18Adapter extends ReactAdapter<React18Family>
                 certification: `@pixi-react-provisional/react-18: react ${testedReact.join(' | ')}; `
                     + `react-reconciler ${reconciler} (exact dependency); its-fine ${bridge} (exact dependency). `
                     + 'Tested in Chromium with Pixi8Adapter (packages/react-18/fixtures); '
-                    + 'candidate-not-certified until the issue-13 matrix runs.',
+                    + 'candidate-not-certified until the owner promotes a range.',
             });
         }
 

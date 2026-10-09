@@ -25,7 +25,7 @@ its-fine are ordinary dependencies instead of bundled code, and the code it shar
 
 ## Install
 
-Release 1 will publish this package as 1.0.0. React is a peer, limited to the versions this package certifies, so install one of them exactly. `react-reconciler` and its-fine are exact dependencies and come with the package:
+Release 1 will publish this package as 1.0.0. React is a peer, limited to the exact versions this package is tested with, so install one of them exactly. `react-reconciler` and its-fine are exact dependencies and come with the package:
 
 ```sh
 npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-18 @pixi-react-provisional/pixi-8 pixi.js react@18.3.1 react-dom@18.3.1
@@ -37,7 +37,7 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 
 | | Exact version | How |
 | --- | --- | --- |
-| React and react-dom (peer, certified tuple) | **18.3.1** | `peerDependencies.react` is exactly `18.3.1`; the fixture runs 18.3.1 / react-dom 18.3.1 |
+| React and react-dom (peer, tested tuple) | **18.3.1** | `peerDependencies.react` is exactly `18.3.1`; the fixture runs 18.3.1 / react-dom 18.3.1 |
 | react-reconciler | **0.29.2** (latest 0.29.x, built for React 18.3.1), which brings `scheduler@^0.23.2` | exact `dependencies` entry |
 | Context bridge | **its-fine 1.2.5** (latest 1.x; 2.x requires React 19) | exact `dependencies` entry |
 | Pixi | the unchanged `Pixi8Adapter`; fixture cells pixi.js **8.2.6** and **8.22.0** | packed `@pixi-react-provisional/pixi-8` |
@@ -45,13 +45,15 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 - **Composition check.** `checkEnvironment()` reads `React.version` and rejects anything outside the 18.3 line with a
   `CompatibilityError` (`UNSUPPORTED_TUPLE`, `expected.react` `18.3.x`, `actual.react`). React 19 is pointed at the
   matching per-minor package (for example `@pixi-react-provisional/react-19.1`). The check never selects an adapter.
-- **React 18.2 is not certified.** With the version check bypassed and the conformance harness given
+- **React 18.2 is not tested.** With the version check bypassed and the conformance harness given
   `react-dom/test-utils`' `act` (React 18.2 has no `React.act`), the whole fixture suite also passed on React 18.2.0 /
-  react-dom 18.2.0 with this bundle. It stays outside the certificate: react-reconciler 0.29.2 declares
+  react-dom 18.2.0 with this bundle. It stays outside the peer range: react-reconciler 0.29.2 declares
   `react@^18.3.1`, the reconciler line for 18.2 is 0.29.0, and the shared harness itself needs React 18.3's `act`.
   Supporting 18.2 would be a separate, owner-approved cell.
-- **Certification.** The manifest's `certification` names the tested React version, the reconciler and
-  its-fine. Like every row, it stays *candidate-not-certified* until the issue-13 matrix runs it.
+- **Tested, not certified.** The manifest's `certification` names the tested React version, the reconciler and
+  its-fine. The [issue-13 compatibility cells](https://github.com/baseten/pixi-react/blob/main/design/compatibility/cells/COMPATIBILITY.md) run this package on every pull request with React 18.3.1
+  and pixi.js 8.2.6 and 8.22.0, so 18.3.1 is *tested*. Like every row, it stays *candidate-not-certified* until the
+  owner promotes a range in the compatibility manifest ([what "tested" means](https://github.com/baseten/pixi-react/blob/main/design/release.md#what-tested-means)).
 
 ## How React 18 differs from the React 19 epochs
 

@@ -76,7 +76,8 @@ export abstract class React19Adapter extends ReactAdapter<React19Family>
                 requires: REQUIRED_PIXI_CAPABILITIES,
                 certification: `${packageName}: react ${testedReact.join(' | ')}; `
                     + `react-reconciler ${reconciler} (exact dependency); its-fine ${bridge} (exact dependency). `
-                    + 'Tested against the fake Pixi adapter; candidate-not-certified until the issue-13 matrix runs.',
+                    + 'Tested against the fake Pixi adapter and in the issue-13 compatibility cells with Pixi8Adapter; '
+                    + 'candidate-not-certified until the owner promotes a range.',
             });
         }
 

@@ -28,8 +28,8 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 | | |
 | --- | --- |
 | Peer range | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0`: the audited candidate envelope minus 8.5.0, whose `ParticleContainer.destroy` fails (fixed by 8.5.2) |
-| Tested exactly | 8.2.6 (floor), 8.9.2 (particles before the 8.10 change), 8.22.0 (newest certified) |
-| Not probed | 8.5.1 and every patch not listed above. Under D5 only the tested versions are evidence; issue 13 owns the matrix certificate |
+| Tested exactly | 8.2.6 (floor), 8.9.2 (particles before the 8.10 change), 8.22.0 (newest tested) |
+| Not probed | 8.5.1 and every patch not listed above. Under D5 only the tested versions are evidence. The issue-13 nightly cells cover the newest audited patch of every minor from 8.2 to 8.22; no range is certified until the owner promotes one ([what "tested" means](https://github.com/baseten/pixi-react/blob/main/design/release.md#what-tested-means)) |
 
 `checkEnvironment()` rejects an installed `pixi.js` outside the range, the excluded 8.5.0 and any pre-release with
 `CompatibilityError` `UNSUPPORTED_TUPLE`, before anything is allocated. The range, bounds, tested versions, the

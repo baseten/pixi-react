@@ -19,6 +19,9 @@
  *    range on the previous ABI. An ABI minor increase since the released ABI needs at least a minor core release.
  * 4. Release 1: while nothing has been released (`abi.released` is null) the plan must produce exactly the
  *    `release1` versions (the facade 8.1.0, the modular packages 1.0.0).
+ * 5. Peers and generated files (issue 40, compat.mjs): the facade's react and pixi.js peers equal the compatibility
+ *    manifest's newest tested ranges, the Pixi range is the one the manifest's evidence supports, the facade's major
+ *    equals the Pixi major, and the generated compatibility table and docs pins are current.
  *
  * Usage: node scripts/release/policy.mjs [--plan <changeset status JSON>]
  */
@@ -27,7 +30,10 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkReleaseRules } from './compat.mjs';
+import { checkCompatibilityTable } from './compat-table.mjs';
 import { listWorkspace, loadReleaseConfig, readJson, repoRoot } from './config.mjs';
+import { checkDocsPins } from './docs-pins.mjs';
 
 const EXACT = /^\d+\.\d+\.\d+$/;
 const PEERS = ['react', 'react-dom', 'pixi.js'];
@@ -195,6 +201,9 @@ export function checkPolicy({ root = repoRoot, plan, config = loadReleaseConfig(
             if (pkg.release1 && planned !== pkg.release1) fail(`Release 1: ${pkg.workspaceName} would release ${planned}, expected ${pkg.release1}`);
         }
     }
+
+    // 5. Peers and generated files.
+    problems.push(...checkReleaseRules({ root, config, plan }), ...checkCompatibilityTable({ root }), ...checkDocsPins({ root }));
 
     return { problems, coreAbi, coreVersion, plan: (plan?.releases ?? []).filter((release) => release.type !== 'none').map(({ name, type, oldVersion, newVersion }) => ({ name, type, oldVersion, newVersion })) };
 }

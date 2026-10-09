@@ -13,7 +13,8 @@
  * Assertions:
  * - unused adapter implementations are absent: only the chosen packages contribute modules; exactly one
  *   react-reconciler (the chosen epoch's) is bundled; no other epoch's reconciler version appears in the output; the
- *   facade bundles no modular package and the neutral factory bundles no React, reconciler or Pixi code;
+ *   facade bundles no modular package and the neutral factory bundles no React, reconciler or Pixi code; no
+ *   development build of react, react-reconciler or scheduler contributes to the production bundle;
  * - necessary registration side effects remain: the executed bundle registered Container and Sprite and composed the
  *   expected adapters (the facade's `extend` ran);
  * - unused Pixi constructors can be eliminated: `NineSliceSprite`, which no fixture imports or registers, must be
@@ -51,6 +52,9 @@ export const KNOWN_GAPS = {};
 
 /** pixi.js and its dependencies: the packages a Pixi bundle may contain. */
 const PIXI_DEPS = ['pixi.js', '@pixi/colord', '@xmldom/xmldom', '@webgpu/types', 'earcut', 'eventemitter3', 'gifuct-js', 'ismobilejs', 'parse-svg-path', 'tiny-lru', 'js-binary-schema-parser', '@types/*'];
+
+/** A development build file of a React package (`react-reconciler.development.js`, `scheduler.development.js`, ...). */
+export const DEVELOPMENT_BUILD = /node_modules\/(?:react|react-dom|react-reconciler|scheduler|its-fine)\/.*\.development\.js$/;
 
 /** Upstream's last release, bundled on the facade fixture as the bound for the Pixi code our bundles keep. */
 export const UPSTREAM_BASELINE = Object.freeze({ name: '@pixi/react', version: '8.0.5' });
@@ -121,6 +125,9 @@ export async function checkFixture({ dir, fixture, values, expect })
     const text = output.toString('utf8');
 
     for (const marker of expect.absentMarkers ?? []) if (text.includes(marker.text)) problems.push(`output contains ${marker.label}`);
+    // The browser bundle is a production build: no development build of React's packages may contribute code
+    // (react-reconciler and scheduler choose their build by NODE_ENV; issue 40 checks nothing ships both).
+    for (const input of inputs.filter((item) => DEVELOPMENT_BUILD.test(item))) problems.push(`the production bundle contains the development build ${input}`);
     for (const [name, version] of Object.entries(expect.bundledVersions ?? {}))
     {
         const roots = [...new Set(inputs.filter((input) => packageOfInput(input) === name).map((input) => input.slice(0, input.lastIndexOf(`node_modules/${name}/`) + `node_modules/${name}`.length)))];

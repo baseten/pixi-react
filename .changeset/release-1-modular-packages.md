@@ -9,4 +9,4 @@
 "@pixi-react-provisional/pixi-8": major
 ---
 
-Release 1 of the modular packages at 1.0.0: core implements adapter ABI 1, so every modular package starts at major 1 (design/release.md, version policy). Published under the names in release.packages.json (target `@pixi/react-*`, pending issue 41).
+Release 1 of the modular packages at 1.0.0: core implements adapter ABI 1, so every modular package starts at major 1 (design/release.md, version policy). Published under the names in release.packages.json (target `@pixi/react-*`, pending issue 41). Each React adapter's peer lists exactly the React versions it is tested with; the tested versions of every package are in design/release-compatibility.md.
