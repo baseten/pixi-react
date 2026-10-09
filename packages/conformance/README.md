@@ -41,7 +41,8 @@ Current bindings:
 
 | Binding | Where | Runs in |
 | --- | --- | --- |
-| Baseline facade, `@pixi/react` from `packages/react` (React 19, Pixi 8) | `packages/react/test/conformance/` | Vitest browser mode, Playwright Chromium |
+| Default facade, `@pixi/react` from `packages/react`: the composed React19Adapter (19.3) and Pixi8Adapter behind upstream's API | `packages/react/test/conformance/facadeBinding.ts` | Vitest browser mode, Playwright Chromium |
+| Explicit factory: `createRenderer({ framework: new React19Adapter() /* 19.3 */, scene: new Pixi8Adapter() })`, without the facade's parity shims | `packages/react/test/conformance/explicitBinding.ts` | Vitest browser mode, Playwright Chromium |
 | Fake renderer over the fake scene (a test double, not an adapter) | `test/fake-binding/` | jsdom |
 | Core + renderer: `createRenderer({ framework, scene })` with a fake React 19 framework adapter and the fake scene adapter | `test/core-binding/` | jsdom |
 | Core + renderer + the real `Pixi8Adapter`, driven by the same fake React 19 framework adapter, on pixi.js 8.2.6 and 8.22.0 | `packages/pixi-8/test/browser/` | Vitest browser mode, Playwright Chromium |
@@ -70,15 +71,21 @@ leases, and init and teardown ordering all go through core.
 The binding provides `framework.react-19` and `dom.resize`. Scenarios that need `scene.globals` (bound by the Pixi 8
 binding), `framework.react-18` (issue 12) or `parity.upstream` are skipped by capability, and the runner names the
 missing capability in the title. The binding lists no expected failures. `createRoot.same-element`, an issue-7
-defect that the facade still lists, passes here because core maps an element target and its canvas to one root.
+defect of the baseline facade, passes here because core maps an element target and its canvas to one root.
 
 The Pixi 8 binding ([issue 8](https://github.com/baseten/pixi-react/issues/8)) provides `framework.react-19`,
-`scene.globals` and `dom.resize`, and lists no expected failures: every issue-8 defect that the facade still lists
-passes there. It does not provide `parity.upstream`, because the modular adapter ships the corrected extension and
+`scene.globals` and `dom.resize`, and lists no expected failures: every issue-8 defect of the baseline facade passes there. It does not provide `parity.upstream`, because the modular adapter ships the corrected extension and
 default-text-style behaviour (D4).
 
 A second core binding selects `registryConflict: 'replace'`, the policy the facade uses for D4 parity, and runs
 `extend.replace-name`.
+
+The default facade binding ([issue 10](https://github.com/baseten/pixi-react/issues/10)) provides
+`framework.react-19`, `scene.globals`, `dom.resize` and `parity.upstream`, and lists no expected failures: the
+sixteen baseline defects pass through the composed adapters (the owner approved their failure-path repairs for the
+facade), and every parity scenario passes through the facade's shims. The explicit-factory binding composes the same
+pair with `createRenderer` and runs every scenario except the `parity.upstream` and React 18 ones, with no expected
+failures.
 
 ### Capabilities, kinds and expected failures
 

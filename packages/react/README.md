@@ -40,8 +40,10 @@ To add `@pixi/react` to an existing React application, just install the dependen
 
 #### Install Dependencies
 ```bash
-npm install pixi.js@^8.2.6 @pixi/react
+npm install pixi.js@8.22.0 react@19.3.0 react-dom@19.3.0 @pixi/react
 ```
+
+See [Supported versions](#supported-versions) for the exact React and PixiJS versions this release supports.
 
 #### Pixie React Usage
 ```jsx
@@ -77,6 +79,43 @@ const MyComponent = () => {
   )
 }
 ```
+
+### Supported versions
+
+`@pixi/react` is composed from modular adapters: the React 19 adapter for the newest certified React epoch and the
+PixiJS 8 adapter, joined by a neutral renderer factory. Its peer ranges cover exactly the versions that combination is
+certified for:
+
+| Peer | Range |
+| --- | --- |
+| `react` | `19.3.0` |
+| `pixi.js` | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` (8.5.0 is excluded: its `ParticleContainer.destroy` fails) |
+
+An unsupported installation is reported the first time you call into `@pixi/react` (not at import), with a
+`CompatibilityError` naming the installed and expected versions.
+
+#### Staying on an older React 19 minor
+
+`@pixi/react` always composes the newest certified React 19 epoch. An application that must stay on an older
+certified React 19 minor composes the same pair itself, choosing the epoch by subpath, instead of importing
+`@pixi/react`:
+
+```ts
+import { createRenderer } from '@pixi-react-provisional/renderer';
+import { React19Adapter } from '@pixi-react-provisional/react-19/19.1'; // React 19.1.x
+import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
+
+export const { Application, createRoot, extend, useApplication, useExtend, useTick, applyProps } =
+    createRenderer({ framework: new React19Adapter(), scene: new Pixi8Adapter() });
+```
+
+The subpaths are `/19.0`, `/19.1`, `/19.2` and `/19.3`; each rejects an installed React from another minor when the
+renderer is composed. A composition made this way is a separate runtime with its own catalog and roots, and it gets the
+modular behaviour rather than `@pixi/react`'s upstream-compatible behaviour: `extend` rejects a name clash, and
+`extensions` and `defaultTextStyle` are reference-counted and restored on unmount. It declares no JSX elements: declare
+your own augmentation of React's `JSX.IntrinsicElements` (a typed JSX entry for custom compositions is
+[issue 11](https://github.com/baseten/pixi-react/issues/11)). The `@pixi-react-provisional/*` names are provisional and
+unpublished.
 
 ## Docs
 
