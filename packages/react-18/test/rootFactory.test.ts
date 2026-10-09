@@ -12,7 +12,7 @@ const require = createRequire(import.meta.url);
 /** The `createContainer` parameter names of the installed 0.29.2 development bundle. */
 function installedParameters(): string[]
 {
-    const file = join(dirname(require.resolve('react-reconciler-0.29/package.json')), 'cjs', 'react-reconciler.development.js');
+    const file = join(dirname(require.resolve('react-reconciler/package.json')), 'cjs', 'react-reconciler.development.js');
     const match = (/function createContainer\(([^)]*)\)/).exec(readFileSync(file, 'utf8'));
 
     return match![1].split(',').map((name) => name.trim()).filter(Boolean);

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": ["$TURBO_DEFAULT$", "!fixtures/**", "$TURBO_ROOT$/scripts/build-react-adapter.mjs"],
+      "outputs": ["dist/**"]
+    },
+    "test:unit": {
+      "dependsOn": ["build", "^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!fixtures/**", "$TURBO_ROOT$/scripts/**", "$TURBO_ROOT$/packages/react-shared/test-support/**"]
+    }
+  }
+}

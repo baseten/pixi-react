@@ -1,0 +1,57 @@
+{
+  "name": "@pixi-react-provisional/react-19.3",
+  "version": "0.0.0",
+  "private": true,
+  "description": "React 19.3 adapter (React193Adapter, also exported as React19Adapter) for the modular renderer. Depends on exactly react-reconciler 0.34.0 and its-fine 2.1.1; react 19.3.0 is the peer. No Pixi dependency.",
+  "license": "MIT",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "imports": {
+    "#reconciler": "react-reconciler",
+    "#reconciler/constants": "react-reconciler/constants"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "node ../../scripts/build-react-adapter.mjs",
+    "check:graph": "node ../../scripts/check-dependency-graph.mjs --allow @pixi-react-provisional/core --allow react --allow react-reconciler --allow its-fine",
+    "lint": "eslint --max-warnings 0 .",
+    "test:unit": "tsc --noEmit -p tsconfig.json && vitest run && pnpm run check:graph",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@pixi-react-provisional/core": "workspace:*",
+    "its-fine": "2.1.1",
+    "react-reconciler": "0.34.0"
+  },
+  "devDependencies": {
+    "@pixi-react-provisional/react-shared": "workspace:*",
+    "@types/node": "^22.13.1",
+    "@types/react": "19.3.0",
+    "esbuild": "0.21.5",
+    "eslint": "^9.16.0",
+    "jsdom": "^25.0.0",
+    "react": "19.3.0",
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.0"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
+  }
+}

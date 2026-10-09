@@ -12,7 +12,7 @@ const browserDeps = {
             '@pixi-react-provisional/core',
             '@pixi-react-provisional/renderer',
             '@pixi-react-provisional/pixi-8',
-            '@pixi-react-provisional/react-19/19.3',
+            '@pixi-react-provisional/react-19.3',
             'pixi.js',
         ],
     },

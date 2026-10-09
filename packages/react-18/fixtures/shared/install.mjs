@@ -11,8 +11,9 @@
  *    React 19 copies.
  *    Vite's pre-bundle cache is removed too, since it would otherwise keep serving the previous install.
  * 3. Check the resolved React dependency tree: every installed package resolves the fixture's exact React, nothing
- *    resolves a React 19 or a separate react-reconciler, and no installed package declares one. The tree is written
- *    to `.installed/react-tree.json` and printed.
+ *    resolves a React 19, the only reconciler is react-18's exact dependency (react-reconciler 0.29.2, with its-fine
+ *    1.2.5), and no other installed package declares a reconciler. The tree is written to `.installed/react-tree.json`
+ *    and printed.
  *
  * Run from a fixture directory (its `test:*` and `typecheck` scripts do) after the packages are built.
  */
@@ -26,6 +27,8 @@ const fixtureDir = process.cwd();
 const packagesDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const fixture = JSON.parse(readFileSync(join(fixtureDir, 'package.json'), 'utf8'));
 const expectedReact = fixture.devDependencies.react;
+/** The dependencies the React 18 adapter declares, exactly (issue 49); the fixture installs the same versions. */
+const ADAPTER_DEPENDENCIES = Object.freeze({ 'react-reconciler': '0.29.2', 'its-fine': '1.2.5' });
 
 /** Workspace directory → package name. The order is irrelevant: each is packed and extracted on its own. */
 const PACKED = Object.freeze({
@@ -99,7 +102,17 @@ for (const name of Object.values(PACKED))
 
     for (const forbidden of ['react-reconciler', 'scheduler', 'its-fine', 'react-dom'])
     {
-        if (forbidden in declared)
+        const allowed = name === PACKED['react-18'] && forbidden in ADAPTER_DEPENDENCIES;
+
+        if (allowed && manifest.dependencies?.[forbidden] !== ADAPTER_DEPENDENCIES[forbidden])
+        {
+            problems.push(`${name} declares ${forbidden}@${manifest.dependencies?.[forbidden]}, expected exactly ${ADAPTER_DEPENDENCIES[forbidden]}`);
+        }
+        else if (allowed && entry[forbidden]?.version !== ADAPTER_DEPENDENCIES[forbidden])
+        {
+            problems.push(`${name} resolves ${forbidden} ${entry[forbidden]?.version ?? '(none)'}, expected ${ADAPTER_DEPENDENCIES[forbidden]}`);
+        }
+        else if (!allowed && forbidden in declared)
         {
             problems.push(`${name} declares ${forbidden}`);
         }
@@ -135,9 +148,9 @@ if (tree.fixtureResolves.react !== expectedReact || tree.fixtureResolves['react-
     problems.push(`the fixture resolves react ${tree.fixtureResolves.react} and react-dom ${tree.fixtureResolves['react-dom']}`);
 }
 
-if (tree.fixtureResolves['react-reconciler'] !== null)
+if (tree.fixtureResolves['react-reconciler'] !== ADAPTER_DEPENDENCIES['react-reconciler'])
 {
-    problems.push(`the fixture resolves a react-reconciler (${tree.fixtureResolves['react-reconciler']})`);
+    problems.push(`the fixture resolves react-reconciler ${tree.fixtureResolves['react-reconciler']}, expected only react-18's ${ADAPTER_DEPENDENCIES['react-reconciler']}`);
 }
 
 // pnpm's view of the fixture's installed React tree (every depth), for the record.
@@ -168,7 +181,7 @@ tree.pnpmLs = [...versions].sort();
 
 for (const entry of tree.pnpmLs)
 {
-    if (!entry.endsWith(`@${expectedReact}`))
+    if (!entry.endsWith(`@${expectedReact}`) && entry !== `react-reconciler@${ADAPTER_DEPENDENCIES['react-reconciler']}`)
     {
         problems.push(`pnpm ls finds ${entry} in the fixture's tree`);
     }

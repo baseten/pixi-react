@@ -28,7 +28,7 @@ composition touched.
 import { describeConformance, type ConformanceBinding } from '@pixi-react-provisional/conformance';
 
 const binding: ConformanceBinding = {
-    id: 'react-19/19.3 + pixi-8',
+    id: 'react-19.3 + pixi-8',
     capabilities: ['react.19', 'dom.resize'],
     expectedFailures: {},
     create: () => buildSpiedComposition(), // e.g. createRenderer({ react, pixi }) plus a probe
@@ -46,7 +46,7 @@ Current bindings:
 | Fake renderer over the fake Pixi backend (a test double, not an adapter) | `test/fake-binding/` | jsdom |
 | Core + renderer: `createRenderer({ react, pixi })` with a fake React 19 adapter and the fake Pixi adapter | `test/core-binding/` | jsdom |
 | Core + renderer + the real `Pixi8Adapter`, driven by the same fake React 19 adapter, on pixi.js 8.2.6 and 8.22.0 | `packages/pixi-8/test/browser/` | Vitest browser mode, Playwright Chromium |
-| Each React 19 epoch (`@pixi-react-provisional/react-19/19.0` … `/19.3`, built) with the fake Pixi adapter, once per audited React version | `packages/react-19/fixtures/` | jsdom |
+| Each React 19 minor package (`@pixi-react-provisional/react-19.0` … `react-19.3`, built) with the fake Pixi adapter, once per audited React version | `packages/react-19.<minor>/fixtures/` (shared suite in `packages/react-shared/fixtures/react-19/`) | jsdom |
 | React 18: `createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() })` from the packed packages, with React 18.3.1 and the Pixi 8 adapter's probe, on pixi.js 8.2.6 and 8.22.0 | `packages/react-18/fixtures/` | Vitest browser mode, Playwright Chromium |
 
 The second binding shows that the interface is not shaped around the facade. The second and third bindings both
@@ -54,7 +54,7 @@ host the committed negative controls.
 
 The React 19 epoch bindings ([issue 9](https://github.com/baseten/pixi-react/issues/9)) reuse the fake Pixi
 adapter and the fake probe (`@pixi-react-provisional/conformance/fake-probe`) with the real adapters; see
-[the react-19 README](../react-19/README.md#fixtures-one-workspace-package-per-audited-react-version).
+[the react-19.3 README](../react-19.3/README.md#fixtures-one-workspace-package-per-audited-react-version).
 
 The core binding ([issue 7](https://github.com/baseten/pixi-react/issues/7)) composes the real
 `@pixi-react-provisional/core` and `@pixi-react-provisional/renderer` builds with two adapters:

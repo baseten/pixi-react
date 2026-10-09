@@ -1,0 +1,29 @@
+{
+  "name": "@pixi-react-provisional/react-19.3-fixture-19.3.0",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Test fixture: the built @pixi-react-provisional/react-19.3 package against exactly React 19.3.0 (audit tuple), with the fake Pixi adapter. Its exact react-reconciler and its-fine are installed here, as a consumer's package manager would install them. Not published.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --max-warnings 0 .",
+    "test:conformance": "vitest run",
+    "typecheck": "node ../../../react-shared/fixtures/react-19/install.mjs && tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@pixi-react-provisional/conformance": "workspace:*",
+    "@pixi-react-provisional/core": "workspace:*",
+    "@pixi-react-provisional/react-19.3": "workspace:*",
+    "@pixi-react-provisional/renderer": "workspace:*",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "^9.16.0",
+    "its-fine": "2.1.1",
+    "jsdom": "^25.0.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-reconciler": "0.34.0",
+    "typescript": "^5.4.5",
+    "vitest": "^2.0.0"
+  }
+}

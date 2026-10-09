@@ -1,7 +1,7 @@
 import { appOptions } from './facadeBinding';
 import { createPixi8Probe } from './pixiProbe';
 import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
-import { React19Adapter } from '@pixi-react-provisional/react-19/19.3';
+import { React19Adapter } from '@pixi-react-provisional/react-19.3';
 import { createRenderer } from '@pixi-react-provisional/renderer';
 
 import type { Composition, ConformanceBinding, PixiElement, ReactBindingApi } from '@pixi-react-provisional/conformance';

@@ -6,7 +6,7 @@
  * React 18 differences this module owns (compared with the React 19 epochs):
  * - roots have one error channel, `onRecoverableError`; `onCaughtError` / `onUncaughtError` are rejected;
  * - refs reach `Application` and `component(Ctor)` components through `forwardRef`, not as a prop;
- * - the context bridge is its-fine 1.x (bundled), the line that supports React 18;
+ * - the context bridge is its-fine 1.x (an exact dependency), the line that supports React 18;
  * - there is no Activity, so no parent-Activity bridge.
  */
 import { FiberProvider, useContextBridge as useItsFineContextBridge } from 'its-fine';

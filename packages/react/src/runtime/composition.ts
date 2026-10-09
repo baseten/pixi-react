@@ -1,6 +1,6 @@
 /**
  * The default composition behind `@pixi/react` (decisions D1 and D4): the newest certified React 19 epoch
- * (`@pixi-react-provisional/react-19/19.3`) with `Pixi8Adapter`, through the neutral `createRenderer`, with upstream's
+ * (`@pixi-react-provisional/react-19.3`) with `Pixi8Adapter`, through the neutral `createRenderer`, with upstream's
  * silent `extend` replacement (`registryConflict: 'replace'`).
  *
  * One composition exists per loaded pixi.js module (see `bind.ts`). It is created on first use, not at import: an
@@ -8,13 +8,13 @@
  * from the first facade call instead of from `import`.
  */
 import { createFacadePixiAdapter, type FacadePixiAdapter } from './pixiAdapter';
-import { React19Adapter } from '@pixi-react-provisional/react-19/19.3';
+import { React19Adapter } from '@pixi-react-provisional/react-19.3';
 import { createRenderer, type Renderer } from '@pixi-react-provisional/renderer';
 
 import type { ApplicationState as FacadeApplicationState } from '../typedefs/ApplicationState';
 import type { ApplicationState } from '@pixi-react-provisional/core';
 import type { Pixi8AdapterConstructor, Pixi8Types, PixiModule } from '@pixi-react-provisional/pixi-8';
-import type { React19Family } from '@pixi-react-provisional/react-19/19.3';
+import type { React19Family } from '@pixi-react-provisional/react-19.3';
 
 /** The composed default renderer: React 19.3 bindings for the Pixi 8 scene, plus its runtime. */
 export type FacadeRenderer = Renderer<React19Family, Pixi8Types>;

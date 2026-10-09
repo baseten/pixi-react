@@ -21,7 +21,7 @@ import {
     type ElementProps,
     React19Adapter,
     type Root,
-} from '@pixi-react-provisional/react-19/19.3';
+} from '@pixi-react-provisional/react-19.3';
 import { customCatalog, Labelled, Tagged } from './catalog.js';
 
 void React;

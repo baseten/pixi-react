@@ -22,7 +22,7 @@ const {
 const require = createRequire(import.meta.url);
 
 /**
- * The facade ships its adapters bundled: core, renderer, the react-19 `19.3` entry (which already bundles its
+ * The facade ships its adapters bundled: core, renderer, the react-19.3 package (which already bundles its
  * react-reconciler, scheduler and its-fine) and pixi-8 are built into `lib/` and `dist/`, so the published package
  * depends on no `@pixi-react-provisional/*` package at runtime. Only the peers stay external.
  *
@@ -31,7 +31,7 @@ const require = createRequire(import.meta.url);
  * pass their own pixi.js module to the bundled `bindPixi` instead.
  */
 const PROVISIONAL_SCOPE = '@pixi-react-provisional/';
-const REACT_19_DIAGNOSTIC_NAME = `${PROVISIONAL_SCOPE}react-19/`;
+const REACT_ADAPTER_NAME = `${PROVISIONAL_SCOPE}react-19.3`;
 const bundledEntries = {
     '@pixi-react-provisional/pixi-8': path.join(path.dirname(require.resolve('@pixi-react-provisional/pixi-8/package.json')), 'dist', 'cjs', 'bind.js'),
 };
@@ -57,16 +57,16 @@ function bundleAdapters({ adaptersChunk = false } = {})
             return bundledEntries[source] ?? null;
         },
         /**
-         * The bundled react-19 adapter names its own provisional package in diagnostics (the certification pointer,
+         * The bundled react-19.3 adapter names its own provisional package in diagnostics (the certification pointer,
          * the unsupported-React message and the DevTools renderer name). That package is not what this package's
          * users install, so the bundled copy names `@pixi/react` instead. Any other reference left in the output is
          * a build error (see `generateBundle`).
          */
         transform(code, id)
         {
-            if (id.startsWith(paths.source) || !code.includes(REACT_19_DIAGNOSTIC_NAME)) return null;
+            if (id.startsWith(paths.source) || !code.includes(REACT_ADAPTER_NAME)) return null;
 
-            return { code: code.replaceAll(REACT_19_DIAGNOSTIC_NAME, '@pixi/react:react-19/'), map: null };
+            return { code: code.replaceAll(REACT_ADAPTER_NAME, '@pixi/react'), map: null };
         },
         generateBundle(_options, bundle)
         {
@@ -184,7 +184,7 @@ const external = [...Object.keys(peerDependencies), 'react-dom'].map(convertPack
 
 const targets = {
     // The bundled adapters for `lib/`, one CommonJS module per NODE_ENV behind the `lib/adapters.js` switch:
-    // `src/adapters.ts` re-exports what the facade uses at runtime from core, renderer, react-19/19.3 and pixi-8
+    // `src/adapters.ts` re-exports what the facade uses at runtime from core, renderer, react-19.3 and pixi-8
     // (pixi-8's `bind` module only).
     ...Object.fromEntries(['production', 'development'].map((nodeEnv) => [`lib-adapters-${nodeEnv}`, {
         input: 'src/adapters.ts',

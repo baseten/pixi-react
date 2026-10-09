@@ -59,7 +59,7 @@ const THIRD_PARTY_DEFECTS = [
 const WORKSPACE = {
     core: { dir: 'packages/core', name: '@pixi-react-provisional/core' },
     renderer: { dir: 'packages/renderer', name: '@pixi-react-provisional/renderer' },
-    react19: { dir: 'packages/react-19', name: '@pixi-react-provisional/react-19' },
+    react193: { dir: 'packages/react-19.3', name: '@pixi-react-provisional/react-19.3' },
     pixi8: { dir: 'packages/pixi-8', name: '@pixi-react-provisional/pixi-8' },
     facade: { dir: 'packages/react', name: '@pixi/react' },
 };
@@ -75,7 +75,7 @@ const REACT = {
             // The facade's `Root.fiber` declaration imports react-reconciler, which ships no types (as upstream).
             '@types/react-reconciler': '0.28.9',
         },
-        workspace: ['core', 'renderer', 'react19', 'pixi8', 'facade'],
+        workspace: ['core', 'renderer', 'react193', 'pixi8', 'facade'],
         programs: ['react-19', 'facade'],
     },
     // Types only: the React 18 runtime adapter is issue 12's. The consumer installs no React 19 package.

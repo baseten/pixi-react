@@ -18,11 +18,11 @@ import type { React18Family } from './types.js';
 /** The audited facts of the React 18 adapter. */
 export interface React18Info
 {
-    /** The React minor line the bundled reconciler implements. */
+    /** The React minor line the reconciler this package depends on implements. */
     readonly line: '18.3';
-    /** The exact react-reconciler version this package bundles. */
+    /** The exact react-reconciler version this package depends on. */
     readonly reconciler: string;
-    /** The exact its-fine version this package bundles (the context bridge). */
+    /** The exact its-fine version this package depends on (the context bridge). */
     readonly bridge: string;
     /** The exact React (and react-dom) versions the fixtures certify. The peer range lists exactly these (D5). */
     readonly testedReact: readonly string[];
@@ -52,7 +52,7 @@ function minorOf(version: string): string | undefined
 }
 
 /**
- * The React 18 adapter. It owns everything React-side for React 18.3: the bundled react-reconciler 0.29.2, its
+ * The React 18 adapter. It owns everything React-side for React 18.3: react-reconciler 0.29.2 (a dependency), its
  * ConcurrentRoot and recoverable-error routing, the event-priority hook, the payload-based host config, the its-fine
  * 1.x context bridge and the hook and component shells. All scene work goes through core's `PixiSession` protocol, so
  * the adapter never names a scene library, and it composes with the same `Pixi8Adapter` as the React 19 epochs.
@@ -79,7 +79,7 @@ export class React18Adapter extends ReactAdapter<React18Family>
                 provides,
                 requires: REQUIRED_PIXI_CAPABILITIES,
                 certification: `@pixi-react-provisional/react-18: react ${testedReact.join(' | ')}; `
-                    + `react-reconciler ${reconciler} (bundled); its-fine ${bridge} (bundled). `
+                    + `react-reconciler ${reconciler} (exact dependency); its-fine ${bridge} (exact dependency). `
                     + 'Tested in Chromium with Pixi8Adapter (packages/react-18/fixtures); '
                     + 'candidate-not-certified until the issue-13 matrix runs.',
             });
@@ -95,9 +95,9 @@ export class React18Adapter extends ReactAdapter<React18Family>
     }
 
     /**
-     * Rejects an installed React outside the 18.3 line the bundled reconciler implements (react-reconciler 0.29.2
-     * declares `react@^18.3.1`). React 19 needs `@pixi-react-provisional/react-19`; React 18.2 and earlier are not
-     * supported.
+     * Rejects an installed React outside the 18.3 line its reconciler implements (react-reconciler 0.29.2 declares
+     * `react@^18.3.1`). React 19 needs the matching per-minor package (`@pixi-react-provisional/react-19.x`); React
+     * 18.2 and earlier are not supported.
      */
     checkEnvironment(): void
     {
@@ -108,7 +108,7 @@ export class React18Adapter extends ReactAdapter<React18Family>
         {
             const major = actual.split('.')[0];
             const instead = major === '19'
-                ? ` For React 19, import the matching subpath of @pixi-react-provisional/react-19 (for example /${minorOf(actual) ?? '19.x'}).`
+                ? ` For React 19, install and use the adapter package that matches the installed React minor (for example @pixi-react-provisional/react-${minorOf(actual) ?? '19.x'}).`
                 : '';
 
             throw new CompatibilityError(
