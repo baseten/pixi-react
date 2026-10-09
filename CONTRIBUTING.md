@@ -12,6 +12,9 @@ This is a pnpm workspace orchestrated by Turborepo:
   through `workspace:*`.
 - `packages/conformance` is the private renderer conformance suite: scenarios,
   a fake Pixi backend and a runner. See its README.
+- `apps/examples` is the private example app: the deterministic docs examples,
+  one route each, built against the local packages. The docs embed the same
+  files, and its routes are the browser-test fixtures. See its README.
 - The root `package.json` is private. It holds only workspace tooling.
 
 Use the Node version in `.nvmrc` and the pnpm version in the root
@@ -27,7 +30,7 @@ The root scripts run Turbo tasks, which build workspace dependencies first:
 | `pnpm test:types` | `typecheck` | Excludes the docs app (see below) |
 | `pnpm test:lint` | `lint` | Library and docs, shared root `eslint.config.mjs` |
 | `pnpm test:unit` | `test:unit` | jsdom/Node unit tests; for `core`/`renderer`/`pixi-8` also the D6 entry test and the built dependency-graph check |
-| `pnpm test:e2e` | `test:e2e` | Vitest browser mode with Playwright Chromium, including the conformance suite; never cached |
+| `pnpm test:e2e` | `test:e2e` | Vitest browser mode with Playwright Chromium, including the conformance suite, and the example app's build, bundle check and route smoke test; never cached |
 | `pnpm test:conformance` | `test:conformance` | The conformance suite alone: against the baseline facade and the Pixi 8 adapter (pixi.js 8.2.6 and 8.22.0) in Chromium, and against core + renderer in jsdom; never cached |
 | `pnpm build:docs` | `build` (`docs`) | Builds the library, then the Docusaurus site |
 | `pnpm test:contract` | design-contract package | Type-level adapter contract under NodeNext and Bundler resolution |

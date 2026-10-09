@@ -11,8 +11,8 @@
  * The Sandpack editor (apps/docs/src/components/Editor) reads the file; the version literals in the current docs pages
  * and the facade README (`react@19.3.0`, `https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/...`) are rewritten from it.
  * `--check` (and policy.mjs) fails when anything is stale, when an example sets its own versions, when a pinned
- * package appears without a version or as `latest`, or when the docs app's own React and pixi.js versions differ from
- * the pins. scripts/release/version.mjs regenerates the pins after `changeset version`.
+ * package appears without a version or as `latest`, or when the docs app's or the examples app's (apps/examples) own
+ * React and pixi.js versions differ from the pins. scripts/release/version.mjs regenerates the pins after `changeset version`.
  *
  * Usage: node scripts/release/docs-pins.mjs [--write | --check]
  */
@@ -24,10 +24,12 @@ import { readJson, repoRoot } from './config.mjs';
 
 export const PINS_FILE = 'apps/docs/src/release-pins.json';
 const DOCS_APP = 'apps/docs';
+/** Apps that build the docs examples against the workspace facade: each pins exact React and pixi.js equal to the current pins. */
+const PINNED_APPS = [DOCS_APP, 'apps/examples'];
 /** Pages whose version literals follow the current pins: the current docs and the facade README. Snapshots are frozen. */
 const PINNED_TEXT_ROOTS = ['apps/docs/docs', 'packages/react/README.md'];
 /** Sources that render examples; none may carry its own version of a pinned package. */
-const EXAMPLE_ROOTS = ['apps/docs/src', 'apps/docs/docs', 'apps/docs/versioned_docs'];
+const EXAMPLE_ROOTS = ['apps/docs/src', 'apps/docs/docs', 'apps/docs/versioned_docs', 'apps/examples/src'];
 const EXACT = /^\d+\.\d+\.\d+$/;
 /** A version ends where no prerelease tag or further digit follows (`19.3.0/`, `19.3.0.` at a sentence end). */
 /** A name starts after a delimiter, never inside a longer name or after a scope (`react` inside `@pixi/react`). */
@@ -183,12 +185,17 @@ export function checkDocsPins({ root = repoRoot } = {})
     const editor = readFileSync(join(root, DOCS_APP, 'src/components/Editor/Editor.tsx'), 'utf8');
 
     if (!editor.includes('release-pins.json')) problems.push(`${DOCS_APP}/src/components/Editor/Editor.tsx must read its dependencies from ${PINS_FILE}`);
-    const docsManifest = readJson(join(root, DOCS_APP, 'package.json'));
-    const docsDeps = { ...docsManifest.dependencies, ...docsManifest.devDependencies };
-
-    for (const name of ['react', 'react-dom', 'pixi.js'])
+    for (const app of PINNED_APPS)
     {
-        if (docsDeps[name] !== dependencies[name]) problems.push(`${DOCS_APP}/package.json: ${name} is ${docsDeps[name] ?? 'missing'}, the pin is ${dependencies[name]} (edit it, then run pnpm install)`);
+        // The examples app (issue 18) is optional here so fixture workspaces without it still check.
+        if (app !== DOCS_APP && !existsSync(join(root, app, 'package.json'))) continue;
+        const manifest = readJson(join(root, app, 'package.json'));
+        const deps = { ...manifest.dependencies, ...manifest.devDependencies };
+
+        for (const name of ['react', 'react-dom', 'pixi.js'])
+        {
+            if (deps[name] !== dependencies[name]) problems.push(`${app}/package.json: ${name} is ${deps[name] ?? 'missing'}, the pin is ${dependencies[name]} (edit it, then run pnpm install)`);
+        }
     }
 
     return problems;

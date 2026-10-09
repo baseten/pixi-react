@@ -80,3 +80,24 @@
 /* hr {
 
 }5f5f5f */
+
+/* Docs examples (src/components/LocalExample) and the published-package label of the Sandpack editor. */
+.local-example {
+    margin-bottom: 2rem;
+}
+
+.local-example__label,
+.sandpack-source-label {
+    font-size: 0.85rem;
+    color: var(--ifm-color-emphasis-700);
+    margin-bottom: 0.5rem;
+}
+
+.local-example__preview {
+    margin-bottom: 1rem;
+    min-height: 320px;
+}
+
+.local-example__error {
+    color: var(--ifm-color-danger);
+}

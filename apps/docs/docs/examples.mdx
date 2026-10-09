@@ -1,0 +1,34 @@
+---
+sidebar_position: 5
+title: Examples
+---
+
+import { LocalExample } from '@site/src/components/LocalExample';
+
+Each example below runs live in this page, rendered by the `@pixi/react` build these docs were built from. The code is the example's real source: the same files are the routes of the standalone example app in [`apps/examples`](https://github.com/baseten/pixi-react/tree/main/apps/examples), which the repository's browser tests load. The examples use only local assets and no randomness, so every run draws the same frames.
+
+The interactive editors elsewhere in these docs are different: they run in CodeSandbox with the published npm packages, and are labelled so.
+
+## Basic scene
+
+<LocalExample id="basic-scene" />
+
+## Updates and events
+
+Pointer events on Pixi objects and ordinary DOM buttons both update React state; the new props reach the scene on the next render. Hover and click the button.
+
+<LocalExample id="updates-and-events" />
+
+## Custom components
+
+`extend` accepts your own classes too. Declare the new element on `PixiElements` for TypeScript (see [Typescript](./typescript.mdx)).
+
+<LocalExample id="custom-components" />
+
+## Hooks and the ticker
+
+<LocalExample id="hooks-and-ticker" />
+
+## Initialization and unmount
+
+<LocalExample id="init-and-unmount" />
