@@ -49,11 +49,21 @@ interface QueuedTask
     reject(error: unknown): void;
 }
 
+interface RunningTask
+{
+    reject(error: unknown): void;
+}
+
 const noop = () => undefined;
 
 function isObject(value: unknown): value is object
 {
     return (typeof value === 'object' && value !== null) || typeof value === 'function';
+}
+
+function isThenable<T>(value: T | PromiseLike<T>): value is PromiseLike<T>
+{
+    return isObject(value) && typeof (value as { then?: unknown }).then === 'function';
 }
 
 /** The scene bridge of one root: ownership checks, attach rules, deferred destruction. */
@@ -430,6 +440,8 @@ export class Root<S extends SceneTypes> implements RootRecord<S>
     private initPromise: Promise<S['app']> | undefined;
     private initSucceeded = false;
     private readonly queue: QueuedTask[] = [];
+    /** Scheduled tasks that started and returned a promise that has not settled yet. */
+    private readonly running = new Set<RunningTask>();
     private readonly teardownHooks = new Set<() => void | Promise<void>>();
     private teardownPromise: Promise<void> | undefined;
     private teardownOptions: S['destroy'] | undefined;
@@ -534,14 +546,47 @@ export class Root<S extends SceneTypes> implements RootRecord<S>
 
             const run = () =>
             {
+                let result: T | PromiseLike<T>;
+
                 try
                 {
-                    resolve(task(this.session.app));
+                    result = task(this.session.app);
                 }
                 catch (error)
                 {
                     reject(error);
+
+                    return;
                 }
+
+                if (!isThenable(result))
+                {
+                    resolve(result);
+
+                    return;
+                }
+
+                // The task is still running: keep it tracked until it settles, so teardown can reject it. Its
+                // promise never resolves after disposal started, and never stays pending past it.
+                const entry: RunningTask = { reject };
+
+                this.running.add(entry);
+                Promise.resolve(result).then(
+                    (value) =>
+                    {
+                        if (this.running.delete(entry))
+                        {
+                            resolve(value);
+                        }
+                    },
+                    (error: unknown) =>
+                    {
+                        if (this.running.delete(entry))
+                        {
+                            reject(error);
+                        }
+                    },
+                );
             };
 
             if (this._status === 'ready' && this.queue.length === 0)
@@ -642,6 +687,7 @@ export class Root<S extends SceneTypes> implements RootRecord<S>
         this._generation += 1;
         this.controller.abort(disposed);
         this.rejectQueue(disposed);
+        this.rejectRunning(this.disposedError('a scheduled task was still running when teardown started'));
         this.teardownPromise = this.teardown(wasInitialising);
         this.teardownPromise.catch(noop);
 
@@ -780,6 +826,18 @@ export class Root<S extends SceneTypes> implements RootRecord<S>
     private rejectQueue(error: unknown): void
     {
         for (const task of this.queue.splice(0))
+        {
+            task.reject(error);
+        }
+    }
+
+    private rejectRunning(error: unknown): void
+    {
+        const running = [...this.running];
+
+        this.running.clear();
+
+        for (const task of running)
         {
             task.reject(error);
         }

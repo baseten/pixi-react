@@ -210,6 +210,68 @@ describe('root lifecycle state machine', () =>
         expect(root.status).toBe('disposed');
     });
 
+    it('keeps an async task tracked while it runs: dispose rejects it instead of letting it resolve late', async () =>
+    {
+        const root = await readyRoot(composeFake());
+        let finish!: (value: string) => void;
+        const late = root.schedule(() => new Promise<string>((resolve) =>
+        {
+            finish = resolve;
+        }));
+        const teardown = root.dispose();
+
+        // The task settles after teardown started (a reconciler commit flushed by unmount, for example).
+        finish('late');
+
+        const error = await rejection(late) as CompatibilityError;
+
+        expect(error).toBeInstanceOf(CompatibilityError);
+        expect(error.code).toBe('ROOT_DISPOSED');
+        expect(error.message).toMatch(/still running/);
+        await teardown;
+    });
+
+    it('rejects an async task that never settles when the root is disposed, instead of hanging', async () =>
+    {
+        const root = await readyRoot(composeFake());
+        const stuck = root.schedule(() => new Promise<never>(() => undefined));
+        const outcome = Promise.race([
+            rejection(stuck),
+            new Promise((resolve) => setTimeout(() => resolve('pending'), 50)),
+        ]);
+
+        await root.dispose();
+
+        expect(((await outcome) as CompatibilityError).code).toBe('ROOT_DISPOSED');
+    });
+
+    it('does not report a tracked task that rejects after teardown as unhandled', async () =>
+    {
+        const unhandled = vi.fn();
+
+        process.on('unhandledRejection', unhandled);
+
+        try
+        {
+            const root = await readyRoot(composeFake());
+            let fail!: (error: Error) => void;
+            const task = root.schedule(() => new Promise<never>((_resolve, reject) =>
+            {
+                fail = reject;
+            }));
+
+            await root.dispose();
+            fail(new Error('superseded'));
+            expect((await rejection(task) as CompatibilityError).code).toBe('ROOT_DISPOSED');
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(unhandled).not.toHaveBeenCalled();
+        }
+        finally
+        {
+            process.off('unhandledRejection', unhandled);
+        }
+    });
+
     it('dispose is idempotent and returns one shared promise', async () =>
     {
         const scene = new FakeSceneAdapter();

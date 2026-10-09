@@ -48,6 +48,8 @@ Every `compose` call returns a new runtime. Nothing below is module-global, and 
   failed → disposing → disposed`:
   - It has one init promise and one abort signal.
   - `schedule(task)` runs work after `onInit`, in call order, and never on a failed or disposing root.
+  - A task that returns a promise stays tracked until that promise settles. If teardown starts first, the
+    `schedule` promise rejects with `ROOT_DISPOSED`, so it never resolves after disposal and never hangs.
   - Unmounting during init waits for the init, and then never calls `onInit` or commits late work.
   - `dispose()` returns one shared promise. It continues past a failing step and collects every failure in a
     `TeardownError`.
