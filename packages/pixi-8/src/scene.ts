@@ -513,7 +513,8 @@ export class PixiScene
         }
 
         const path = pathOf(key);
-        const current = readPath(node, path);
+        // While framework-hidden, the node holds the hidden value; the value to keep is the one from before the hide.
+        const current = state.hidden && key === this.visibilityKey(state) ? state.restoreVisibility : readPath(node, path);
         const own = (props: Readonly<Props>, name: string) => Object.prototype.hasOwnProperty.call(props, name);
         const fromProps = path.length > 1
             ? own(state.options, path[0]) || own(next, path[0])

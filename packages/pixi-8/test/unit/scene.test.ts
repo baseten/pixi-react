@@ -253,6 +253,15 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         scene.setHidden(node, false);
         expect(node.visible).toBe(true);
 
+        const late = make(scene, pixi.Container, {});
+
+        scene.setHidden(late, true);
+        scene.applyChanges(late, {}, { visible: false });
+        scene.applyChanges(late, { visible: false }, {});
+        expect(late.visible, 'still hidden').toBe(false);
+        scene.setHidden(late, false);
+        expect(late.visible, 'initial value captured from before the hide').toBe(true);
+
         const plain = make(scene, pixi.Container, {});
 
         scene.setHidden(plain, true);
