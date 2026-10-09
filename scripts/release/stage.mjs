@@ -22,7 +22,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
-import { loadReleaseConfig, makeRewriter, repoRoot } from './config.mjs';
+import { loadReleaseConfig, makeRewriter, repoRoot, resetOutputDir } from './config.mjs';
 
 const TEXT = /\.(?:[cm]?js|d\.[cm]?ts|map|json|md|txt)$|(?:^|\/)(?:LICENSE|README)[^/]*$/;
 const DEPENDENCY_FIELDS = ['dependencies', 'peerDependencies', 'optionalDependencies', 'peerDependenciesMeta', 'bundleDependencies', 'bundledDependencies'];
@@ -83,11 +83,11 @@ export function stage({ out, namespace, root = repoRoot, log = console.log } = {
 {
     const config = loadReleaseConfig({ root, namespace });
     const rewrite = makeRewriter(config);
-    const scratch = mkdtempSync(join(tmpdir(), 'pixi-react-stage-'));
     const results = [];
 
-    rmSync(out, { recursive: true, force: true });
-    mkdirSync(out, { recursive: true });
+    resetOutputDir(out, { root, insideRelease: true });
+    const scratch = mkdtempSync(join(tmpdir(), 'pixi-react-stage-'));
+
     try
     {
         for (const pkg of config.packages)

@@ -68,7 +68,8 @@ export function inspectPackage(dir, entry, staged, config)
 
     // Names and versions.
     if (manifest.name !== pkg.publicName) fail(`name ${manifest.name}, expected ${pkg.publicName}`);
-    if (manifest.private !== !config.publishEnabled) fail(`"private" is ${manifest.private}; publishing is ${config.publishEnabled ? 'enabled' : 'disabled'}`);
+    // Publishing enabled: stage.mjs drops `private`; only `private: true` blocks it. Disabled: it must be true.
+    if ((manifest.private === true) === config.publishEnabled) fail(`"private" is ${manifest.private}; publishing is ${config.publishEnabled ? 'enabled' : 'disabled'}`);
     for (const field of ['dependencies', 'peerDependencies', 'optionalDependencies', 'devDependencies'])
     {
         for (const [name, spec] of Object.entries(manifest[field] ?? {}))

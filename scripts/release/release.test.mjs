@@ -1,10 +1,10 @@
 // Offline tests of the release tooling (issue 15): `node --test scripts/release/*.test.mjs`.
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { loadReleaseConfig, makeRewriter, repoRoot, WORK_MARKER, workDirProblem } from './config.mjs';
+import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
 import { checkPolicy, readPlan } from './policy.mjs';
@@ -123,6 +123,16 @@ test('inspectPackage accepts a well-formed adapter and reports each kind of defe
     try
     {
         assert.deepEqual(inspectPackage(dir, entry, staged, target).problems, []);
+        // Publishing enabled: stage.mjs drops `private`, which inspection must accept; `private: true` still fails.
+        const enabled = { ...target, publishEnabled: true };
+
+        assert.match(inspectPackage(dir, entry, staged, enabled).problems.join('\n'), /"private" is true; publishing is enabled/);
+        const publishable = { ...good };
+
+        delete publishable.private;
+        writeFileSync(join(dir, 'package.json'), JSON.stringify(publishable));
+        assert.deepEqual(inspectPackage(dir, entry, staged, enabled).problems, []);
+        assert.match(inspectPackage(dir, entry, staged, target).problems.join('\n'), /"private" is undefined; publishing is disabled/);
     }
     finally
     {
@@ -262,9 +272,9 @@ test('the consumer tree check counts physical copies, not logical versions', () 
     }
 });
 
-test('the dry run refuses work directories it must not wipe', () =>
+test('release scripts refuse output directories they must not wipe', () =>
 {
-    const dir = mkdtempSync(join(tmpdir(), 'release-work-'));
+    const dir = mkdtempSync(join(tmpdir(), 'release-output-'));
     const source = join(dir, 'source');
     const stray = join(dir, 'stray');
     const previous = join(dir, 'previous');
@@ -272,21 +282,35 @@ test('the dry run refuses work directories it must not wipe', () =>
     try
     {
         mkdirSync(join(source, 'scripts'), { recursive: true });
+        mkdirSync(join(source, '.release', 'tarballs'), { recursive: true });
+        writeFileSync(join(source, '.release', 'tarballs', 'old.tgz'), '');
         mkdirSync(stray);
         writeFileSync(join(stray, 'notes.txt'), 'keep');
-        mkdirSync(previous);
-        writeFileSync(join(previous, WORK_MARKER), '');
+        resetOutputDir(previous);
         writeFileSync(join(previous, 'old.txt'), '');
 
-        assert.match(workDirProblem(source, source), /contains the source checkout/);
-        assert.match(workDirProblem(dir, source), /contains the source checkout/);
-        assert.match(workDirProblem(join(source, 'scripts'), source), /inside the source checkout/);
-        assert.match(workDirProblem(join(source, 'new'), source), /inside the source checkout/);
-        assert.match(workDirProblem(stray, source), /not empty and was not created by a release dry run/);
-        assert.equal(workDirProblem(previous, source), null);
-        assert.equal(workDirProblem(join(dir, 'fresh'), source), null);
-        assert.equal(workDirProblem(join(dir, 'source-sibling'), source), null);
-        assert.match(workDirProblem(repoRoot), /contains the source checkout/);
+        for (const options of [{ root: source }, { root: source, insideRelease: true }])
+        {
+            assert.match(outputDirProblem(source, options), /contains the source checkout/);
+            assert.match(outputDirProblem(dir, options), /contains the source checkout/);
+            assert.match(outputDirProblem(join(source, 'scripts'), options), /inside the source checkout/);
+            assert.match(outputDirProblem(join(source, 'new'), options), /inside the source checkout/);
+            assert.match(outputDirProblem(join(source, '.release'), options), /inside the source checkout/);
+            assert.match(outputDirProblem(stray, options), /not empty and was not created by a release script/);
+            assert.equal(outputDirProblem(previous, options), null);
+            assert.equal(outputDirProblem(join(dir, 'fresh'), options), null);
+            assert.equal(outputDirProblem(join(dir, 'source-sibling'), options), null);
+        }
+        // Inside the checkout, only .release/ subdirectories, and an existing one still needs the marker.
+        assert.match(outputDirProblem(join(source, '.release', 'fresh'), { root: source }), /inside the source checkout/);
+        assert.equal(outputDirProblem(join(source, '.release', 'fresh'), { root: source, insideRelease: true }), null);
+        assert.match(outputDirProblem(join(source, '.release', 'tarballs'), { root: source, insideRelease: true }), /no \.pixi-react-release-output/);
+        assert.match(outputDirProblem(repoRoot), /contains the source checkout/);
+
+        assert.throws(() => resetOutputDir(stray), /refusing to wipe/);
+        assert.equal(readFileSync(join(stray, 'notes.txt'), 'utf8'), 'keep');
+        resetOutputDir(previous);
+        assert.deepEqual(readdirSync(previous), [OUTPUT_MARKER]);
     }
     finally
     {

@@ -21,12 +21,12 @@
  * Usage: node scripts/release/consumers.mjs [--tarballs <dir>] [--only <scenario>]... [--skip-install] [--list]
  */
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadSeed, selectCells } from '../../design/compatibility/cells/matrix.mjs';
-import { loadReleaseConfig, repoRoot } from './config.mjs';
+import { loadReleaseConfig, repoRoot, resetOutputDir } from './config.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -331,8 +331,7 @@ export function runScenario(scenario, { tarballDir, root: consumersRoot, skipIns
     {
         if (!skipInstall)
         {
-            rmSync(dir, { recursive: true, force: true });
-            mkdirSync(dir, { recursive: true });
+            resetOutputDir(dir, { insideRelease: true });
             assertNoAncestorNodeModules(dir);
             writeProject(dir, scenario, tarballDir);
             step('install', () =>

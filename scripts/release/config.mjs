@@ -1,6 +1,6 @@
 // Reads release.packages.json, the single source of truth for public package names (issue 15), and resolves the
 // selected namespace. Every release script goes through this module; nothing else maps workspace names to public ones.
-import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,8 +8,8 @@ export const repoRoot = resolve(fileURLToPath(new URL('../..', import.meta.url))
 
 export const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 
-/** The file a release work directory carries once a dry run has created it; only such a directory may be wiped. */
-export const WORK_MARKER = '.pixi-react-release-work';
+/** The file every directory the release scripts create carries; only such a directory may be wiped and recreated. */
+export const OUTPUT_MARKER = '.pixi-react-release-output';
 
 /** Resolves symlinks through the nearest existing ancestor, so a link into the checkout counts as the checkout. */
 function realPath(path)
@@ -30,22 +30,37 @@ const contains = (outer, inner) =>
 };
 
 /**
- * Why `work` must not be removed and recreated, or null. It must not be the source checkout, an ancestor of it or a
- * directory inside it, and an existing non-empty directory must carry `WORK_MARKER` (written by an earlier dry run).
+ * Why the release scripts must not wipe `dir`, or null. It must not be the source checkout or contain it; inside the
+ * checkout only the ignored `.release/` directory is allowed (`insideRelease`); and an existing non-empty directory
+ * must carry `OUTPUT_MARKER`, written when a release script created it.
  */
-export function workDirProblem(work, root = repoRoot)
+export function outputDirProblem(dir, { root = repoRoot, insideRelease = false } = {})
 {
-    const target = realPath(work);
+    const target = realPath(dir);
     const source = realPath(root);
 
-    if (contains(target, source)) return `${work} contains the source checkout ${root}`;
-    if (contains(source, target)) return `${work} is inside the source checkout ${root}`;
-    if (existsSync(target) && readdirSync(target).length && !existsSync(join(target, WORK_MARKER)))
+    if (contains(target, source)) return `${dir} contains the source checkout ${root}`;
+    if (contains(source, target) && !(insideRelease && target !== join(source, '.release') && contains(join(source, '.release'), target)))
     {
-        return `${work} is not empty and was not created by a release dry run (no ${WORK_MARKER})`;
+        return `${dir} is inside the source checkout ${root}${insideRelease ? ' and not under .release/' : ''}`;
+    }
+    if (existsSync(target) && readdirSync(target).length && !existsSync(join(target, OUTPUT_MARKER)))
+    {
+        return `${dir} is not empty and was not created by a release script (no ${OUTPUT_MARKER}); remove it or choose another directory`;
     }
 
     return null;
+}
+
+/** Removes and recreates `dir` with `OUTPUT_MARKER`, after `outputDirProblem` allows it; throws otherwise. */
+export function resetOutputDir(dir, options)
+{
+    const problem = outputDirProblem(dir, options);
+
+    if (problem) throw new Error(`refusing to wipe ${problem}`);
+    rmSync(dir, { recursive: true, force: true });
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, OUTPUT_MARKER), 'Created by scripts/release; the next run may delete this directory.\n');
 }
 
 /** `*` matches any run of characters within a package name; nothing else is special. */
