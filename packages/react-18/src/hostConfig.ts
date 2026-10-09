@@ -166,7 +166,11 @@ export function createHostConfig(): Config
         unhideInstance: (node) => recordOf(node).pixi.setHidden(node, false),
         // The container's children belong to the Pixi session; React never clears it.
         clearContainer: () => undefined,
-        detachDeletedInstance: () => undefined,
+        // Drop the node's runtime link, so an instance user code still holds cannot keep a disposed runtime alive.
+        detachDeletedInstance: (node) =>
+        {
+            nodeRuntimes.delete(node as object);
+        },
 
         getCurrentEventPriority,
     };

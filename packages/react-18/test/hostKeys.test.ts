@@ -67,6 +67,23 @@ describe('host-config keys match the installed react-reconciler 0.29.2 bundle ex
         expect(() => hostConfig.createHostConfig().appendChild({}, {})).toThrow(/not owned/);
     });
 
+    it('forgets a deleted node, so a retained instance does not keep its runtime alive', () =>
+    {
+        const config = hostConfig.createHostConfig();
+        const node = {};
+        const record = { pixi: { create: () => node, publicInstance: (instance: unknown) => instance } };
+        const runtime = { nodeInfo: (instance: unknown) => (instance === node ? { root: record } : undefined) };
+        const container = { record, runtime } as unknown as HostContainer<PixiTypes>;
+
+        config.createInstance('pixiContainer', {}, container, null as never, null as never);
+
+        expect(config.getPublicInstance(node)).toBe(node);
+
+        config.detachDeletedInstance(node);
+
+        expect(() => config.getPublicInstance(node)).toThrow(/not owned/);
+    });
+
     it('uses the React 18 shapes, not the React 19 ones', () =>
     {
         expect(implemented).toEqual(expect.arrayContaining(['getCurrentEventPriority', 'prepareUpdate', 'commitUpdate']));
