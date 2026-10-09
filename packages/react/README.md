@@ -35,17 +35,27 @@
 
 ### Quick Start
 
-If you want to start a new React project from scratch then we recommend [Create React App](https://github.com/facebook/create-react-app), but `@pixi/react` should work with any React application (Remix, Next.js, etc).
-To add `@pixi/react` to an existing React application, just install the dependencies:
+To start a new project, use the official PixiJS scaffolder (Vite, React 19 and `@pixi/react`):
 
-#### Install Dependencies
+```bash
+npm create pixi.js@latest
+```
+
+and choose the `framework-react` template (or `framework-react-js` for plain JavaScript). Create React App is deprecated
+and is not recommended.
+
+#### Add to an existing app
+
+`@pixi/react` works with any bundler-based React 19 application: Vite, Next.js, Remix and so on. Install the
+dependencies:
+
 ```bash
 npm install pixi.js@8.22.0 react@19.3.0 react-dom@19.3.0 @pixi/react
 ```
 
 See [Supported versions](#supported-versions) for the exact React and PixiJS versions this release supports.
 
-#### Pixie React Usage
+#### Pixi React Usage
 ```jsx
 import {
   Application,
@@ -80,6 +90,30 @@ const MyComponent = () => {
 }
 ```
 
+#### No bundler?
+
+Plain `<script>` tags are not supported, because React 19 ships no global (UMD) build. Without a bundler, load the ES
+module build `dist/pixi-react.mjs` through an import map, taking React from an ESM CDN such as esm.sh and PixiJS from its
+browser ESM build (`dist/pixi.mjs`):
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@19.3.0",
+      "react/": "https://esm.sh/react@19.3.0/",
+      "react-dom/": "https://esm.sh/react-dom@19.3.0/",
+      "pixi.js": "https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.mjs",
+      "@pixi/react": "https://cdn.jsdelivr.net/npm/@pixi/react/dist/pixi-react.mjs"
+    }
+  }
+</script>
+<script type="module">
+  import { Application, extend } from '@pixi/react'
+  // ...
+</script>
+```
+
 ### Supported versions
 
 `@pixi/react` is composed from modular adapters: the React 19 adapter for the newest certified React minor (19.3) and
@@ -98,11 +132,14 @@ bundles stay self-contained, as upstream's were.
 The React peer is a caret range so that installing next to a newer React never fails, but only React 19.3 is
 certified. With another React 19 minor, `@pixi/react` runs and logs **one** console warning naming the certified
 version and how to pin: pin `react` and `react-dom` to 19.3 (for example `"react": "~19.3.0"`), or compose your own
-renderer with `createRenderer` and the React adapter package for your React minor (see below). A React outside the
+renderer with `createRenderer` and the React adapter package for your React minor (see below). If you must stay on an
+older React minor and do not need this release's features, upstream `@pixi/react` 8.0.5 remains available. A React outside the
 19 major, or a pixi.js outside its range, is reported the first time you call into `@pixi/react` (not at import),
 with a `CompatibilityError` naming the installed and expected versions.
 
 #### Staying on an older React 19 minor
+
+<!-- TODO(#15): once design/release.md exists, link the modular install recipes here. -->
 
 `@pixi/react` always composes the newest certified React 19 epoch. The modular adapter packages (core, the renderer
 factory, one React adapter package per React minor, and the PixiJS 8 adapter) are not published yet; they
