@@ -2,8 +2,8 @@
 
 The version-independent adapter core ([issue 7](https://github.com/baseten/pixi-react/issues/7)). It implements ABI 1
 of the [adapter contract](../../design/adapter-architecture.md). It has no runtime, peer or declaration dependency on
-React, `react-reconciler`, its-fine or Pixi, and no dependency on any other package. Framework adapters
-(React 19/18, issues 9/12) and scene adapters (Pixi 8, issue 8) build on it. Applications compose them through
+React, `react-reconciler`, its-fine or Pixi, and no dependency on any other package. React adapters
+(React 19/18, issues 9/12) and Pixi adapters (Pixi 8, issue 8) build on it. Applications compose them through
 [`@pixi-react-provisional/renderer`](../renderer/README.md). The package is private and provisional: nothing here is
 published.
 
@@ -11,16 +11,16 @@ published.
 
 | Export | Purpose |
 | --- | --- |
-| `SceneAdapter<S>`, `FrameworkAdapter<F>` | Open abstract base classes. A third party subclasses them with its own manifest ID and types. There is no closed list of adapter names. |
+| `PixiAdapter<P>`, `ReactAdapter<R>` | Open abstract base classes. A third party subclasses them with its own manifest ID and types. There is no closed list of adapter names. |
 | `AdapterManifest`, `CORE_ABI` | `{ abi: { major: 1, minor }, id, packageVersion, provides, requires, certification }`. |
 | `validateManifest`, `validateAdapterShape`, `negotiate`, `compose` | Composition-time checks that run before any allocation, then a fresh `Runtime`. |
 | `CompatibilityError` | The one shared error class. It has the built-in codes plus dotted adapter codes. |
 | `TeardownError` | An `AggregateError` that teardown throws after it has run every step. |
-| `Runtime`, `Registry`, `RootRecord`, `SceneBridge`, `SceneSession`, `NodeDefinition`, … | The ABI 1 protocol types. |
+| `Runtime`, `Registry`, `RootRecord`, `PixiBridge`, `PixiSession`, `NodeDefinition`, … | The ABI 1 protocol types. |
 
 ### Composition checks
 
-`compose({ framework, scene }, options)` checks these, in order:
+`compose({ react, pixi }, options)` checks these, in order:
 
 1. Each adapter implements its role's ABI 1.0 methods. The check is structural, not `instanceof`, so an adapter built
    against another installed copy of core is judged by what it implements.
@@ -38,7 +38,7 @@ capability, and the expected and actual versions. Nothing is allocated until eve
 Every `compose` call returns a new runtime. Nothing below is module-global, and two runtimes share none of it.
 
 - **Registry.** `extend`, `register`, `resolve`, `nameOf` and `define` (`define` is the route behind
-  `component(Ctor, name?)`). Names are normalized once by `SceneAdapter.normalizeName`. Registering the same name with
+  `component(Ctor, name?)`). Names are normalized once by `PixiAdapter.normalizeName`. Registering the same name with
   the same constructor again does nothing. A different constructor throws `REGISTRY_CONFLICT` under the default
   `reject` policy. The facade can select `registryConflict: 'replace'` to keep upstream's silent replacement (D4).
   Any other policy value throws `core.INVALID_OPTION` at composition.
@@ -55,20 +55,20 @@ Every `compose` call returns a new runtime. Nothing below is module-global, and 
   - `dispose()` returns one shared promise. It continues past a failing step and collects every failure in a
     `TeardownError`.
   - `deferDispose()` and `cancelDeferredDispose()` give StrictMode one turn to remount. Generation tokens let a
-    framework discard stale work.
+    React adapter discard stale work.
 - **Target lease.** A DOM target or canvas that one runtime owns cannot be taken by another runtime: that throws
   `core.TARGET_LEASED`. The lease table is keyed by a registered symbol on `globalThis`, so separately installed
   copies of core respect it too. It holds only the owner's identity, and it is released after teardown.
   An `HTMLElement` target whose descendants include a canvas owned by any root, of this runtime or another, is
   rejected with `core.TARGET_LEASED` before its children are replaced.
-- **Node ownership.** `root.scene` (`SceneBridge`) is the only way a framework touches the scene. It does these
+- **Node ownership.** `root.pixi` (`PixiBridge`) is the only way a React adapter touches the scene. It does these
   things:
   - It records per-node metadata (owning root, definition, parent, hidden, destroyed) in the runtime's `WeakMap`,
     never on the node.
   - It checks node capabilities before the first construction.
   - It enforces attach rules and ownership before any mutation.
   - It destroys removed subtrees after the commit, children first, each node exactly once, through
-    `SceneSession.destroyNode`.
+    `PixiSession.destroyNode`.
   - It sweeps every node still owned when the root tears down.
 - **`dispose()`.** Freezes new work, snapshots the roots, tears each one down, runs `onDispose` cleanup and
   aggregates the failures.
@@ -101,17 +101,17 @@ errors that narrow using either entry's class.
 [`design/contract/core.d.ts`](../../design/contract/core.d.ts) is the normative sketch. This implementation is a
 superset of it, with these deliberate differences:
 
-- `BindingFamily.scene` stays `unknown`, as in the sketch, and a family writes
-  `MyBindings<Extract<this['scene'], SceneTypes>>`. Constraining `scene` to `SceneTypes` would let a generic `bind`
-  skip one cast, but every consumer type would then carry a `SceneTypes & S` intersection, which made props
+- `ReactBindingFamily.pixi` stays `unknown`, as in the sketch, and a family writes
+  `MyBindings<Extract<this['pixi'], PixiTypes>>`. Constraining `pixi` to `PixiTypes` would let a generic `bind`
+  skip one cast, but every consumer type would then carry a `PixiTypes & P` intersection, which made props
   inference through `component(Ctor)` hit TypeScript's instantiation depth limit. An adapter's generic `bind` therefore
-  ends with one `as Bind<F, S>`, because TypeScript cannot reduce `Extract<S, SceneTypes>` for a generic `S`.
-- `SceneSession.destroyNode` and `destroy` accept `undefined` for "the scene's default". `destroy` may return
+  ends with one `as Bind<R, P>`, because TypeScript cannot reduce `Extract<P, PixiTypes>` for a generic `P`.
+- `PixiSession.destroyNode` and `destroy` accept `undefined` for "the Pixi adapter's default". `destroy` may return
   `void`.
-- `SceneSession` has an optional `nodeDestroyOptions(destroy)` method, which gives the node options implied by the
+- `PixiSession` has an optional `nodeDestroyOptions(destroy)` method, which gives the node options implied by the
   root's teardown options, and an optional `containerAttach` rule.
-- `SceneAdapter` has `normalizeName`, `checkEnvironment` and an optional `applyProps` for standalone instances.
-  `FrameworkAdapter` has `checkEnvironment`.
+- `PixiAdapter` has `normalizeName`, `checkEnvironment` and an optional `applyProps` for standalone instances.
+  `ReactAdapter` has `checkEnvironment`.
 - `Runtime` adds roots, `createRoot`, `rootFor`, `nodeInfo`, `onDispose`, `capabilities` and `manifests`.
   `Registry` adds `define` and `has`. `NodeContext` also carries the root.
 - `RendererOptions` adds `registryConflict` and `onUnhandledError`.

@@ -1,7 +1,7 @@
 /**
  * The React-side bindings shared by every React 19 epoch: roots, `Application`, hooks, `component`, the context
- * bridge. They are generic over the scene: nothing here knows a scene's node or application types, and every
- * scene operation goes through core (the runtime registry and the root's `SceneBridge`).
+ * bridge. They are generic over the Pixi types: nothing here knows a Pixi adapter's node or application types, and every
+ * scene operation goes through core (the runtime registry and the root's `PixiBridge`).
  */
 import { FiberProvider, useContextBridge as useItsFineContextBridge } from 'its-fine';
 import {
@@ -22,10 +22,10 @@ import {
     type Catalog,
     CompatibilityError,
     type Constructor,
+    type PixiTypes,
     type RootRecord,
     type RootTarget,
     type Runtime,
-    type SceneTypes,
     type TickOptions,
 } from '@pixi-react-provisional/core';
 
@@ -35,7 +35,7 @@ import type { ApplicationProps, ReactBindings, Root, RootErrors, RootOptions } f
 /** A hook returning a component that forwards the parent tree's Activity visibility (React 19.2+). */
 export type ParentActivityBridge = () => ComponentType<{ children?: ReactNode }>;
 
-export interface BindingsConfig<S extends SceneTypes>
+export interface BindingsConfig<S extends PixiTypes>
 {
     readonly adapterId: string;
     readonly renderer: EpochRenderer<S>;
@@ -43,10 +43,10 @@ export interface BindingsConfig<S extends SceneTypes>
 }
 
 /** What a scene root provides to its tree. `token` is the runtime's identity, checked by the hooks. */
-interface SceneContextValue
+interface RootContextValue
 {
     readonly token: symbol;
-    readonly record: RootRecord<SceneTypes>;
+    readonly record: RootRecord<PixiTypes>;
     readonly state: ApplicationState<unknown>;
 }
 
@@ -54,9 +54,9 @@ interface SceneContextValue
  * One context per loaded subpath, shared by every runtime it binds. A value carries its runtime token, so a hook
  * of one runtime rejects the provider of another instead of returning a foreign application.
  */
-const SceneContext = createContext<SceneContextValue | null>(null);
+const RootContext = createContext<RootContextValue | null>(null);
 
-SceneContext.displayName = 'PixiReactSceneContext';
+RootContext.displayName = 'PixiReactRootContext';
 
 /** React keys of root and Application options; every other root option is a scene destroy option. */
 const ROOT_OPTION_KEYS = new Set([
@@ -82,7 +82,7 @@ function reportToConsole(error: unknown): void
     console.error(error);
 }
 
-function splitRootOptions<S extends SceneTypes>(options: RootOptions<S>): { root: RootOptions<S>; destroy: S['destroy'] }
+function splitRootOptions<S extends PixiTypes>(options: RootOptions<S>): { root: RootOptions<S>; destroy: S['destroy'] }
 {
     const destroy: Record<string, unknown> = {};
 
@@ -98,7 +98,7 @@ function splitRootOptions<S extends SceneTypes>(options: RootOptions<S>): { root
 }
 
 /** A root plus the internal controls `Application` needs. */
-interface InternalRoot<S extends SceneTypes> extends Root<S>
+interface InternalRoot<S extends PixiTypes> extends Root<S>
 {
     readonly record: RootRecord<S>;
     /** Replaces the callbacks and destroy options (merged; `undefined` values clear a key). */
@@ -109,7 +109,7 @@ interface InternalRoot<S extends SceneTypes> extends Root<S>
     cancelScheduledUnmount(): void;
 }
 
-export function createBindings<S extends SceneTypes>(runtime: Runtime<S>, config: BindingsConfig<S>): ReactBindings<S>
+export function createBindings<S extends PixiTypes>(runtime: Runtime<S>, config: BindingsConfig<S>): ReactBindings<S>
 {
     const { renderer, useParentActivity } = config;
     const roots = new WeakMap<RootRecord<S>, InternalRoot<S>>();
@@ -178,15 +178,15 @@ export function createBindings<S extends SceneTypes>(runtime: Runtime<S>, config
                 // request's own commit; core rejects it with ROOT_DISPOSED if teardown starts first.
                 return record.schedule((app) => new Promise<S['app']>((resolve) =>
                 {
-                    record.scene.updateApplication((options === undefined || !('resizeTo' in options)
+                    record.pixi.updateApplication((options === undefined || !('resizeTo' in options)
                         ? initOptions
                         : { ...initOptions, resizeTo }) as S['appProps']);
                     epochRoot.update(
-                        <SceneContext.Provider
-                            value={{ token: runtime.id, record: record as RootRecord<SceneTypes>, state: record.applicationState }}
+                        <RootContext.Provider
+                            value={{ token: runtime.id, record: record as RootRecord<PixiTypes>, state: record.applicationState }}
                         >
                             {children}
-                        </SceneContext.Provider>,
+                        </RootContext.Provider>,
                         () => resolve(app),
                     );
                 }));
@@ -221,9 +221,9 @@ export function createBindings<S extends SceneTypes>(runtime: Runtime<S>, config
         return root;
     }
 
-    function useSceneContext(hook: string): SceneContextValue
+    function useRootContext(hook: string): RootContextValue
     {
-        const value = useContext(SceneContext);
+        const value = useContext(RootContext);
 
         if (!value)
         {
@@ -244,11 +244,11 @@ export function createBindings<S extends SceneTypes>(runtime: Runtime<S>, config
 
     // The token check above guarantees this runtime's root provided the state.
     const useApplication = (): ApplicationState<S['app']> =>
-        useSceneContext('useApplication').state as ApplicationState<S['app']>;
+        useRootContext('useApplication').state as ApplicationState<S['app']>;
 
     function useTick<C>(options: ((tick: S['tick']) => void) | TickOptions<S['tick'], C>): void
     {
-        const { record, state } = useSceneContext('useTick');
+        const { record, state } = useRootContext('useTick');
         const normalized: TickOptions<S['tick'], C> = typeof options === 'function' ? { callback: options } : options;
         const { callback, context, isEnabled = true, priority = 0 } = normalized;
         const isInitialised = state.isInitialised;
@@ -261,7 +261,7 @@ export function createBindings<S extends SceneTypes>(runtime: Runtime<S>, config
             }
 
             // The returned cleanup is idempotent and unregisters exactly this callback and context.
-            return (record as RootRecord<S>).scene.subscribe<C>({ callback, context, isEnabled, priority });
+            return (record as RootRecord<S>).pixi.subscribe<C>({ callback, context, isEnabled, priority });
         }, [record, isInitialised, callback, context, isEnabled, priority]);
     }
 
@@ -278,15 +278,15 @@ export function createBindings<S extends SceneTypes>(runtime: Runtime<S>, config
 
     function applyProps<N extends object>(instance: N, props: unknown): N
     {
-        if (!runtime.scene.applyProps)
+        if (!runtime.pixi.applyProps)
         {
             throw new CompatibilityError(
-                `Scene adapter "${runtime.manifests.scene.id}" has no standalone applyProps.`,
-                { code: 'CAPABILITY_MISSING', adapterIds: [runtime.manifests.scene.id] },
+                `Pixi adapter "${runtime.manifests.pixi.id}" has no standalone applyProps.`,
+                { code: 'CAPABILITY_MISSING', adapterIds: [runtime.manifests.pixi.id] },
             );
         }
 
-        runtime.scene.applyProps(instance as S['node'], props);
+        runtime.pixi.applyProps(instance as S['node'], props);
 
         return instance;
     }

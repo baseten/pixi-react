@@ -1,7 +1,7 @@
 /**
  * The per-tuple suite: the whole conformance catalogue plus the React 19 behaviour this adapter owns, run against
  * the BUILT subpath with exactly one React/react-dom version (the fixture's). Scene state is observed through the
- * fake scene's probe; nothing here imports a scene library.
+ * fake Pixi's probe; nothing here imports a scene library.
  */
 import * as React from 'react';
 import {
@@ -24,7 +24,7 @@ import {
     type ScenarioContext,
     type ScenarioContextHandle,
 } from '@pixi-react-provisional/conformance';
-import { FakeSceneAdapter } from '@pixi-react-provisional/conformance/fake-scene-adapter';
+import { FakePixiAdapter } from '@pixi-react-provisional/conformance/fake-pixi-adapter';
 import { CompatibilityError } from '@pixi-react-provisional/core';
 import * as epoch190 from '@pixi-react-provisional/react-19/19.0';
 import * as epoch191 from '@pixi-react-provisional/react-19/19.1';
@@ -144,7 +144,7 @@ export function describeEpoch(epoch: EpochModule, expected: EpochExpectation): v
 
                     try
                     {
-                        createRenderer({ framework: new other.React19Adapter(), scene: new FakeSceneAdapter() });
+                        createRenderer({ react: new other.React19Adapter(), pixi: new FakePixiAdapter() });
                     }
                     catch (error)
                     {
@@ -360,7 +360,7 @@ export function describeEpoch(epoch: EpochModule, expected: EpochExpectation): v
                 expect((caught[0] as CompatibilityError).code).toBe('react-19.FOREIGN_RUNTIME');
             });
 
-            it('hides and restores committed nodes through Suspense, in the scene session', async () =>
+            it('hides and restores committed nodes through Suspense, in the Pixi session', async () =>
             {
                 const { ctx } = setup();
                 const { elements: { container: Container }, probe } = ctx;

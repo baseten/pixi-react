@@ -1,18 +1,18 @@
 import {
     type Adapters,
     type Bind,
-    type BindingFamily,
     CompatibilityError,
     compose,
+    type PixiTypes,
+    type ReactBindingFamily,
     type RendererOptions,
     type Runtime,
-    type SceneTypes,
 } from '@pixi-react-provisional/core';
 
 export type { Adapters, RendererOptions } from '@pixi-react-provisional/core';
 
-/** What `createRenderer` returns: the framework's own bindings for the composed scene, plus its runtime. */
-export type Renderer<F extends BindingFamily, S extends SceneTypes> = Bind<F, S> & { readonly runtime: Runtime<S> };
+/** What `createRenderer` returns: the React adapter's own bindings for the composed Pixi adapter, plus its runtime. */
+export type Renderer<F extends ReactBindingFamily, S extends PixiTypes> = Bind<F, S> & { readonly runtime: Runtime<S> };
 
 function isBindable(value: unknown): value is object
 {
@@ -27,7 +27,7 @@ function isBindable(value: unknown): value is object
  * through the proxy (or a detached method) runs with the original as `this`. Own properties are returned as they
  * are. `runtime` is readable and non-writable, but it is not an own key of the result.
  */
-function attachToNonExtensible<S extends SceneTypes>(bindings: object, runtime: Runtime<S>): object
+function attachToNonExtensible<S extends PixiTypes>(bindings: object, runtime: Runtime<S>): object
 {
     const bound = new WeakMap<(...args: unknown[]) => unknown, (...args: unknown[]) => unknown>();
     const isRuntime = (key: PropertyKey) => key === 'runtime';
@@ -66,41 +66,41 @@ function attachToNonExtensible<S extends SceneTypes>(bindings: object, runtime: 
 }
 
 /**
- * Composes one framework adapter with one scene adapter into a new, isolated runtime and returns the framework's
- * bindings for it. The framework and scene families are inferred from the adapter instances; no explicit type
+ * Composes one React adapter with one Pixi adapter into a new, isolated runtime and returns the React
+ * adapter's bindings for it. The React binding family and the Pixi types are inferred from the adapter instances; no explicit type
  * arguments are needed. Validation (adapter shape, ABI, capabilities, installed environment) happens before
  * anything is allocated; if binding fails, the runtime is disposed and nothing usable is returned.
  *
  * Every call creates a new runtime: two compositions never share constructors, roots, node metadata or
  * scheduled cleanup.
  */
-export function createRenderer<S extends SceneTypes, F extends BindingFamily>(
+export function createRenderer<S extends PixiTypes, F extends ReactBindingFamily>(
     adapters: Adapters<S, F>,
     options: RendererOptions = {},
 ): Renderer<F, S>
 {
     const runtime = compose(adapters, options);
-    const frameworkId = runtime.manifests.framework.id;
+    const reactId = runtime.manifests.react.id;
     let bindings: unknown;
 
     try
     {
-        bindings = adapters.framework.bind(runtime);
+        bindings = adapters.react.bind(runtime);
 
         if (!isBindable(bindings))
         {
             throw new CompatibilityError(
-                `Framework adapter "${frameworkId}" returned ${bindings === null ? 'null' : typeof bindings} from bind(); `
+                `React adapter "${reactId}" returned ${bindings === null ? 'null' : typeof bindings} from bind(); `
                 + 'it must return its bindings object.',
-                { code: 'ABI_MISMATCH', adapterIds: [frameworkId] },
+                { code: 'ABI_MISMATCH', adapterIds: [reactId] },
             );
         }
 
         if (Object.prototype.hasOwnProperty.call(bindings, 'runtime'))
         {
             throw new CompatibilityError(
-                `Framework adapter "${frameworkId}" returned bindings with a "runtime" key, which createRenderer reserves.`,
-                { code: 'ABI_MISMATCH', adapterIds: [frameworkId] },
+                `React adapter "${reactId}" returned bindings with a "runtime" key, which createRenderer reserves.`,
+                { code: 'ABI_MISMATCH', adapterIds: [reactId] },
             );
         }
     }

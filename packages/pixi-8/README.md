@@ -1,7 +1,7 @@
 # @pixi-react-provisional/pixi-8
 
-The Pixi 8 scene adapter ([issue 8](https://github.com/baseten/pixi-react/issues/8)). `Pixi8Adapter` extends core's
-`SceneAdapter` and owns every Pixi 8 behaviour of the [adapter contract](../../design/adapter-architecture.md). It is
+The Pixi 8 adapter ([issue 8](https://github.com/baseten/pixi-react/issues/8)). `Pixi8Adapter` extends core's
+`PixiAdapter` and owns every Pixi 8 behaviour of the [adapter contract](../../design/adapter-architecture.md). It is
 the only package that imports `pixi.js`, and it has no React, `react-reconciler` or its-fine dependency. The package
 is private and provisional: nothing here is published.
 
@@ -9,7 +9,7 @@ is private and provisional: nothing here is published.
 import { createRenderer } from '@pixi-react-provisional/renderer';
 import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
 
-const renderer = createRenderer({ framework: new SomeFrameworkAdapter(), scene: new Pixi8Adapter() });
+const renderer = createRenderer({ react: new SomeReactAdapter(), pixi: new Pixi8Adapter() });
 ```
 
 ## Supported Pixi versions
@@ -28,8 +28,8 @@ installed version and the detected features are recorded in `adapter.manifest.pi
 
 | ID | Provided when | Meaning |
 | --- | --- | --- |
-| `scene.mutation`, `scene.visibility`, `scene.application`, `scene.ticker` | always | The core scene protocol |
-| `scene.globals` | always | Extension leases and the default-text-style writer registry below |
+| `pixi.mutation`, `pixi.visibility`, `pixi.application`, `pixi.ticker` | always | The core scene protocol |
+| `pixi.globals` | always | Extension leases and the default-text-style writer registry below |
 | `pixi8.filter` | always | Filters attach to their parent's `filters` |
 | `pixi8.particle` | `Particle` and `ParticleContainer` exported (8.5+) | Particles attach through the ParticleContainer API |
 | `pixi8.render-layer` | `RenderLayer` exported (8.7+) | A RenderLayer node |
@@ -105,7 +105,7 @@ become `HTMLText` (upstream's `NameOverrides`).
   `null`. Pixi-named props warn once and are ignored.
 - **`draw`.** Called on mount and whenever its identity changes, only on Graphics. On anything else it warns.
 - **Readonly members** (getters without setters, non-writable fields) are never written.
-- **Visibility.** `setHidden` layers framework visibility (Suspense, Activity) over `visible` (containers), `enabled`
+- **Visibility.** `setHidden` layers React visibility (Suspense, Activity) over `visible` (containers), `enabled`
   (filters) or `alpha` (particles). Unhiding restores the latest committed prop value, or the value from before the
   hide when no prop controls it.
 
@@ -189,8 +189,8 @@ A browser cell aliases the bare `pixi.js` specifier (in the adapter source, the 
 version-pinned install (`pixi.js-8.9`, `pixi.js-current`). Set `CI=true` to run Chromium headless.
 
 The conformance binding (`test/browser/binding.tsx`) composes the real core, renderer and `Pixi8Adapter` with the
-conformance package's fake React 19 framework adapter, a react-reconciler 0.31 test double; the real React adapter is
-issue 9. The binding provides `framework.react-19`, `scene.globals` and `dom.resize`, and lists no expected failures.
+conformance package's fake React 19 adapter, a react-reconciler 0.31 test double; the real React adapter is
+issue 9. The binding provides `react.19`, `pixi.globals` and `dom.resize`, and lists no expected failures.
 The facade binding attributes these defects to issue 8, and all of them pass here:
 
 | Scenario | Defect fixed in the adapter |

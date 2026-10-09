@@ -40,7 +40,7 @@ describe('scenario catalogue', () =>
 
     it('marks the React 18 scenarios as pending on issue 12', () =>
     {
-        const react18 = scenarios.filter((scenario) => scenario.requires.includes('framework.react-18'));
+        const react18 = scenarios.filter((scenario) => scenario.requires.includes('react.18'));
 
         expect(react18.map((scenario) => scenario.id)).toEqual([
             'root.concurrency.react-18-concurrent-root',

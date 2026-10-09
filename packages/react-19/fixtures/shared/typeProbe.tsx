@@ -1,6 +1,6 @@
 /**
  * Compile-only consumer probe, typechecked by every fixture against its own @types/react line: the bindings infer
- * the composed scene's types from the adapter instances, with no explicit type arguments. Never executed.
+ * the composed Pixi adapter's types from the adapter instances, with no explicit type arguments. Never executed.
  */
 import { createRef } from 'react';
 import {
@@ -8,8 +8,8 @@ import {
     type FakeContainer,
     type FakeSprite,
     type FakeTicker,
-} from '@pixi-react-provisional/conformance/fake-scene';
-import { FakeSceneAdapter, type FakeSceneTypes } from '@pixi-react-provisional/conformance/fake-scene-adapter';
+} from '@pixi-react-provisional/conformance/fake-pixi';
+import { FakePixiAdapter, type FakePixiTypes } from '@pixi-react-provisional/conformance/fake-pixi-adapter';
 import { React19Adapter } from '@pixi-react-provisional/react-19/19.0';
 import { createRenderer } from '@pixi-react-provisional/renderer';
 
@@ -17,7 +17,7 @@ import type { ApplicationRef, Root } from '@pixi-react-provisional/react-19/19.0
 
 export function probe(Sprite: typeof FakeSprite)
 {
-    const renderer = createRenderer({ framework: new React19Adapter(), scene: new FakeSceneAdapter() });
+    const renderer = createRenderer({ react: new React19Adapter(), pixi: new FakePixiAdapter() });
     const { Application, createRoot, useApplication, useTick, component, useContextBridge, ContextBridgeProvider } = renderer;
 
     const SpriteComponent = component(Sprite);
@@ -58,7 +58,7 @@ export function probe(Sprite: typeof FakeSprite)
         return <ContextBridge><Child /></ContextBridge>;
     };
 
-    const root: Root<FakeSceneTypes> = createRoot(
+    const root: Root<FakePixiTypes> = createRoot(
         document.createElement('div'),
         {
             onInit: (app: FakeApplication) => app.stage,

@@ -15,11 +15,11 @@ export const ADAPTER_ID = 'pixi-8';
 
 /** Capability IDs the adapter provides (protocol version 1 each). */
 export const CAPABILITIES = Object.freeze({
-    mutation: 'scene.mutation',
-    visibility: 'scene.visibility',
-    application: 'scene.application',
-    ticker: 'scene.ticker',
-    globals: 'scene.globals',
+    mutation: 'pixi.mutation',
+    visibility: 'pixi.visibility',
+    application: 'pixi.application',
+    ticker: 'pixi.ticker',
+    globals: 'pixi.globals',
     filter: 'pixi8.filter',
     particle: 'pixi8.particle',
     renderLayer: 'pixi8.render-layer',
@@ -208,8 +208,8 @@ export function detectFeatures(pixi: PixiModule): PixiFeatures
     });
 }
 
-/** The scene behaviour bound to one Pixi module and one set of enabled capabilities. */
-export class PixiScene
+/** The node behaviour bound to one Pixi module and one set of enabled capabilities. */
+export class PixiNodes
 {
     readonly features: PixiFeatures;
     private readonly defaultInstances = new Map<ClassLike, object>();
@@ -351,7 +351,7 @@ export class PixiScene
     // ---------------------------------------------------------------- construction and props
 
     /**
-     * The only construction path. The constructor receives one options object: the props minus framework-owned
+     * The only construction path. The constructor receives one options object: the props minus React-owned
      * keys, event handlers, `draw` and dashed props (which are applied afterwards, so they reach nested fields).
      */
     create(definition: NodeDefinition, props: unknown): object
@@ -552,7 +552,7 @@ export class PixiScene
         }
 
         const path = pathOf(key);
-        // While framework-hidden, the node holds the hidden value; the value to keep is the one from before the hide.
+        // While hidden by React, the node holds the hidden value; the value to keep is the one from before the hide.
         const current = state.hidden && key === this.visibilityKey(state) ? state.restoreVisibility : readPath(node, path);
         const own = (props: Readonly<Props>, name: string) => Object.prototype.hasOwnProperty.call(props, name);
         const fromProps = path.length > 1
@@ -686,7 +686,7 @@ export class PixiScene
         target[field] = value;
     }
 
-    /** Framework visibility (Suspense, Activity) layered over the user's committed `visible`/`enabled`/`alpha`. */
+    /** React visibility (Suspense, Activity) layered over the user's committed `visible`/`enabled`/`alpha`. */
     setHidden(node: object, hidden: boolean): void
     {
         const state = this.stateOf(node);

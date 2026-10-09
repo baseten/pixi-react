@@ -1,7 +1,7 @@
 /**
- * Fake scene objects: plain data shaped loosely after a 2D scene graph so conformance scenarios can run
+ * Fake Pixi objects: plain data shaped loosely after a 2D scene graph so conformance scenarios can run
  * without a renderer, a GPU or a browser. They deliberately do no work in their constructors: the
- * `FakeSceneSession` applies every prop, so it can capture a node's initial values before the first write.
+ * `FakePixiSession` applies every prop, so it can capture a node's initial values before the first write.
  */
 
 export interface FakeNodeDestroyOptions

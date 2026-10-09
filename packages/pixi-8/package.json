@@ -2,7 +2,7 @@
   "name": "@pixi-react-provisional/pixi-8",
   "version": "0.0.0",
   "private": true,
-  "description": "Pixi8Adapter: the Pixi 8 scene adapter. Owns every pixi.js import, node construction, props, destruction, application lifecycle, ticker and Pixi globals. No React dependency.",
+  "description": "Pixi8Adapter: the Pixi 8 adapter. Owns every pixi.js import, node construction, props, destruction, application lifecycle, ticker and Pixi globals. No React dependency.",
   "license": "MIT",
   "type": "commonjs",
   "exports": {

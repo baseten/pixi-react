@@ -6,8 +6,8 @@ import type {
     RendererDestroyOptions, SpriteOptions, Text, TextOptions, TextStyleOptions, Texture, Ticker, TilingSprite,
     TilingSpriteOptions,
 } from 'pixi.js';
-import type { Constructor, NodeDefinition, PropsFamily, Runtime, SceneSession, SceneTypes } from './core.js';
-import { SceneAdapter } from './core.js';
+import type { Constructor, NodeDefinition, PropsFamily, Runtime, PixiSession, PixiTypes } from './core.js';
+import { PixiAdapter } from './core.js';
 /**
  * Version-owned override table, ported from upstream src/typedefs/ConstructorOverrides.ts (30cf1f8).
  * Deprecated positional overloads otherwise win ConstructorParameters. The AnimatedSprite row is the
@@ -66,13 +66,13 @@ export type Pixi8EventHandlers = {
 };
 /** Upstream GraphicsProps. */
 type GraphicsProps<I> = I extends Graphics ? { draw: (graphics: I) => void } : unknown;
-/** Upstream PixiReactElementProps minus the framework-owned ref/key/children (added by the framework binding). */
+/** Upstream PixiReactElementProps minus the React-owned ref/key/children (added by the React binding). */
 export type Pixi8Props<C extends Constructor> =
     & GraphicsProps<InstanceType<C>>
     & OmitKeys<ExcludeFunctionProps<ConstructorOptions<C>>, TreeOwnedKeys & PixiToReactEventPropNames>
     & Pixi8EventHandlers;
 export interface Pixi8PropsFamily extends PropsFamily { readonly type: Pixi8Props<Extract<this['constructorType'], Constructor>> }
-export interface Pixi8Types extends SceneTypes {
+export interface Pixi8Types extends PixiTypes {
     readonly node: object;
     readonly app: Application;
     readonly options: Partial<ApplicationOptions>;
@@ -86,9 +86,9 @@ export interface Pixi8Types extends SceneTypes {
     readonly tick: Ticker;
     readonly props: Pixi8PropsFamily;
 }
-export declare class Pixi8Adapter extends SceneAdapter<Pixi8Types> {
+export declare class Pixi8Adapter extends PixiAdapter<Pixi8Types> {
     readonly manifest: import('./core.js').AdapterManifest;
-    createSession(runtime: Runtime<Pixi8Types>, target: HTMLElement | HTMLCanvasElement): SceneSession<Pixi8Types>;
+    createSession(runtime: Runtime<Pixi8Types>, target: HTMLElement | HTMLCanvasElement): PixiSession<Pixi8Types>;
     describe<C extends Constructor>(ctor: C, name: string): NodeDefinition<C>;
 }
 /** Child support is selected by the Pixi catalog, never assumed by core. */

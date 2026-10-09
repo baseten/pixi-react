@@ -9,7 +9,7 @@ import { createRenderer } from './hostConfig.js';
 
 import type { ParentActivityBridge } from '../shared/bindings.js';
 import type { EpochRenderer } from '../shared/host.js';
-import type { Runtime, SceneTypes } from '@pixi-react-provisional/core';
+import type { PixiTypes, Runtime } from '@pixi-react-provisional/core';
 
 export const EPOCH: EpochInfo = Object.freeze({
     epoch: '19.3',
@@ -18,12 +18,12 @@ export const EPOCH: EpochInfo = Object.freeze({
     provides: Object.freeze({ 'react.activity': 1 }),
 });
 
-/** The React 19.3 framework adapter (react-reconciler 0.34.0). */
+/** The React 19.3 adapter (react-reconciler 0.34.0). */
 export class React193Adapter extends React19AdapterBase
 {
     readonly epoch = EPOCH;
 
-    protected createRenderer<S extends SceneTypes>(runtime: Runtime<S>): EpochRenderer<S>
+    protected createRenderer<S extends PixiTypes>(runtime: Runtime<S>): EpochRenderer<S>
     {
         return createRenderer(runtime);
     }

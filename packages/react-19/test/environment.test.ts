@@ -29,7 +29,7 @@ describe('epoch adapters', () =>
                 expect(new Adapter()).toBeInstanceOf(entry.React19AdapterBase);
             });
 
-            it('declares an ABI 1 manifest with its epoch, the scene capabilities it needs and its tested tuple', () =>
+            it('declares an ABI 1 manifest with its epoch, the Pixi capabilities it needs and its tested tuple', () =>
             {
                 const { manifest: adapterManifest } = new Adapter();
 
@@ -37,10 +37,10 @@ describe('epoch adapters', () =>
                 expect(adapterManifest.id).toBe(`react-19/${epoch}`);
                 expect(adapterManifest.packageVersion).toBe(manifest.version);
                 expect(adapterManifest.requires).toEqual({
-                    'scene.mutation': 1,
-                    'scene.visibility': 1,
-                    'scene.application': 1,
-                    'scene.ticker': 1,
+                    'pixi.mutation': 1,
+                    'pixi.visibility': 1,
+                    'pixi.application': 1,
+                    'pixi.ticker': 1,
                 });
                 expect(adapterManifest.provides).toEqual(epoch >= '19.2' ? { 'react.activity': 1 } : {});
 

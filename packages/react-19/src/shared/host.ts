@@ -1,19 +1,19 @@
 /**
  * The host operations every React 19 epoch shares. They translate reconciler calls into core's scene protocol:
  * names resolve through the runtime registry, and every node is created, mutated, hidden and destroyed through
- * the owning root's `SceneBridge`. No scene library is called directly.
+ * the owning root's `PixiBridge`. No scene library is called directly.
  *
  * This is not a host config. Each epoch builds its own config object, typed against its own pinned reconciler
  * declaration, from these functions plus its epoch-specific keys; no config is shared between epochs or cast to
  * another epoch's type.
  */
 import { createContext, type ReactNode } from 'react';
-import { CompatibilityError, type RootRecord, type Runtime, type SceneTypes } from '@pixi-react-provisional/core';
+import { CompatibilityError, type PixiTypes, type RootRecord, type Runtime } from '@pixi-react-provisional/core';
 
 export type HostProps = Record<string, unknown>;
 
 /** The reconciler container of one root. */
-export interface HostContainer<S extends SceneTypes>
+export interface HostContainer<S extends PixiTypes>
 {
     readonly record: RootRecord<S>;
 }
@@ -41,7 +41,7 @@ export interface EpochRoot
 }
 
 /** What an epoch hands the shared bindings. */
-export interface EpochRenderer<S extends SceneTypes>
+export interface EpochRenderer<S extends PixiTypes>
 {
     createRoot(container: HostContainer<S>, callbacks: EpochRootCallbacks, identifierPrefix: string): EpochRoot;
 }
@@ -135,7 +135,7 @@ export function rawTextError(text: string): Error
 export function unsupportedFeature(adapterId: string, capability: string, feature: string): CompatibilityError
 {
     return new CompatibilityError(
-        `${feature} is not supported by the ${adapterId} renderer: the scene provides no "${capability}" capability.`,
+        `${feature} is not supported by the ${adapterId} renderer: the Pixi adapter provides no "${capability}" capability.`,
         { code: 'CAPABILITY_MISSING', adapterIds: [adapterId], capability, expected: { [capability]: 1 }, actual: { [capability]: null } },
     );
 }
@@ -145,10 +145,10 @@ const ROOT_HOST_CONTEXT = Object.freeze({});
 
 /**
  * The mutation-mode operations shared by every epoch, bound to one runtime. Each forwards to the owning root's
- * scene bridge, which checks ownership and attach rules before mutating and destroys removed subtrees after the
+ * Pixi bridge, which checks ownership and attach rules before mutating and destroys removed subtrees after the
  * commit, each node exactly once.
  */
-export function createMutationHost<S extends SceneTypes>(runtime: Runtime<S>)
+export function createMutationHost<S extends PixiTypes>(runtime: Runtime<S>)
 {
     type Node = S['node'];
     type Container = HostContainer<S>;
@@ -167,37 +167,37 @@ export function createMutationHost<S extends SceneTypes>(runtime: Runtime<S>)
 
     return {
         createInstance: (type: string, props: HostProps, container: Container): Node =>
-            container.record.scene.create(type, props),
+            container.record.pixi.create(type, props),
         createTextInstance(text: string): never
         {
             throw rawTextError(text);
         },
-        appendInitialChild: (parent: Node, child: Node): void => recordOf(parent).scene.append(parent, child),
+        appendInitialChild: (parent: Node, child: Node): void => recordOf(parent).pixi.append(parent, child),
         finalizeInitialChildren: (): boolean => false,
         shouldSetTextContent: (): boolean => false,
         getRootHostContext: (): object => ROOT_HOST_CONTEXT,
         getChildHostContext: (context: object): object => context,
-        getPublicInstance: (node: Node): object => recordOf(node).scene.publicInstance(node),
+        getPublicInstance: (node: Node): object => recordOf(node).pixi.publicInstance(node),
         prepareForCommit: (): null => null,
         // Removed subtrees are destroyed after the commit, through core, each node exactly once.
-        resetAfterCommit: (container: Container): void => container.record.scene.flush(),
+        resetAfterCommit: (container: Container): void => container.record.pixi.flush(),
         preparePortalMount: (): void => undefined,
-        appendChild: (parent: Node, child: Node): void => recordOf(parent).scene.append(parent, child),
+        appendChild: (parent: Node, child: Node): void => recordOf(parent).pixi.append(parent, child),
         appendChildToContainer: ({ record }: Container, child: Node): void =>
-            record.scene.append(record.session.container, child),
+            record.pixi.append(record.session.container, child),
         insertBefore: (parent: Node, child: Node, before: Node): void =>
-            recordOf(parent).scene.insertBefore(parent, child, before),
+            recordOf(parent).pixi.insertBefore(parent, child, before),
         insertInContainerBefore: ({ record }: Container, child: Node, before: Node): void =>
-            record.scene.insertBefore(record.session.container, child, before),
-        removeChild: (parent: Node, child: Node): void => recordOf(child).scene.remove(parent, child),
+            record.pixi.insertBefore(record.session.container, child, before),
+        removeChild: (parent: Node, child: Node): void => recordOf(child).pixi.remove(parent, child),
         removeChildFromContainer: ({ record }: Container, child: Node): void =>
-            record.scene.remove(record.session.container, child),
+            record.pixi.remove(record.session.container, child),
         commitUpdate: (node: Node, _type: string, previous: HostProps, next: HostProps): void =>
-            recordOf(node).scene.update(node, previous, next),
+            recordOf(node).pixi.update(node, previous, next),
         // Suspense fallbacks and (19.2+) Activity both hide through the session's visibility layer.
-        hideInstance: (node: Node): void => recordOf(node).scene.setHidden(node, true),
-        unhideInstance: (node: Node): void => recordOf(node).scene.setHidden(node, false),
-        // The container's children belong to the scene session; React never clears it.
+        hideInstance: (node: Node): void => recordOf(node).pixi.setHidden(node, true),
+        unhideInstance: (node: Node): void => recordOf(node).pixi.setHidden(node, false),
+        // The container's children belong to the Pixi session; React never clears it.
         clearContainer: (): void => undefined,
         detachDeletedInstance: (): void => undefined,
         shouldAttemptEagerTransition: (): boolean => false,

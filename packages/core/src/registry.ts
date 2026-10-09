@@ -1,14 +1,14 @@
 import { CompatibilityError } from './errors.js';
 
-import type { SceneAdapter } from './adapters.js';
+import type { PixiAdapter } from './adapters.js';
 import type { Registry } from './contracts.js';
 import type {
     AttachRule,
     Catalog,
     Constructor,
     NodeDefinition,
+    PixiTypes,
     RegistryConflictPolicy,
-    SceneTypes,
 } from './types.js';
 
 export interface RegistryOptions
@@ -29,17 +29,17 @@ function isRecord(value: unknown): value is Record<string, unknown>
  * The per-runtime catalog. Each runtime constructs its own; there is no module-level catalog, so two runtimes
  * never share constructors. Every check throws `CompatibilityError` in every build.
  */
-export class RuntimeRegistry<S extends SceneTypes> implements Registry<S>
+export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
 {
     private readonly byName = new Map<string, NodeDefinition>();
     /** Stable names for `component(Ctor)`; never derived from `Ctor.name`. */
     private readonly names = new WeakMap<Constructor, string>();
     private nextId = 0;
 
-    constructor(private readonly scene: SceneAdapter<S>, private readonly options: RegistryOptions)
+    constructor(private readonly pixi: PixiAdapter<S>, private readonly options: RegistryOptions)
     {}
 
-    /** Normalizes a name exactly once, through the scene adapter. */
+    /** Normalizes a name exactly once, through the Pixi adapter. */
     normalize(name: string): string
     {
         if (typeof name !== 'string' || !name)
@@ -50,13 +50,13 @@ export class RuntimeRegistry<S extends SceneTypes> implements Registry<S>
             });
         }
 
-        const normalized = this.scene.normalizeName(name);
+        const normalized = this.pixi.normalizeName(name);
 
         if (typeof normalized !== 'string' || !normalized)
         {
             throw new CompatibilityError(
-                `Scene adapter "${this.scene.manifest.id}" normalized "${name}" to an invalid name.`,
-                { code: 'ABI_MISMATCH', adapterIds: [this.scene.manifest.id] },
+                `Pixi adapter "${this.pixi.manifest.id}" normalized "${name}" to an invalid name.`,
+                { code: 'ABI_MISMATCH', adapterIds: [this.pixi.manifest.id] },
             );
         }
 
@@ -180,13 +180,13 @@ export class RuntimeRegistry<S extends SceneTypes> implements Registry<S>
 
     private describe<C extends Constructor>(ctor: C, name: string): NodeDefinition<C>
     {
-        const definition = this.validate(this.scene.describe(ctor, name));
+        const definition = this.validate(this.pixi.describe(ctor, name));
 
         if (definition.ctor !== ctor || definition.name !== name)
         {
             throw new CompatibilityError(
-                `Scene adapter "${this.scene.manifest.id}" described "${name}" with a different name or constructor.`,
-                { code: 'ABI_MISMATCH', adapterIds: [this.scene.manifest.id], expected: { name }, actual: { name: definition.name } },
+                `Pixi adapter "${this.pixi.manifest.id}" described "${name}" with a different name or constructor.`,
+                { code: 'ABI_MISMATCH', adapterIds: [this.pixi.manifest.id], expected: { name }, actual: { name: definition.name } },
             );
         }
 

@@ -1,19 +1,19 @@
-import type { RootTarget, Runtime, SceneSession } from './contracts.js';
-import type { AdapterManifest, Bind, BindingFamily, Constructor, NodeDefinition, SceneTypes } from './types.js';
+import type { PixiSession, RootTarget, Runtime } from './contracts.js';
+import type { AdapterManifest, Bind, Constructor, NodeDefinition, PixiTypes, ReactBindingFamily } from './types.js';
 
 /**
- * Base class of every scene adapter. It is open: a third-party scene subclasses it with its own manifest ID and
- * `SceneTypes`. There is no closed list of known adapters.
+ * Base class of every Pixi adapter. It is open: a third-party Pixi adapter subclasses it with its own manifest ID and
+ * `PixiTypes`. There is no closed list of known adapters.
  */
-export abstract class SceneAdapter<S extends SceneTypes>
+export abstract class PixiAdapter<S extends PixiTypes>
 {
-    /** Type-only witness of the scene types; never emitted at runtime. */
-    declare readonly sceneTypes: S;
+    /** Type-only witness of the Pixi types; never emitted at runtime. */
+    declare readonly pixiTypes: S;
 
     abstract readonly manifest: AdapterManifest;
 
     /** Creates the session for one root. `target` is the canvas the root owns. */
-    abstract createSession(runtime: Runtime<S>, target: RootTarget): SceneSession<S>;
+    abstract createSession(runtime: Runtime<S>, target: RootTarget): PixiSession<S>;
 
     /** Pure metadata lookup; constructs nothing. Throws `CompatibilityError` (`UNSUPPORTED_NODE`) in every build. */
     abstract describe<C extends Constructor>(ctor: C, name: string): NodeDefinition<C>;
@@ -41,19 +41,19 @@ export abstract class SceneAdapter<S extends SceneTypes>
 }
 
 /**
- * Base class of every framework adapter. `bind` substitutes the composed scene into the adapter's own
- * `BindingFamily`, so the factory preserves backend-specific types without core naming any framework type.
+ * Base class of every React adapter. `bind` substitutes the composed Pixi types into the adapter's own
+ * `ReactBindingFamily`, so the factory preserves backend-specific types without core naming any React type.
  */
-export abstract class FrameworkAdapter<F extends BindingFamily>
+export abstract class ReactAdapter<F extends ReactBindingFamily>
 {
     /** Type-only witness of the binding family; never emitted at runtime. */
     declare readonly bindingFamily: F;
 
     abstract readonly manifest: AdapterManifest;
 
-    abstract bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<F, S>;
+    abstract bind<S extends PixiTypes>(runtime: Runtime<S>): Bind<F, S>;
 
-    /** See `SceneAdapter.checkEnvironment`. */
+    /** See `PixiAdapter.checkEnvironment`. */
     checkEnvironment(): void
     {
         // Nothing to check by default.

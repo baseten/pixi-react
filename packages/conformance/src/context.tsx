@@ -1,8 +1,8 @@
 import { act as reactAct, type ReactNode, StrictMode } from 'react';
 import { createRoot, type Root as DomRoot } from 'react-dom/client';
 
-import type { Composition, NodeKind, ReactBindingApi, SceneElement, SceneProbe } from './binding';
-import type { SceneJournal } from './journal';
+import type { Composition, NodeKind, PixiElement, PixiProbe, ReactBindingApi } from './binding';
+import type { PixiJournal } from './journal';
 
 export interface Deferred<T>
 {
@@ -42,9 +42,9 @@ export interface ScenarioContext
 {
     readonly composition: Composition;
     readonly api: ReactBindingApi;
-    readonly elements: Readonly<Record<NodeKind, SceneElement>>;
-    readonly probe: SceneProbe;
-    readonly journal: SceneJournal;
+    readonly elements: Readonly<Record<NodeKind, PixiElement>>;
+    readonly probe: PixiProbe;
+    readonly journal: PixiJournal;
     /** DOM element hosting the primary React DOM root. Attached to `document.body`. */
     readonly host: HTMLElement;
 

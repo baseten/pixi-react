@@ -1,5 +1,5 @@
 import { isCompatibilityError } from '../runtime/errors';
-import { DROPPED_NODE_ATTACH } from '../runtime/sceneAdapter';
+import { DROPPED_NODE_ATTACH } from '../runtime/pixiAdapter';
 
 import type { FacadeRuntime } from '../runtime/composition';
 
@@ -14,7 +14,7 @@ function isTolerated(error: unknown): boolean
  *
  * - a name already bound to another constructor is silently replaced (`registryConflict: 'replace'`);
  * - every entry registers on its own, and nothing throws: a constructor Pixi8Adapter does not support as a scene
- *   node (`Texture`, `Point`, …) is registered as a dropped node (see `runtime/sceneAdapter.ts`), and a value that
+ *   node (`Texture`, `Point`, …) is registered as a dropped node (see `runtime/pixiAdapter.ts`), and a value that
  *   is not a constructor is ignored, so rendering it reports an unknown element.
  */
 export function createExtend(runtime: FacadeRuntime)
@@ -50,9 +50,9 @@ export function createExtend(runtime: FacadeRuntime)
 
                 try
                 {
-                    runtime.scene.droppedConstructors.add(value);
+                    runtime.adapter.droppedConstructors.add(value);
                     renderer.runtime.registry.register({
-                        name: runtime.scene.normalizeName(key),
+                        name: runtime.adapter.normalizeName(key),
                         ctor: value,
                         capabilities: {},
                         attach: DROPPED_NODE_ATTACH,

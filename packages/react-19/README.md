@@ -1,9 +1,9 @@
 # @pixi-react-provisional/react-19
 
-The React 19 framework adapters ([issue 9](https://github.com/baseten/pixi-react/issues/9)). Each one is a
-`FrameworkAdapter` from [`@pixi-react-provisional/core`](../core/README.md) that owns everything React-side: the
+The React 19 adapters ([issue 9](https://github.com/baseten/pixi-react/issues/9)). Each one is a
+`ReactAdapter` from [`@pixi-react-provisional/core`](../core/README.md) that owns everything React-side: the
 reconciler, roots, the host config, the context bridge, and the shells of `Application` and the hooks. All scene work
-goes through core's `SceneSession` protocol, so this package has no Pixi dependency: it installs, builds and runs
+goes through core's `PixiSession` protocol, so this package has no Pixi dependency: it installs, builds and runs
 without `pixi.js`. The package is private and provisional: nothing here is published.
 
 ```ts
@@ -12,7 +12,7 @@ import { React19Adapter } from '@pixi-react-provisional/react-19/19.3'; // React
 import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
 
 export const { Application, createRoot, extend, useApplication, useTick, component } =
-    createRenderer({ framework: new React19Adapter(), scene: new Pixi8Adapter() });
+    createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
 ```
 
 ## Epochs: one package, four subpaths (D2)
@@ -45,7 +45,7 @@ every subpath. `react` is the only peer.
 ## What each epoch implements
 
 The shared base class `React19Adapter` holds the bindings and the mutation operations, which forward to the root's
-core `SceneBridge`. Each epoch subclass builds its **own** host config and root factory, typed against declarations of
+core `PixiBridge`. Each epoch subclass builds its **own** host config and root factory, typed against declarations of
 its own reconciler (`src/reconcilers/react-reconciler-0.3x.d.ts`, written from the installed bundle; no
 `@types/react-reconciler`, no cast to another epoch's config).
 
@@ -134,7 +134,7 @@ The bindings follow [`design/contract/react-19.d.ts`](../../design/contract/reac
 - Each subpath's `React19Adapter` is the concrete epoch class; the abstract shared base is `React19AdapterBase`.
 - The bindings add `ContextBridgeProvider`: React exposes no current fiber to a hook, so `useContextBridge` needs a
   provider above the calling component.
-- `RootOptions` makes the scene's destroy options optional (`Partial<S['destroy']>`), and `ApplicationProps` merge
+- `RootOptions` makes the scene's destroy options optional (`Partial<P['destroy']>`), and `ApplicationProps` merge
   the scene's init options with its mutable application props.
 - Adapter-owned error codes use the `react-19.` namespace (`react-19.FOREIGN_RUNTIME`).
 
@@ -176,7 +176,7 @@ module) are removed, so no published declaration names a module the package does
 the bundle resolves the fixture's own React (a workspace symlink would resolve this package's dev React).
 `fixtures/shared/` holds the suite every fixture runs:
 
-- the whole conformance catalogue (`describeConformance`) through `createRenderer` with the fake scene adapter, with
+- the whole conformance catalogue (`describeConformance`) through `createRenderer` with the fake Pixi adapter, with
   no expected failures;
 - the installed tuple: the exact React and react-dom versions, the manifest, and rejection of every other subpath;
 - React behaviour the adapter owns: callback-ref cleanup, layout and passive effect order and cleanup before

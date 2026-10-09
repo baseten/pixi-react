@@ -7,12 +7,12 @@ nothing here is published.
 ```ts
 import { createRenderer } from '@pixi-react-provisional/renderer';
 
-const renderer = createRenderer({ framework: new SomeFrameworkAdapter(), scene: new SomeSceneAdapter() });
-// renderer: the framework's bindings for that scene, plus `renderer.runtime`.
+const renderer = createRenderer({ react: new SomeReactAdapter(), pixi: new SomePixiAdapter() });
+// renderer: the React adapter's bindings for that Pixi adapter, plus `renderer.runtime`.
 ```
 
-`createRenderer({ framework, scene }, options?)` infers the framework family and the scene types from the adapter
-instances, so the call site needs no type arguments. It returns `Bind<F, S> & { readonly runtime: Runtime<S> }`.
+`createRenderer({ react, pixi }, options?)` infers the React binding family and the Pixi types from the adapter
+instances, so the call site needs no type arguments. It returns `Bind<R, P> & { readonly runtime: Runtime<P> }`.
 
 Each call works like this:
 
@@ -21,7 +21,7 @@ Each call works like this:
    reaches `bind`.
 2. The call creates a new, isolated runtime. Two renderers never share constructors, roots, node metadata or scheduled
    cleanup.
-3. The call runs `framework.bind(runtime)`. If `bind` throws, or returns something other than an object or function,
+3. The call runs `react.bind(runtime)`. If `bind` throws, or returns something other than an object or function,
    or returns a reserved `runtime` key, the runtime is disposed and nothing usable is returned.
 4. An extensible bindings value gets `runtime` as a non-writable own property and is returned itself. A
    non-extensible one (frozen, sealed, or `Object.preventExtensions`) cannot take the property, so the result is a

@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react';
  * the bare `pixi.js` specifier (in the adapter source, the probe and the tests alike) to a version-pinned install.
  *
  * - `conformance-*`: the conformance suite on the floor (8.2.6) and the newest certified version (8.22.0).
- * - `scene-*`: Pixi-specific scene tests on 8.2.6, 8.9.2 (particles before the 8.10 removeParticles change) and 8.22.0.
+ * - `pixi-*`: Pixi-specific tests on 8.2.6, 8.9.2 (particles before the 8.10 removeParticles change) and 8.22.0.
  */
 const cells = [
     { version: '8.2.6', module: 'pixi.js', conformance: true },
@@ -14,14 +14,14 @@ const cells = [
     { version: '8.22.0', module: 'pixi.js-current', conformance: true },
 ];
 
-function project(kind: 'conformance' | 'scene', version: string, module: string)
+function project(kind: 'conformance' | 'pixi', version: string, module: string)
 {
     return {
         plugins: [react()],
         cacheDir: `node_modules/.vite/${kind}-${version}`,
         resolve: {
             alias: [{ find: /^pixi\.js$/, replacement: module }],
-            // One React for the scenarios, the fake framework adapter and React DOM.
+            // One React for the scenarios, the fake React adapter and React DOM.
             dedupe: ['react', 'react-dom'],
         },
         optimizeDeps: {
@@ -36,7 +36,7 @@ function project(kind: 'conformance' | 'scene', version: string, module: string)
                 provider: 'playwright',
                 headless: true,
             },
-            include: kind === 'conformance' ? ['test/browser/conformance.test.tsx'] : ['test/browser/scene/**/*.test.ts?(x)'],
+            include: kind === 'conformance' ? ['test/browser/conformance.test.tsx'] : ['test/browser/pixi/**/*.test.ts?(x)'],
             testTimeout: 15_000,
         },
     };
@@ -44,5 +44,5 @@ function project(kind: 'conformance' | 'scene', version: string, module: string)
 
 export default defineWorkspace(cells.flatMap(({ version, module, conformance }) => [
     ...(conformance ? [project('conformance', version, module)] : []),
-    project('scene', version, module),
+    project('pixi', version, module),
 ]));

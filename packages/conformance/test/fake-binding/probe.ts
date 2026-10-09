@@ -6,10 +6,10 @@ import {
     FakeResource,
     FakeSprite,
     FakeText,
-} from '../../src/fake-scene';
+} from '../../src/fake-pixi';
 
-import type { Constructor, InitAttempt, InitGate, SceneProbe } from '../../src/binding';
-import type { SceneJournal } from '../../src/journal';
+import type { Constructor, InitAttempt, InitGate, PixiProbe } from '../../src/binding';
+import type { PixiJournal } from '../../src/journal';
 
 interface PendingInit
 {
@@ -60,7 +60,7 @@ export function createBuiltins()
  * The scene probe over the fake backend, shared by the fake bindings. Initializations are intercepted so a
  * scenario can hold or fail the next one.
  */
-export function createFakeProbe(journal: SceneJournal, rootCount: () => number)
+export function createFakeProbe(journal: PixiJournal, rootCount: () => number)
 {
     const pendingInits: PendingInit[] = [];
     const virtualTime = new WeakMap<object, number>();
@@ -91,7 +91,7 @@ export function createFakeProbe(journal: SceneJournal, rootCount: () => number)
         }
     }
 
-    const probe: SceneProbe = {
+    const probe: PixiProbe = {
         journal,
         stage: (app) => (app as FakeApplication).stage,
         children: (node) => [...((node as FakeContainer | null)?.children ?? [])],

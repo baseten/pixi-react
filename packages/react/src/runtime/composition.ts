@@ -7,7 +7,7 @@
  * unsupported installation (another React minor, a pixi.js outside the peer range) throws its `CompatibilityError`
  * from the first facade call instead of from `import`.
  */
-import { createFacadeSceneAdapter, type FacadeSceneAdapter } from './sceneAdapter';
+import { createFacadePixiAdapter, type FacadePixiAdapter } from './pixiAdapter';
 import { React19Adapter } from '@pixi-react-provisional/react-19/19.3';
 import { createRenderer, type Renderer } from '@pixi-react-provisional/renderer';
 
@@ -28,9 +28,9 @@ export interface FacadeRootOptions
 
 export interface FacadeRuntime
 {
-    /** The facade's scene adapter. Constructing it allocates nothing and checks nothing. */
-    readonly scene: FacadeSceneAdapter;
-    /** The pixi.js module the scene adapter is bound to. */
+    /** The facade's Pixi adapter. Constructing it allocates nothing and checks nothing. */
+    readonly adapter: FacadePixiAdapter;
+    /** The pixi.js module the Pixi adapter is bound to. */
     readonly pixi: PixiModule;
     /** `TextStyle.defaultTextStyle` as it was when the facade loaded (upstream's restore target). */
     readonly originalDefaultTextStyle: Readonly<Record<string, unknown>>;
@@ -47,20 +47,20 @@ export interface FacadeRuntime
 
 export function createFacadeRuntime(Pixi8Adapter: Pixi8AdapterConstructor): FacadeRuntime
 {
-    const scene = createFacadeSceneAdapter(Pixi8Adapter);
-    const { pixi } = scene;
+    const adapter = createFacadePixiAdapter(Pixi8Adapter);
+    const { pixi } = adapter;
     let renderer: FacadeRenderer | undefined;
     const rootOptions = new WeakMap<object, FacadeRootOptions>();
     const states = new WeakMap<object, FacadeApplicationState>();
 
     return {
-        scene,
+        adapter,
         pixi,
         originalDefaultTextStyle: Object.freeze({ ...(pixi.TextStyle.defaultTextStyle as unknown as Record<string, unknown>) }),
         renderer()
         {
             // A failed composition throws again on the next call; nothing is cached until it succeeds.
-            renderer ??= createRenderer({ framework: new React19Adapter(), scene }, { registryConflict: 'replace' });
+            renderer ??= createRenderer({ react: new React19Adapter(), pixi: adapter }, { registryConflict: 'replace' });
 
             return renderer;
         },

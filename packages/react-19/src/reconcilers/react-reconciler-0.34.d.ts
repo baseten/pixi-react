@@ -76,7 +76,7 @@ declare module 'react-reconciler-0.34'
         resolveEventType(): null | string;
         resolveEventTimeStamp(): number;
 
-        // Fragment refs: rejected (no scene capability), so these throw a CompatibilityError.
+        // Fragment refs: rejected (no Pixi capability), so these throw a CompatibilityError.
         createFragmentInstance(fiber: unknown): never;
         updateFragmentInstanceFiber(fiber: unknown, instance: unknown): void;
         commitNewChildToFragmentInstance(child: Instance, fragmentInstance: unknown): void;

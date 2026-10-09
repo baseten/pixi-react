@@ -2,7 +2,7 @@
   "name": "@pixi-react-provisional/react-19-fixture-19.1.0",
   "version": "0.0.0",
   "private": true,
-  "description": "Test fixture: the built @pixi-react-provisional/react-19/19.1 subpath against exactly React 19.1.0 (audit tuple), with the fake scene adapter. Not published.",
+  "description": "Test fixture: the built @pixi-react-provisional/react-19/19.1 subpath against exactly React 19.1.0 (audit tuple), with the fake Pixi adapter. Not published.",
   "license": "MIT",
   "type": "module",
   "scripts": {

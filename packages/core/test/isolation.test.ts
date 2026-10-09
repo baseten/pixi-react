@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CompatibilityError, CoreErrorCodes, TeardownError } from '../src/index.js';
-import { canvasElement, composeFake, FakeNode, FakeSceneAdapter, hostElement, readyRoot } from './fakes.js';
+import { canvasElement, composeFake, FakeNode, FakePixiAdapter, hostElement, readyRoot } from './fakes.js';
 
 function caught(action: () => unknown): CompatibilityError
 {
@@ -46,20 +46,20 @@ describe('two runtimes are isolated', () =>
 
         const a = await readyRoot(first);
         const b = await readyRoot(second);
-        const node = a.scene.create('Node', {});
+        const node = a.pixi.create('Node', {});
 
         expect(first.roots()).toEqual([a]);
         expect(second.roots()).toEqual([b]);
         expect(second.rootFor(a.canvas)).toBeUndefined();
         expect(second.nodeInfo(node)).toBeUndefined();
-        expect(caught(() => b.scene.append(b.session.container, node)).code).toBe('UNSUPPORTED_NODE');
+        expect(caught(() => b.pixi.append(b.session.container, node)).code).toBe('UNSUPPORTED_NODE');
     });
 
     it('do not share scheduled cleanup: disposing one runtime leaves the other running', async () =>
     {
-        const scene = new FakeSceneAdapter();
-        const first = composeFake(scene);
-        const second = composeFake(scene);
+        const pixi = new FakePixiAdapter();
+        const first = composeFake(pixi);
+        const second = composeFake(pixi);
         const a = await readyRoot(first);
         const b = await readyRoot(second);
 
@@ -94,7 +94,7 @@ describe('DOM target ownership lease', () =>
 
             expect(error).toBeInstanceOf(CompatibilityError);
             expect(error.code).toBe(CoreErrorCodes.TARGET_LEASED);
-            expect(error.message).toMatch(/already owned by runtime \d+ \(test\.framework \+ test\.scene\)/);
+            expect(error.message).toMatch(/already owned by runtime \d+ \(test\.react \+ test\.pixi\)/);
         }
 
         expect(hosted.canvas.isConnected).toBe(true);
@@ -156,7 +156,7 @@ describe('DOM target ownership lease', () =>
 
     it('releases the lease when session creation fails', () =>
     {
-        class BrokenScene extends FakeSceneAdapter
+        class BrokenPixiAdapter extends FakePixiAdapter
         {
             createSession(): never
             {
@@ -166,7 +166,7 @@ describe('DOM target ownership lease', () =>
 
         const canvas = canvasElement();
 
-        expect(() => composeFake(new BrokenScene()).createRoot(canvas)).toThrow('cannot create a session');
+        expect(() => composeFake(new BrokenPixiAdapter()).createRoot(canvas)).toThrow('cannot create a session');
         expect(() => composeFake().createRoot(canvas)).not.toThrow();
     });
 });
@@ -175,8 +175,8 @@ describe('runtime disposal', () =>
 {
     it('snapshots the roots, tears each down once, runs cleanup, and freezes new work', async () =>
     {
-        const scene = new FakeSceneAdapter();
-        const runtime = composeFake(scene);
+        const pixi = new FakePixiAdapter();
+        const runtime = composeFake(pixi);
         const roots = [await readyRoot(runtime), await readyRoot(runtime), runtime.createRoot(canvasElement())];
         const order: string[] = [];
 
@@ -196,14 +196,14 @@ describe('runtime disposal', () =>
 
         expect(runtime.status).toBe('disposed');
         expect(roots.map((root) => root.status)).toEqual(['disposed', 'disposed', 'disposed']);
-        expect(scene.sessions.map((session) => session.destroyed)).toEqual([1, 1, 0]);
+        expect(pixi.sessions.map((session) => session.destroyed)).toEqual([1, 1, 0]);
         expect(order).toEqual(['cleanup after 0 roots']);
     });
 
     it('aggregates root and cleanup failures', async () =>
     {
-        const scene = new FakeSceneAdapter({ failAppDestroy: new Error('app destroy failed') });
-        const runtime = composeFake(scene);
+        const pixi = new FakePixiAdapter({ failAppDestroy: new Error('app destroy failed') });
+        const runtime = composeFake(pixi);
 
         await readyRoot(runtime);
         runtime.onDispose(() =>

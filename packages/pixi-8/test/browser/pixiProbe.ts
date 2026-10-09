@@ -17,14 +17,14 @@ import {
     type Constructor,
     type InitAttempt,
     type InitGate,
-    SceneJournal,
-    type SceneProbe,
+    PixiJournal,
+    type PixiProbe,
 } from '@pixi-react-provisional/conformance';
 
 type Kind = 'container' | 'sprite' | 'graphics' | 'text' | 'custom';
 
 /** Subclasses `Base` so that construction and destruction are journaled. */
-function spied<T extends new(...args: any[]) => Container>(Base: T, kind: Kind, journal: SceneJournal): T
+function spied<T extends new(...args: any[]) => Container>(Base: T, kind: Kind, journal: PixiJournal): T
 {
     return class extends Base
     {
@@ -71,7 +71,7 @@ function settledHandle()
 
 let probeTypeCounter = 0;
 
-export interface PixiProbe extends SceneProbe
+export interface Pixi8Probe extends PixiProbe
 {
     /** The spied built-in constructors, keyed by catalog name. */
     readonly catalog: Readonly<Record<'Container' | 'Sprite' | 'Graphics' | 'Text', Constructor>>;
@@ -80,13 +80,13 @@ export interface PixiProbe extends SceneProbe
 }
 
 /**
- * A `SceneProbe` for Pixi 8. It rebuilds the observable surface for each composition: spied subclasses of
+ * A `PixiProbe` for Pixi 8. It rebuilds the observable surface for each composition: spied subclasses of
  * the built-in display objects, and journaling wrappers around `Application.prototype.init`/`destroy`.
  * `rootCount` is supplied by the binding, because roots belong to the React side.
  */
-export function createPixiProbe(rootCount: () => number): PixiProbe
+export function createPixi8Probe(rootCount: () => number): Pixi8Probe
 {
-    const journal = new SceneJournal();
+    const journal = new PixiJournal();
     const pendingInits: PendingInit[] = [];
     const destroyedResources = new WeakSet<object>();
     const virtualTime = new WeakMap<object, number>();

@@ -1,24 +1,24 @@
 /**
  * Fake adapters for core tests. They are deliberately not React or Pixi: a plain node tree, an application
- * with an asynchronous init that a test can hold or fail, a numeric ticker, and a framework whose bindings are
+ * with an asynchronous init that a test can hold or fail, a numeric ticker, and a React adapter whose bindings are
  * a small imperative API. Every scene operation is logged so tests can assert order and exactly-once rules.
  */
-import { CompatibilityError, compose, FrameworkAdapter, SceneAdapter } from '../src/index.js';
+import { CompatibilityError, compose, PixiAdapter, ReactAdapter } from '../src/index.js';
 
 import type {
     AdapterManifest,
     Bind,
-    BindingFamily,
     Constructor,
     NodeContext,
     NodeDefinition,
+    PixiSession,
+    PixiTypes,
     PropsFamily,
+    ReactBindingFamily,
     RendererOptions,
     RootRecord,
     RootTarget,
     Runtime,
-    SceneSession,
-    SceneTypes,
     TickOptions,
 } from '../src/index.js';
 
@@ -51,7 +51,7 @@ export interface FakePropsFamily extends PropsFamily
     readonly type: { label?: string };
 }
 
-export interface FakeSceneTypes extends SceneTypes
+export interface FakePixiTypes extends PixiTypes
 {
     readonly node: object;
     readonly app: FakeApp;
@@ -63,10 +63,10 @@ export interface FakeSceneTypes extends SceneTypes
     readonly props: FakePropsFamily;
 }
 
-export type SceneLogEntry =
+export type PixiLogEntry =
     | { op: 'createSession'; target: RootTarget }
     | { op: 'init'; app: FakeApp; options: unknown }
-    | { op: 'create'; node: object; name: string; context: NodeContext<FakeSceneTypes> }
+    | { op: 'create'; node: object; name: string; context: NodeContext<FakePixiTypes> }
     | { op: 'update'; node: object; next: unknown }
     | { op: 'append' | 'remove'; parent: object; child: object }
     | { op: 'insertBefore'; parent: object; child: object; before: object }
@@ -88,11 +88,11 @@ export const BASE_MANIFEST = Object.freeze({
     certification: 'test://fake',
 });
 
-export const SCENE_PROVIDES = Object.freeze({
-    'scene.mutation': 1,
-    'scene.visibility': 1,
-    'scene.application': 1,
-    'scene.ticker': 1,
+export const PIXI_PROVIDES = Object.freeze({
+    'pixi.mutation': 1,
+    'pixi.visibility': 1,
+    'pixi.application': 1,
+    'pixi.ticker': 1,
 });
 
 export function manifest(overrides: Partial<AdapterManifest> & { id: string }): AdapterManifest
@@ -100,7 +100,7 @@ export function manifest(overrides: Partial<AdapterManifest> & { id: string }): 
     return { ...BASE_MANIFEST, provides: {}, requires: {}, ...overrides };
 }
 
-export interface FakeSceneOptions
+export interface FakePixiOptions
 {
     manifest?: AdapterManifest;
     /** Node definitions get these capabilities. */
@@ -115,13 +115,13 @@ export interface FakeSceneOptions
     prefix?: string;
 }
 
-export class FakeSession implements SceneSession<FakeSceneTypes>
+export class FakeSession implements PixiSession<FakePixiTypes>
 {
     readonly app = new FakeApp();
     readonly containerAttach = { role: 'container', accepts: ['child'] };
     destroyed = 0;
 
-    constructor(private readonly adapter: FakeSceneAdapter, readonly runtime: Runtime<FakeSceneTypes>)
+    constructor(private readonly adapter: FakePixiAdapter, readonly runtime: Runtime<FakePixiTypes>)
     {}
 
     get container(): object
@@ -145,7 +145,7 @@ export class FakeSession implements SceneSession<FakeSceneTypes>
         Object.assign(this.app, { label: props.label });
     }
 
-    create(definition: NodeDefinition, props: unknown, context: NodeContext<FakeSceneTypes>): object
+    create(definition: NodeDefinition, props: unknown, context: NodeContext<FakePixiTypes>): object
     {
         const Ctor = definition.ctor as unknown as new (options: unknown) => FakeNode;
         const node = new Ctor(props);
@@ -240,19 +240,19 @@ export class FakeSession implements SceneSession<FakeSceneTypes>
     }
 }
 
-/** A scene adapter over plain fake nodes. */
-export class FakeSceneAdapter extends SceneAdapter<FakeSceneTypes>
+/** A Pixi adapter over plain fake nodes. */
+export class FakePixiAdapter extends PixiAdapter<FakePixiTypes>
 {
     readonly manifest: AdapterManifest;
-    readonly log: SceneLogEntry[] = [];
+    readonly log: PixiLogEntry[] = [];
     readonly sessions: FakeSession[] = [];
     /** Inits wait for the next control pushed here (FIFO); without one they resolve after a microtask. */
     readonly heldInits: Array<{ promise: Promise<void> } & InitControl> = [];
 
-    constructor(readonly options: FakeSceneOptions = {})
+    constructor(readonly options: FakePixiOptions = {})
     {
         super();
-        this.manifest = options.manifest ?? manifest({ id: 'test.scene', provides: SCENE_PROVIDES });
+        this.manifest = options.manifest ?? manifest({ id: 'test.pixi', provides: PIXI_PROVIDES });
     }
 
     /** The next session's init waits until the returned control releases or fails it. */
@@ -293,12 +293,12 @@ export class FakeSceneAdapter extends SceneAdapter<FakeSceneTypes>
         return {
             name,
             ctor,
-            capabilities: this.options.nodeCapabilities ?? { 'scene.mutation': 1 },
+            capabilities: this.options.nodeCapabilities ?? { 'pixi.mutation': 1 },
             attach: isFilter ? { role: 'filter', accepts: [] } : { role: 'child', accepts: ['child', 'filter'] },
         };
     }
 
-    createSession(runtime: Runtime<FakeSceneTypes>, target: RootTarget): SceneSession<FakeSceneTypes>
+    createSession(runtime: Runtime<FakePixiTypes>, target: RootTarget): PixiSession<FakePixiTypes>
     {
         this.log.push({ op: 'createSession', target });
 
@@ -324,57 +324,57 @@ function detach(node: FakeNode): void
     }
 }
 
-/** The fake framework's bindings: an imperative API with no React types. */
-export interface FakeBindings<S extends SceneTypes>
+/** The fake React adapter's bindings: an imperative API with no React types. */
+export interface FakeBindings<S extends PixiTypes>
 {
-    readonly kind: 'fake-framework';
+    readonly kind: 'fake-react';
     createRoot(target: RootTarget): RootRecord<S>;
     extend(catalog: Record<string, Constructor>): void;
     component(ctor: Constructor, name?: string): string;
     app(root: RootRecord<S>): S['app'];
 }
 
-export interface FakeFamily extends BindingFamily
+export interface FakeFamily extends ReactBindingFamily
 {
-    readonly type: FakeBindings<Extract<this['scene'], SceneTypes>>;
+    readonly type: FakeBindings<Extract<this['pixi'], PixiTypes>>;
 }
 
-export class FakeFrameworkAdapter extends FrameworkAdapter<FakeFamily>
+export class FakeReactAdapter extends ReactAdapter<FakeFamily>
 {
     readonly manifest: AdapterManifest;
-    readonly bound: Runtime<SceneTypes>[] = [];
+    readonly bound: Runtime<PixiTypes>[] = [];
 
     constructor(overrides: Partial<AdapterManifest> = {}, private readonly failBind?: Error)
     {
         super();
-        this.manifest = manifest({ id: 'test.framework', requires: { 'scene.mutation': 1 }, ...overrides });
+        this.manifest = manifest({ id: 'test.react', requires: { 'pixi.mutation': 1 }, ...overrides });
     }
 
-    bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<FakeFamily, S>
+    bind<S extends PixiTypes>(runtime: Runtime<S>): Bind<FakeFamily, S>
     {
         if (this.failBind)
         {
             throw this.failBind;
         }
 
-        this.bound.push(runtime as unknown as Runtime<SceneTypes>);
+        this.bound.push(runtime as unknown as Runtime<PixiTypes>);
 
         const bindings: FakeBindings<S> = {
-            kind: 'fake-framework',
+            kind: 'fake-react',
             createRoot: (target) => runtime.createRoot(target),
             extend: (catalog) => runtime.registry.extend(catalog),
             component: (ctor, name) => runtime.registry.define(ctor, name).name,
             app: (root) => root.app,
         };
 
-        // `Extract<S, SceneTypes>` is `S`, but TypeScript cannot reduce it for a generic S.
+        // `Extract<S, PixiTypes>` is `S`, but TypeScript cannot reduce it for a generic S.
         return bindings as Bind<FakeFamily, S>;
     }
 }
 
-export function composeFake(scene = new FakeSceneAdapter(), options: RendererOptions = {}): Runtime<FakeSceneTypes>
+export function composeFake(pixi = new FakePixiAdapter(), options: RendererOptions = {}): Runtime<FakePixiTypes>
 {
-    return compose({ framework: new FakeFrameworkAdapter(), scene }, options);
+    return compose({ react: new FakeReactAdapter(), pixi }, options);
 }
 
 export function canvasElement(): HTMLCanvasElement
@@ -392,7 +392,7 @@ export function hostElement(): HTMLElement
 }
 
 /** A root whose app is initialized and ready. */
-export async function readyRoot(runtime: Runtime<FakeSceneTypes>, target: RootTarget = canvasElement()): Promise<RootRecord<FakeSceneTypes>>
+export async function readyRoot(runtime: Runtime<FakePixiTypes>, target: RootTarget = canvasElement()): Promise<RootRecord<FakePixiTypes>>
 {
     const root = runtime.createRoot(target);
 

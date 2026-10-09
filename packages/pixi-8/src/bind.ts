@@ -11,7 +11,7 @@
  */
 import { createAdapterClass, normalizePixiName, type Pixi8AdapterConstructor } from './adapter.js';
 import { DefaultStyleRegistry, ExtensionLeaseTable } from './globals.js';
-import { PixiScene } from './scene.js';
+import { PixiNodes } from './nodes.js';
 import {
     checkSupportedVersion,
     PIXI8_BOUNDARIES,
@@ -65,7 +65,7 @@ export function bindPixi(pixi: PixiModule): BoundExports
                     extensions,
                     defaultStyle,
                     reportError,
-                    createScene: (enabled: (capability: string) => boolean) => new PixiScene(pixi, enabled),
+                    createNodes: (enabled: (capability: string) => boolean) => new PixiNodes(pixi, enabled),
                 },
             }),
             normalizePixiName,

@@ -11,7 +11,7 @@ This is a pnpm workspace orchestrated by Turborepo:
 - `apps/docs` is the private Docusaurus site. It depends on the local library
   through `workspace:*`.
 - `packages/conformance` is the private renderer conformance suite: scenarios,
-  a fake scene backend and a runner. See its README.
+  a fake Pixi backend and a runner. See its README.
 - The root `package.json` is private. It holds only workspace tooling.
 
 Use the Node version in `.nvmrc` and the pnpm version in the root

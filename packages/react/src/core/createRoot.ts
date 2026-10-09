@@ -69,24 +69,24 @@ export function createCreateRoot(runtime: FacadeRuntime)
                 // Upstream passed the options to `Application.init` and then copied every one onto the application.
                 // It never registered `extensions` or wrote `defaultTextStyle` for createRoot roots: those two keys
                 // are copied like any other option and never reach the scene's global settings.
-                const { extensions: _extensions, defaultTextStyle: _defaultTextStyle, ...sceneOptions } = applicationOptions;
+                const { extensions: _extensions, defaultTextStyle: _defaultTextStyle, ...pixiOptions } = applicationOptions;
 
                 // Upstream left `resizeTo` alone when a later render omitted it; the adapter clears it, so pass the
                 // last target this root was given.
-                if ('resizeTo' in sceneOptions)
+                if ('resizeTo' in pixiOptions)
                 {
-                    lastResizeTo = sceneOptions.resizeTo;
+                    lastResizeTo = pixiOptions.resizeTo;
                 }
                 else if (lastResizeTo !== undefined)
                 {
-                    sceneOptions.resizeTo = lastResizeTo;
+                    pixiOptions.resizeTo = lastResizeTo;
                 }
 
                 // Queued before the adapter's render request, so the copy runs after onInit and before this
                 // request commits, as in upstream.
                 record.schedule((app) => assignApplicationOptions(app, applicationOptions)).catch(noop);
 
-                return adapterRoot.render(children, sceneOptions as never);
+                return adapterRoot.render(children, pixiOptions as never);
             },
         } as Root;
 

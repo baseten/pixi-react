@@ -4,7 +4,7 @@ import { createRenderer } from './renderer.js';
 import { Pixi8Adapter } from './pixi-8.js';
 import { React19Adapter } from './react-19.js';
 // Positive probes for upstream ConstructorOverrides / OmitKeys / PixiReactElementProps mapping.
-const renderer = createRenderer({ framework: new React19Adapter(), scene: new Pixi8Adapter() });
+const renderer = createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
 class NoOptions extends Container { constructor() { super(); } }
 const ContainerComponent = renderer.component(Container);
 const TextComponent = renderer.component(Text);

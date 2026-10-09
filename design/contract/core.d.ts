@@ -1,13 +1,13 @@
 /**
  * Normative ABI v1 proposal; declarations only, not an implemented package.
- * Core types never mirror react-reconciler (or any framework) host-config/root signatures.
+ * Core types never mirror react-reconciler (or any React adapter) host-config/root signatures.
  */
 export type Constructor = new (...args: never[]) => object;
 export type Catalog = Readonly<Record<string, Constructor>>;
 export interface PropsFamily { readonly constructorType: unknown; readonly type: unknown }
-export type PropsOf<S extends SceneTypes, C extends Constructor> =
+export type PropsOf<S extends PixiTypes, C extends Constructor> =
     (S['props'] & { readonly constructorType: C })['type'];
-export interface SceneTypes {
+export interface PixiTypes {
     readonly node: object;
     readonly app: object;
     readonly options: object;
@@ -61,18 +61,18 @@ export interface AttachRule {
     readonly accepts: readonly string[];
 }
 /**
- * Descriptive metadata only: no create/update/destroy. The SceneSession is the single owner of
+ * Descriptive metadata only: no create/update/destroy. The PixiSession is the single owner of
  * node construction, update and destruction.
  */
 export interface NodeDefinition<C extends Constructor = Constructor> {
     /** Normalized catalog name. From component(Ctor): the explicit name, else a WeakMap-assigned id; never Ctor.name. */
     readonly name: string;
     readonly ctor: C;
-    /** Scene capability IDs and protocol versions this node needs; validated before first construction. */
+    /** Pixi capability IDs and protocol versions this node needs; validated before first construction. */
     readonly capabilities: Readonly<Record<string, number>>;
     readonly attach: AttachRule;
 }
-export interface Registry<S extends SceneTypes> {
+export interface Registry<S extends PixiTypes> {
     extend<C extends Catalog>(catalog: C): void;
     register<C extends new (...args: never[]) => S['node']>(definition: NodeDefinition<C>): void;
     /** Throws CompatibilityError (UNKNOWN_ELEMENT) in every build, never a dev-only invariant. */
@@ -92,11 +92,11 @@ export interface TickOptions<T, Context = unknown> {
     priority?: number;
 }
 /** Context handed to every node construction. */
-export interface NodeContext<S extends SceneTypes> {
+export interface NodeContext<S extends PixiTypes> {
     readonly app: S['app'];
     readonly runtime: Runtime<S>;
 }
-export interface SceneSession<S extends SceneTypes> {
+export interface PixiSession<S extends PixiTypes> {
     readonly app: S['app'];
     readonly container: S['node'];
     init(options: S['options'], signal: AbortSignal): Promise<void>;
@@ -114,25 +114,25 @@ export interface SceneSession<S extends SceneTypes> {
     subscribe<C>(options: TickOptions<S['tick'], C>): () => void;
     destroy(options: S['destroy']): Promise<void>;
 }
-export interface Runtime<S extends SceneTypes> {
+export interface Runtime<S extends PixiTypes> {
     readonly registry: Registry<S>;
-    readonly scene: SceneAdapter<S>;
+    readonly pixi: PixiAdapter<S>;
     readonly id: symbol;
     dispose(): Promise<void>;
 }
-export declare abstract class SceneAdapter<S extends SceneTypes> {
+export declare abstract class PixiAdapter<S extends PixiTypes> {
     abstract readonly manifest: AdapterManifest;
-    abstract createSession(runtime: Runtime<S>, target: HTMLElement | HTMLCanvasElement): SceneSession<S>;
+    abstract createSession(runtime: Runtime<S>, target: HTMLElement | HTMLCanvasElement): PixiSession<S>;
     /** Pure metadata lookup; constructs nothing. Throws CompatibilityError (UNSUPPORTED_NODE) in every build. */
     abstract describe<C extends Constructor>(ctor: C, name: string): NodeDefinition<C>;
 }
-/** Open higher-kinded family: the framework substitutes the scene type into its API. */
-export interface BindingFamily { readonly scene: unknown; readonly type: unknown }
-export type Bind<F extends BindingFamily, S extends SceneTypes> = (F & { readonly scene: S })['type'];
-export declare abstract class FrameworkAdapter<F extends BindingFamily> {
+/** Open higher-kinded family: the React adapter substitutes the Pixi types into its API. */
+export interface ReactBindingFamily { readonly pixi: unknown; readonly type: unknown }
+export type Bind<F extends ReactBindingFamily, S extends PixiTypes> = (F & { readonly pixi: S })['type'];
+export declare abstract class ReactAdapter<F extends ReactBindingFamily> {
     /** Type-only witness; concrete implementations use declare, emitting no field. */
     readonly bindingFamily: F;
     abstract readonly manifest: AdapterManifest;
-    abstract bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<F, S>;
+    abstract bind<S extends PixiTypes>(runtime: Runtime<S>): Bind<F, S>;
 }
 export interface RendererOptions { readonly requiredCapabilities?: Readonly<Record<string, number>> }

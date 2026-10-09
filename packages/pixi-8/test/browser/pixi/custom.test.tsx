@@ -108,8 +108,8 @@ describe('custom instances', () =>
         const [filter] = (ctx.probe.children(mounted.stage)[0] as Container).filters as unknown as AlphaFilter[];
         const record = ctx.renderer.runtime.roots()[0];
 
-        await ctx.act(() => record.scene.setHidden(filter, true));
-        await ctx.act(() => record.scene.setHidden(filter, false));
+        await ctx.act(() => record.pixi.setHidden(filter, true));
+        await ctx.act(() => record.pixi.setHidden(filter, false));
         expect(filter.enabled).toBe(false);
     });
 });

@@ -38,7 +38,7 @@ import {
 } from '../shared/host.js';
 import { PACKAGE_VERSION } from '../shared/version.js';
 
-import type { Runtime, SceneTypes } from '@pixi-react-provisional/core';
+import type { PixiTypes, Runtime } from '@pixi-react-provisional/core';
 
 export const RECONCILER_VERSION = '0.31.0';
 
@@ -60,9 +60,9 @@ export const UNREACHABLE_HOST_KEYS: UnreachableKeys = Object.freeze({
     resolveEventTimeStamp: 'read but never called by the 0.31 bundle',
 });
 
-type Config<S extends SceneTypes> = HostConfig<string, HostProps, HostContainer<S>, S['node'], object, object, null>;
+type Config<S extends PixiTypes> = HostConfig<string, HostProps, HostContainer<S>, S['node'], object, object, null>;
 
-export function createHostConfig<S extends SceneTypes>(runtime: Runtime<S>): Config<S>
+export function createHostConfig<S extends PixiTypes>(runtime: Runtime<S>): Config<S>
 {
     return {
         ...STATIC_HOST_KEYS,
@@ -82,7 +82,7 @@ export function createHostConfig<S extends SceneTypes>(runtime: Runtime<S>): Con
 }
 
 /** Creates a 0.31 root: ten arguments, the tenth being `transitionCallbacks` (none). */
-export function createContainer<S extends SceneTypes>(
+export function createContainer<S extends PixiTypes>(
     reconciler: Pick<Reconciler<HostContainer<S>>, 'createContainer'>,
     container: HostContainer<S>,
     callbacks: EpochRootCallbacks,
@@ -103,7 +103,7 @@ export function createContainer<S extends SceneTypes>(
     );
 }
 
-export function createRenderer<S extends SceneTypes>(runtime: Runtime<S>): EpochRenderer<S>
+export function createRenderer<S extends PixiTypes>(runtime: Runtime<S>): EpochRenderer<S>
 {
     const reconciler = createReconciler(createHostConfig(runtime));
 

@@ -1,21 +1,21 @@
 /**
- * A third-party scene and framework, declared the way a consumer sees published adapters: through the built
+ * A third-party Pixi adapter and React adapter, declared the way a consumer sees published adapters: through the built
  * declarations of core and renderer (package `exports`, no source aliases). Nothing here is React or Pixi.
  */
-import { FrameworkAdapter, SceneAdapter } from '@pixi-react-provisional/core';
+import { PixiAdapter, ReactAdapter } from '@pixi-react-provisional/core';
 
 import type {
     AdapterManifest,
     Bind,
-    BindingFamily,
     Constructor,
     NodeDefinition,
+    PixiSession,
+    PixiTypes,
     PropsFamily,
     PropsOf,
+    ReactBindingFamily,
     RootTarget,
     Runtime,
-    SceneSession,
-    SceneTypes,
 } from '@pixi-react-provisional/core';
 
 export class Emitter
@@ -43,7 +43,7 @@ export interface ParticlePropsFamily extends PropsFamily
     readonly type: ConstructorParameters<Extract<this['constructorType'], abstract new (...args: any) => any>>[0];
 }
 
-export interface ParticleScene extends SceneTypes
+export interface ParticlePixiTypes extends PixiTypes
 {
     readonly node: Emitter | Particle;
     readonly app: { readonly label: string; readonly ticker: Ticker };
@@ -55,60 +55,60 @@ export interface ParticleScene extends SceneTypes
     readonly props: ParticlePropsFamily;
 }
 
-export declare class ParticleSceneAdapter extends SceneAdapter<ParticleScene>
+export declare class ParticlePixiAdapter extends PixiAdapter<ParticlePixiTypes>
 {
     readonly manifest: AdapterManifest;
-    createSession(runtime: Runtime<ParticleScene>, target: RootTarget): SceneSession<ParticleScene>;
+    createSession(runtime: Runtime<ParticlePixiTypes>, target: RootTarget): PixiSession<ParticlePixiTypes>;
     describe<C extends Constructor>(ctor: C, name: string): NodeDefinition<C>;
 }
 
-/** A second, unrelated scene whose ticks are plain numbers. */
-export interface LegacyScene extends SceneTypes
+/** A second, unrelated Pixi type family whose ticks are plain numbers. */
+export interface LegacyPixiTypes extends PixiTypes
 {
     readonly node: { legacy: true };
     readonly app: { readonly view: string };
     readonly tick: number;
 }
 
-export declare class LegacySceneAdapter extends SceneAdapter<LegacyScene>
+export declare class LegacyPixiAdapter extends PixiAdapter<LegacyPixiTypes>
 {
     readonly manifest: AdapterManifest;
-    createSession(runtime: Runtime<LegacyScene>, target: RootTarget): SceneSession<LegacyScene>;
+    createSession(runtime: Runtime<LegacyPixiTypes>, target: RootTarget): PixiSession<LegacyPixiTypes>;
     describe<C extends Constructor>(ctor: C, name: string): NodeDefinition<C>;
 }
 
-/** The framework's own API, generic over the composed scene. */
-export interface Inspection<S extends SceneTypes>
+/** The React adapter's own API, generic over the composed Pixi types. */
+export interface Inspection<S extends PixiTypes>
 {
     app(): S['app'];
     onTick(callback: (tick: S['tick']) => void): () => void;
     component<C extends Constructor>(ctor: C): (props: PropsOf<S, C>) => InstanceType<C>;
 }
 
-export interface InspectionFamily extends BindingFamily
+export interface InspectionFamily extends ReactBindingFamily
 {
-    readonly type: Inspection<Extract<this['scene'], SceneTypes>>;
+    readonly type: Inspection<Extract<this['pixi'], PixiTypes>>;
 }
 
-export declare class Inspector extends FrameworkAdapter<InspectionFamily>
+export declare class Inspector extends ReactAdapter<InspectionFamily>
 {
     readonly manifest: AdapterManifest;
-    bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<InspectionFamily, S>;
+    bind<S extends PixiTypes>(runtime: Runtime<S>): Bind<InspectionFamily, S>;
 }
 
 /** A real (non-declared) family implementation with a generic bind. */
-export interface Counter<S extends SceneTypes>
+export interface Counter<S extends PixiTypes>
 {
     readonly source: Runtime<S>;
     count(): number;
 }
 
-export interface CounterFamily extends BindingFamily
+export interface CounterFamily extends ReactBindingFamily
 {
-    readonly type: Counter<Extract<this['scene'], SceneTypes>>;
+    readonly type: Counter<Extract<this['pixi'], PixiTypes>>;
 }
 
-export class CounterFramework extends FrameworkAdapter<CounterFamily>
+export class CounterReactAdapter extends ReactAdapter<CounterFamily>
 {
     readonly manifest: AdapterManifest = {
         abi: { major: 1, minor: 0 },
@@ -119,11 +119,11 @@ export class CounterFramework extends FrameworkAdapter<CounterFamily>
         requires: {},
     };
 
-    bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<CounterFamily, S>
+    bind<S extends PixiTypes>(runtime: Runtime<S>): Bind<CounterFamily, S>
     {
         const bindings: Counter<S> = { source: runtime, count: () => runtime.roots().length };
 
-        // `Extract<S, SceneTypes>` is `S` for every S, but TypeScript cannot reduce it for a generic S.
+        // `Extract<S, PixiTypes>` is `S` for every S, but TypeScript cannot reduce it for a generic S.
         return bindings as Bind<CounterFamily, S>;
     }
 }

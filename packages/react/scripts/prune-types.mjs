@@ -5,7 +5,7 @@
  * per source file.
  *
  * The facade bundles its adapters, so its published declarations must not import the unpublished modular adapter
- * packages. Only internal modules (`bind`, `adapters`, `runtime/composition`, `runtime/sceneAdapter`) name them, and
+ * packages. Only internal modules (`bind`, `adapters`, `runtime/composition`, `runtime/pixiAdapter`) name them, and
  * the public entry (`types/index.d.ts`) reaches none of them. Such a declaration is removed when the entry does not
  * reach it, together with the internal declarations that import a removed one (the facade's internal factories), so
  * no shipped declaration imports a missing file. The build fails if the entry reaches any of them.

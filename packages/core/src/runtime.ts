@@ -1,27 +1,27 @@
-import { negotiate, type NegotiatedComposition, validateAdapterShape } from './abi.js';
+import { ADAPTER_ROLES, negotiate, type NegotiatedComposition, validateAdapterShape } from './abi.js';
 import { CompatibilityError, CoreErrorCodes, TeardownError } from './errors.js';
 import { acquireLeases, assertNotLeased, type LeaseHolder, releaseLeases } from './lease.js';
 import { RuntimeRegistry } from './registry.js';
 import { type NodeMeta, Root, type RuntimeInternals } from './root.js';
 
-import type { FrameworkAdapter, SceneAdapter } from './adapters.js';
+import type { PixiAdapter, ReactAdapter } from './adapters.js';
 import type {
     CreateRootOptions,
     NodeInfo,
+    PixiSession,
     RootRecord,
     RootTarget,
     Runtime,
     RuntimeStatus,
-    SceneSession,
 } from './contracts.js';
 import type {
     AdapterManifest,
-    BindingFamily,
     CapabilityMap,
     NodeDefinition,
+    PixiTypes,
+    ReactBindingFamily,
     RegistryConflictPolicy,
     RendererOptions,
-    SceneTypes,
 } from './types.js';
 
 const SESSION_METHODS = [
@@ -53,19 +53,19 @@ function defaultReport(error: unknown): void
     console.error(error);
 }
 
-export interface RuntimeConfig<S extends SceneTypes>
+export interface RuntimeConfig<S extends PixiTypes>
 {
-    readonly scene: SceneAdapter<S>;
+    readonly pixi: PixiAdapter<S>;
     readonly composition: NegotiatedComposition;
     readonly options?: RendererOptions;
 }
 
-class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
+class ComposedRuntime<S extends PixiTypes> implements Runtime<S>
 {
     readonly id: symbol;
-    readonly scene: SceneAdapter<S>;
+    readonly pixi: PixiAdapter<S>;
     readonly registry: RuntimeRegistry<S>;
-    readonly manifests: { readonly framework: AdapterManifest; readonly scene: AdapterManifest };
+    readonly manifests: { readonly react: AdapterManifest; readonly pixi: AdapterManifest };
     readonly capabilities: CapabilityMap;
 
     #status: RuntimeStatus = 'active';
@@ -78,18 +78,18 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
     readonly #holder: LeaseHolder;
     readonly #internals: RuntimeInternals<S>;
 
-    constructor({ scene, composition, options = {} }: RuntimeConfig<S>)
+    constructor({ pixi, composition, options = {} }: RuntimeConfig<S>)
     {
-        const label = `runtime ${++runtimeCount} (${composition.framework.id} + ${composition.scene.id})`;
-        const adapterIds = Object.freeze([composition.framework.id, composition.scene.id]);
+        const label = `runtime ${++runtimeCount} (${composition.react.id} + ${composition.pixi.id})`;
+        const adapterIds = Object.freeze([composition.react.id, composition.pixi.id]);
         const report = options.onUnhandledError ?? defaultReport;
 
         this.id = Symbol(label);
-        this.scene = scene;
-        this.manifests = Object.freeze({ framework: composition.framework, scene: composition.scene });
+        this.pixi = pixi;
+        this.manifests = Object.freeze({ react: composition.react, pixi: composition.pixi });
         this.capabilities = composition.capabilities;
         this.#holder = Object.freeze({ owner: this.id, description: label });
-        this.registry = new RuntimeRegistry(scene, {
+        this.registry = new RuntimeRegistry(pixi, {
             policy: options.registryConflict ?? 'reject',
             adapterIds,
             assertActive: () => this.#assertActive('register constructors'),
@@ -166,7 +166,7 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
 
         try
         {
-            const session = this.scene.createSession(this, canvas);
+            const session = this.pixi.createSession(this, canvas);
 
             this.#validateSession(session);
             root = new Root(this.#internals, ++this.#nextRootId, target, canvas, session, leased);
@@ -314,13 +314,13 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
         }
     }
 
-    #validateSession(session: SceneSession<S>): void
+    #validateSession(session: PixiSession<S>): void
     {
-        const id = this.manifests.scene.id;
+        const id = this.manifests.pixi.id;
 
         if (!isRecord(session))
         {
-            throw new CompatibilityError(`Scene adapter "${id}" returned no session from createSession().`, {
+            throw new CompatibilityError(`Pixi adapter "${id}" returned no session from createSession().`, {
                 code: 'ABI_MISMATCH',
                 adapterIds: [id],
             });
@@ -330,7 +330,7 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
         {
             if (typeof session[method] !== 'function')
             {
-                throw new CompatibilityError(`The session of scene adapter "${id}" does not implement ${method}().`, {
+                throw new CompatibilityError(`The session of Pixi adapter "${id}" does not implement ${method}().`, {
                     code: 'ABI_MISMATCH',
                     adapterIds: [id],
                     expected: { [method]: 'function' },
@@ -384,9 +384,9 @@ function validateOptions(options: RendererOptions, adapterIds: readonly string[]
 }
 
 /** Creates a runtime for an already negotiated composition. Prefer `compose`, which validates first. */
-export function createRuntime<S extends SceneTypes>(config: RuntimeConfig<S>): Runtime<S>
+export function createRuntime<S extends PixiTypes>(config: RuntimeConfig<S>): Runtime<S>
 {
-    validateOptions(config.options ?? {}, [config.composition.framework.id, config.composition.scene.id]);
+    validateOptions(config.options ?? {}, [config.composition.react.id, config.composition.pixi.id]);
 
     return new ComposedRuntime(config);
 }
@@ -416,32 +416,31 @@ function checkEnvironment(adapter: { checkEnvironment?: unknown }, manifest: Ada
     }
 }
 
-export interface Adapters<S extends SceneTypes, F extends BindingFamily>
+export interface Adapters<S extends PixiTypes, F extends ReactBindingFamily>
 {
-    readonly framework: FrameworkAdapter<F>;
-    readonly scene: SceneAdapter<S>;
+    readonly react: ReactAdapter<F>;
+    readonly pixi: PixiAdapter<S>;
 }
 
 /**
  * Validates an adapter pair (shape, ABI, capabilities, installed environment) before anything is allocated,
  * then creates a fresh runtime for it. Every call returns a new, isolated runtime.
  */
-export function compose<S extends SceneTypes, F extends BindingFamily>(
+export function compose<S extends PixiTypes, F extends ReactBindingFamily>(
     adapters: Adapters<S, F>,
     options: RendererOptions = {},
 ): Runtime<S>
 {
     if (!isRecord(adapters))
     {
-        throw new TypeError('Expected { framework, scene } adapters.');
+        throw new TypeError('Expected { react, pixi } adapters.');
     }
 
-    const framework = validateAdapterShape(adapters.framework, 'framework');
-    const scene = validateAdapterShape(adapters.scene, 'scene');
-    const composition = negotiate(framework, scene, options.requiredCapabilities);
+    const [react, pixi] = ADAPTER_ROLES.map((role) => validateAdapterShape(adapters[role], role));
+    const composition = negotiate(react, pixi, options.requiredCapabilities);
 
-    checkEnvironment(adapters.framework, framework);
-    checkEnvironment(adapters.scene, scene);
+    checkEnvironment(adapters.react, react);
+    checkEnvironment(adapters.pixi, pixi);
 
-    return createRuntime({ scene: adapters.scene, composition, options });
+    return createRuntime({ pixi: adapters.pixi, composition, options });
 }

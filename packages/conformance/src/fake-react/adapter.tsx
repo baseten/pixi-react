@@ -1,14 +1,14 @@
 /**
- * A fake React 19 framework adapter: a `FrameworkAdapter` subclass over react-reconciler 0.31, for conformance
+ * A fake React 19 adapter: a `ReactAdapter` subclass over react-reconciler 0.31, for conformance
  * runs of core + renderer. It is a test double, not the issue-9 adapter. It owns only React concerns (host
  * config, roots, context, hooks). Everything else goes through core:
  *
  * - element names resolve through the runtime registry;
- * - nodes are created, mutated, hidden and destroyed through `root.scene` (so core owns WeakMap metadata,
+ * - nodes are created, mutated, hidden and destroyed through `root.pixi` (so core owns WeakMap metadata,
  *   attach checks and exactly-once destruction);
  * - roots, target ownership, init/teardown ordering and StrictMode deferral are core root records.
  *
- * It is generic over the scene: nothing here knows the fake scene's node or app types.
+ * It is generic over the Pixi types: nothing here knows the fake Pixi adapter's node or app types.
  */
 import { FiberProvider, useContextBridge } from 'its-fine';
 import {
@@ -29,14 +29,14 @@ import {
     type AdapterManifest,
     type ApplicationState,
     type Bind,
-    type BindingFamily,
     type Catalog,
     type Constructor,
-    FrameworkAdapter,
+    type PixiTypes,
+    ReactAdapter,
+    type ReactBindingFamily,
     type RootRecord,
     type RootTarget,
     type Runtime,
-    type SceneTypes,
     type TickOptions,
 } from '@pixi-react-provisional/core';
 
@@ -46,7 +46,7 @@ const TAG_PREFIX = 'fake';
 
 type Props = Record<string, unknown>;
 
-export interface FakeReactRootOptions<S extends SceneTypes>
+export interface FakeReactRootOptions<S extends PixiTypes>
 {
     onInit?: (app: S['app']) => void;
     onInitError?: (error: unknown) => void;
@@ -57,7 +57,7 @@ export interface FakeReactRootOptions<S extends SceneTypes>
     onRecoverableError?: (error: unknown, info: unknown) => void;
 }
 
-export interface FakeReactRoot<S extends SceneTypes>
+export interface FakeReactRoot<S extends PixiTypes>
 {
     readonly record: RootRecord<S>;
     render(children: ReactNode, options?: Record<string, unknown>): Promise<S['app']>;
@@ -67,7 +67,7 @@ export interface FakeReactRoot<S extends SceneTypes>
     updateOptions(options: FakeReactRootOptions<S>): void;
 }
 
-export interface FakeReactBindings<S extends SceneTypes>
+export interface FakeReactBindings<S extends PixiTypes>
 {
     /** Test double: props are untyped here; the real adapter derives them from the scene (issue 9/11). */
     Application: ComponentType<any>;
@@ -82,9 +82,9 @@ export interface FakeReactBindings<S extends SceneTypes>
     tagFor(name: string): string;
 }
 
-export interface FakeReactFamily extends BindingFamily
+export interface FakeReactFamily extends ReactBindingFamily
 {
-    readonly type: FakeReactBindings<Extract<this['scene'], SceneTypes>>;
+    readonly type: FakeReactBindings<Extract<this['pixi'], PixiTypes>>;
 }
 
 export interface FakeReactFaults
@@ -93,12 +93,12 @@ export interface FakeReactFaults
     leakInitRejection?: boolean;
 }
 
-interface HostContainer<S extends SceneTypes>
+interface HostContainer<S extends PixiTypes>
 {
     readonly record: RootRecord<S>;
 }
 
-export class FakeReactFrameworkAdapter extends FrameworkAdapter<FakeReactFamily>
+export class FakeReactAdapter extends ReactAdapter<FakeReactFamily>
 {
     readonly manifest: AdapterManifest = {
         abi: { major: 1, minor: 0 },
@@ -106,7 +106,7 @@ export class FakeReactFrameworkAdapter extends FrameworkAdapter<FakeReactFamily>
         packageVersion: '0.0.0',
         certification: 'none: conformance test double',
         provides: {},
-        requires: { 'scene.mutation': 1, 'scene.visibility': 1, 'scene.application': 1, 'scene.ticker': 1 },
+        requires: { 'pixi.mutation': 1, 'pixi.visibility': 1, 'pixi.application': 1, 'pixi.ticker': 1 },
     };
 
     constructor(private readonly faults: FakeReactFaults = {})
@@ -114,14 +114,14 @@ export class FakeReactFrameworkAdapter extends FrameworkAdapter<FakeReactFamily>
         super();
     }
 
-    bind<S extends SceneTypes>(runtime: Runtime<S>): Bind<FakeReactFamily, S>
+    bind<S extends PixiTypes>(runtime: Runtime<S>): Bind<FakeReactFamily, S>
     {
-        // `Extract<S, SceneTypes>` is `S`; TypeScript cannot reduce it for a generic S.
+        // `Extract<S, PixiTypes>` is `S`; TypeScript cannot reduce it for a generic S.
         return createBindings(runtime, this.faults) as Bind<FakeReactFamily, S>;
     }
 }
 
-function createBindings<S extends SceneTypes>(runtime: Runtime<S>, faults: FakeReactFaults): FakeReactBindings<S>
+function createBindings<S extends PixiTypes>(runtime: Runtime<S>, faults: FakeReactFaults): FakeReactBindings<S>
 {
     let currentUpdatePriority: number = NoEventPriority;
     const wrappers = new WeakMap<RootRecord<S>, FakeReactRoot<S>>();
@@ -150,35 +150,35 @@ function createBindings<S extends SceneTypes>(runtime: Runtime<S>, faults: FakeR
         rendererPackageName: '@pixi-react-provisional/conformance-fake-react',
         rendererVersion: '0.0.0',
 
-        createInstance: (type: string, props: Props, container: HostContainer<S>) => container.record.scene.create(type, props),
+        createInstance: (type: string, props: Props, container: HostContainer<S>) => container.record.pixi.create(type, props),
         createTextInstance(text: string)
         {
             throw new Error(`Raw text "${text}" cannot be rendered in the scene; use a Text component`);
         },
-        appendInitialChild: (parent: S['node'], child: S['node']) => recordOf(parent).scene.append(parent, child),
+        appendInitialChild: (parent: S['node'], child: S['node']) => recordOf(parent).pixi.append(parent, child),
         finalizeInitialChildren: () => false,
         shouldSetTextContent: () => false,
         getRootHostContext: () => ({}),
         getChildHostContext: (context: object) => context,
-        getPublicInstance: (instance: S['node']) => recordOf(instance).scene.publicInstance(instance),
+        getPublicInstance: (instance: S['node']) => recordOf(instance).pixi.publicInstance(instance),
         prepareForCommit: () => null,
         // Removed subtrees are destroyed after the commit, through core, each node exactly once.
-        resetAfterCommit: (container: HostContainer<S>) => container.record.scene.flush(),
+        resetAfterCommit: (container: HostContainer<S>) => container.record.pixi.flush(),
         preparePortalMount: () => undefined,
-        appendChild: (parent: S['node'], child: S['node']) => recordOf(parent).scene.append(parent, child),
+        appendChild: (parent: S['node'], child: S['node']) => recordOf(parent).pixi.append(parent, child),
         appendChildToContainer: ({ record }: HostContainer<S>, child: S['node']) =>
-            record.scene.append(record.session.container, child),
+            record.pixi.append(record.session.container, child),
         insertBefore: (parent: S['node'], child: S['node'], before: S['node']) =>
-            recordOf(parent).scene.insertBefore(parent, child, before),
+            recordOf(parent).pixi.insertBefore(parent, child, before),
         insertInContainerBefore: ({ record }: HostContainer<S>, child: S['node'], before: S['node']) =>
-            record.scene.insertBefore(record.session.container, child, before),
-        removeChild: (parent: S['node'], child: S['node']) => recordOf(child).scene.remove(parent, child),
+            record.pixi.insertBefore(record.session.container, child, before),
+        removeChild: (parent: S['node'], child: S['node']) => recordOf(child).pixi.remove(parent, child),
         removeChildFromContainer: ({ record }: HostContainer<S>, child: S['node']) =>
-            record.scene.remove(record.session.container, child),
+            record.pixi.remove(record.session.container, child),
         commitUpdate: (instance: S['node'], _type: string, previous: Props, next: Props) =>
-            recordOf(instance).scene.update(instance, previous, next),
-        hideInstance: (instance: S['node']) => recordOf(instance).scene.setHidden(instance, true),
-        unhideInstance: (instance: S['node']) => recordOf(instance).scene.setHidden(instance, false),
+            recordOf(instance).pixi.update(instance, previous, next),
+        hideInstance: (instance: S['node']) => recordOf(instance).pixi.setHidden(instance, true),
+        unhideInstance: (instance: S['node']) => recordOf(instance).pixi.setHidden(instance, false),
         hideTextInstance: () => undefined,
         unhideTextInstance: () => undefined,
         clearContainer: () => undefined,
@@ -269,7 +269,7 @@ function createBindings<S extends SceneTypes>(runtime: Runtime<S>, faults: FakeR
                 // the complete set of application props; the scene decides which ones are mutable.
                 return record.schedule((app) => new Promise<S['app']>((resolve) =>
                 {
-                    record.scene.updateApplication({ ...initOptions, resizeTo: resizeTo ?? null } as S['appProps']);
+                    record.pixi.updateApplication({ ...initOptions, resizeTo: resizeTo ?? null } as S['appProps']);
                     reconciler.updateContainer(
                         <RecordContext.Provider value={record}>
                             <StateContext.Provider value={record.applicationState}>{children}</StateContext.Provider>
@@ -323,7 +323,7 @@ function createBindings<S extends SceneTypes>(runtime: Runtime<S>, faults: FakeR
                 return undefined;
             }
 
-            return record.scene.subscribe({ callback, context, isEnabled, priority });
+            return record.pixi.subscribe({ callback, context, isEnabled, priority });
         }, [record, isInitialised, callback, context, isEnabled, priority]);
     };
 
@@ -410,12 +410,12 @@ function createBindings<S extends SceneTypes>(runtime: Runtime<S>, faults: FakeR
         useTick,
         applyProps(instance, props)
         {
-            if (!runtime.scene.applyProps)
+            if (!runtime.pixi.applyProps)
             {
-                throw new Error(`Scene adapter "${runtime.manifests.scene.id}" has no standalone applyProps.`);
+                throw new Error(`Pixi adapter "${runtime.manifests.pixi.id}" has no standalone applyProps.`);
             }
 
-            runtime.scene.applyProps(instance, props);
+            runtime.pixi.applyProps(instance, props);
 
             return instance;
         },

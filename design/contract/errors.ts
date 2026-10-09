@@ -2,16 +2,16 @@ import { CompatibilityError, type CompatibilityErrorCode, type CompatibilityErro
 
 const details: CompatibilityErrorDetails = {
     code: 'CAPABILITY_MISSING',
-    adapterIds: ['community.inspector', 'community.scene'],
-    capability: 'scene.visibility',
-    expected: { 'scene.visibility': 1 },
-    actual: { 'scene.visibility': null },
+    adapterIds: ['community.inspector', 'community.pixi'],
+    capability: 'pixi.visibility',
+    expected: { 'pixi.visibility': 1 },
+    actual: { 'pixi.visibility': null },
     cause: new Error('No visibility binding'),
 };
 export const missingCapability: Error = new CompatibilityError('Visibility is required', details);
 export const unsupportedTuple = new CompatibilityError('Unsupported installed tuple', {
-    code: 'UNSUPPORTED_TUPLE', adapterIds: ['community.scene'],
-    expected: { scene: '>=1.0.0 <2.0.0' }, actual: { scene: '2.0.0' },
+    code: 'UNSUPPORTED_TUPLE', adapterIds: ['community.pixi'],
+    expected: { pixi: '>=1.0.0 <2.0.0' }, actual: { pixi: '2.0.0' },
 });
 export const customError = new CompatibilityError('Unsupported format', {
     code: 'community.shader.UNSUPPORTED_FORMAT', adapterIds: ['community.shader'],
@@ -22,7 +22,7 @@ export function describeFailure(error: unknown): string {
     const code: CompatibilityErrorCode = error.code;
     const adapterIds: readonly string[] = error.adapterIds;
     const capability: string | undefined = error.capability;
-    const actual: string | number | boolean | null | undefined = error.actual?.['scene.visibility'];
+    const actual: string | number | boolean | null | undefined = error.actual?.['pixi.visibility'];
     if (error.code === 'CAPABILITY_MISSING') {
         const narrowed: 'CAPABILITY_MISSING' = error.code;
         return `${narrowed}: ${capability} (${actual})`;
@@ -38,7 +38,7 @@ export const wrongIds: CompatibilityErrorDetails = { code: 'ABI_MISMATCH', adapt
 // @ts-expect-error Expected diagnostics use named values, not a bare protocol version.
 export const wrongExpected: CompatibilityErrorDetails = { ...details, expected: 1 };
 // @ts-expect-error Actual diagnostics cannot use adapter-specific nested objects.
-export const wrongActual: CompatibilityErrorDetails = { ...details, actual: { scene: { version: 1 } } };
+export const wrongActual: CompatibilityErrorDetails = { ...details, actual: { pixi: { version: 1 } } };
 // @ts-expect-error Capability IDs remain strings.
 export const wrongCapability: CompatibilityErrorDetails = { ...details, capability: 1 };
 // @ts-expect-error A compatibility error must identify its stable code and involved adapters.
