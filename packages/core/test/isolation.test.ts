@@ -112,6 +112,36 @@ describe('DOM target ownership lease', () =>
         expect(root.canvas.isConnected).toBe(true);
     });
 
+    it('rejects an element whose children include a canvas another root of the same runtime owns', () =>
+    {
+        const runtime = composeFake();
+        const outer = hostElement();
+        const canvas = outer.appendChild(canvasElement());
+        const nested = outer.appendChild(document.createElement('div'));
+        const canvasRoot = runtime.createRoot(canvas);
+        const nestedRoot = runtime.createRoot(nested);
+        const error = caught(() => runtime.createRoot(outer));
+
+        expect(error).toBeInstanceOf(CompatibilityError);
+        expect(error.code).toBe(CoreErrorCodes.TARGET_LEASED);
+        expect(error.message).toMatch(/root \d+ of this runtime/);
+        expect(canvas.isConnected).toBe(true);
+        expect(nestedRoot.canvas.isConnected).toBe(true);
+        expect(runtime.roots()).toEqual([canvasRoot, nestedRoot]);
+        expect(runtime.rootFor(outer)).toBeUndefined();
+    });
+
+    it('still replaces an element\'s unowned canvas children', () =>
+    {
+        const runtime = composeFake();
+        const outer = hostElement();
+        const stray = outer.appendChild(canvasElement());
+        const root = runtime.createRoot(outer);
+
+        expect(stray.isConnected).toBe(false);
+        expect([...outer.children]).toEqual([root.canvas]);
+    });
+
     it('is released after teardown, so another runtime may then own the target', async () =>
     {
         const first = composeFake();

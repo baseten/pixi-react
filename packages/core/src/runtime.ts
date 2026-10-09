@@ -1,5 +1,5 @@
 import { negotiate, type NegotiatedComposition, validateAdapterShape } from './abi.js';
-import { CompatibilityError, TeardownError } from './errors.js';
+import { CompatibilityError, CoreErrorCodes, TeardownError } from './errors.js';
 import { acquireLeases, assertNotLeased, type LeaseHolder, releaseLeases } from './lease.js';
 import { RuntimeRegistry } from './registry.js';
 import { type NodeMeta, Root, type RuntimeInternals } from './root.js';
@@ -14,7 +14,15 @@ import type {
     RuntimeStatus,
     SceneSession,
 } from './contracts.js';
-import type { AdapterManifest, BindingFamily, CapabilityMap, NodeDefinition, RendererOptions, SceneTypes } from './types.js';
+import type {
+    AdapterManifest,
+    BindingFamily,
+    CapabilityMap,
+    NodeDefinition,
+    RegistryConflictPolicy,
+    RendererOptions,
+    SceneTypes,
+} from './types.js';
 
 const SESSION_METHODS = [
     'init',
@@ -148,8 +156,8 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
 
         if (!isCanvas)
         {
-            // Replacing the target's children must not detach a canvas another runtime owns.
-            assertNotLeased(Array.from(target.querySelectorAll('canvas')), this.#holder);
+            // Replacing the target's children must not detach a canvas another root owns, in any runtime.
+            this.#assertNoOwnedCanvas(target);
         }
 
         acquireLeases(leased, this.#holder);
@@ -278,6 +286,34 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
         }
     }
 
+    /** Throws `core.TARGET_LEASED` if a canvas below `target` belongs to a root of this or another runtime. */
+    #assertNoOwnedCanvas(target: HTMLElement): void
+    {
+        const canvases = Array.from(target.querySelectorAll('canvas'));
+
+        assertNotLeased(canvases, this.#holder);
+
+        for (const canvas of canvases)
+        {
+            const owner = this.#byTarget.get(canvas);
+
+            if (owner)
+            {
+                throw new CompatibilityError(
+                    `Cannot create a root for this element: it contains a canvas owned by root ${owner.id} of this `
+                    + 'runtime, which replacing the element\'s children would detach. Unmount that root first, or render '
+                    + 'into a different element.',
+                    {
+                        code: CoreErrorCodes.TARGET_LEASED,
+                        adapterIds: this.#internals.adapterIds,
+                        expected: { owner: 'none' },
+                        actual: { owner: `root ${owner.id}` },
+                    },
+                );
+            }
+        }
+    }
+
     #validateSession(session: SceneSession<S>): void
     {
         const id = this.manifests.scene.id;
@@ -320,9 +356,38 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
     }
 }
 
+const REGISTRY_CONFLICT_POLICIES: readonly unknown[] = ['reject', 'replace'] satisfies RegistryConflictPolicy[];
+
+/** Throws `core.INVALID_OPTION` for option values core does not accept, so a typo never changes behaviour. */
+function validateOptions(options: RendererOptions, adapterIds: readonly string[]): void
+{
+    if (options.registryConflict === undefined)
+    {
+        return;
+    }
+
+    const policy: unknown = options.registryConflict;
+
+    if (!REGISTRY_CONFLICT_POLICIES.includes(policy))
+    {
+        throw new CompatibilityError(
+            `Unknown registryConflict policy ${typeof policy === 'string' ? `"${policy}"` : String(policy)}: `
+            + 'expected \'reject\' or \'replace\'.',
+            {
+                code: CoreErrorCodes.INVALID_OPTION,
+                adapterIds,
+                expected: { registryConflict: 'reject | replace' },
+                actual: { registryConflict: String(policy) },
+            },
+        );
+    }
+}
+
 /** Creates a runtime for an already negotiated composition. Prefer `compose`, which validates first. */
 export function createRuntime<S extends SceneTypes>(config: RuntimeConfig<S>): Runtime<S>
 {
+    validateOptions(config.options ?? {}, [config.composition.framework.id, config.composition.scene.id]);
+
     return new ComposedRuntime(config);
 }
 

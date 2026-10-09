@@ -34,6 +34,8 @@ export const CoreErrorCodes = Object.freeze({
     TARGET_LEASED: 'core.TARGET_LEASED',
     /** A root operation needs an initialized application. */
     ROOT_NOT_READY: 'core.ROOT_NOT_READY',
+    /** A renderer option has a value core does not accept, such as an unknown `registryConflict` policy. */
+    INVALID_OPTION: 'core.INVALID_OPTION',
 } as const);
 
 const BUILTIN_CODES: ReadonlySet<string> = new Set<BuiltinCompatibilityErrorCode>([

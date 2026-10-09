@@ -41,6 +41,7 @@ Every `compose` call returns a new runtime. Nothing below is module-global, and 
   `component(Ctor, name?)`). Names are normalized once by `SceneAdapter.normalizeName`. Registering the same name with
   the same constructor again does nothing. A different constructor throws `REGISTRY_CONFLICT` under the default
   `reject` policy. The facade can select `registryConflict: 'replace'` to keep upstream's silent replacement (D4).
+  Any other policy value throws `core.INVALID_OPTION` at composition.
   `component` names never read `Ctor.name`: they come from the explicit name, the constructor's `extend` key, or a
   per-runtime `WeakMap`-assigned `component:N`. Every check throws in every build.
 - **Roots.** `createRoot(target)` maps both the target and its canvas to one root. An `HTMLElement` target gets a
@@ -48,6 +49,8 @@ Every `compose` call returns a new runtime. Nothing below is module-global, and 
   failed → disposing → disposed`:
   - It has one init promise and one abort signal.
   - `schedule(task)` runs work after `onInit`, in call order, and never on a failed or disposing root.
+  - A task that returns a promise stays tracked until that promise settles. If teardown starts first, the
+    `schedule` promise rejects with `ROOT_DISPOSED`, so it never resolves after disposal and never hangs.
   - Unmounting during init waits for the init, and then never calls `onInit` or commits late work.
   - `dispose()` returns one shared promise. It continues past a failing step and collects every failure in a
     `TeardownError`.
@@ -56,6 +59,8 @@ Every `compose` call returns a new runtime. Nothing below is module-global, and 
 - **Target lease.** A DOM target or canvas that one runtime owns cannot be taken by another runtime: that throws
   `core.TARGET_LEASED`. The lease table is keyed by a registered symbol on `globalThis`, so separately installed
   copies of core respect it too. It holds only the owner's identity, and it is released after teardown.
+  An `HTMLElement` target whose descendants include a canvas owned by any root, of this runtime or another, is
+  rejected with `core.TARGET_LEASED` before its children are replaced.
 - **Node ownership.** `root.scene` (`SceneBridge`) is the only way a framework touches the scene. It does these
   things:
   - It records per-node metadata (owning root, definition, parent, hidden, destroyed) in the runtime's `WeakMap`,
@@ -110,7 +115,9 @@ superset of it, with these deliberate differences:
 - `Runtime` adds roots, `createRoot`, `rootFor`, `nodeInfo`, `onDispose`, `capabilities` and `manifests`.
   `Registry` adds `define` and `has`. `NodeContext` also carries the root.
 - `RendererOptions` adds `registryConflict` and `onUnhandledError`.
-- Core raises two codes of its own in its reserved namespace: `core.TARGET_LEASED` and `core.ROOT_NOT_READY`.
+- Core raises three codes of its own in its reserved namespace: `core.TARGET_LEASED`, `core.ROOT_NOT_READY` and
+  `core.INVALID_OPTION`. `core.INVALID_OPTION` is thrown at composition for a renderer option value core does not
+  accept: today, a `registryConflict` other than `'reject'` or `'replace'` (or `undefined` for the default).
 - Capability versions must match exactly.
 
 ## Commands
