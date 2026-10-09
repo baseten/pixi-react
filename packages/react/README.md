@@ -140,7 +140,7 @@ with a `CompatibilityError` naming the installed and expected versions.
 
 #### Staying on an older React 19 minor
 
-<!-- TODO(#15): once design/release.md exists, link the modular install recipes here. -->
+The install recipes for the modular packages are in [design/release.md](https://github.com/baseten/pixi-react/blob/main/design/release.md#installing).
 
 `@pixi/react` always composes the newest certified React 19 epoch. The modular adapter packages (core, the renderer
 factory, one React adapter package per React minor, and the PixiJS 8 adapter) are not published yet; they
