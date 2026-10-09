@@ -80,6 +80,16 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
 - **Conformance kit.** Published later, as part of #20, not with Release 1.
 - **Dependency updates.** Deferred until there is agreement to move to the upstream repo (#41). No Renovate or Dependabot config yet. A new React or Pixi minor is handled manually: run the nightly matrix with workflow_dispatch, then widen the peer range only if it passes.
 - **Wave 2 order.** #15, #50 and #17 first, then #40, then #18 and #19.
+- **Wave 2 progress (2026-10-09).**
+  - #50 merged as #55.
+  - #15 merged as #56: Changesets, the release name map, staging, inspection, 13 packed consumer projects, and bundle checks.
+  - #56 took four Codex rounds. The fixes:
+    - the consumer checks count physical installed copies, including `pixi.js`;
+    - one guard (`resetOutputDir`) covers every folder the release scripts wipe;
+    - inspection accepts a missing `private` field when publishing is enabled.
+  - #17 is deferred with #16.
+  - #57 is in progress. It is a Release 1 blocker: binding the whole `pixi.js` namespace stops Pixi tree shaking, so the facade is 330 KiB gzip against upstream 8.0.5's 196 KiB.
+  - Next: #40, then #18 and #19.
 
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
 
