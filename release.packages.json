@@ -83,6 +83,7 @@
       "docs",
       "@pixi-react-provisional/conformance",
       "@pixi-react-provisional/design-contract",
+      "@pixi-react-provisional/examples",
       "@pixi-react-provisional/react-shared",
       "@pixi-react-provisional/type-consumers"
     ],

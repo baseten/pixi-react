@@ -98,24 +98,33 @@ export function Editor({
 
     const dependencies = pinnedDependencies(version, extras);
 
+    const published = Object.entries(dependencies).map(([name, pinned]) => `${name} ${pinned}`).join(', ');
+
     return (
-        <BrowserOnly>
-            {() => (
-                <SandpackProvider
-                    template="react"
-                    theme={colorMode === 'dark' ? dracula : githubLight}
-                    files={filesState}
-                    customSetup={{ dependencies }}
-                    style={{ height, width, margin: '0 auto', maxWidth: '100%' }}
-                    options={{ recompileDelay: 500 }}>
-                    <EditorLayout
-                        fontSize={fontSize}
-                        handleEditorCodeChanged={handleEditorCodeChanged}
-                        pixiVersion={dependencies['pixi.js']}
-                        showConsole={showConsole}
-                        viewType={viewType} />
-                </SandpackProvider>
-            )}
-        </BrowserOnly>
+        <>
+            {/* Sandpack fetches the packages from npm: this sandbox never runs the repository's own build. */}
+            <p className="sandpack-source-label">
+                Interactive sandbox: runs in CodeSandbox with the published npm packages ({published}), not this
+                repository&apos;s local build. It is not part of the repository&apos;s test evidence.
+            </p>
+            <BrowserOnly>
+                {() => (
+                    <SandpackProvider
+                        template="react"
+                        theme={colorMode === 'dark' ? dracula : githubLight}
+                        files={filesState}
+                        customSetup={{ dependencies }}
+                        style={{ height, width, margin: '0 auto', maxWidth: '100%' }}
+                        options={{ recompileDelay: 500 }}>
+                        <EditorLayout
+                            fontSize={fontSize}
+                            handleEditorCodeChanged={handleEditorCodeChanged}
+                            pixiVersion={dependencies['pixi.js']}
+                            showConsole={showConsole}
+                            viewType={viewType} />
+                    </SandpackProvider>
+                )}
+            </BrowserOnly>
+        </>
     );
 }

@@ -1,0 +1,59 @@
+{
+  "$comment": "The example set (issue 18). The app's routes (src/routes.tsx), the docs Examples page (apps/docs/src/components/LocalExample) and the E2E fixtures of issue 19 all read this list; test/catalog.test.mjs keeps them in step. `files` are relative to src/examples; `docs` marks examples the docs embed; `fixtures` names the behaviours issue 19 tests on that route.",
+  "examples": [
+    {
+      "id": "basic-scene",
+      "title": "Basic scene",
+      "summary": "Register Pixi classes with extend, then render a container, a graphic and a sprite whose texture is a local asset.",
+      "composition": "facade",
+      "files": ["basic-scene/BasicScene.tsx"],
+      "docs": true,
+      "fixtures": ["scene creation", "local asset loading"]
+    },
+    {
+      "id": "updates-and-events",
+      "title": "Updates and events",
+      "summary": "Pixi pointer events and DOM buttons update React state, and the new props reach the scene.",
+      "composition": "facade",
+      "files": ["updates-and-events/UpdatesAndEvents.tsx"],
+      "docs": true,
+      "fixtures": ["interaction-driven updates", "prop updates from React state"]
+    },
+    {
+      "id": "custom-components",
+      "title": "Custom components",
+      "summary": "Register your own Pixi class with extend and give it JSX types through PixiElements.",
+      "composition": "facade",
+      "files": ["custom-components/CustomComponents.tsx", "custom-components/Star.ts"],
+      "docs": true,
+      "fixtures": ["custom constructor registration", "custom props through setters"]
+    },
+    {
+      "id": "hooks-and-ticker",
+      "title": "Hooks and the ticker",
+      "summary": "Read the application with useApplication, animate with useTick, and pause the callback with isEnabled.",
+      "composition": "facade",
+      "files": ["hooks-and-ticker/HooksAndTicker.tsx"],
+      "docs": true,
+      "fixtures": ["context and hooks", "ticker callbacks", "useTick isEnabled"]
+    },
+    {
+      "id": "init-and-unmount",
+      "title": "Initialization and unmount",
+      "summary": "Run code once the application is ready with onInit, then unmount and remount the Application.",
+      "composition": "facade",
+      "files": ["init-and-unmount/InitAndUnmount.tsx"],
+      "docs": true,
+      "fixtures": ["initialization", "unmount and remount cleanup"]
+    },
+    {
+      "id": "modular-renderer",
+      "title": "Modular renderer (createRenderer)",
+      "summary": "Compose a renderer from the React 19.3 and Pixi 8 adapters, use component(Ctor), and handle a failed initialization with onInitError.",
+      "composition": "createRenderer",
+      "files": ["modular-renderer/ModularRenderer.tsx", "modular-renderer/pixi-react.ts"],
+      "docs": false,
+      "fixtures": ["explicit createRenderer composition", "initialization error handling", "remount after a failed initialization"]
+    }
+  ]
+}

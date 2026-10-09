@@ -37,7 +37,7 @@ Owner rulings for [issue 40](https://github.com/baseten/pixi-react/issues/40) (2
 | `packages/pixi-8` | `@pixi-react-provisional/pixi-8` | `@pixi/react-pixi-8` | 1.0.0 |
 
 These packages are never published: `react-shared` (bundled into each React adapter at build time), `conformance`,
-`type-consumers`, `design/contract`, every `*-fixture-*` package and `apps/docs`. Each of them is `"private": true`, and
+`type-consumers`, `design/contract`, every `*-fixture-*` package, `apps/docs` and `apps/examples`. Each of them is `"private": true`, and
 Changesets ignores exactly this set.
 
 ### One source of truth: `release.packages.json`
@@ -482,11 +482,13 @@ epoch is tested only when all of these hold:
 - **Page text follows the pins too.** The generator rewrites `react@…`, `react-dom@…`, `pixi.js@…` and
   `@pixi/react@…` in the current docs pages and the facade README (lines about the modular packages are left alone).
 - **The docs app** builds against the workspace facade and pins exact `react`, `react-dom` and `pixi.js` equal to the
-  current pins.
+  current pins. So does the **example app** (`apps/examples`, issue 18), whose files the docs Examples page embeds and
+  renders with the workspace build; those live previews are the docs' local examples, while the Sandpack editors are
+  labelled as running the published packages. See `apps/examples/README.md`.
 - **Checks.** `docs-pins.mjs --check`, run by `policy.mjs`, fails when the pins file or a page is stale, when an
   example sets its own versions, when a pinned package appears without a version or as `latest`, `beta`, `next` or
   `canary` (`npm create pixi.js@latest` is allowed: it is the scaffolder, not a pinned package), or when the docs app's
-  versions differ from the pins.
+  or the example app's versions differ from the pins. It also scans the example app's sources.
 - **Before Release 1 is published** the current pins name `@pixi/react` 8.1.0, which is not on npm yet, so the Sandpack
   examples cannot load it until publication. The docs are not deployed (owner ruling for #18/#19); docs E2E (#19)
   should install the facade from the staged tarball until then.

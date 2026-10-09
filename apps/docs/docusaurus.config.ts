@@ -1,7 +1,24 @@
+import { realpathSync } from 'node:fs';
+import { join } from 'node:path';
 import { themes as prismThemes } from 'prism-react-renderer';
 
 import type * as Preset from '@docusaurus/preset-classic';
-import type { Config } from '@docusaurus/types';
+import type { Config, Plugin } from '@docusaurus/types';
+
+/**
+ * The live examples (apps/examples) import the workspace @pixi/react, whose own pixi.js import would resolve to the
+ * library's dev copy (packages/react tests against an older pixi.js). Resolve every `pixi.js` import to this site's
+ * pinned copy, as a consumer's single install would; React already resolves to one copy.
+ */
+function singlePixi(context: { siteDir: string }): Plugin
+{
+    const pixi = join(realpathSync(join(context.siteDir, 'node_modules/pixi.js')), 'lib/index.mjs');
+
+    return {
+        name: 'workspace-single-pixi',
+        configureWebpack: () => ({ resolve: { alias: { 'pixi.js$': pixi } } }),
+    };
+}
 
 const config: Config = {
     title: 'PixiJS React',
@@ -34,6 +51,8 @@ const config: Config = {
         defaultLocale: 'en',
         locales: ['en'],
     },
+
+    plugins: [singlePixi],
 
     presets: [
         [
