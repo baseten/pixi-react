@@ -25,12 +25,32 @@ export const PIXI8_TESTED_VERSIONS = bound.PIXI8_TESTED_VERSIONS;
 export type { Pixi8AdapterBase, Pixi8AdapterConstructor, Pixi8AdapterOptions, Pixi8Manifest, Pixi8ManifestDetails } from './adapter.js';
 export type { BoundExports } from './bind.js';
 export { bindPixi } from './bind.js';
+export type {
+    InstalledPixiEntries,
+    InstalledPixiExport,
+    Pixi8CanonicalName,
+    Pixi8FloorCatalog,
+    Pixi8LaterExport,
+    Pixi8LeafNode,
+    Pixi8NameOverrides,
+    Pixi8Node,
+    Pixi8NodeConstructor,
+    Pixi8NodeKeys,
+    Pixi8ParticleInstance,
+    Pixi8PrefixedName,
+    Pixi8StandardCatalog,
+    Pixi8UnprefixedName,
+} from './catalog.js';
 export type { PixiFeatures } from './nodes.js';
 export type { OptionalPixiExports, ParticleContainerLike, ParticleLike, PixiModule } from './pixi.js';
 export type {
     ConstructorOptions,
     ConstructorOverrides,
     DrawCallback,
+    ExcludeFunctionProps,
+    InstalledOptions,
+    OmitKeys,
+    OverloadedOptions,
     Pixi8AppProps,
     Pixi8DestroyOptions,
     Pixi8EventHandlers,

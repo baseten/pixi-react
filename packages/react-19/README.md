@@ -124,7 +124,12 @@ The bindings follow [`design/contract/react-19.d.ts`](../../design/contract/reac
   and its cleanup removes exactly that callback and context.
 - **`extend`, `useExtend`, `applyProps`** forward to the runtime registry and the scene's standalone `applyProps`.
 - **`component(Ctor, name?)`** registers the constructor through `registry.define` and returns one stable component
-  per type name (refs pass through as React 19 props).
+  per type name (refs pass through as React 19 props). Its props are `ElementProps<S, C>`: the Pixi adapter's
+  `PropsOf<S, C>` plus an instance `ref` and `children` (removed when the adapter declares a leaf).
+  `ComponentsOf<S, Cat>` types one such component per catalog entry, for a catalog-wide factory (issue 34).
+
+The bindings declare no JSX. Global tags come from the Pixi adapter's types-only JSX entry for React 19
+(`@pixi-react-provisional/pixi-8/jsx/react-19`, see the pixi-8 README); `component(Ctor)` needs none.
 - **`useContextBridge()`** captures the parent tree's contexts for a separate root. It must run below a
   `ContextBridgeProvider` (also returned by the bindings; `Application` includes one) and otherwise throws an error
   saying so.

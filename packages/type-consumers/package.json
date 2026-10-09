@@ -1,0 +1,20 @@
+{
+  "name": "@pixi-react-provisional/type-consumers",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TypeScript consumer fixtures (issue 11): packs the modular packages and the @pixi/react facade, installs them into isolated per-tuple consumers (React 19/18 x Pixi 8.2.6/8.22.0) and typechecks positive and @ts-expect-error fixtures under NodeNext and Bundler resolution and classic, automatic and dev JSX. Not published.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --max-warnings 0 .",
+    "typecheck": "node scripts/run.mjs"
+  },
+  "devDependencies": {
+    "@pixi-react-provisional/core": "workspace:*",
+    "@pixi-react-provisional/pixi-8": "workspace:*",
+    "@pixi-react-provisional/react-19": "workspace:*",
+    "@pixi-react-provisional/renderer": "workspace:*",
+    "@pixi/react": "workspace:*",
+    "eslint": "^9.16.0"
+  }
+}

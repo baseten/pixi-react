@@ -1,0 +1,5 @@
+{
+  "react": ["19"],
+  "codes": [2320],
+  "reason": "the facade's and the modular entry's `pixiSprite` cannot both be global in one program; use separate programs or component(Ctor)"
+}

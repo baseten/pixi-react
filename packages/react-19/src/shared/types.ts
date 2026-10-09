@@ -69,9 +69,21 @@ export type ApplicationProps<S extends PixiTypes> =
         ref?: Ref<ApplicationRef<S['app']>>;
     };
 
+/**
+ * The props of a component for constructor `C`: the selected Pixi adapter's props for it (`PropsOf`), an instance
+ * `ref` and React `children`. A Pixi adapter that declares `children?: never` for a leaf node removes the children.
+ */
 export type ElementProps<S extends PixiTypes, C extends Constructor> = PropsOf<S, C> & {
     ref?: Ref<InstanceType<C>>;
     children?: ReactNode;
+};
+
+/**
+ * One component per catalog entry, keyed as the catalog is, with the props `component(Ctor)` would give it. The type
+ * of a catalog-wide component factory (issue 34); usable now to type a record of `component` results.
+ */
+export type ComponentsOf<S extends PixiTypes, Cat extends Catalog> = {
+    readonly [K in keyof Cat]: ComponentType<ElementProps<S, Cat[K]>>;
 };
 
 /** The bindings a React 19 epoch returns from `bind(runtime)`. */
