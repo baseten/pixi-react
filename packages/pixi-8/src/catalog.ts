@@ -126,11 +126,28 @@ type CanonicalOfUnprefixed<U extends string> = {
     ? U extends keyof Inverse ? Inverse[U] & string : Capitalize<U>
     : never;
 
+type IdentifierStart =
+    | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm'
+    | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
+    | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M'
+    | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
+    | '_' | '$';
+type IdentifierPart = IdentifierStart | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+type IsIdentifierTail<S extends string> =
+    S extends `${infer C}${infer Rest}` ? (C extends IdentifierPart ? IsIdentifierTail<Rest> : false) : true;
+
+/**
+ * Whether `normalizePixiName` treats a key as an identifier (`/^[A-Za-z_$][\w$]*$/`). Other keys, such as
+ * `'world-layer'`, are registered and resolved unchanged, so their element name is the key itself.
+ */
+export type IsPixi8Identifier<S extends string> =
+    S extends `${infer C}${infer Rest}` ? (C extends IdentifierStart ? IsIdentifierTail<Rest> : false) : false;
+
 /**
  * The catalog name `normalizePixiName` gives a key: `pixiSprite`, `sprite` and `Sprite` are `Sprite`; `pixiHtmlText`,
  * `htmlText` and `HTMLText` are `HTMLText`.
  */
-export type Pixi8CanonicalName<K extends string> =
+export type Pixi8CanonicalName<K extends string> = IsPixi8Identifier<K> extends false ? K :
     K extends `pixi${infer First}${infer Rest}`
         ? First extends Uppercase<First>
             ? First extends Lowercase<First> ? CanonicalOfUnprefixed<K> : CanonicalOfUnprefixed<`${Lowercase<First>}${Rest}`>
@@ -138,13 +155,14 @@ export type Pixi8CanonicalName<K extends string> =
         : CanonicalOfUnprefixed<K>;
 
 /** The unprefixed element name of a catalog key: `sprite`, `htmlText`. */
-export type Pixi8UnprefixedName<K extends string> =
+export type Pixi8UnprefixedName<K extends string> = IsPixi8Identifier<K> extends false ? K :
     Pixi8CanonicalName<K> extends keyof Pixi8NameOverrides
         ? Pixi8NameOverrides[Pixi8CanonicalName<K>]
         : Uncapitalize<Pixi8CanonicalName<K>>;
 
 /** The prefixed element name of a catalog key: `pixiSprite`, `pixiHtmlText`. */
-export type Pixi8PrefixedName<K extends string> = `pixi${Capitalize<Pixi8UnprefixedName<K>>}`;
+export type Pixi8PrefixedName<K extends string> =
+    IsPixi8Identifier<K> extends false ? K : `pixi${Capitalize<Pixi8UnprefixedName<K>>}`;
 
 /** The string keys of a catalog whose values are concrete node constructors. Resources and abstract classes drop out. */
 export type Pixi8NodeKeys<Cat> = {

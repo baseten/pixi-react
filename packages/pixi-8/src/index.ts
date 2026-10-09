@@ -28,6 +28,7 @@ export { bindPixi } from './bind.js';
 export type {
     InstalledPixiEntries,
     InstalledPixiExport,
+    IsPixi8Identifier,
     Pixi8CanonicalName,
     Pixi8FloorCatalog,
     Pixi8LaterExport,
