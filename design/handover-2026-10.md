@@ -88,7 +88,8 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
     - one guard (`resetOutputDir`) covers every folder the release scripts wipe;
     - inspection accepts a missing `private` field when publishing is enabled.
   - #17 is deferred with #16.
-  - #57 is in progress. It is a Release 1 blocker: binding the whole `pixi.js` namespace stops Pixi tree shaking, so the facade is 330 KiB gzip against upstream 8.0.5's 196 KiB.
+  - #57 merged as #59: named Pixi binding and recognition of built-ins by signature. The facade keeps upstream's 381 Pixi modules, and its bundle went from 330 KiB to 223 KiB gzip.
+  - #58 (open, owner decision): the facade is still 27 KiB gzip above upstream's 196 KiB. The extra is react-reconciler 0.34 plus our own CJS adapter code. One option is an upstream-style dual ESM/CJS build with `Symbol.for` singletons, which would replace D6; the proposal is to measure how much of our code is unreachable first.
   - Next: #40, then #18 and #19.
 
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
