@@ -5,8 +5,7 @@ import {
     it,
     vi,
 } from 'vitest';
-import { Application } from '../../../src/components/Application';
-import { useTick } from '../../../src/hooks/useTick';
+import { Application, useTick } from '../../../src';
 import {
     act,
     render,

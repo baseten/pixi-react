@@ -4,8 +4,7 @@ import {
     expect,
     it,
 } from 'vitest';
-import { Application } from '../../../src/components/Application';
-import { useApplication } from '../../../src/hooks/useApplication';
+import { Application, useApplication } from '../../../src';
 import {
     act,
     render,

@@ -1,19 +1,8 @@
 import { type Application as PixiApplication } from 'pixi.js';
-import { roots } from '../../src/core/roots';
-import { type Root } from '../../src/typedefs/Root';
+import { facadeCoreRuntime } from './facadeRuntime';
 
+/** The default runtime's root record that owns `app`, if it still holds one. */
 export function getAppRoot(app: PixiApplication)
 {
-    let root: Root | undefined;
-
-    for (const oRoot of roots.values())
-    {
-        if (oRoot.applicationState.app === app)
-        {
-            root = oRoot;
-            break;
-        }
-    }
-
-    return root;
+    return facadeCoreRuntime().roots().find((root) => root.app === app);
 }

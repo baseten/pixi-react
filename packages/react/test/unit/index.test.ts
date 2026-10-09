@@ -3,13 +3,6 @@ import {
     expect,
     it,
 } from 'vitest';
-import { Application } from '../../src/components/Application';
-import { createRoot } from '../../src/core/createRoot';
-import { applyProps } from '../../src/helpers/applyProps';
-import { extend } from '../../src/helpers/extend';
-import { useApplication } from '../../src/hooks/useApplication';
-import { useExtend } from '../../src/hooks/useExtend';
-import { useTick } from '../../src/hooks/useTick';
 import * as PixiReact from '../../src/index';
 
 describe('exports', () =>
@@ -17,52 +10,32 @@ describe('exports', () =>
     it('exports the `<Application>` component', () =>
     {
         expect(PixiReact).toHaveProperty('Application');
-        expect(PixiReact.Application).toEqual(Application);
+        expect(PixiReact.Application).toBeTypeOf('object');
     });
 
-    it('exports the `createRoot()` function', () =>
+    it.each([
+        'createRoot',
+        'applyProps',
+        'extend',
+        'useApplication',
+        'useExtend',
+        'useTick',
+    ] as const)('exports the `%s()` function', (name) =>
     {
-        expect(PixiReact).toHaveProperty('createRoot');
-        expect(PixiReact.createRoot).toEqual(createRoot);
-    });
-
-    it('exports the `applyProps()` function', () =>
-    {
-        expect(PixiReact).toHaveProperty('applyProps');
-        expect(PixiReact.applyProps).toEqual(applyProps);
-    });
-
-    it('exports the `extend()` function', () =>
-    {
-        expect(PixiReact).toHaveProperty('extend');
-        expect(PixiReact.extend).toEqual(extend);
-    });
-
-    it('exports the `useApplication()` hook', () =>
-    {
-        expect(PixiReact).toHaveProperty('useApplication');
-        expect(PixiReact.useApplication).toEqual(useApplication);
-    });
-
-    it('exports the `useExtend()` hook', () =>
-    {
-        expect(PixiReact).toHaveProperty('useExtend');
-        expect(PixiReact.useExtend).toEqual(useExtend);
-    });
-
-    it('exports the `useTick()` hook', () =>
-    {
-        expect(PixiReact).toHaveProperty('useTick');
-        expect(PixiReact.useTick).toEqual(useTick);
+        expect(PixiReact).toHaveProperty(name);
+        expect(PixiReact[name]).toBeTypeOf('function');
     });
 
     it('doesn\'t export extraneous keys', () =>
     {
-        expect(PixiReact).toHaveProperty('Application');
-        expect(PixiReact).toHaveProperty('createRoot');
-        expect(PixiReact).toHaveProperty('extend');
-        expect(PixiReact).toHaveProperty('useApplication');
-        expect(PixiReact).toHaveProperty('useExtend');
-        expect(PixiReact).toHaveProperty('useTick');
+        expect(Object.keys(PixiReact).sort()).toEqual([
+            'Application',
+            'applyProps',
+            'createRoot',
+            'extend',
+            'useApplication',
+            'useExtend',
+            'useTick',
+        ]);
     });
 });

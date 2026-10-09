@@ -55,6 +55,8 @@ function convertPackageNameToRegExp(packageName)
 const external = ({ bundleDeps = false } = {}) => (bundleDeps ? [] : Object.keys(dependencies).map(convertPackageNameToRegExp));
 
 const targets = {
+    // One CommonJS implementation (D6). `lib/index.mjs` is not built here: scripts/write-esm-entry.mjs generates it
+    // as a thin ESM wrapper over `lib/bind.js`, so `import` and `require` load the same implementation module.
     lib: {
         path: paths.library,
         entryFileNames: '[name]',
@@ -62,6 +64,7 @@ const targets = {
         external: external(),
         preserveModules: true,
         esmExternals: false,
+        formats: ['cjs'],
     },
     'dist-dev': {
         path: paths.distributable,
@@ -70,6 +73,7 @@ const targets = {
         external: external({ bundleDeps: true }),
         preserveModules: false,
         esmExternals: true,
+        formats: ['cjs', 'esm'],
     },
     'dist-prod': {
         path: paths.distributable,
@@ -78,32 +82,22 @@ const targets = {
         external: external({ bundleDeps: true }),
         preserveModules: false,
         esmExternals: true,
+        formats: ['cjs', 'esm'],
     },
 };
 
 export default ['lib', 'dist-dev', 'dist-prod'].map((target) =>
     ({
         input: 'src/index.ts',
-        output: [
-            {
-                dir: targets[target].path,
-                entryFileNames: `${targets[target].entryFileNames}.js`,
-                exports: 'named',
-                format: 'cjs',
-                preserveModules: targets[target].preserveModules,
-                preserveModulesRoot: paths.source,
-                sourcemap: true,
-            },
-            {
-                dir: targets[target].path,
-                entryFileNames: `${targets[target].entryFileNames}.mjs`,
-                exports: 'named',
-                format: 'esm',
-                preserveModules: targets[target].preserveModules,
-                preserveModulesRoot: paths.source,
-                sourcemap: true,
-            },
-        ],
+        output: targets[target].formats.map((format) => ({
+            dir: targets[target].path,
+            entryFileNames: `${targets[target].entryFileNames}.${format === 'cjs' ? 'js' : 'mjs'}`,
+            exports: 'named',
+            format,
+            preserveModules: targets[target].preserveModules,
+            preserveModulesRoot: paths.source,
+            sourcemap: true,
+        })),
         plugins: plugins({ env: targets[target].env, esmExternals: targets[target].esmExternals }),
         external: targets[target].external,
         treeshake: false

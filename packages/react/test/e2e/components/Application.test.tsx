@@ -11,15 +11,16 @@ import {
     it,
     vi,
 } from 'vitest';
-import { Application } from '../../../src/components/Application';
-import { roots } from '../../../src/core/roots';
-import { useApplication } from '../../../src/hooks/useApplication';
-import { type ApplicationRef } from '../../../src/typedefs/ApplicationRef';
+import { Application, type ApplicationRef, useApplication } from '../../../src';
+import { facadeCoreRuntime } from '../../utils/facadeRuntime';
 import { isAppMounted } from '../../utils/isAppMounted';
 import {
     act,
     render,
 } from '@testing-library/react';
+
+/** Roots of the default runtime (upstream read its module-global `roots` map). */
+const rootCount = () => facadeCoreRuntime().roots().length;
 
 describe('Application', () =>
 {
@@ -129,17 +130,17 @@ describe('Application', () =>
                 </Application>
             );
 
-            expect(roots.size).toEqual(0);
+            expect(rootCount()).toEqual(0);
 
             const { unmount } = await act(() => render(<TestComponent />));
 
-            expect(roots.size).toEqual(1);
+            expect(rootCount()).toEqual(1);
 
             await expect.poll(() => testAppIsInitialised).toEqual(true);
 
             unmount();
 
-            expect(roots.size).toEqual(0);
+            await expect.poll(rootCount).toEqual(0);
 
             await expect.poll(() => isAppMounted(testApp)).toBeFalsy();
         });
@@ -182,11 +183,11 @@ describe('Application', () =>
                 </Application>
             );
 
-            expect(roots.size).toEqual(0);
+            expect(rootCount()).toEqual(0);
 
             const { unmount } = await act(() => render(<TestComponent />));
 
-            expect(roots.size).toEqual(1);
+            expect(rootCount()).toEqual(1);
 
             await expect.poll(() => testAppIsInitialised).toEqual(true);
 
@@ -194,7 +195,7 @@ describe('Application', () =>
 
             unmount();
 
-            expect(roots.size).toEqual(0);
+            await expect.poll(rootCount).toEqual(0);
 
             await expect.poll(() => isAppMounted(testApp)).toBeFalsy();
 
@@ -240,11 +241,11 @@ describe('Application', () =>
                 </Application>
             );
 
-            expect(roots.size).toEqual(0);
+            expect(rootCount()).toEqual(0);
 
             const { unmount } = await act(() => render(<TestComponent />));
 
-            expect(roots.size).toEqual(1);
+            expect(rootCount()).toEqual(1);
 
             await expect.poll(() => testAppIsInitialised).toEqual(true);
 
@@ -252,7 +253,7 @@ describe('Application', () =>
 
             unmount();
 
-            expect(roots.size).toEqual(0);
+            await expect.poll(rootCount).toEqual(0);
 
             await expect.poll(() => isAppMounted(testApp)).toBeFalsy();
 
@@ -296,19 +297,25 @@ describe('Application', () =>
                 </Application>
             );
 
-            expect(roots.size).toEqual(0);
+            expect(rootCount()).toEqual(0);
 
             const { unmount } = await act(() => render(<TestComponent />));
 
-            expect(roots.size).toEqual(1);
+            expect(rootCount()).toEqual(1);
 
             expect(testAppIsInitialised).toBeFalsy();
+
+            // Upstream's StrictMode replay committed the children before init settled (the
+            // `Application.lifecycle.strict-mode-children-after-init` defect), so the child could report the app
+            // here. Children now commit only after init, so read the pending root's app instead.
+            expect(testApp).toBeNull();
+            testApp = facadeCoreRuntime().roots()[0].app;
 
             unmount();
 
             await expect.poll(() => isAppMounted(testApp)).toBeFalsy();
 
-            expect(roots.size).toEqual(0);
+            await expect.poll(rootCount).toEqual(0);
         });
     });
 

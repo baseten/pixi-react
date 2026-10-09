@@ -8,7 +8,7 @@ packages:
 overrides:
   rollup: ^4.18.0
 
-# its-fine 2.x (the facade's and react-19's bridge) imports React types without declaring @types/react as a peer, so
+# its-fine 2.x (react-19's bridge, and the conformance test doubles') imports React types without declaring @types/react as a peer, so
 # TypeScript would fall back to whichever @types/react pnpm hoists. With several React 19 type lines installed
 # (react-19 fixtures), that mixes two copies of React's types; resolve it from the dependent instead.
 packageExtensions:
