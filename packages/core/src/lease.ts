@@ -6,9 +6,11 @@ import { CompatibilityError, CoreErrorCodes } from './errors.js';
  *
  * The table lives on `globalThis` under a registered symbol so that independently installed copies of core
  * (which are distinct runtimes) still cannot own one target concurrently. The key is versioned: a future
- * incompatible lease format must use a new key.
+ * incompatible lease format must use a new key. The key names no package: core also ships bundled inside the
+ * default facade package, and that copy must share this table with any separately installed core, whatever name
+ * the modular packages are published under.
  */
-const LEASES = Symbol.for('@pixi-react-provisional/core:target-leases@1');
+const LEASES = Symbol.for('pixi-react:core:target-leases@1');
 
 export interface LeaseHolder
 {

@@ -1,8 +1,5 @@
-import { roots } from '../../src/core/roots';
-import { unmountRoot } from '../../src/helpers/unmountRoot';
 import * as facade from '../../src/index';
-import { store } from '../../src/store';
-import { type Root } from '../../src/typedefs/Root';
+import { facadeCoreRuntime } from '../utils/facadeRuntime';
 import { expectedFailures } from './expectedFailures';
 import { createPixiProbe } from './pixiProbe';
 import {
@@ -13,8 +10,11 @@ import {
     type SceneElement,
 } from '@pixi-react-provisional/conformance';
 
+import type { RootRecord } from '@pixi-react-provisional/core';
+
 const api: ReactBindingApi = {
-    Application: facade.Application,
+    // The conformance package compiles against its own @types/react line.
+    Application: facade.Application as unknown as ReactBindingApi['Application'],
     createRoot: facade.createRoot,
     extend: facade.extend,
     useExtend: facade.useExtend,
@@ -24,7 +24,7 @@ const api: ReactBindingApi = {
 };
 
 /** Deterministic application options: manual ticker, fixed size, no autostart. */
-const appOptions = Object.freeze({
+export const appOptions = Object.freeze({
     autoStart: false,
     sharedTicker: false,
     width: 64,
@@ -38,44 +38,35 @@ const appOptions = Object.freeze({
 const element = (name: string) => `pixi${name}` as unknown as SceneElement;
 
 /**
- * Removes roots a scenario left behind so the next scenario starts from an empty facade. The facade keeps
- * roots in module-global state and `createRoot` roots have no public unmount, so a leaked root would
- * otherwise be torn down during a later scenario. Leaks are asserted by scenarios via `rootCount`; this is
- * only isolation, using facade internals because no public API exists.
+ * Tears down roots a scenario left behind so the next scenario starts from an empty facade. The default facade is
+ * one module-local runtime shared by every scenario, so a leaked root would otherwise outlive its scenario. Leaks
+ * are asserted by scenarios via `rootCount`; this is only isolation.
  */
-async function releaseRoots(existing: ReadonlySet<Root>)
+async function releaseRoots(existing: ReadonlySet<RootRecord<any>>)
 {
-    for (const [key, root] of [...roots.entries()])
+    for (const root of facadeCoreRuntime().roots())
     {
-        if (existing.has(root))
+        if (!existing.has(root))
         {
-            continue;
+            await act(() => root.dispose());
         }
-
-        if (root.applicationState.isInitialised)
-        {
-            await act(() => unmountRoot(root));
-        }
-
-        store.unmountQueue.delete(root);
-        roots.delete(key);
     }
 }
 
 /**
- * The baseline binding: the current `@pixi/react` facade (React 19 + Pixi 8) from `packages/react/src`,
- * running in the real browser harness. Each composition re-registers freshly spied built-in constructors
- * with the facade's global `extend` catalog, following the historical prototype's "rebuild the composition
- * with spies" pattern; the facade itself offers no way to build a separate composition.
+ * The default facade binding: `@pixi/react` from `packages/react/src`, the composed React19Adapter (19.3) and
+ * Pixi8Adapter behind upstream's API, in the real browser harness. Each composition re-registers freshly spied
+ * built-in constructors with the facade's global `extend` catalog (the historical prototype's "rebuild the
+ * composition with spies" pattern); the facade itself is one module-local runtime.
  */
 export const facadeBinding: ConformanceBinding = {
-    id: '@pixi/react facade (React 19, Pixi 8)',
+    id: '@pixi/react facade (React 19.3, Pixi 8)',
     capabilities: ['framework.react-19', 'scene.globals', 'dom.resize', 'parity.upstream'],
     expectedFailures,
     create(): Composition
     {
-        const existingRoots = new Set(roots.values());
-        const probe = createPixiProbe(() => roots.size);
+        const existingRoots = new Set(facadeCoreRuntime().roots());
+        const probe = createPixiProbe(() => facadeCoreRuntime().roots().length);
 
         facade.extend(probe.catalog);
 

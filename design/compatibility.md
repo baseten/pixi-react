@@ -14,19 +14,33 @@ The owner decisions are recorded in the [architecture](adapter-architecture.md#o
 - **D4.** Strict upstream parity in the facade. Rows below carry one of these labels where D4 changes the outcome:
   - *Preserve now / correct in future major*: the correction changes behaviour or types that upstream programs can observe on a working path (a new error, a narrower type, a different value). The facade keeps upstream behaviour until a documented future major. The modular packages may ship the corrected behaviour earlier only where the facade can still select the upstream behaviour when it composes them (for example a registry conflict policy that the facade sets); the owning issue decides this and tests both behaviours.
   - *Modular packages only*: a new API (`useContextBridge`, `component(Ctor)`, root error props on `Application`, `Root.status`, public `unmount`). The facade does not export it.
-  - *Failure-path repair, pending owner decision*: the change affects only paths where upstream hangs, leaks, double-initialises or leaves an unhandled rejection. These paths are still observable behaviour, so until the owner confirms otherwise these repairs are treated as **modular packages only / correct in future major**: the default facade keeps upstream failure-path behaviour.
+  - *Failure-path repair, pending owner decision*: the change affects only paths where upstream hangs, leaks, double-initialises or leaves an unhandled rejection. **Ruled (issue 1 progress update, 2026-10-09): approved.** The default facade inherits the adapters' repairs of crash, leak, hang and unhandled-rejection paths; its public API and documented behaviour stay exactly as upstream. Rows still carrying this label are now repaired in the facade (issue 10).
   - Rows without a label are parity, or the correction is documentation-only.
 
   The *preserve now / correct in future major* rows are the change list for that future major.
 - **D5.** Peer ranges cover exactly-certified versions only (see the certification policy).
 - **D6.** ESM and CJS entries share one canonical runtime instance; #5/#7 choose the mechanism.
 
+### Facade parity shims (issue 10)
+
+The default facade (`packages/react`) composes `React19Adapter` (`/19.3`) and `Pixi8Adapter` with `registryConflict: 'replace'`. Where upstream behaviour differs from an adapter's, the facade keeps upstream's with a shim of its own; no adapter default changes, so a `createRenderer` composition of the same pair gets the modular behaviour.
+
+| Shim (in `packages/react/src`) | Upstream behaviour kept |
+| --- | --- |
+| `components/Application.tsx` `GlobalSettings` | `extensions` added to Pixi's registry before init and never removed on unmount (the swap defect repaired); `defaultTextStyle` merged globally, the load-time default merged back when absent, nothing restored on unmount. The adapter's leases and style writer are never used by the facade. |
+| `runtime/applicationOptions.ts` | Every application option copied onto the Pixi `Application` after init on each render (read-only members skipped). |
+| `runtime/sceneAdapter.ts` | Event props passed to constructors under both names; constructors Pixi8Adapter does not support registered by `extend` and dropped silently (constructed, never attached, `destroy()` on removal). |
+| `helpers/extend.ts` | `extend` never throws for a catalog entry. |
+| `core/createRoot.ts` | Upstream `Root` shape (`applicationState` with destroy options, `fiber` key, `internalState`); a repeated `createRoot` returns the known root silently; `resizeTo` kept when a later `render` omits it; `extensions`/`defaultTextStyle` never reach the scene globals. |
+| `hooks/useApplication.ts`, `hooks/useTick.ts` | Upstream's "No Context found" error outside an application; `useTick`'s callback check. Inside another runtime's application the adapter's `react-19.FOREIGN_RUNTIME` error is kept. |
+| `runtime/applyProps.ts` | The deprecated diff-set form of `applyProps`. |
+
 ## Export inventory (all twelve index lines)
 
 | Public export | Owner / implementation | Preserve or correct |
 | --- | --- | --- |
 | `Application` | React component/bridge 9; Pixi lifecycle 8; default binding 10 | Preserve canvas, children, className, refs, options, onInit, resizeTo, styles/extensions and async initialization. **Failure-path repair, pending owner decision (D4; facade keeps upstream behaviour until confirmed):** cancellation, rejection and terminal cleanup paths. **Modular packages only (D4):** root error props (`onUncaughtError`, `onCaughtError`, `onRecoverableError`, `onInitError`). |
-| `createRoot` | React root 9 + runtime target registry 7 + Pixi session 8; facade 10 | Preserve HTMLElement/canvas targets, async render resolving app, duplicate-canvas warning/reuse and the upstream `Root` shape. **Preserve now / correct in future major (D4):** reject duplicate HTMLElement roots; make incidental `fiber`/`internalState` private. **Modular packages only (D4):** public idempotent `unmount` and `Root.status`. |
+| `createRoot` | React root 9 + runtime target registry 7 + Pixi session 8; facade 10 | Preserve HTMLElement/canvas targets, async render resolving app, duplicate-canvas warning/reuse and the upstream `Root` shape. **Preserve now / correct in future major (D4):** reject duplicate HTMLElement roots; make incidental `fiber`/`internalState` private. **Modular packages only (D4):** public idempotent `unmount` and `Root.status`. Issue 10: the facade's root carries `unmount` as a non-enumerable runtime method outside the declared `Root` type, the approved leak repair of `createRoot.unmount`; `Root.status` stays modular-only. |
 | `export * from './global'` | 11 + facade 10 | Source is module augmentation, no extra runtime exports. Preserve default augmentation of React + automatic/dev runtimes; explicit compositions opt in. |
 | `applyProps` | Pixi 8; bound export 10, exact props 11 | Preserve typed instance return and plain-props form, event/default/dashed/draw behavior. Existing internal DiffSet form remains a deprecated facade compatibility overload with structural `changes` tuples; new adapter ABI uses previous/next props and does not export internal mutation state. |
 | `extend` | Runtime registry 7, descriptor construction 8, facade 10, types 11 | Preserve raw constructors, custom subclasses, tree shaking, void return and idempotent identical registration. **Preserve now / correct in future major (D4):** silent conflicting replacement becomes `REGISTRY_CONFLICT`. |

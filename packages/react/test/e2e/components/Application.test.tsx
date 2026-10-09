@@ -11,15 +11,16 @@ import {
     it,
     vi,
 } from 'vitest';
-import { Application } from '../../../src/components/Application';
-import { roots } from '../../../src/core/roots';
-import { useApplication } from '../../../src/hooks/useApplication';
-import { type ApplicationRef } from '../../../src/typedefs/ApplicationRef';
+import { Application, type ApplicationRef, useApplication } from '../../../src';
+import { facadeCoreRuntime } from '../../utils/facadeRuntime';
 import { isAppMounted } from '../../utils/isAppMounted';
 import {
     act,
     render,
 } from '@testing-library/react';
+
+/** Roots of the default runtime (upstream read its module-global `roots` map). */
+const rootCount = () => facadeCoreRuntime().roots().length;
 
 describe('Application', () =>
 {
@@ -129,17 +130,17 @@ describe('Application', () =>
                 </Application>
             );
 
-            expect(roots.size).toEqual(0);
+            expect(rootCount()).toEqual(0);
 
             const { unmount } = await act(() => render(<TestComponent />));
 
-            expect(roots.size).toEqual(1);
+            expect(rootCount()).toEqual(1);
 
             await expect.poll(() => testAppIsInitialised).toEqual(true);
 
             unmount();
 
-            expect(roots.size).toEqual(0);
+            await expect.poll(rootCount).toEqual(0);
 
             await expect.poll(() => isAppMounted(testApp)).toBeFalsy();
         });
@@ -182,11 +183,11 @@ describe('Application', () =>
                 </Application>
             );
 
-            expect(roots.size).toEqual(0);
+            expect(rootCount()).toEqual(0);
 
             const { unmount } = await act(() => render(<TestComponent />));
 
-            expect(roots.size).toEqual(1);
+            expect(rootCount()).toEqual(1);
 
             await expect.poll(() => testAppIsInitialised).toEqual(true);
 
@@ -194,12 +195,62 @@ describe('Application', () =>
 
             unmount();
 
-            expect(roots.size).toEqual(0);
+            await expect.poll(rootCount).toEqual(0);
 
             await expect.poll(() => isAppMounted(testApp)).toBeFalsy();
 
             expect(destroySpy).toHaveBeenCalledTimes(1);
             expect(destroySpy).toHaveBeenCalledWith(undefined, destroyOptions);
+        });
+
+        it('keeps the initial destroyOptions when rerendered with different ones, as upstream', async () =>
+        {
+            let testApp = null as any as PixiApplication;
+            let testAppIsInitialised = false;
+
+            const initialDestroyOptions: DestroyOptions = { children: true };
+            const initialRendererDestroyOptions: RendererDestroyOptions = { removeView: true };
+
+            const TestChildComponent = () =>
+            {
+                const { app, isInitialised } = useApplication();
+
+                useEffect(() =>
+                {
+                    testApp = app;
+                    testAppIsInitialised = isInitialised;
+                }, [app, isInitialised]);
+
+                return null;
+            };
+
+            const TestComponent = ({ destroyOptions, rendererDestroyOptions }: {
+                destroyOptions: DestroyOptions;
+                rendererDestroyOptions: RendererDestroyOptions;
+            }) => (
+                <Application destroyOptions={destroyOptions} rendererDestroyOptions={rendererDestroyOptions}>
+                    <TestChildComponent />
+                </Application>
+            );
+
+            const { rerender, unmount } = await act(() => render((
+                <TestComponent destroyOptions={initialDestroyOptions} rendererDestroyOptions={initialRendererDestroyOptions} />
+            )));
+
+            await expect.poll(() => testAppIsInitialised).toEqual(true);
+
+            await act(() => rerender((
+                <TestComponent destroyOptions={{ children: false, texture: true }} rendererDestroyOptions={{ removeView: false }} />
+            )));
+
+            const destroySpy = vi.spyOn(testApp, 'destroy');
+
+            unmount();
+
+            await expect.poll(rootCount).toEqual(0);
+
+            expect(destroySpy).toHaveBeenCalledTimes(1);
+            expect(destroySpy).toHaveBeenCalledWith(initialRendererDestroyOptions, initialDestroyOptions);
         });
 
         it('unmounts with rendererDestroyOptions', async () =>
@@ -240,11 +291,11 @@ describe('Application', () =>
                 </Application>
             );
 
-            expect(roots.size).toEqual(0);
+            expect(rootCount()).toEqual(0);
 
             const { unmount } = await act(() => render(<TestComponent />));
 
-            expect(roots.size).toEqual(1);
+            expect(rootCount()).toEqual(1);
 
             await expect.poll(() => testAppIsInitialised).toEqual(true);
 
@@ -252,7 +303,7 @@ describe('Application', () =>
 
             unmount();
 
-            expect(roots.size).toEqual(0);
+            await expect.poll(rootCount).toEqual(0);
 
             await expect.poll(() => isAppMounted(testApp)).toBeFalsy();
 
@@ -296,19 +347,25 @@ describe('Application', () =>
                 </Application>
             );
 
-            expect(roots.size).toEqual(0);
+            expect(rootCount()).toEqual(0);
 
             const { unmount } = await act(() => render(<TestComponent />));
 
-            expect(roots.size).toEqual(1);
+            expect(rootCount()).toEqual(1);
 
             expect(testAppIsInitialised).toBeFalsy();
+
+            // Upstream's StrictMode replay committed the children before init settled (the
+            // `Application.lifecycle.strict-mode-children-after-init` defect), so the child could report the app
+            // here. Children now commit only after init, so read the pending root's app instead.
+            expect(testApp).toBeNull();
+            testApp = facadeCoreRuntime().roots()[0].app;
 
             unmount();
 
             await expect.poll(() => isAppMounted(testApp)).toBeFalsy();
 
-            expect(roots.size).toEqual(0);
+            await expect.poll(rootCount).toEqual(0);
         });
     });
 

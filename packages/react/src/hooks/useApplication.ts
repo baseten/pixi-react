@@ -1,21 +1,43 @@
-import { Application } from 'pixi.js';
-import { useContext } from 'react';
-import { Context } from '../components/Context';
-import { invariant } from '../helpers/invariant';
+import { isCompatibilityError } from '../runtime/errors';
+import { type ApplicationState } from '../typedefs/ApplicationState';
 
-/**
- * @description Retrieves the nearest Pixi.js Application from the Pixi React context.
- */
-export function useApplication()
+import type { FacadeRuntime } from '../runtime/composition';
+
+/** Upstream's error outside an `<Application>` (its `invariant` message). */
+function noContextError(cause: unknown): Error
 {
-    const appContext = useContext(Context);
-
-    invariant(
-        appContext.app instanceof Application,
-        'No Context found with `%s`. Make sure to wrap component with `%s`',
-        'Application',
-        'AppProvider'
+    const error = new Error(
+        'No Context found with `Application`. Make sure to wrap component with `AppProvider`',
+        { cause },
     );
 
-    return appContext;
+    error.name = 'Invariant Violation';
+
+    return error;
+}
+
+/** Creates the facade's `useApplication` over the default composition's hook. */
+export function createUseApplication(runtime: FacadeRuntime)
+{
+    /**
+     * @description Retrieves the nearest Pixi.js Application from the Pixi React context.
+     */
+    return function useApplication(): ApplicationState
+    {
+        try
+        {
+            return runtime.applicationState(runtime.renderer().useApplication());
+        }
+        catch (error)
+        {
+            // Inside another runtime's application the adapter's own error names the problem
+            // (`react-19.FOREIGN_RUNTIME`); outside any application, keep upstream's message.
+            if (isCompatibilityError(error))
+            {
+                throw error;
+            }
+
+            throw noContextError(error);
+        }
+    };
 }

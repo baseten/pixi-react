@@ -202,7 +202,9 @@ The facade binding attributes these defects to issue 8, and all of them pass her
 | `resources.destroy-options-transfer` | `destroyOptions` never reached React-owned children; they are now forwarded to each node |
 | `Application.extensions.swap` | `splice(-1, 1)` dropped the new extension; leases now diff by identity |
 
-Under D4, `packages/react/src` is unchanged, and the facade keeps listing these as expected failures until issue 10.
+Since issue 10 the facade composes `Pixi8Adapter` and inherits these repairs (the owner's D4 ruling on failure paths);
+it no longer lists them as expected failures. It keeps upstream's global extension and default-text-style behaviour
+with a facade-side shim, not by changing this adapter.
 
 ## Differences from the contract sketch
 

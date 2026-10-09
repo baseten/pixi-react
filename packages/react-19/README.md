@@ -140,8 +140,9 @@ The bindings follow [`design/contract/react-19.d.ts`](../../design/contract/reac
 
 ## Issue-9 defects fixed
 
-The conformance facade binding attributes these to issue 9. The facade (`packages/react`) keeps them until
-issue 10 switches it to this adapter (D4); every epoch here passes the scenarios with no expected failure:
+The baseline facade binding attributed these to issue 9. Since issue 10 the facade (`packages/react`) composes the
+19.3 epoch and inherits these repairs (the owner's D4 ruling on failure paths); every epoch here passes the scenarios
+with no expected failure:
 
 | Scenario | Fix |
 | --- | --- |

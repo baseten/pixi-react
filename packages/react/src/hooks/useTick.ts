@@ -1,71 +1,31 @@
 import { type TickerCallback } from 'pixi.js';
-import { invariant } from '../helpers/invariant';
 import { type UseTickOptions } from '../typedefs/UseTickOptions';
-import { useApplication } from './useApplication';
-import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
 
-/** Attaches a callback to the application's Ticker. */
-export function useTick<T>(
-    /** @description The function to be called on each tick. */
-    options: TickerCallback<T> | UseTickOptions<T>,
-)
+import type { FacadeRuntime } from '../runtime/composition';
+import type { createUseApplication } from './useApplication';
+
+/** Creates the facade's `useTick` over the default composition's hook. */
+export function createUseTick(runtime: FacadeRuntime, useApplication: ReturnType<typeof createUseApplication>)
 {
-    const {
-        app,
-        isInitialised,
-    } = useApplication();
-
-    let callback;
-
-    let context: any;
-
-    let isEnabled: boolean = true;
-
-    let priority: number | undefined;
-
-    if (typeof options === 'function')
+    /** Attaches a callback to the application's Ticker. */
+    return function useTick<T>(
+        /** @description The function to be called on each tick. */
+        options: TickerCallback<T> | UseTickOptions<T>,
+    ): void
     {
-        callback = options;
-    }
-    else
-    {
-        callback = options.callback;
-        context = options.context;
-        isEnabled = options.isEnabled ?? true;
-        priority = options.priority;
-    }
+        // Upstream read the application first, so outside an <Application> its error comes first.
+        useApplication();
 
-    invariant(typeof callback === 'function', '`useTick` needs a callback function.');
+        const callback = typeof options === 'function' ? options : options?.callback;
 
-    // eslint-disable-next-line consistent-return
-    useIsomorphicLayoutEffect(() =>
-    {
-        if (isInitialised)
+        if (typeof callback !== 'function')
         {
-            const ticker = app?.ticker;
-            const wasEnabled = isEnabled;
-            const previousContext = context;
-            const previousCallback = callback;
+            const error = new Error('`useTick` needs a callback function.');
 
-            if (isEnabled && ticker)
-            {
-                ticker.add(callback, context, priority);
-            }
-
-            return () =>
-            {
-                if (wasEnabled)
-                {
-                    ticker?.remove(previousCallback, previousContext);
-                }
-            };
+            error.name = 'Invariant Violation';
+            throw error;
         }
-    }, [
-        app?.ticker,
-        callback,
-        context,
-        isEnabled,
-        isInitialised,
-        priority,
-    ]);
+
+        runtime.renderer().useTick<T>(options as never);
+    };
 }
