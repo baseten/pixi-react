@@ -117,7 +117,7 @@ The bindings follow [`design/contract/react-19.d.ts`](../../design/contract/reac
 - **`Application`** creates its root on its canvas and renders its children through the context bridge. An
   initialization failure goes to `onInitError` (default `console.error`), never to an unhandled rejection. Destroy
   options use the upstream prop names `destroyOptions` and `rendererDestroyOptions`. The root error props default to
-  `console.error`. Unmount is deferred by one turn, so a StrictMode or keyed remount cancels it.
+  `console.error`. Unmount is deferred by one turn, and a StrictMode remount of the same canvas cancels it.
 - **`useApplication`** checks the provider's runtime token (not `instanceof` an application class): it throws
   outside an application, and throws `react-19.FOREIGN_RUNTIME` inside another runtime's application.
 - **`useTick`** takes a callback or `{ callback, context, isEnabled, priority }`; the subscription goes through core

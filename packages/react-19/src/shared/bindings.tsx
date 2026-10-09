@@ -406,7 +406,7 @@ export function createBindings<S extends SceneTypes>(runtime: Runtime<S>, config
         {
             const { root } = getOrCreateRoot(canvasRef.current!, rootOptions());
 
-            // A remount before a scheduled teardown has run (StrictMode, a keyed remount) cancels it.
+            // A remount before a scheduled teardown has run (the StrictMode effect replay) cancels it.
             root.cancelScheduledUnmount();
             rootRef.current = root;
         }, []);

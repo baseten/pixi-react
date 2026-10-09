@@ -128,9 +128,6 @@ export function rawTextError(text: string): Error
     );
 }
 
-/** The adapter's own error code for React features the composed scene cannot provide. */
-export const UNSUPPORTED_FEATURE = 'react-19.UNSUPPORTED_FEATURE';
-
 /**
  * A React feature this epoch's reconciler can reach but the renderer does not support (fragment refs,
  * ViewTransition). Raised with the built-in `CAPABILITY_MISSING` code and the missing capability's ID.
