@@ -61,9 +61,13 @@ export type Pixi8NodeConstructor = new (...args: never[]) => Pixi8Node;
  */
 export type Pixi8LeafNode = Filter | Pixi8ParticleInstance | InstalledInstance<'RenderLayer'> | InstalledInstance<'DOMContainer'>;
 
-/** The built-in nodes the 8.2.6 floor declares. */
-export interface Pixi8FloorCatalog
-{
+/**
+ * The built-in nodes the 8.2.6 floor declares. An object type alias, not an interface: only aliases get the implicit
+ * string index signature that core's `Catalog` (`Readonly<Record<string, Constructor>>`) requires, so this and
+ * `Pixi8StandardCatalog` can be passed to `extend` and mapped by `ComponentsOf`. Keys stay exact, and an interface
+ * (such as `PixiCatalog`) can still extend it.
+ */
+export type Pixi8FloorCatalog = {
     Container: typeof Container;
     Sprite: typeof Sprite;
     AnimatedSprite: typeof AnimatedSprite;
@@ -84,7 +88,7 @@ export interface Pixi8FloorCatalog
     ColorMatrixFilter: typeof ColorMatrixFilter;
     DisplacementFilter: typeof DisplacementFilter;
     NoiseFilter: typeof NoiseFilter;
-}
+};
 
 /** Built-in nodes exported later in the peer range; present in `Pixi8StandardCatalog` only when installed. */
 export type Pixi8LaterExport =
