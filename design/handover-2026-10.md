@@ -61,6 +61,26 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
 - **Docs (#50).** Recommend the official `create-pixi.js` `framework-react` template (Vite) instead of CRA. Docs are bundler-first, and no new UMD/IIFE build is added.
 - **Modular JSX catalogue (#34).** Empty until the consumer augments `PixiCatalog`.
 
+### Wave 2 rulings (2026-10-09)
+
+- **Namespace (#15/#40/#41).** Target upstream's `@pixi` scope:
+
+  | Package | Name |
+  |---|---|
+  | Facade | `@pixi/react` |
+  | Core | `@pixi/react-core` |
+  | Renderer | `@pixi/react-renderer` |
+  | React adapters | `@pixi/react-19.x` (per minor), `@pixi/react-18` |
+  | Pixi adapter | `@pixi/react-pixi-8` |
+
+  This depends on agreement with the pixijs maintainers (#41). Until then the scope stays configurable, and nothing is published.
+- **Release 1 version (#40).** `8.1.0`, with a migration note about the narrowed React peer.
+- **Pixi 7 (#16).** Deferred. It is kept open as a later or community item.
+- **Docs (#18/#19).** Build and E2E-test in CI only. Nothing is deployed yet.
+- **Conformance kit.** Published later, as part of #20, not with Release 1.
+- **Dependency updates.** Renovate. Installing the Renovate GitHub App is an owner action.
+- **Wave 2 order.** #15, #50 and #17 first, then #40, then #18 and #19.
+
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
 
 ## Historical prototype: findings
