@@ -58,6 +58,8 @@ Every `compose` call returns a new runtime. Nothing below is module-global, and 
 - **Target lease.** A DOM target or canvas that one runtime owns cannot be taken by another runtime: that throws
   `core.TARGET_LEASED`. The lease table is keyed by a registered symbol on `globalThis`, so separately installed
   copies of core respect it too. It holds only the owner's identity, and it is released after teardown.
+  An `HTMLElement` target whose descendants include a canvas owned by any root, of this runtime or another, is
+  rejected with `core.TARGET_LEASED` before its children are replaced.
 - **Node ownership.** `root.scene` (`SceneBridge`) is the only way a framework touches the scene. It does these
   things:
   - It records per-node metadata (owning root, definition, parent, hidden, destroyed) in the runtime's `WeakMap`,

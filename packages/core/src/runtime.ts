@@ -1,5 +1,5 @@
 import { negotiate, type NegotiatedComposition, validateAdapterShape } from './abi.js';
-import { CompatibilityError, TeardownError } from './errors.js';
+import { CompatibilityError, CoreErrorCodes, TeardownError } from './errors.js';
 import { acquireLeases, assertNotLeased, type LeaseHolder, releaseLeases } from './lease.js';
 import { RuntimeRegistry } from './registry.js';
 import { type NodeMeta, Root, type RuntimeInternals } from './root.js';
@@ -148,8 +148,8 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
 
         if (!isCanvas)
         {
-            // Replacing the target's children must not detach a canvas another runtime owns.
-            assertNotLeased(Array.from(target.querySelectorAll('canvas')), this.#holder);
+            // Replacing the target's children must not detach a canvas another root owns, in any runtime.
+            this.#assertNoOwnedCanvas(target);
         }
 
         acquireLeases(leased, this.#holder);
@@ -275,6 +275,34 @@ class ComposedRuntime<S extends SceneTypes> implements Runtime<S>
                 code: 'ROOT_DISPOSED',
                 adapterIds: this.#internals?.adapterIds ?? [],
             });
+        }
+    }
+
+    /** Throws `core.TARGET_LEASED` if a canvas below `target` belongs to a root of this or another runtime. */
+    #assertNoOwnedCanvas(target: HTMLElement): void
+    {
+        const canvases = Array.from(target.querySelectorAll('canvas'));
+
+        assertNotLeased(canvases, this.#holder);
+
+        for (const canvas of canvases)
+        {
+            const owner = this.#byTarget.get(canvas);
+
+            if (owner)
+            {
+                throw new CompatibilityError(
+                    `Cannot create a root for this element: it contains a canvas owned by root ${owner.id} of this `
+                    + 'runtime, which replacing the element\'s children would detach. Unmount that root first, or render '
+                    + 'into a different element.',
+                    {
+                        code: CoreErrorCodes.TARGET_LEASED,
+                        adapterIds: this.#internals.adapterIds,
+                        expected: { owner: 'none' },
+                        actual: { owner: `root ${owner.id}` },
+                    },
+                );
+            }
         }
     }
 
