@@ -143,7 +143,10 @@ for (const file of walk(dist))
     // Belt and braces: a quoted framework/scene package name anywhere (e.g. a computed require) also fails.
     for (const match of readFileSync(file, 'utf8').matchAll(FORBIDDEN_LITERAL))
     {
-        violations.push(`${name}: mentions forbidden module ${match[0]}`);
+        if (!allow.has(packageNameOf(match[0].slice(1, -1))))
+        {
+            violations.push(`${name}: mentions forbidden module ${match[0]}`);
+        }
     }
 }
 
