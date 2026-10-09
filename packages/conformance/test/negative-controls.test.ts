@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { runScenario } from '../src/runner';
 import { scenarios } from '../src/scenarios';
+import { createCoreBinding } from './core-binding/binding';
 import { createFakeBinding } from './fake-binding/binding';
 
 import type { FakeRuntimeFaults } from './fake-binding/runtime';
@@ -48,20 +49,26 @@ const controls: Array<{ fault: keyof FakeRuntimeFaults; scenarios: Record<string
     },
 ];
 
-describe('negative controls', () =>
+// The same faults injected into the fake renderer and into the core + renderer composition.
+const bindings = { 'fake renderer': createFakeBinding, 'core + renderer': createCoreBinding };
+
+for (const [name, create] of Object.entries(bindings))
 {
-    for (const { fault, scenarios: expected } of controls)
+    describe(`negative controls: ${name}`, () =>
     {
-        describe(fault, () =>
+        for (const { fault, scenarios: expected } of controls)
         {
-            for (const [id, failure] of Object.entries(expected))
+            describe(fault, () =>
             {
-                it(`${id} passes on the clean binding and catches the fault`, async () =>
+                for (const [id, failure] of Object.entries(expected))
                 {
-                    await runScenario(createFakeBinding(), byId(id));
-                    await expect(runScenario(createFakeBinding({ [fault]: true }), byId(id))).rejects.toThrow(failure);
-                });
-            }
-        });
-    }
-});
+                    it(`${id} passes on the clean binding and catches the fault`, async () =>
+                    {
+                        await runScenario(create(), byId(id));
+                        await expect(runScenario(create({ [fault]: true }), byId(id))).rejects.toThrow(failure);
+                    });
+                }
+            });
+        }
+    });
+}

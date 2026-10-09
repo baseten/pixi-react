@@ -113,7 +113,14 @@ importers:
         version: 5.6.3
 
   packages/conformance:
+    dependencies:
+      '@pixi-react-provisional/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
+      '@pixi-react-provisional/renderer':
+        specifier: workspace:*
+        version: link:../renderer
       '@types/react':
         specifier: ^19.0.0
         version: 19.0.8
