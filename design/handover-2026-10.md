@@ -34,6 +34,27 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
 | D8 | Review gate: Codex review (`@codex review`). P0 and P1 findings must be fixed. Rounds that raise only P2 findings are capped at 2. After that, merge. The Claude GitHub App currently has no merge permission, so the owner merges. |
 | D9 | Model mapping: `gpt-6-astra` → Claude Opus, `gpt-6.1-sol` → Claude Sonnet. |
 
+### Later rulings (2026-10-09)
+
+- **D3 reversed (#44).** The `createRenderer` keys are `react` and `pixi`. Renames:
+
+  | Old | New |
+  |---|---|
+  | `FrameworkAdapter` | `ReactAdapter` |
+  | `SceneAdapter` | `PixiAdapter` |
+  | `SceneSession` | `PixiSession` |
+  | `SceneTypes` | `PixiTypes` |
+  | `SceneBridge` | `PixiBridge` |
+  | `BindingFamily` | `ReactBindingFamily` |
+  | `scene.*` capabilities | `pixi.*` |
+  | `framework.react-19` / `framework.react-18` | `react.19` / `react.18` |
+
+  There are no aliases.
+- **D4.** Failure-path repairs are approved.
+- **D8.** Claude merges after the Codex gate.
+- **D10.** Multiple React or Pixi versions in one app are not supported unless the support is trivial.
+- **Release 1 (#43).** The `@pixi/react` facade bundles its adapters (core, renderer, react-19/19.3, pixi-8). It ships separate production and development builds, and only `react`, `react-dom` and `pixi.js` are external. The modular packages are published later (#15/#40).
+
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
 
 ## Historical prototype: findings
