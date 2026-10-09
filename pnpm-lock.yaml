@@ -783,6 +783,27 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.13.1)(@vitest/browser@2.1.9)(jsdom@25.0.1)(lightningcss@1.29.1)(msw@2.7.0(@types/node@22.13.1)(typescript@5.7.3))(terser@5.38.0)
 
+  packages/type-consumers:
+    devDependencies:
+      '@pixi-react-provisional/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pixi-react-provisional/pixi-8':
+        specifier: workspace:*
+        version: link:../pixi-8
+      '@pixi-react-provisional/react-19':
+        specifier: workspace:*
+        version: link:../react-19
+      '@pixi-react-provisional/renderer':
+        specifier: workspace:*
+        version: link:../renderer
+      '@pixi/react':
+        specifier: workspace:*
+        version: link:../react
+      eslint:
+        specifier: ^9.16.0
+        version: 9.19.0(jiti@1.21.7)
+
 packages:
 
   '@adobe/css-tools@4.4.1':

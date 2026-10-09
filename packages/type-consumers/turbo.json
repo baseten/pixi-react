@@ -1,0 +1,16 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "typecheck": {
+      // Packs the built packages of every dependency, then installs each consumer from the registry and the tarballs.
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "passThroughEnv": [
+        "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy",
+        "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "TMPDIR", "XDG_CACHE_HOME", "XDG_DATA_HOME",
+        "npm_config_*", "PNPM_HOME", "PIXI_REACT_TYPE_CELLS"
+      ]
+    }
+  }
+}

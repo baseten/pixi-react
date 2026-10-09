@@ -13,7 +13,10 @@
  *
  * It also checks that package.json declares no runtime or peer dependency outside the allowlist.
  *
- * Usage (from a package directory): node ../../scripts/check-dependency-graph.mjs [--allow name]... [--dist dir]
+ * `--skip dir` (relative to the dist directory, repeatable) leaves a subdirectory out, for an entry that is checked
+ * by its own invocation with its own allowlist (pixi-8's types-only `jsx` entries name React).
+ *
+ * Usage (from a package directory): node ../../scripts/check-dependency-graph.mjs [--allow name]... [--dist dir] [--skip dir]...
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -21,6 +24,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 
 const args = process.argv.slice(2);
 const allow = new Set();
+const skip = [];
 let distArg = 'dist';
 let packageDir = process.cwd();
 
@@ -33,6 +37,10 @@ for (let i = 0; i < args.length; i++)
     else if (args[i] === '--dist')
     {
         distArg = args[++i];
+    }
+    else if (args[i] === '--skip')
+    {
+        skip.push(args[++i]);
     }
     else if (args[i] === '--package')
     {
@@ -55,6 +63,7 @@ if (!existsSync(dist))
     process.exit(1);
 }
 
+const skipped = new Set(skip.map((dir) => resolve(dist, dir)));
 const EMITTED = /\.(c|m)?js$|\.d\.(c|m)?ts$/;
 const FORBIDDEN_LITERAL = /["'`](?:react|react-dom|react-reconciler|scheduler|its-fine|pixi\.js|@pixi\/[\w.-]+)(?:\/[^"'`]*)?["'`]/g;
 
@@ -66,7 +75,7 @@ function walk(dir)
 
         if (statSync(path).isDirectory())
         {
-            return walk(path);
+            return skipped.has(path) ? [] : walk(path);
         }
 
         return EMITTED.test(name) ? [path] : [];

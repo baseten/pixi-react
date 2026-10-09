@@ -16,6 +16,18 @@
         "default": "./dist/cjs/index.js"
       }
     },
+    "./jsx": {
+      "types": "./dist/jsx/index.d.ts",
+      "default": "./dist/jsx/index.js"
+    },
+    "./jsx/react-19": {
+      "types": "./dist/jsx/react-19.d.ts",
+      "default": "./dist/jsx/react-19.js"
+    },
+    "./jsx/react-18": {
+      "types": "./dist/jsx/react-18.d.ts",
+      "default": "./dist/jsx/react-18.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/cjs/index.js",
@@ -32,8 +44,8 @@
     }
   },
   "scripts": {
-    "build": "node ../../scripts/build-dual-package.mjs",
-    "check:graph": "node ../../scripts/check-dependency-graph.mjs --allow @pixi-react-provisional/core --allow pixi.js",
+    "build": "node ../../scripts/build-dual-package.mjs && tsc -p tsconfig.jsx.json",
+    "check:graph": "node ../../scripts/check-dependency-graph.mjs --allow @pixi-react-provisional/core --allow pixi.js --allow @types/react --skip jsx && node ../../scripts/check-dependency-graph.mjs --dist dist/jsx --allow @pixi-react-provisional/pixi-8 --allow @pixi-react-provisional/core --allow pixi.js --allow react --allow @types/react",
     "lint": "eslint --max-warnings 0 .",
     "test:conformance": "vitest run --workspace vitest.browser.workspace.mts --project 'conformance*'",
     "test:e2e": "vitest run --workspace vitest.browser.workspace.mts",
@@ -44,7 +56,13 @@
     "@pixi-react-provisional/core": "workspace:*"
   },
   "peerDependencies": {
-    "pixi.js": ">=8.2.6 <8.5.0 || >=8.5.1 <8.23.0"
+    "pixi.js": ">=8.2.6 <8.5.0 || >=8.5.1 <8.23.0",
+    "@types/react": "^18.3.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@pixi-react-provisional/conformance": "workspace:*",

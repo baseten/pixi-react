@@ -4,6 +4,7 @@ export { REQUIRED_PIXI_CAPABILITIES } from './adapter.js';
 export type {
     ApplicationProps,
     ApplicationRef,
+    ComponentsOf,
     ElementProps,
     React19Family,
     ReactBindings,
