@@ -20,6 +20,29 @@ function isBindable(value: unknown): value is object
 }
 
 /**
+ * A non-extensible bindings value cannot carry `runtime`, so the result inherits from it instead. A function
+ * stays callable: the wrapper forwards calls and inherits the function's properties.
+ */
+function inherit(bindings: object): object
+{
+    if (typeof bindings !== 'function')
+    {
+        return Object.create(bindings) as object;
+    }
+
+    const call = bindings as (...args: unknown[]) => unknown;
+
+    function wrapper(this: unknown, ...args: unknown[]): unknown
+    {
+        return call.apply(this, args);
+    }
+
+    Object.setPrototypeOf(wrapper, bindings);
+
+    return wrapper;
+}
+
+/**
  * Composes one framework adapter with one scene adapter into a new, isolated runtime and returns the framework's
  * bindings for it. The framework and scene families are inferred from the adapter instances; no explicit type
  * arguments are needed. Validation (adapter shape, ABI, capabilities, installed environment) happens before
@@ -65,7 +88,7 @@ export function createRenderer<S extends SceneTypes, F extends BindingFamily>(
         throw error;
     }
 
-    const target = Object.isExtensible(bindings) ? bindings : Object.create(bindings) as object;
+    const target = Object.isExtensible(bindings) ? bindings : inherit(bindings);
 
     Object.defineProperty(target, 'runtime', { value: runtime, enumerable: true, writable: false, configurable: false });
 

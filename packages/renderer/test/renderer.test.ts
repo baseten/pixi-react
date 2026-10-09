@@ -114,11 +114,18 @@ describe('createRenderer', () =>
     {
         const frozen = createRenderer({ framework: new ToolsFramework({}, () => Object.freeze({ tag: 'frozen' })), scene: new ItemSceneAdapter() });
         const fn = createRenderer({ framework: new ToolsFramework({}, () => () => 'called'), scene: new ItemSceneAdapter() });
+        const frozenFn = createRenderer({
+            framework: new ToolsFramework({}, () => Object.freeze(Object.assign(() => 'frozen call', { tag: 'fn' }))),
+            scene: new ItemSceneAdapter(),
+        });
 
         expect((frozen as unknown as { tag: string }).tag).toBe('frozen');
         expect(frozen.runtime.status).toBe('active');
         expect((fn as unknown as () => string)()).toBe('called');
         expect(fn.runtime.status).toBe('active');
+        expect((frozenFn as unknown as () => string)()).toBe('frozen call');
+        expect((frozenFn as unknown as { tag: string }).tag).toBe('fn');
+        expect(frozenFn.runtime.status).toBe('active');
     });
 
     it('rejects a missing adapter pair', () =>
