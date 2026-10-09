@@ -85,7 +85,7 @@ export interface AdapterBinding
 export class Pixi8AdapterBase extends PixiAdapter<Pixi8Types>
 {
     readonly manifest: Pixi8Manifest;
-    /** The pixi.js module this adapter is bound to. */
+    /** The pixi.js exports this adapter is bound to (`PIXI8_BINDING_EXPORTS` of one loaded module). */
     readonly pixi: SessionGlobals['pixi'];
     private readonly sessionGlobals: SessionGlobals;
 

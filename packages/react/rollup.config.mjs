@@ -32,7 +32,7 @@ const require = createRequire(import.meta.url);
  *
  * `@pixi-react-provisional/pixi-8` resolves to its `bind` module, not its entry: the entry requires pixi.js and binds
  * to it at load, while the facade's single implementation must not import pixi.js itself (D6). The facade's entries
- * pass their own pixi.js module to the bundled `bindPixi` instead.
+ * pass the pixi.js exports it needs (`PIXI8_BINDING_EXPORTS`, imported by name) to the bundled `bindPixi` instead.
  */
 const PROVISIONAL_SCOPE = '@pixi-react-provisional/';
 const REACT_ADAPTER_NAME = `${PROVISIONAL_SCOPE}react-19.3`;

@@ -3,10 +3,11 @@
  *
  * pixi.js ships separate ESM and CJS builds, and `Pixi8Adapter` is bound to one Pixi instance. The facade's single
  * CommonJS implementation (this module, with the adapters bundled into it) therefore never imports pixi.js at
- * runtime: `lib/index.js` passes the pixi.js module `require` loads to `bindPixi`, and the generated `lib/index.mjs`
- * passes the module `import` loads. Both entries load this one module, which keeps one bound Pixi 8 adapter per Pixi
- * instance (`bindPixi`) and one facade, with one default runtime, per adapter class: ESM and CJS consumers that
- * share a pixi.js instance (as in a bundler) share the default runtime.
+ * runtime: `lib/index.js` passes the exports `bindPixi` needs from the pixi.js module `require` loads, and the
+ * generated `lib/index.mjs` those of the module `import` loads, by name (never the namespace, so bundlers can drop
+ * the Pixi classes an application does not use). Both entries load this one module, which keeps one bound Pixi 8
+ * adapter per Pixi instance (`bindPixi`) and one facade, with one default runtime, per adapter class: ESM and CJS
+ * consumers that share a pixi.js instance (as in a bundler) share the default runtime.
  */
 import { createApplication } from './components/Application';
 import { createCreateRoot } from './core/createRoot';
@@ -20,10 +21,10 @@ import { createFacadeRuntime, type FacadeRuntime } from './runtime/composition';
 import type { Pixi8AdapterConstructor } from '@pixi-react-provisional/pixi-8';
 
 /**
- * Binds the bundled Pixi 8 adapter to one pixi.js module namespace; cached per Pixi instance. The entries call it
- * with the pixi.js module their own module system loads.
+ * Binds the bundled Pixi 8 adapter to the `PIXI8_BINDING_EXPORTS` of one pixi.js module; cached per Pixi instance.
+ * The entries import those exports by name from the pixi.js module their own module system loads.
  */
-export { bindPixi } from '@pixi-react-provisional/pixi-8';
+export { bindPixi, PIXI8_BINDING_EXPORTS } from '@pixi-react-provisional/pixi-8';
 
 /** The part of a bound Pixi 8 adapter module (the result of `bindPixi`) the facade binds to. */
 export interface Pixi8Module

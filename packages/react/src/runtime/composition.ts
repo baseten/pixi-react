@@ -15,7 +15,7 @@ import { createRenderer, type Renderer } from '@pixi-react-provisional/renderer'
 
 import type { ApplicationState as FacadeApplicationState } from '../typedefs/ApplicationState';
 import type { ApplicationState } from '@pixi-react-provisional/core';
-import type { Pixi8AdapterConstructor, Pixi8Types, PixiModule } from '@pixi-react-provisional/pixi-8';
+import type { Pixi8AdapterConstructor, Pixi8Types, PixiBinding } from '@pixi-react-provisional/pixi-8';
 import type { React19Family } from '@pixi-react-provisional/react-19.3';
 
 /**
@@ -50,8 +50,8 @@ export interface FacadeRuntime
 {
     /** The facade's Pixi adapter. Constructing it allocates nothing and checks nothing. */
     readonly adapter: FacadePixiAdapter;
-    /** The pixi.js module the Pixi adapter is bound to. */
-    readonly pixi: PixiModule;
+    /** The pixi.js exports the Pixi adapter is bound to (its `PIXI8_BINDING_EXPORTS`). */
+    readonly pixi: PixiBinding;
     /** `TextStyle.defaultTextStyle` as it was when the facade loaded (upstream's restore target). */
     readonly originalDefaultTextStyle: Readonly<Record<string, unknown>>;
     /** The composed renderer; composes on the first call. */

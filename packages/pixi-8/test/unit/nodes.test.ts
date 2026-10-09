@@ -161,6 +161,43 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect([sprite.alpha, sprite.x, sprite.scale.x, sprite.scale.y, sprite.anchor.x]).toEqual([1, 0, 1, 1, 0]);
     });
 
+    it('restores Text kind defaults from a blank Text, recognized without importing Text', () =>
+    {
+        class Label extends pixi.Text
+        {}
+        const props = { text: 'hello', anchor: { x: 0.5, y: 0.5 }, resolution: 2 };
+        const label = make(nodes, Label, props);
+
+        expect([label.text, label.anchor.x, label.resolution]).toEqual(['hello', 0.5, 2]);
+        nodes.applyChanges(label, props, {});
+        expect([label.text, label.anchor.x]).toEqual([new pixi.Text().text, 0]);
+    });
+
+    it('never constructs a custom class that redeclares a built-in signature', () =>
+    {
+        let constructions = 0;
+
+        class Overriding extends pixi.Sprite
+        {
+            constructor(options?: Any)
+            {
+                super(options);
+                constructions += 1;
+            }
+
+            get anchor() { return super.anchor; }
+            set anchor(value) { super.anchor = value; }
+            get texture() { return super.texture; }
+            set texture(value) { super.texture = value; }
+            get sourceBounds() { return super.sourceBounds; }
+        }
+        const props = { anchor: { x: 0.5, y: 0.5 } };
+        const sprite = make(nodes, Overriding, props);
+
+        nodes.applyChanges(sprite, props, {});
+        expect([sprite.anchor.x, constructions]).toEqual([0, 1]);
+    });
+
     it('restores a custom class initial value, and never constructs a class that needs arguments', () =>
     {
         let constructions = 0;

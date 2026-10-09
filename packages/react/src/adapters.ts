@@ -5,6 +5,6 @@
  * include them. Release 1 ships the adapters inside `@pixi/react`; it depends on no separately
  * published adapter package. Internal: not exported from the package entry points.
  */
-export { bindPixi } from '@pixi-react-provisional/pixi-8';
+export { bindPixi, PIXI8_BINDING_EXPORTS } from '@pixi-react-provisional/pixi-8';
 export { React19Adapter } from '@pixi-react-provisional/react-19.3';
 export { createRenderer } from '@pixi-react-provisional/renderer';
