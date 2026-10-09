@@ -14,9 +14,11 @@ function validate(t, mutate)
     const evidence = JSON.parse(readFileSync(new URL('evidence.json', import.meta.url)));
 
     mutate?.(evidence, seed);
+    copyFileSync(new URL('declaration-series.mjs', import.meta.url), join(root, 'declaration-series.mjs'));
     copyFileSync(new URL('react-abi.mjs', import.meta.url), join(root, 'react-abi.mjs'));
     copyFileSync(new URL('process-diagnostics.mjs', import.meta.url), join(root, 'process-diagnostics.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
+    copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
     copyFileSync(new URL('surface-map.mjs', import.meta.url), join(root, 'surface-map.mjs'));
     writeFileSync(join(root, 'seed.json'), JSON.stringify(seed));
