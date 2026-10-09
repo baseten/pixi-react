@@ -1,4 +1,4 @@
-const { validate } = require('./.github/actions/fork-safety/check.cjs');
+const { validate, packageDirectory } = require('./.github/actions/fork-safety/check.cjs');
 const enabled = process.env.FORK_RELEASE_ENABLED === 'true';
 
 if (enabled) validate('release');
@@ -23,6 +23,7 @@ module.exports = {
         ...(enabled ? [
             ['@semantic-release/npm', {
                 npmPublish: true,
+                pkgRoot: packageDirectory,
                 tarballDir: 'release-artifacts',
             }],
             ['@semantic-release/github', {

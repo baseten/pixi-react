@@ -3,12 +3,22 @@ import pixiConfig from '@pixi/eslint-config';
 
 export default [
     {
+        // Patterns resolve against the directory of the config ESLint loads:
+        // the workspace root (lint-staged) or a package that re-exports this
+        // file (`pnpm --filter <package> lint`). Both forms are listed.
         ignores: [
             'dist/**/*',
             'lib/**/*',
             'types/**/*',
-            'docs/build/**/*',
-            'docs/.docusaurus/**/*',
+            'build/**/*',
+            '.docusaurus/**/*',
+            'packages/*/dist/**/*',
+            'packages/*/lib/**/*',
+            'packages/*/types/**/*',
+            'apps/docs/build/**/*',
+            'apps/docs/.docusaurus/**/*',
+            // Design probes import uninstalled React 17 / Pixi 6 packages.
+            'design/**/*',
         ],
     },
     ...pixiConfig,

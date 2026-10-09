@@ -2,7 +2,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const repository = 'baseten/pixi-react';
-const packageName = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf8')).name;
+// The publishable package is the facade workspace; the repository root is a private workspace manifest.
+const packageDirectory = 'packages/react';
+const packageName = JSON.parse(fs.readFileSync(path.join(__dirname, '../../..', packageDirectory, 'package.json'), 'utf8')).name;
 
 function validate(mode, env = process.env, name = packageName)
 {
@@ -40,6 +42,7 @@ function review(env = process.env)
         repository: env.GITHUB_REPOSITORY || '(local)',
         allowedRepository: repository,
         manifestPackage: packageName,
+        manifestPath: `${packageDirectory}/package.json`,
         configuredPackage: env.FORK_PACKAGE_NAME || '(unset)',
         npmRegistry: 'https://registry.npmjs.org',
         previewService: 'https://pkg.pr.new',
@@ -59,7 +62,7 @@ function review(env = process.env)
     }, null, 2));
 }
 
-module.exports = { validate, review };
+module.exports = { validate, review, packageDirectory, packageName };
 
 if (require.main === module)
 {

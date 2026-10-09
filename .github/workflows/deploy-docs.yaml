@@ -21,6 +21,7 @@ env:
   FORK_PACKAGE_NAME: ${{ vars.FORK_PACKAGE_NAME }}
   FORK_DOCS_ENABLED: ${{ vars.FORK_DOCS_ENABLED }}
   FORK_DOCS_REPOSITORY: ${{ vars.FORK_DOCS_REPOSITORY }}
+  TURBO_TELEMETRY_DISABLED: 1
 
 jobs:
   review:
@@ -33,7 +34,7 @@ jobs:
           persist-credentials: false
       - run: node .github/actions/fork-safety/check.cjs review
       - uses: ./.github/actions/setup
-      - run: npm run build:docs
+      - run: pnpm run build:docs
 
   deploy:
     name: Deploy configured fork docs
@@ -50,8 +51,11 @@ jobs:
       - name: Validate docs destination
         run: node .github/actions/fork-safety/check.cjs docs
       - uses: ./.github/actions/setup
+      # Build the workspace facade the docs depend on (workspace:*) before deploying.
+      - run: pnpm run build
       - name: Deploy to this fork
-        run: npm run deploy
+        # `pnpm run deploy` (not `pnpm deploy`, a built-in pnpm command) runs the docs deploy script.
+        run: pnpm run deploy
         env:
           GIT_USER: ${{ github.actor }}
           GIT_USER_NAME: ${{ github.actor }}

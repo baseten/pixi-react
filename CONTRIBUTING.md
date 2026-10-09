@@ -5,16 +5,45 @@ Keep upstream attribution and the MIT license when moving code or documentation.
 
 ## Setup and verification
 
-Use the Node version selected by `.github/actions/setup/action.yml`. Until the
-workspace migration lands, install with `npm ci --ignore-scripts` and use
-`npm run test:types`, `npm run test:lint`, `npm run test:unit`,
-`npm run test:e2e`, and `npm run build:docs`. Browser tests require
-`npx playwright install chromium`; the local docs server is `npm run start:docs`.
+This is a pnpm workspace orchestrated by Turborepo:
 
-After the pnpm workspace migration, use the committed `packageManager` version,
-`pnpm install --frozen-lockfile`, and the root pnpm scripts documented by that
-migration. Use `pnpm --filter <package> <script>` for package-specific work.
-Do not create a second lockfile or assume the migration has already happened.
+- `packages/react` is the published `@pixi/react` library.
+- `apps/docs` is the private Docusaurus site. It depends on the local library
+  through `workspace:*`.
+- `packages/conformance` is the private renderer conformance suite: scenarios,
+  a fake scene backend and a runner. See its README.
+- The root `package.json` is private. It holds only workspace tooling.
+
+Use the Node version in `.nvmrc` and the pnpm version in the root
+`packageManager` field. `corepack enable` selects that pnpm automatically.
+Install with `pnpm install --frozen-lockfile`. `pnpm-lock.yaml` is the only
+lockfile; do not add a `package-lock.json` or `yarn.lock`.
+
+The root scripts run Turbo tasks, which build workspace dependencies first:
+
+| Command | Turbo task | Notes |
+| --- | --- | --- |
+| `pnpm build` | `build` (every package except docs) | `@pixi/react`: Rollup ESM/CJS output plus declarations. `core`/`renderer`/`pixi-8`: one CJS implementation plus an ESM wrapper (D6, see `packages/core/README.md`; `pixi-8` binds each entry to its own pixi.js instance, see `packages/pixi-8/README.md`) |
+| `pnpm test:types` | `typecheck` | Excludes the docs app (see below) |
+| `pnpm test:lint` | `lint` | Library and docs, shared root `eslint.config.mjs` |
+| `pnpm test:unit` | `test:unit` | jsdom/Node unit tests; for `core`/`renderer`/`pixi-8` also the D6 entry test and the built dependency-graph check |
+| `pnpm test:e2e` | `test:e2e` | Vitest browser mode with Playwright Chromium, including the conformance suite; never cached |
+| `pnpm test:conformance` | `test:conformance` | The conformance suite alone: against the baseline facade and the Pixi 8 adapter (pixi.js 8.2.6 and 8.22.0) in Chromium, and against core + renderer in jsdom; never cached |
+| `pnpm build:docs` | `build` (`docs`) | Builds the library, then the Docusaurus site |
+
+Browser tests need Chromium:
+`pnpm --filter @pixi/react exec playwright install chromium`. Outside CI, set
+`CI=true` to run them headless. The local docs server is `pnpm start:docs`.
+
+Use `pnpm --filter <package> <script>` for package-specific work, for example
+`pnpm --filter @pixi/react test:watch`. Declare every dependency in the manifest
+of the package that imports it. Packages depend on each other through
+`workspace:` manifest entries, not tsconfig `paths`. `design/**` is excluded
+from ESLint because its audit probes import packages that are not installed.
+
+The docs `typecheck` script (`pnpm --filter docs typecheck`) already failed
+before the migration: TypeScript 5.7.3 crashes with an internal "Debug Failure".
+It is not part of `pnpm test:types` or CI.
 Package documentation belongs in its package README; avoid shared README churn.
 
 ## Agent workflow
@@ -63,15 +92,18 @@ Actions variables:
 
 | Operation | Required configuration | Additional gate |
 | --- | --- | --- |
-| npm and GitHub release | `FORK_RELEASE_ENABLED=true`; `FORK_PACKAGE_NAME` exactly matches the renamed root package and is outside `@pixi/`; `NPM_TOKEN` secret authorized for that package | Manual `publish_release=true` on `main`, `alpha`, or `beta`; verification must pass |
+| npm and GitHub release | `FORK_RELEASE_ENABLED=true`; `FORK_PACKAGE_NAME` exactly matches the renamed `packages/react/package.json` name and is outside `@pixi/`; `NPM_TOKEN` secret authorized for that package | Manual `publish_release=true` on `main`, `alpha`, or `beta`; verification must pass |
 | Package preview | `FORK_PREVIEW_ENABLED=true`; the same `FORK_PACKAGE_NAME` check | PR from a branch within `baseten/pixi-react` targeting `main`; verification must pass |
 | Docs | `FORK_DOCS_ENABLED=true`; `FORK_DOCS_REPOSITORY=baseten/pixi-react` | Manual `deploy=true` on `main`; docs build must pass |
 
-Release and preview remain blocked while the root manifest is `@pixi/react`,
-even if their enablement variable is set. The workspace migration must define
-its own package publication policy before enabling releases for a package split;
-the inherited single-package release flow is not a workspace release strategy.
-Previews use `pkg.pr.new` and require its app to be configured for this fork.
+Release and preview remain blocked while `packages/react/package.json` is named
+`@pixi/react`, even if their enablement variable is set. The guards read that
+manifest; the private workspace root is never published. semantic-release
+publishes from `packages/react` (`pkgRoot`), and previews publish
+`./packages/react` with `pkg.pr.new`. This is still the inherited
+single-package flow, not a multi-package release strategy. A package split must
+define its own publication policy (for example Changesets) before enabling
+releases. Previews require the `pkg.pr.new` app to be configured for this fork.
 Release uses `https://registry.npmjs.org` and GitHub releases in
 `baseten/pixi-react`. No command in the review path publishes an artifact.
 

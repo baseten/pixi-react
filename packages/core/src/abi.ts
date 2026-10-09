@@ -1,0 +1,288 @@
+import { CompatibilityError } from './errors.js';
+
+import type { AdapterManifest, CapabilityMap } from './types.js';
+
+/** The ABI this core implements. An adapter may implement any minor up to this one. */
+export const CORE_ABI = Object.freeze({ major: 1, minor: 0 } as const);
+
+export type AdapterRole = 'framework' | 'scene';
+
+/** Methods each adapter role must implement at ABI 1.0, checked at composition time. */
+const REQUIRED_METHODS: Readonly<Record<AdapterRole, readonly string[]>> = {
+    framework: ['bind'],
+    scene: ['createSession', 'describe', 'normalizeName'],
+};
+
+function isRecord(value: unknown): value is Record<string, unknown>
+{
+    return typeof value === 'object' && value !== null;
+}
+
+function isProtocolVersion(value: unknown): value is number
+{
+    return typeof value === 'number' && Number.isInteger(value) && value >= 0;
+}
+
+function malformed(role: AdapterRole, id: string | undefined, message: string, extra: Partial<{
+    capability: string;
+    expected: Record<string, string | number | boolean | null>;
+    actual: Record<string, string | number | boolean | null>;
+}> = {}): CompatibilityError
+{
+    const label = id ? `${role} adapter "${id}"` : `The ${role} adapter`;
+
+    return new CompatibilityError(`${label} has a malformed manifest: ${message}`, {
+        code: 'ABI_MISMATCH',
+        adapterIds: id ? [id] : [],
+        ...extra,
+    });
+}
+
+function validateCapabilities(role: AdapterRole, id: string, field: 'provides' | 'requires', map: unknown): CapabilityMap
+{
+    if (!isRecord(map) || Array.isArray(map))
+    {
+        throw malformed(role, id, `"${field}" must be an object mapping capability IDs to protocol versions.`);
+    }
+
+    for (const [capability, version] of Object.entries(map))
+    {
+        if (!capability)
+        {
+            throw malformed(role, id, `"${field}" contains an empty capability ID.`);
+        }
+
+        if (!isProtocolVersion(version))
+        {
+            throw malformed(role, id, `"${field}.${capability}" must be a non-negative integer protocol version.`, {
+                capability,
+                expected: { [capability]: 'integer >= 0' },
+                actual: { [capability]: typeof version === 'number' ? version : String(version) },
+            });
+        }
+    }
+
+    return Object.freeze({ ...(map as CapabilityMap) });
+}
+
+/**
+ * Validates one adapter manifest and returns a frozen copy. ABI major mismatches, an ABI minor newer than this
+ * core, and malformed fields throw `ABI_MISMATCH` naming the adapter.
+ */
+export function validateManifest(manifest: unknown, role: AdapterRole): AdapterManifest
+{
+    if (!isRecord(manifest))
+    {
+        throw malformed(role, undefined, 'the adapter has no manifest object.');
+    }
+
+    const id = manifest.id;
+
+    if (typeof id !== 'string' || !id.trim())
+    {
+        throw malformed(role, undefined, '"id" must be a non-empty string.');
+    }
+
+    const abi = manifest.abi;
+
+    if (!isRecord(abi) || !isProtocolVersion(abi.major) || !isProtocolVersion(abi.minor))
+    {
+        throw malformed(role, id, '"abi" must be { major, minor } with integer versions.');
+    }
+
+    if (abi.major !== CORE_ABI.major)
+    {
+        throw new CompatibilityError(
+            `The ${role} adapter "${id}" implements ABI ${abi.major}.${abi.minor}, but this core implements ABI `
+            + `${CORE_ABI.major}.${CORE_ABI.minor}. Install a "${id}" release built for ABI ${CORE_ABI.major}.`,
+            {
+                code: 'ABI_MISMATCH',
+                adapterIds: [id],
+                expected: { major: CORE_ABI.major },
+                actual: { major: abi.major, minor: abi.minor },
+            },
+        );
+    }
+
+    if (abi.minor > CORE_ABI.minor)
+    {
+        throw new CompatibilityError(
+            `The ${role} adapter "${id}" needs ABI ${abi.major}.${abi.minor}, but this core only implements ABI `
+            + `${CORE_ABI.major}.${CORE_ABI.minor}. Upgrade the core package, or install an older "${id}".`,
+            {
+                code: 'ABI_MISMATCH',
+                adapterIds: [id],
+                expected: { major: CORE_ABI.major, maxMinor: CORE_ABI.minor },
+                actual: { major: abi.major, minor: abi.minor },
+            },
+        );
+    }
+
+    for (const field of ['packageVersion', 'certification'] as const)
+    {
+        if (typeof manifest[field] !== 'string')
+        {
+            throw malformed(role, id, `"${field}" must be a string.`);
+        }
+    }
+
+    return Object.freeze({
+        abi: Object.freeze({ major: CORE_ABI.major, minor: abi.minor }),
+        id,
+        packageVersion: manifest.packageVersion as string,
+        certification: manifest.certification as string,
+        provides: validateCapabilities(role, id, 'provides', manifest.provides),
+        requires: validateCapabilities(role, id, 'requires', manifest.requires),
+    });
+}
+
+/**
+ * Checks that `adapter` structurally implements its role: ABI 1.0 methods must exist. Structural, not
+ * `instanceof`, so an adapter built against another installed copy of core is judged by what it implements.
+ */
+export function validateAdapterShape(adapter: unknown, role: AdapterRole): AdapterManifest
+{
+    if (!isRecord(adapter))
+    {
+        throw new CompatibilityError(`Expected a ${role} adapter instance, got ${adapter === null ? 'null' : typeof adapter}.`, {
+            code: 'ABI_MISMATCH',
+            adapterIds: [],
+        });
+    }
+
+    const manifest = validateManifest(adapter.manifest, role);
+
+    for (const method of REQUIRED_METHODS[role])
+    {
+        if (typeof adapter[method] !== 'function')
+        {
+            throw new CompatibilityError(
+                `The ${role} adapter "${manifest.id}" does not implement ${method}(), required by ABI `
+                + `${CORE_ABI.major}.${manifest.abi.minor}. Was a ${role === 'scene' ? 'framework' : 'scene'} adapter passed as the ${role}?`,
+                {
+                    code: 'ABI_MISMATCH',
+                    adapterIds: [manifest.id],
+                    expected: { [method]: 'function' },
+                    actual: { [method]: typeof adapter[method] },
+                },
+            );
+        }
+    }
+
+    return manifest;
+}
+
+export interface NegotiatedComposition
+{
+    readonly framework: AdapterManifest;
+    readonly scene: AdapterManifest;
+    /** Every capability either adapter provides. */
+    readonly capabilities: CapabilityMap;
+}
+
+function requireCapabilities(
+    /** Subject and verb, e.g. `Scene adapter "x" requires`. */
+    requirer: string,
+    requirerIds: readonly string[],
+    requires: CapabilityMap,
+    provider: string,
+    providerIds: readonly string[],
+    provides: CapabilityMap,
+): void
+{
+    for (const [capability, version] of Object.entries(requires))
+    {
+        const available = Object.prototype.hasOwnProperty.call(provides, capability) ? provides[capability] : undefined;
+
+        if (available === version)
+        {
+            continue;
+        }
+
+        const found = available === undefined
+            ? 'it is not provided'
+            : `version ${available} is provided`;
+
+        throw new CompatibilityError(
+            `${requirer} capability "${capability}" at protocol version ${version}, but ${found} by ${provider}. `
+            + `Compose with ${provider === 'the composed adapters' ? 'adapters' : 'an adapter'} that provides "${capability}" version ${version}.`,
+            {
+                code: 'CAPABILITY_MISSING',
+                adapterIds: [...requirerIds, ...providerIds],
+                capability,
+                expected: { [capability]: version },
+                actual: { [capability]: available ?? null },
+            },
+        );
+    }
+}
+
+/**
+ * Validates one framework/scene pair before anything is allocated. Each adapter's `requires` must be met
+ * exactly (same protocol version) by its counterpart's `provides`, and the consumer's
+ * `requiredCapabilities` by either adapter. Unknown optional capabilities are ignored.
+ */
+export function negotiate(
+    framework: AdapterManifest,
+    scene: AdapterManifest,
+    requiredCapabilities: CapabilityMap = {},
+): NegotiatedComposition
+{
+    const required = validateCapabilitiesInput(requiredCapabilities);
+
+    requireCapabilities(
+        `Framework adapter "${framework.id}" requires`, [framework.id], framework.requires,
+        `scene adapter "${scene.id}"`, [scene.id], scene.provides,
+    );
+    requireCapabilities(
+        `Scene adapter "${scene.id}" requires`, [scene.id], scene.requires,
+        `framework adapter "${framework.id}"`, [framework.id], framework.provides,
+    );
+
+    const capabilities: Record<string, number> = { ...framework.provides };
+
+    for (const [capability, version] of Object.entries(scene.provides))
+    {
+        if (capabilities[capability] !== undefined && capabilities[capability] !== version)
+        {
+            throw new CompatibilityError(
+                `Framework adapter "${framework.id}" provides "${capability}" version ${capabilities[capability]} but `
+                + `scene adapter "${scene.id}" provides version ${version}; one capability ID has one protocol owner.`,
+                {
+                    code: 'UNSUPPORTED_TUPLE',
+                    adapterIds: [framework.id, scene.id],
+                    capability,
+                    expected: { [capability]: capabilities[capability] },
+                    actual: { [capability]: version },
+                },
+            );
+        }
+
+        capabilities[capability] = version;
+    }
+
+    requireCapabilities(
+        'The renderer options require', [], required,
+        'the composed adapters', [framework.id, scene.id], capabilities,
+    );
+
+    return Object.freeze({ framework, scene, capabilities: Object.freeze(capabilities) });
+}
+
+function validateCapabilitiesInput(map: unknown): CapabilityMap
+{
+    if (!isRecord(map) || Array.isArray(map))
+    {
+        throw new TypeError('requiredCapabilities must be an object mapping capability IDs to protocol versions.');
+    }
+
+    for (const [capability, version] of Object.entries(map))
+    {
+        if (!isProtocolVersion(version))
+        {
+            throw new TypeError(`requiredCapabilities["${capability}"] must be a non-negative integer protocol version.`);
+        }
+    }
+
+    return map as CapabilityMap;
+}

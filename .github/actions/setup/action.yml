@@ -1,29 +1,22 @@
 name: "Setup the project"
-description: "Installs node, npm, and dependencies"
+description: "Installs the pinned Node.js and pnpm versions, then the workspace dependencies from the lockfile"
 
 runs:
   using: "composite"
   steps:
+    # Reads the exact version from the root package.json `packageManager` field.
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+
+    # The pnpm store cache is keyed on the OS, architecture and pnpm-lock.yaml hash.
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: lts/*
+        node-version-file: .nvmrc
         registry-url: "https://registry.npmjs.org"
-
-    - name: Get npm cache directory
-      id: npm-cache-dir
-      shell: bash
-      run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
-
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      id: npm-cache
-      with:
-        path: ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
 
     - name: Install dependencies
       shell: bash
-      run: npm ci --ignore-scripts --no-audit --no-fund
+      run: pnpm install --frozen-lockfile --ignore-scripts

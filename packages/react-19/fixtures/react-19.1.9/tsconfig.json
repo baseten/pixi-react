@@ -1,0 +1,64 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "types": [],
+    "paths": {
+      "react": [
+        "./node_modules/@types/react/index.d.ts"
+      ],
+      "react/*": [
+        "./node_modules/@types/react/*"
+      ],
+      "react-dom": [
+        "./node_modules/@types/react-dom/index.d.ts"
+      ],
+      "react-dom/*": [
+        "./node_modules/@types/react-dom/*"
+      ],
+      "vitest": [
+        "./node_modules/vitest/dist/index.d.ts"
+      ],
+      "@pixi-react-provisional/react-19/*": [
+        "./.installed/node_modules/@pixi-react-provisional/react-19/dist/*/index.d.ts"
+      ],
+      "@pixi-react-provisional/core": [
+        "./node_modules/@pixi-react-provisional/core/dist/cjs/index.d.ts"
+      ],
+      "@pixi-react-provisional/renderer": [
+        "./node_modules/@pixi-react-provisional/renderer/dist/cjs/index.d.ts"
+      ],
+      "@pixi-react-provisional/conformance": [
+        "./node_modules/@pixi-react-provisional/conformance/src/index.ts"
+      ],
+      "@pixi-react-provisional/conformance/fake-probe": [
+        "./node_modules/@pixi-react-provisional/conformance/test/fake-binding/probe.ts"
+      ],
+      "@pixi-react-provisional/conformance/fake-scene-adapter": [
+        "./node_modules/@pixi-react-provisional/conformance/src/fake-scene/adapter.ts"
+      ],
+      "@pixi-react-provisional/conformance/fake-scene": [
+        "./node_modules/@pixi-react-provisional/conformance/src/fake-scene/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "test/**/*",
+    "../shared/**/*",
+    "vitest.config.mts"
+  ]
+}

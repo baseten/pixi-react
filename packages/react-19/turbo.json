@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": ["$TURBO_DEFAULT$", "!fixtures/**"],
+      "outputs": ["dist/**"]
+    },
+    "test:unit": {
+      "dependsOn": ["build", "^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!fixtures/**", "$TURBO_ROOT$/scripts/**"]
+    }
+  }
+}
