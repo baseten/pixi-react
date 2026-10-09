@@ -253,9 +253,12 @@ importers:
 
   packages/react:
     dependencies:
+      its-fine:
+        specifier: 2.1.1
+        version: 2.1.1(@types/react@19.3.0)(react@19.3.0)
       react-reconciler:
-        specifier: 0.31.0
-        version: 0.31.0(react@19.3.0)
+        specifier: 0.34.0
+        version: 0.34.0(react@19.3.0)
     devDependencies:
       '@pixi-react-provisional/conformance':
         specifier: workspace:*

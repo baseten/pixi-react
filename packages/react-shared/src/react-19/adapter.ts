@@ -100,10 +100,16 @@ export abstract class React19Adapter extends ReactAdapter<React19Family>
 
         if (minorOf(actual) !== epoch)
         {
+            // A per-minor package names its sibling for the installed minor. A copy bundled under another name (the
+            // @pixi/react facade) names none.
+            const instead = packageName.includes(epoch)
+                ? ' Install and use the adapter package that matches the installed React minor '
+                    + `(for example ${packageName.replace(epoch, minorOf(actual) ?? '<minor>')}).`
+                : '';
+
             throw new CompatibilityError(
                 `${packageName} supports React ${epoch}.x (tested: ${testedReact.join(', ')}), `
-                + `but React ${actual} is installed. Install and use the adapter package that matches the installed `
-                + `React minor (for example ${packageName.replace(epoch, minorOf(actual) ?? '<minor>')}).`,
+                + `but React ${actual} is installed.${instead}`,
                 {
                     code: 'UNSUPPORTED_TUPLE',
                     adapterIds: [this.manifest.id],

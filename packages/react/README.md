@@ -82,33 +82,41 @@ const MyComponent = () => {
 
 ### Supported versions
 
-`@pixi/react` is composed from modular adapters: the React 19 adapter for the newest certified React epoch and the
-PixiJS 8 adapter, joined by a neutral renderer factory. The adapters ship **bundled inside `@pixi/react`**: it has no
-runtime dependency on a separate adapter package, and only `react` and `pixi.js` are peers. Its peer ranges cover
-exactly the versions that combination is certified for:
+`@pixi/react` is composed from modular adapters: the React 19 adapter for the newest certified React minor (19.3) and
+the PixiJS 8 adapter, joined by a neutral renderer factory. The adapter code ships **bundled inside `@pixi/react`**: it
+has no runtime dependency on a separate adapter package. Like upstream `@pixi/react`, which depends on
+`react-reconciler`, it lists the React 19.3 adapter's own third-party code as ordinary dependencies, pinned exactly:
+`react-reconciler` **0.34.0** (which brings its `scheduler`) and `its-fine` **2.1.1**. Your bundler therefore resolves
+the reconciler like any other dependency, and a production build contains only its production build. The `dist/`
+bundles stay self-contained, as upstream's were.
 
 | Peer | Range |
 | --- | --- |
-| `react` | `19.3.0` |
+| `react` | `^19.3.0` (certified: 19.3.0) |
 | `pixi.js` | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` (8.5.0 is excluded: its `ParticleContainer.destroy` fails) |
 
-An unsupported installation is reported the first time you call into `@pixi/react` (not at import), with a
-`CompatibilityError` naming the installed and expected versions.
+The React peer is a caret range so that installing next to a newer React never fails, but only React 19.3 is
+certified. With another React 19 minor, `@pixi/react` runs and logs **one** console warning naming the certified
+version and how to pin: pin `react` and `react-dom` to 19.3 (for example `"react": "~19.3.0"`), or compose your own
+renderer with `createRenderer` and the React adapter package for your React minor (see below). A React outside the
+19 major, or a pixi.js outside its range, is reported the first time you call into `@pixi/react` (not at import),
+with a `CompatibilityError` naming the installed and expected versions.
 
 #### Staying on an older React 19 minor
 
 `@pixi/react` always composes the newest certified React 19 epoch. The modular adapter packages (core, the renderer
-factory, the React 19 adapter with one subpath per React minor, and the PixiJS 8 adapter) are not published yet; they
+factory, one React adapter package per React minor, and the PixiJS 8 adapter) are not published yet; they
 will be released separately ([#15](https://github.com/baseten/pixi-react/issues/15),
 [#40](https://github.com/baseten/pixi-react/issues/40)). Once they are, an application that must stay on an older
-certified React 19 minor composes the same pair itself, choosing the epoch by subpath, instead of importing
+certified React 19 minor composes the same pair itself, installing the adapter package of its React minor, instead of importing
 `@pixi/react` (see [the adapter architecture](https://github.com/baseten/pixi-react/blob/main/design/adapter-architecture.md#the-default-facade-ships-its-adapters-bundled)).
 A composition made this way is a separate runtime with its own catalog and roots, and it gets the modular behaviour
 rather than `@pixi/react`'s upstream-compatible behaviour: `extend` rejects a name clash, and `extensions` and
 `defaultTextStyle` are reference-counted and restored on unmount.
 
 Installing a modular package next to `@pixi/react` gives the application two copies of the adapter core: the one bundled
-in `@pixi/react` and the separately installed one. They are distinct runtimes. A canvas or DOM target still cannot be
+in `@pixi/react` and the separately installed one. They are distinct runtimes, each with its own reconciler: avoid
+rendering both at once in one app, since only the runtimes of one copy share a reconciler. A canvas or DOM target still cannot be
 owned by both at once (the ownership lease is shared through `globalThis`), but `instanceof CompatibilityError` is not
 guaranteed to hold for an error thrown by the other copy: check `error.name === 'CompatibilityError'` and its `code`
 instead.

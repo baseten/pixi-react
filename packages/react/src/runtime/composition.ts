@@ -4,10 +4,12 @@
  * silent `extend` replacement (`registryConflict: 'replace'`).
  *
  * One composition exists per loaded pixi.js module (see `bind.ts`). It is created on first use, not at import: an
- * unsupported installation (another React minor, a pixi.js outside the peer range) throws its `CompatibilityError`
- * from the first facade call instead of from `import`.
+ * unsupported installation (a React outside the 19 major, a pixi.js outside the peer range) throws its
+ * `CompatibilityError` from the first facade call instead of from `import`. An uncertified React 19 minor composes and
+ * logs one warning (see `reactVersion.ts`).
  */
 import { createFacadePixiAdapter, type FacadePixiAdapter } from './pixiAdapter';
+import { checkFacadeReact } from './reactVersion';
 import { React19Adapter } from '@pixi-react-provisional/react-19.3';
 import { createRenderer, type Renderer } from '@pixi-react-provisional/renderer';
 
@@ -15,6 +17,24 @@ import type { ApplicationState as FacadeApplicationState } from '../typedefs/App
 import type { ApplicationState } from '@pixi-react-provisional/core';
 import type { Pixi8AdapterConstructor, Pixi8Types, PixiModule } from '@pixi-react-provisional/pixi-8';
 import type { React19Family } from '@pixi-react-provisional/react-19.3';
+
+/**
+ * The facade's React adapter: the React 19.3 adapter with the facade's version policy. The facade's React peer is
+ * `^19.3.0`, so instead of the adapter's exact-minor rejection it accepts any React 19 minor and warns once for one
+ * other than 19.3 (`checkFacadeReact`); another React major is still rejected. Everything else is the React 19.3
+ * adapter's.
+ */
+export class FacadeReactAdapter extends React19Adapter
+{
+    checkEnvironment(): void
+    {
+        if (checkFacadeReact(this.reactVersion()) === 'unsupported')
+        {
+            // Another React major: the adapter's own UNSUPPORTED_TUPLE rejection.
+            super.checkEnvironment();
+        }
+    }
+}
 
 /** The composed default renderer: React 19.3 bindings for the Pixi 8 scene, plus its runtime. */
 export type FacadeRenderer = Renderer<React19Family, Pixi8Types>;
@@ -60,7 +80,7 @@ export function createFacadeRuntime(Pixi8Adapter: Pixi8AdapterConstructor): Faca
         renderer()
         {
             // A failed composition throws again on the next call; nothing is cached until it succeeds.
-            renderer ??= createRenderer({ react: new React19Adapter(), pixi: adapter }, { registryConflict: 'replace' });
+            renderer ??= createRenderer({ react: new FacadeReactAdapter(), pixi: adapter }, { registryConflict: 'replace' });
 
             return renderer;
         },
