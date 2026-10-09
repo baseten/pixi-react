@@ -39,6 +39,7 @@ Each call works like this:
 | `test/renderer.test.ts` | Composition, isolation of runtimes, errors raised before allocation, disposal when `bind` fails, rejection of malformed bindings, and frozen or non-extensible bindings keeping their receiver. |
 | `test/dual-entry.test.ts` | D6 in plain Node: `import` and `require` return the same `createRenderer`, and core is loaded once. |
 | `test/dependency-graph.test.ts` | The built JS and `.d.ts` reach only `@pixi-react-provisional/core`. |
+| `test/factory-only.test.ts` | Issue 10: loading only `createRenderer` (through `import` and `require`, in plain Node) loads only the renderer and core, never a default adapter, React or pixi.js. A negative control shows the inspection detects any other loaded package. |
 | `test-d/` + `scripts/check-consumer-types.mjs` | Consumer checks against the built declarations through package `exports`: `.mts` through `import` and `.cts` through `require` under NodeNext, and again under Bundler resolution. Each `@ts-expect-error` is removed in turn, and the check fails unless the guarded line then fails to compile. |
 
 `pnpm --filter @pixi-react-provisional/renderer typecheck` runs the consumer checks after Turbo has built the
