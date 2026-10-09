@@ -1,18 +1,18 @@
 /**
- * The CommonJS entry (`lib/index.js`): the facade bound to the Pixi 8 adapter that `require` loads. The generated
- * ESM entry (`lib/index.mjs`) binds the adapter that `import` loads instead; see `bind.ts`.
+ * The CommonJS entry (`lib/index.js`): the facade bound to the pixi.js module that `require` loads. The generated
+ * ESM entry (`lib/index.mjs`) binds the module that `import` loads instead; see `bind.ts`.
  */
-import { bindFacade } from './bind';
+import * as pixi from 'pixi.js';
+import { bindFacade, bindPixi } from './bind';
 import { type CreateRootOptions } from './typedefs/CreateRootOptions';
 import { type UseTickOptions } from './typedefs/UseTickOptions';
-import * as pixi8 from '@pixi-react-provisional/pixi-8';
 
 import type { TickerCallback } from 'pixi.js';
 import type { MaybeInstance } from './helpers/applyProps';
 import type { DiffSet } from './typedefs/DiffSet';
 import type { HostConfig } from './typedefs/HostConfig';
 
-const facade = bindFacade(pixi8);
+const facade = bindFacade(bindPixi(pixi));
 
 export const Application = facade.Application;
 

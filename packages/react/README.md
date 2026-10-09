@@ -83,8 +83,9 @@ const MyComponent = () => {
 ### Supported versions
 
 `@pixi/react` is composed from modular adapters: the React 19 adapter for the newest certified React epoch and the
-PixiJS 8 adapter, joined by a neutral renderer factory. Its peer ranges cover exactly the versions that combination is
-certified for:
+PixiJS 8 adapter, joined by a neutral renderer factory. The adapters ship **bundled inside `@pixi/react`**: it has no
+runtime dependency on a separate adapter package, and only `react` and `pixi.js` are peers. Its peer ranges cover
+exactly the versions that combination is certified for:
 
 | Peer | Range |
 | --- | --- |
@@ -96,26 +97,21 @@ An unsupported installation is reported the first time you call into `@pixi/reac
 
 #### Staying on an older React 19 minor
 
-`@pixi/react` always composes the newest certified React 19 epoch. An application that must stay on an older
+`@pixi/react` always composes the newest certified React 19 epoch. The modular adapter packages (core, the renderer
+factory, the React 19 adapter with one subpath per React minor, and the PixiJS 8 adapter) are not published yet; they
+will be released separately ([#15](https://github.com/baseten/pixi-react/issues/15),
+[#40](https://github.com/baseten/pixi-react/issues/40)). Once they are, an application that must stay on an older
 certified React 19 minor composes the same pair itself, choosing the epoch by subpath, instead of importing
-`@pixi/react`:
+`@pixi/react` (see [the adapter architecture](https://github.com/baseten/pixi-react/blob/main/design/adapter-architecture.md#the-default-facade-ships-its-adapters-bundled)).
+A composition made this way is a separate runtime with its own catalog and roots, and it gets the modular behaviour
+rather than `@pixi/react`'s upstream-compatible behaviour: `extend` rejects a name clash, and `extensions` and
+`defaultTextStyle` are reference-counted and restored on unmount.
 
-```ts
-import { createRenderer } from '@pixi-react-provisional/renderer';
-import { React19Adapter } from '@pixi-react-provisional/react-19/19.1'; // React 19.1.x
-import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
-
-export const { Application, createRoot, extend, useApplication, useExtend, useTick, applyProps } =
-    createRenderer({ framework: new React19Adapter(), scene: new Pixi8Adapter() });
-```
-
-The subpaths are `/19.0`, `/19.1`, `/19.2` and `/19.3`; each rejects an installed React from another minor when the
-renderer is composed. A composition made this way is a separate runtime with its own catalog and roots, and it gets the
-modular behaviour rather than `@pixi/react`'s upstream-compatible behaviour: `extend` rejects a name clash, and
-`extensions` and `defaultTextStyle` are reference-counted and restored on unmount. It declares no JSX elements: declare
-your own augmentation of React's `JSX.IntrinsicElements` (a typed JSX entry for custom compositions is
-[issue 11](https://github.com/baseten/pixi-react/issues/11)). The `@pixi-react-provisional/*` names are provisional and
-unpublished.
+Installing a modular package next to `@pixi/react` gives the application two copies of the adapter core: the one bundled
+in `@pixi/react` and the separately installed one. They are distinct runtimes. A canvas or DOM target still cannot be
+owned by both at once (the ownership lease is shared through `globalThis`), but `instanceof CompatibilityError` is not
+guaranteed to hold for an error thrown by the other copy: check `error.name === 'CompatibilityError'` and its `code`
+instead.
 
 ## Docs
 

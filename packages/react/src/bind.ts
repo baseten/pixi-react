@@ -1,10 +1,11 @@
 /**
- * Binds the facade to one loaded `@pixi-react-provisional/pixi-8` module, and so to one pixi.js instance (D6).
+ * Binds the facade to one loaded pixi.js module (D6).
  *
- * pixi.js ships separate ESM and CJS builds, and `Pixi8Adapter` is bound to the instance its own entry loads. The
- * facade's single CommonJS implementation therefore never imports the Pixi adapter itself: `lib/index.js` binds the
- * adapter `require` loads, and the generated `lib/index.mjs` binds the adapter `import` loads. Both entries load
- * this one module, and it keeps one facade, with one default runtime, per adapter class: ESM and CJS consumers that
+ * pixi.js ships separate ESM and CJS builds, and `Pixi8Adapter` is bound to one Pixi instance. The facade's single
+ * CommonJS implementation (this module, with the adapters bundled into it) therefore never imports pixi.js at
+ * runtime: `lib/index.js` passes the pixi.js module `require` loads to `bindPixi`, and the generated `lib/index.mjs`
+ * passes the module `import` loads. Both entries load this one module, which keeps one bound Pixi 8 adapter per Pixi
+ * instance (`bindPixi`) and one facade, with one default runtime, per adapter class: ESM and CJS consumers that
  * share a pixi.js instance (as in a bundler) share the default runtime.
  */
 import { createApplication } from './components/Application';
@@ -18,7 +19,13 @@ import { createFacadeRuntime, type FacadeRuntime } from './runtime/composition';
 
 import type { Pixi8AdapterConstructor } from '@pixi-react-provisional/pixi-8';
 
-/** The part of the `@pixi-react-provisional/pixi-8` module namespace the facade binds to. */
+/**
+ * Binds the bundled Pixi 8 adapter to one pixi.js module namespace; cached per Pixi instance. The entries call it
+ * with the pixi.js module their own module system loads.
+ */
+export { bindPixi } from '@pixi-react-provisional/pixi-8';
+
+/** The part of a bound Pixi 8 adapter module (the result of `bindPixi`) the facade binds to. */
 export interface Pixi8Module
 {
     readonly Pixi8Adapter: Pixi8AdapterConstructor;
@@ -57,7 +64,7 @@ function bindingFor(pixi8: Pixi8Module): Binding
 
     if (typeof Pixi8Adapter !== 'function')
     {
-        throw new TypeError('bindFacade expects the @pixi-react-provisional/pixi-8 module namespace.');
+        throw new TypeError('bindFacade expects a bound Pixi 8 adapter module (the result of bindPixi).');
     }
 
     let binding = bindings.get(Pixi8Adapter);
