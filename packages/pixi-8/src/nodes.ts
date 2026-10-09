@@ -224,7 +224,8 @@ export class PixiNodes
     readonly features: PixiFeatures;
     /** Recognizes the built-ins the adapter does not import (see `builtins.ts`). */
     readonly builtins: BuiltinMatcher;
-    private readonly defaultInstances = new Map<ClassLike, object>();
+    /** Per default class: its blank instance, or `null` when constructing it without arguments threw. */
+    private readonly defaultInstances = new Map<ClassLike, object | null>();
     /** Per node class: the built-in whose blank instance supplies kind defaults, or `null` when there is none. */
     private readonly defaultClasses = new WeakMap<ClassLike, ClassLike | null>();
 
@@ -643,13 +644,23 @@ export class PixiNodes
 
         let instance = this.defaultInstances.get(source);
 
-        if (!instance)
+        if (instance === undefined)
         {
-            instance = new (source as new () => object)();
+            // Only built-ins are constructed, but a custom class declaring a whole built-in signature without
+            // extending it is recognized as that built-in (see builtins.ts). If its constructor needs arguments, it
+            // has no kind defaults rather than breaking prop removal.
+            try
+            {
+                instance = new (source as new () => object)();
+            }
+            catch
+            {
+                instance = null;
+            }
             this.defaultInstances.set(source, instance);
         }
 
-        return instance;
+        return instance ?? undefined;
     }
 
     /**

@@ -67,7 +67,9 @@ kind defaults). It recognizes them in a registered constructor's prototype chain
 whose own prototype declares the class's distinctive members (`addParticle`, `removeParticles`, ... for
 `ParticleContainer`; see `src/builtins.ts`). A unit test checks every class pixi.js exports, on each tested version,
 against these signatures. A custom subclass is classified like the built-in it extends. A custom class that declares
-a whole signature without extending that built-in is treated like it, so extend the built-in instead.
+a whole signature without extending that built-in is treated like it, so extend the built-in instead. Such a class may
+be constructed without arguments to read kind defaults when a constructor-fed prop is removed; if that throws, the prop
+simply has no kind default.
 
 ## Nodes
 

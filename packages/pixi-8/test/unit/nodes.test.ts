@@ -198,6 +198,37 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect([sprite.anchor.x, constructions]).toEqual([0, 1]);
     });
 
+    it('falls back to no kind default when a signature-only custom class needs constructor arguments', () =>
+    {
+        // Declares all of Sprite's signature without extending Sprite, so it is recognized as Sprite (README).
+        class LooksLikeSprite extends pixi.Container
+        {
+            private readonly options: Any;
+
+            constructor(options: Any)
+            {
+                if (!options)
+                {
+                    throw new Error('LooksLikeSprite needs options');
+                }
+
+                super(options);
+                this.options = options;
+            }
+
+            get anchor() { return this.options.anchor; }
+            set anchor(value) { this.options.anchor = value; }
+            get texture() { return undefined; }
+            set texture(_value) { /* unused */ }
+            get sourceBounds() { return undefined; }
+        }
+        const props = { alpha: 0.5 };
+        const node = make(nodes, LooksLikeSprite, props);
+
+        expect(nodes.builtins.builtinOf(LooksLikeSprite, 'Sprite')).toBe(LooksLikeSprite);
+        expect(() => nodes.applyChanges(node, props, {})).not.toThrow();
+    });
+
     it('restores a custom class initial value, and never constructs a class that needs arguments', () =>
     {
         let constructions = 0;
