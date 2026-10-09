@@ -275,6 +275,21 @@ export class PixiScene
             return define(ROLES.child, [], gated(CAPABILITIES.domContainer, 'DOMContainer'));
         }
 
+        if (isSubclass(ctor, pixi.AbstractSplitText) || isSubclass(ctor, pixi.SplitText) || isSubclass(ctor, pixi.SplitBitmapText))
+        {
+            // The node generates its own line, word and character children from `text` and rebuilds them on every
+            // text or style change, re-adding the lines at the end. React children would be displaced from their JSX
+            // order and core's child indices would no longer match. Filters are the node's own list and survive.
+            return define(ROLES.child, [ROLES.filter], {});
+        }
+
+        if (isSubclass(ctor, pixi.Mesh))
+        {
+            // Mesh, MeshPlane, MeshRope, MeshSimple and PerspectiveMesh set `allowChildren = false`: Pixi deprecates
+            // `addChild` on them. Their own geometry and texture are props, and filters are the node's own list.
+            return define(ROLES.child, [ROLES.filter], {});
+        }
+
         if (isSubclass(ctor, pixi.Filter))
         {
             return define(ROLES.filter, [], gated(CAPABILITIES.filter, 'Filter'));
