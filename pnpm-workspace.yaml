@@ -1,5 +1,6 @@
 packages:
   - packages/*
+  - packages/react-19/fixtures/*
   - apps/*
   - design/contract
 
