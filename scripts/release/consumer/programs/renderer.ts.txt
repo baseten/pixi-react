@@ -1,0 +1,4 @@
+// The neutral factory alone: no React, reconciler or pixi.js is installed.
+import { createRenderer } from '__RENDERER__';
+
+export const factory: typeof createRenderer = createRenderer;

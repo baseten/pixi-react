@@ -36,7 +36,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@pixi-react-provisional/core": "workspace:*",
+    "@pixi-react-provisional/core": "workspace:^",
     "its-fine": "2.1.1",
     "react-reconciler": "0.31.0"
   },

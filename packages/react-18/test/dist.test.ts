@@ -47,7 +47,7 @@ describe('package shape', () =>
     it('declares exactly core, react-reconciler and its-fine, pinned, and only react as a peer', () =>
     {
         expect(manifest.dependencies).toEqual({
-            '@pixi-react-provisional/core': 'workspace:*',
+            '@pixi-react-provisional/core': 'workspace:^', // published as ^<core version>: one core per ABI major (design/release.md)
             'its-fine': '1.2.5',
             'react-reconciler': '0.29.2',
         });

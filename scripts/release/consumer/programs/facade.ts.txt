@@ -1,0 +1,10 @@
+// Default facade consumer: upstream's API, no adapter package named.
+import { Application, extend, useTick, type ApplicationRef, type PixiReactElementProps } from '__FACADE__';
+import { Container, Sprite } from 'pixi.js';
+
+extend({ Container, Sprite });
+
+export const application: typeof Application = Application;
+export const tick: typeof useTick = useTick;
+export type Ref = ApplicationRef;
+export type SpriteProps = PixiReactElementProps<typeof Sprite>;

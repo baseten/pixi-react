@@ -23,7 +23,13 @@
     "test:e2e": "turbo run test:e2e",
     "test:unit": "turbo run test:unit",
     "test:lint": "turbo run lint",
-    "test:types": "turbo run typecheck --filter=!docs"
+    "test:types": "turbo run typecheck --filter=!docs",
+    "changeset": "changeset",
+    "release:policy": "node scripts/release/policy.mjs",
+    "release:version": "node scripts/release/version.mjs",
+    "release:stage": "node scripts/release/stage.mjs",
+    "release:dry-run": "node scripts/release/dry-run.mjs",
+    "test:release": "node --test scripts/release/*.test.mjs && node scripts/release/policy.mjs"
   },
   "husky": {
     "hooks": {
@@ -36,6 +42,7 @@
     ]
   },
   "devDependencies": {
+    "@changesets/cli": "2.31.1",
     "@pixi/eslint-config": "^6.0.0",
     "eslint": "^9.16.0",
     "eslint-plugin-react-hooks": "^5.2.0",

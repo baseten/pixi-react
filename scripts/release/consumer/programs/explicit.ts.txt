@@ -1,0 +1,12 @@
+// Explicit composition: the neutral factory with exactly the chosen adapters.
+import { createRenderer } from '__RENDERER__';
+import { __CLASS__ } from '__REACT__';
+import { Pixi8Adapter } from '__PIXI__';
+import { Container, Sprite } from 'pixi.js';
+
+const renderer = createRenderer({ react: new __CLASS__(), pixi: new Pixi8Adapter() });
+
+renderer.extend({ Container, Sprite });
+
+export const { Application, useApplication, useTick, createRoot } = renderer;
+export const runtime = renderer.runtime;

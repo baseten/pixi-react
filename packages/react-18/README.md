@@ -23,6 +23,16 @@ one React version. Like the React 19 minors, this package was converted by issue
 its-fine are ordinary dependencies instead of bundled code, and the code it shares with them comes from the private
 [react-shared](../react-shared/README.md) package, bundled at build time.
 
+## Install
+
+Release 1 will publish this package as 1.0.0. React is a peer, limited to the versions this package certifies, so install one of them exactly. `react-reconciler` and its-fine are exact dependencies and come with the package:
+
+```sh
+npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-18 @pixi-react-provisional/pixi-8 pixi.js react@18.3.1 react-dom@18.3.1
+```
+
+Nothing is published yet. Release tarballs carry the public names from `release.packages.json` (target scope `@pixi`, pending [issue 41](https://github.com/baseten/pixi-react/issues/41)). The [release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md) covers versions, install recipes, tested pairs and migration.
+
 ## Bounds (D5)
 
 | | Exact version | How |

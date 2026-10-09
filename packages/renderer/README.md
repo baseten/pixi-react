@@ -32,6 +32,16 @@ Each call works like this:
 `core.INVALID_OPTION`. The default facade passes `'replace'` to keep upstream's silent
 `extend` replacement (D4).
 
+## Install
+
+Release 1 will publish this package as 1.0.0. It installs only core: no React, reconciler or Pixi. Install it with exactly the adapters you choose:
+
+```sh
+npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-19.3 @pixi-react-provisional/pixi-8 pixi.js react@19.3.0 react-dom@19.3.0
+```
+
+Nothing is published yet. Release tarballs carry the public names from `release.packages.json` (target scope `@pixi`, pending [issue 41](https://github.com/baseten/pixi-react/issues/41)). The [release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md) covers versions, install recipes, tested pairs and migration.
+
 ## Tests
 
 | Path | What it proves |

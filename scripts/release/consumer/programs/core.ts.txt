@@ -1,0 +1,5 @@
+// Core alone: the ABI and the shared error class.
+import { CORE_ABI, CompatibilityError } from '__CORE__';
+
+export const major: __ABI_MAJOR__ = CORE_ABI.major;
+export const isCompatibilityError = (error: unknown): boolean => error instanceof CompatibilityError;

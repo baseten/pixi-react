@@ -13,6 +13,16 @@ import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
 const renderer = createRenderer({ react: new SomeReactAdapter(), pixi: new Pixi8Adapter() });
 ```
 
+## Install
+
+Release 1 will publish this package as 1.0.0. `pixi.js` is a peer, and `@types/react` is an optional peer used by the `./jsx` entries. Install it with the renderer and one React adapter:
+
+```sh
+npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-19.3 @pixi-react-provisional/pixi-8 pixi.js react@19.3.0 react-dom@19.3.0
+```
+
+Nothing is published yet. Release tarballs carry the public names from `release.packages.json` (target scope `@pixi`, pending [issue 41](https://github.com/baseten/pixi-react/issues/41)). The [release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md) covers versions, install recipes, tested pairs and migration.
+
 ## Supported Pixi versions
 
 | | |
