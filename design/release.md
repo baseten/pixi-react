@@ -289,6 +289,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          # `changeset status` (the policy check's release plan) compares against main.
+          fetch-depth: 0
       - uses: ./.github/actions/setup
       - name: Release tooling tests and policy
         run: pnpm test:release
