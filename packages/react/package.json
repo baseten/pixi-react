@@ -56,6 +56,7 @@
     "react-reconciler": "0.31.0"
   },
   "devDependencies": {
+    "@pixi-react-provisional/conformance": "workspace:*",
     "@pixi/extension-scripts": "^4.0.0",
     "@rollup/plugin-commonjs": "^25.0.8",
     "@rollup/plugin-json": "^6.1.0",
