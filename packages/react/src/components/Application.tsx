@@ -98,6 +98,8 @@ export function createApplication(runtime: FacadeRuntime)
         } = props;
         const AdapterApplication = runtime.renderer().Application;
         const adapterRef = useRef<ApplicationRef>(null);
+        // Upstream passed these to `createRoot` once, so later values never reached teardown; pin the first ones.
+        const initialDestroyOptions = useRef({ destroyOptions, rendererDestroyOptions }).current;
         const adapterOptions: Record<string, unknown> = { ...applicationProps };
 
         for (const key of ADAPTER_ONLY_KEYS)
@@ -120,7 +122,7 @@ export function createApplication(runtime: FacadeRuntime)
 
             if (record)
             {
-                runtime.rememberRootOptions(record.app, { destroyOptions, rendererDestroyOptions });
+                runtime.rememberRootOptions(record.app, initialDestroyOptions);
                 record.schedule((app) => assignApplicationOptions(app, applicationProps)).catch(noop);
             }
         });
@@ -132,8 +134,8 @@ export function createApplication(runtime: FacadeRuntime)
                     {...(adapterOptions as object)}
                     ref={adapterRef}
                     className={className}
-                    destroyOptions={destroyOptions}
-                    rendererDestroyOptions={rendererDestroyOptions}
+                    destroyOptions={initialDestroyOptions.destroyOptions}
+                    rendererDestroyOptions={initialDestroyOptions.rendererDestroyOptions}
                     onInit={onInit}
                     resizeTo={resizeTo}
                 >

@@ -203,6 +203,56 @@ describe('Application', () =>
             expect(destroySpy).toHaveBeenCalledWith(undefined, destroyOptions);
         });
 
+        it('keeps the initial destroyOptions when rerendered with different ones, as upstream', async () =>
+        {
+            let testApp = null as any as PixiApplication;
+            let testAppIsInitialised = false;
+
+            const initialDestroyOptions: DestroyOptions = { children: true };
+            const initialRendererDestroyOptions: RendererDestroyOptions = { removeView: true };
+
+            const TestChildComponent = () =>
+            {
+                const { app, isInitialised } = useApplication();
+
+                useEffect(() =>
+                {
+                    testApp = app;
+                    testAppIsInitialised = isInitialised;
+                }, [app, isInitialised]);
+
+                return null;
+            };
+
+            const TestComponent = ({ destroyOptions, rendererDestroyOptions }: {
+                destroyOptions: DestroyOptions;
+                rendererDestroyOptions: RendererDestroyOptions;
+            }) => (
+                <Application destroyOptions={destroyOptions} rendererDestroyOptions={rendererDestroyOptions}>
+                    <TestChildComponent />
+                </Application>
+            );
+
+            const { rerender, unmount } = await act(() => render((
+                <TestComponent destroyOptions={initialDestroyOptions} rendererDestroyOptions={initialRendererDestroyOptions} />
+            )));
+
+            await expect.poll(() => testAppIsInitialised).toEqual(true);
+
+            await act(() => rerender((
+                <TestComponent destroyOptions={{ children: false, texture: true }} rendererDestroyOptions={{ removeView: false }} />
+            )));
+
+            const destroySpy = vi.spyOn(testApp, 'destroy');
+
+            unmount();
+
+            await expect.poll(rootCount).toEqual(0);
+
+            expect(destroySpy).toHaveBeenCalledTimes(1);
+            expect(destroySpy).toHaveBeenCalledWith(initialRendererDestroyOptions, initialDestroyOptions);
+        });
+
         it('unmounts with rendererDestroyOptions', async () =>
         {
             let testApp = null as any as PixiApplication;
