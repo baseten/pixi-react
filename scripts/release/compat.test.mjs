@@ -146,15 +146,17 @@ test('install recipes name every modular package at the lockstep version (issue 
     assert.equal(version, releaseFacts({ config }).facade.version, 'the lockstep version is the facade\'s release version');
     assert.ok(names.includes('@pixi/react-core') && names.includes('@pixi-react-provisional/pixi-8') && !names.includes('@pixi/react'));
     assert.ok(pages.includes('apps/docs/docs/migrating-to-8.1.mdx') && pages.includes('packages/react-18/README.md') && pages.includes('design/release.md'));
+    // A fixed example version, so the test holds after any release.
+    const example = '8.1.0';
     const recipe = 'npm install @pixi/react-renderer@8.0.0 @pixi/react-19.1@8.1.0 @pixi-react-provisional/pixi-8@1.0.0 pixi.js react@19.1.9 react-dom@19.1.9';
-    const fixed = rewriteLockstep(recipe, names, version);
+    const fixed = rewriteLockstep(recipe, names, example);
 
     assert.equal(fixed, 'npm install @pixi/react-renderer@8.1.0 @pixi/react-19.1@8.1.0 @pixi-react-provisional/pixi-8@8.1.0 pixi.js react@19.1.9 react-dom@19.1.9');
-    assert.deepEqual(lockstepProblems(fixed, names, version, 'page'), []);
-    assert.match(lockstepProblems(recipe, names, version, 'page').join('\n'), /@pixi\/react-renderer@8\.0\.0; install all modular packages at the same version, 8\.1\.0/);
-    assert.match(lockstepProblems('npm install @pixi/react-renderer @pixi/react-18@8.1.0', names, version, 'page').join('\n'), /installs @pixi\/react-renderer without a version/);
+    assert.deepEqual(lockstepProblems(fixed, names, example, 'page'), []);
+    assert.match(lockstepProblems(recipe, names, example, 'page').join('\n'), /@pixi\/react-renderer@8\.0\.0; install all modular packages at the same version, 8\.1\.0/);
+    assert.match(lockstepProblems('npm install @pixi/react-renderer @pixi/react-18@8.1.0', names, example, 'page').join('\n'), /installs @pixi\/react-renderer without a version/);
     // The facade is not a modular package, and a longer name is not a shorter one.
-    assert.equal(rewriteLockstep('@pixi/react@8.0.5 @pixi/react-18-fixture@1.0.0', names, version), '@pixi/react@8.0.5 @pixi/react-18-fixture@1.0.0');
+    assert.equal(rewriteLockstep('@pixi/react@8.0.5 @pixi/react-18-fixture@1.0.0', names, example), '@pixi/react@8.0.5 @pixi/react-18-fixture@1.0.0');
 });
 
 test('a production bundle may not contain a development build of React\'s packages', () =>

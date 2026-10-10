@@ -13,7 +13,8 @@
  * 5. Regenerates the release compatibility table (compat-table.mjs) and the docs pins (docs-pins.mjs) for the new
  *    versions, so the "Version packages" commit carries them.
  *
- * With no release planned (no pending changesets) it checks the policy and changes nothing.
+ * With no release planned (no pending changesets), or on a commit it already versioned, it checks the policy and
+ * changes nothing.
  *
  * It never builds, packs or publishes. Usage: node scripts/release/version.mjs [--root <checkout>]
  */
@@ -24,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { writeCompatibilityTable } from './compat-table.mjs';
 import { loadReleaseConfig, readJson, repoRoot } from './config.mjs';
 import { writeDocsPins } from './docs-pins.mjs';
-import { checkPolicy, readAbiDeclarations, readPlan } from './policy.mjs';
+import { checkPolicy, currentPlan, readAbiDeclarations } from './policy.mjs';
 
 export function syncVersionConstants(root, config = loadReleaseConfig({ root }))
 {
@@ -61,9 +62,16 @@ export function recordReleasedAbi(root)
 
 export function version(root = repoRoot, { log = console.log } = {})
 {
-    const before = checkPolicy({ root, plan: readPlan(root), config: loadReleaseConfig({ root }) });
+    const { state, plan } = currentPlan(root);
+    const before = checkPolicy({ root, plan, state, config: loadReleaseConfig({ root }) });
 
     if (before.problems.length) throw new Error(`release policy violations; nothing was versioned:\n  - ${before.problems.join('\n  - ')}`);
+    if (state.versioned)
+    {
+        log(`already versioned: every package is at ${state.version}, above main, and the changesets are consumed; nothing to do`);
+
+        return [];
+    }
     if (!before.plan.length)
     {
         // No pending changesets (every pull request without one, and main after a release): nothing to version, and

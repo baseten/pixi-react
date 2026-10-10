@@ -29,11 +29,13 @@
  * 6. Peers and generated files (issue 40, compat.mjs): the facade's react and pixi.js peers equal the compatibility
  *    manifest's newest tested ranges, the Pixi range is the one the manifest's evidence supports, the facade's major
  *    equals the Pixi major, and the generated compatibility table and docs pins are current.
+ * 7. An already-versioned release commit (no pending changeset, every package above its version on main): the plan is
+ *    empty instead of `changeset status` (which fails there), and abi.released and the CHANGELOGs must be current.
  *
  * Usage: node scripts/release/policy.mjs [--plan <changeset status JSON>]
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -118,16 +120,31 @@ export function abiDeclarationProblems(abi)
     return problems;
 }
 
-/** `changeset status --output` for the current pending changesets. */
+/**
+ * `changeset status --output` for the current pending changesets. Changesets runs it against `main` (the merge base
+ * with HEAD) and exits non-zero when a publishable package changed with no pending changeset; that and every other
+ * failure is rethrown with Changesets' own message and what to do. Use `currentPlan`, which first recognizes an
+ * already-versioned release commit (where `status` would always fail, because `version` consumed the changesets).
+ */
 export function readPlan(root = repoRoot)
 {
     const dir = mkdtempSync(join(tmpdir(), 'pixi-react-plan-'));
 
     try
     {
-        execFileSync('pnpm', ['exec', 'changeset', 'status', '--output', join(dir, 'plan.json')], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+        execFileSync('pnpm', ['exec', 'changeset', 'status', '--output', join(dir, 'plan.json')], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
 
         return readJson(join(dir, 'plan.json'));
+    }
+    catch (error)
+    {
+        const output = [error.stdout, error.stderr].filter(Boolean).join('\n').trim();
+        let hint = 'See the output above.';
+
+        if ((/no changesets were found/i).test(output)) hint = 'A publishable package changed since main, but no changeset is pending and the versions were not bumped by `pnpm release:version`. Add one with `pnpm changeset` (design/release.md, release procedure).';
+        else if ((/diverged|Does "?main"? exist/i).test(output)) hint = 'Changesets compares against the local branch `main`; create it (for example `git branch main origin/main`) or fetch the full history.';
+
+        throw new Error(`changeset status failed, so the release plan is unknown:\n${output || error.message}\n${hint}`);
     }
     finally
     {
@@ -135,10 +152,136 @@ export function readPlan(root = repoRoot)
     }
 }
 
+const PLAIN_VERSION = /^(\d+)\.(\d+)\.(\d+)$/;
+
+/** -1, 0 or 1 for two plain `x.y.z` versions. */
+export function compareVersions(a, b)
+{
+    const [x, y] = [a, b].map((version) => PLAIN_VERSION.exec(version)?.slice(1).map(Number) ?? [0, 0, 0]);
+
+    for (let index = 0; index < 3; index += 1) if (x[index] !== y[index]) return x[index] < y[index] ? -1 : 1;
+
+    return 0;
+}
+
+/**
+ * Whether the checkout is an already-versioned release commit (`pnpm release:version` ran and its result was
+ * committed): no pending changeset, and every publishable package's version is above its version at `base`, the merge
+ * base with main. Pure: `baseVersions` is null when there is no base to compare with. Anything else (a package not
+ * bumped, a pending changeset) is an ordinary checkout, whose plan comes from `changeset status`.
+ */
+export function classifyReleaseState({ pendingChangesets, currentVersions, baseVersions })
+{
+    const reasons = [];
+
+    if (pendingChangesets.length) reasons.push(`changesets are pending (${pendingChangesets.join(', ')})`);
+    if (!baseVersions) reasons.push('there is no merge base with main to compare versions with');
+    else
+    {
+        for (const [name, version] of Object.entries(currentVersions))
+        {
+            const before = baseVersions[name];
+
+            if (before !== undefined && compareVersions(version, before) <= 0) reasons.push(`${name} is ${version}, not above its ${before} on main`);
+        }
+    }
+    const versions = [...new Set(Object.values(currentVersions))];
+
+    return { versioned: reasons.length === 0, version: versions.length === 1 ? versions[0] : null, reasons };
+}
+
+const git = (root, args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+
+/** The merge base of HEAD with `main` (or `origin/main`), or null outside a repository with either. */
+export function mainMergeBase(root = repoRoot)
+{
+    for (const ref of ['main', 'origin/main'])
+    {
+        try
+        {
+            return git(root, ['merge-base', ref, 'HEAD']);
+        }
+        catch
+        {
+            // Try the next ref.
+        }
+    }
+
+    return null;
+}
+
+/** `classifyReleaseState` for the checkout at `root`, reading the base versions from git. */
+export function releaseState(root = repoRoot, { config = loadReleaseConfig({ root }), base = mainMergeBase(root) } = {})
+{
+    const pendingChangesets = readdirSync(join(root, '.changeset')).filter((file) => file.endsWith('.md') && file !== 'README.md');
+    const currentVersions = Object.fromEntries(config.packages.map((pkg) => [pkg.workspaceName, readJson(join(root, pkg.dir, 'package.json')).version]));
+    let baseVersions = null;
+
+    if (base)
+    {
+        baseVersions = {};
+        for (const pkg of config.packages)
+        {
+            try
+            {
+                baseVersions[pkg.workspaceName] = JSON.parse(git(root, ['show', `${base}:${pkg.dir}/package.json`])).version;
+            }
+            catch
+            {
+                // A package new since main has no base version; it cannot block the comparison.
+            }
+        }
+    }
+
+    return { ...classifyReleaseState({ pendingChangesets, currentVersions, baseVersions }), base };
+}
+
+/** An empty plan: nothing pending. */
+export const EMPTY_PLAN = Object.freeze({ changesets: [], releases: [] });
+
+/**
+ * The release plan of the checkout: empty for an already-versioned release commit (`changeset status` would fail
+ * there: the manifests changed and the changesets are consumed), otherwise `changeset status`. Returns the state too.
+ */
+export function currentPlan(root = repoRoot, options = {})
+{
+    const state = releaseState(root, options);
+
+    return { state, plan: state.versioned ? EMPTY_PLAN : readPlan(root) };
+}
+
+/**
+ * What a versioned release commit must also hold, beyond the policy on an empty plan (which checks lockstep, the
+ * Pixi major, exact dependencies, version constants and the generated table and pins): the released ABI recorded and
+ * current, and a CHANGELOG entry for the release version in every package.
+ */
+export function versionedProblems({ root = repoRoot, config, version })
+{
+    const problems = [];
+    const current = readAbiDeclarations(root);
+
+    if (!config.releasedAbi?.core) problems.push('versioned release: release.packages.json abi.released is not recorded (run pnpm release:version, not changeset version alone)');
+    else
+    {
+        const changes = abiChanges(config.releasedAbi, current);
+
+        if (changes.length) problems.push(`versioned release: abi.released differs from the source (${changes.join('; ')}); rerun pnpm release:version`);
+    }
+    for (const pkg of config.packages)
+    {
+        const file = join(root, pkg.dir, 'CHANGELOG.md');
+        const text = existsSync(file) ? readFileSync(file, 'utf8') : '';
+
+        if (!new RegExp(`^## ${version.replaceAll('.', '\\.')}\\s*$`, 'm').test(text)) problems.push(`versioned release: ${pkg.dir}/CHANGELOG.md has no "## ${version}" entry`);
+    }
+
+    return problems;
+}
+
 const major = (version) => Number(String(version).split('.')[0]);
 
 /** Every policy violation for the workspace at `root` and the release `plan`. Pure apart from reading files. */
-export function checkPolicy({ root = repoRoot, plan, config = loadReleaseConfig({ root }) })
+export function checkPolicy({ root = repoRoot, plan, config = loadReleaseConfig({ root }), state = null })
 {
     const problems = [];
     const fail = (message) => problems.push(message);
@@ -267,6 +410,9 @@ export function checkPolicy({ root = repoRoot, plan, config = loadReleaseConfig(
     // 6. Peers and generated files.
     problems.push(...checkReleaseRules({ root, config, plan }), ...checkCompatibilityTable({ root }), ...checkDocsPins({ root }));
 
+    // 7. An already-versioned release commit (currentPlan): the released ABI and the changelogs.
+    if (state?.versioned) problems.push(...versionedProblems({ root, config, version }));
+
     return { problems, coreAbi, version, plan: (plan?.releases ?? []).filter((release) => release.type !== 'none').map(({ name, type, oldVersion, newVersion }) => ({ name, type, oldVersion, newVersion })) };
 }
 
@@ -274,8 +420,20 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
 {
     const args = process.argv.slice(2);
     const index = args.indexOf('--plan');
-    const plan = index >= 0 ? readJson(resolve(args[index + 1])) : readPlan();
-    const result = checkPolicy({ plan });
+    let current;
+
+    try
+    {
+        current = index >= 0 ? { state: null, plan: readJson(resolve(args[index + 1])) } : currentPlan();
+    }
+    catch (error)
+    {
+        console.error(error.message);
+        process.exit(1);
+    }
+    const result = checkPolicy({ plan: current.plan, state: current.state });
+
+    if (current.state?.versioned) console.log(`versioned release commit: every package is at ${current.state.version}, above main; changeset status is skipped (the changesets were consumed)`);
 
     for (const release of result.plan) console.log(`plan: ${release.name} ${release.oldVersion} -> ${release.newVersion} (${release.type})`);
     if (result.problems.length)

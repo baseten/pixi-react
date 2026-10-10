@@ -10,7 +10,9 @@
  * 4. Checks the result: every package at its planned version, the changesets consumed, a CHANGELOG per released
  *    package, and the policy clean against the now-empty plan. With no release planned (no pending changesets: any
  *    pull request without one, and main after a release) nothing is versioned or committed; the checkout must be
- *    unchanged and the policy clean, and the steps below run on the current versions.
+ *    unchanged and the policy clean, and the steps below run on the current versions. When the source is an
+ *    already-versioned release commit (policy.mjs `releaseState`, decided against the source's history), it also
+ *    checks abi.released and every CHANGELOG, and stages the versioned packages.
  * 5. `pnpm build`, then stage.mjs (tarballs with public names), inspect.mjs, consumers.mjs and bundles.mjs.
  *
  * Usage: node scripts/release/dry-run.mjs [--work <dir>] [--namespace target|fallback] [--keep]
@@ -21,6 +23,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } fro
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { loadReleaseConfig, outputDirProblem, readJson, repoRoot, resetOutputDir } from './config.mjs';
+import { releaseState, versionedProblems } from './policy.mjs';
 
 const args = process.argv.slice(2);
 const option = (name) =>
@@ -41,7 +44,10 @@ const namespace = option('--namespace');
 const checkout = join(work, 'checkout');
 const tarballs = join(work, 'tarballs');
 const env = { ...process.env, HUSKY: '0', CI: 'true', PIXI_REACT_RELEASE_CONSUMERS: process.env.PIXI_REACT_RELEASE_CONSUMERS ?? join(work, 'consumers'), ...(namespace ? { PIXI_REACT_RELEASE_NAMESPACE: namespace } : {}) };
-const report = { started: new Date().toISOString(), source: repoRoot, checkout, namespace: namespace ?? loadReleaseConfig().namespace, steps: [] };
+// The disposable checkout is a one-commit repository, so whether the source is an already-versioned release commit
+// (every package above main, changesets consumed) is decided here, against the source's own history.
+const sourceState = releaseState(repoRoot);
+const report = { started: new Date().toISOString(), source: repoRoot, checkout, namespace: namespace ?? loadReleaseConfig().namespace, versionedRelease: sourceState.versioned ? sourceState.version : null, steps: [] };
 
 /** Per-command identity for the disposable repository only; no git configuration is written. */
 const IDENTITY = ['-c', 'user.name=release dry run', '-c', 'user.email=release-dry-run@invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null'];
@@ -154,6 +160,14 @@ step('verify the versioned checkout', () =>
         sh('git', ['add', '-A']);
         sh('git', [...IDENTITY, 'commit', '-q', '-m', 'Version packages (dry run)']);
     }
+    else if (sourceState.versioned)
+    {
+        // An already-versioned release commit: check what `pnpm release:version` must have left, then stage it.
+        const versioned = versionedProblems({ root: checkout, config, version: sourceState.version });
+
+        if (versioned.length) throw new Error(versioned.join('\n'));
+        console.log(`  already-versioned release commit at ${sourceState.version}: abi.released and every CHANGELOG are current; staging the versioned packages`);
+    }
     else console.log('  no release planned: nothing versioned, nothing to commit; staging the current versions');
     const policy = sh(process.execPath, ['scripts/release/policy.mjs']);
 
@@ -210,7 +224,9 @@ const lines = [
     '',
     ...(plan.releases.length
         ? plan.releases.map((release) => `- \`${release.name}\` ${release.oldVersion} → ${release.newVersion} (${release.type})`)
-        : ['No release planned (no pending changesets): nothing was versioned. The tarballs, consumers and bundles below are the current versions.']),
+        : [sourceState.versioned
+            ? `Already-versioned release commit (every package at ${sourceState.version}, above main; the changesets were consumed): nothing was versioned again. The tarballs, consumers and bundles below are the versioned packages.`
+            : 'No release planned (no pending changesets): nothing was versioned. The tarballs, consumers and bundles below are the current versions.']),
     '',
     '## Tarballs',
     '',

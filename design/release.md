@@ -239,6 +239,14 @@ Nothing below publishes. Publishing needs the [owner approvals](#before-publishi
 4. **Version.** On a release branch, `pnpm release:version` (never `changeset version` alone), then `pnpm install` if a
    lockfile entry moved, and commit the result as "Version packages": versions, CHANGELOGs, version constants,
    `abi.released`, the regenerated compatibility table and docs pins. `pnpm test:release` must pass on that commit.
+   On it, `changeset status` would fail (the manifests changed since main and the changesets are consumed), so the
+   policy recognizes an **already-versioned release commit**: no pending changeset, and every publishable package's
+   version above its version at the merge base with `main` (`releaseState` in `policy.mjs`). It then skips
+   `changeset status`, checks the policy on an empty plan (lockstep, the Pixi major, exact dependencies, version
+   constants, the generated table and pins) and also requires `abi.released` to match the source and a
+   `## <version>` entry in every package's CHANGELOG. The dry run of that commit stages the versioned packages without
+   versioning again. A pull request that changes a package without a changeset and without bumping the versions is
+   not such a commit: `changeset status` still fails it, with a message saying to add a changeset.
 5. **Stage.** `pnpm build && pnpm release:stage --out .release/tarballs`, then `inspect.mjs`, `consumers.mjs` and
    `bundles.mjs` on those tarballs (or take the tarballs of a passing dry run of the same commit).
 6. **Publish (not enabled).** After the owner approvals, a reviewed release workflow publishes the staged tarballs of a

@@ -1,5 +1,6 @@
 // Offline tests of the release tooling (issue 15): `node --test scripts/release/*.test.mjs`.
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,7 +9,7 @@ import { compareWithUpstream, KNOWN_GAPS, UPSTREAM_BASELINE } from './bundles.mj
 import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
-import { abiChanges, abiDeclarationProblems, checkPolicy, readAbiDeclarations, readPlan } from './policy.mjs';
+import { abiChanges, abiDeclarationProblems, checkPolicy, classifyReleaseState, compareVersions, currentPlan, readAbiDeclarations, releaseState } from './policy.mjs';
 import { releaseManifest, tarballName } from './stage.mjs';
 import { syncVersionConstants } from './version.mjs';
 
@@ -248,11 +249,74 @@ function committedPlanProblems(result, config)
 
 test('the committed release plan satisfies the policy, in lockstep (Release 1: every package 8.1.0)', () =>
 {
-    const result = checkPolicy({ plan: readPlan() });
+    // currentPlan: `changeset status`, or an empty plan on an already-versioned release commit.
+    const { state, plan: committed } = currentPlan();
+    const result = checkPolicy({ plan: committed, state });
 
     assert.deepEqual(result.problems, []);
     assert.deepEqual(committedPlanProblems(result, target), []);
     if (target.releasedAbi === null) assert.ok(target.packages.every((pkg) => pkg.release1 === '8.1.0'), 'release.packages.json: Release 1 is 8.1.0 for every package');
+});
+
+test('an already-versioned release commit is recognized from the versions on main (classifyReleaseState)', () =>
+{
+    const names = target.packages.map((pkg) => pkg.workspaceName);
+    const at = (version, overrides = {}) => ({ ...Object.fromEntries(names.map((name) => [name, version])), ...overrides });
+    const release1Base = at('0.0.0', { '@pixi/react': '8.0.5' });
+
+    assert.equal(compareVersions('8.1.0', '8.0.5'), 1);
+    assert.equal(compareVersions('8.10.0', '8.9.1'), 1);
+    assert.equal(compareVersions('8.1.0', '8.1.0'), 0);
+    // Release 1 versioned (facade 8.0.5 and modules 0.0.0 on main), and a later patch release (8.1.0 -> 8.1.1).
+    assert.deepEqual(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.0'), baseVersions: release1Base }), { versioned: true, version: '8.1.0', reasons: [] });
+    assert.deepEqual(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0') }), { versioned: true, version: '8.1.1', reasons: [] });
+    // A pull request that changed packages without a changeset and without versioning: not versioned, so
+    // `changeset status` runs and fails it.
+    const unbumped = classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.0'), baseVersions: at('8.1.0') });
+
+    assert.equal(unbumped.versioned, false);
+    assert.match(unbumped.reasons.join('\n'), /@pixi\/react is 8\.1\.0, not above its 8\.1\.0 on main/);
+    // One package left behind, pending changesets, or no main to compare with: not versioned.
+    assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1', { '@pixi-react-provisional/core': '8.1.0' }), baseVersions: at('8.1.0') }).reasons.join(), /core is 8\.1\.0, not above its 8\.1\.0/);
+    assert.match(classifyReleaseState({ pendingChangesets: ['fix.md'], currentVersions: at('8.1.1'), baseVersions: at('8.1.0') }).reasons.join(), /changesets are pending \(fix\.md\)/);
+    assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: null }).reasons.join(), /no merge base with main/);
+});
+
+test('releaseState reads the versions on main from git', () =>
+{
+    const root = mkdtempSync(join(tmpdir(), 'release-state-'));
+    const gitIn = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args], { cwd: root, stdio: 'ignore' });
+    const setVersions = (version) =>
+    {
+        for (const pkg of target.packages)
+        {
+            mkdirSync(join(root, pkg.dir), { recursive: true });
+            writeFileSync(join(root, pkg.dir, 'package.json'), JSON.stringify({ name: pkg.workspaceName, version }));
+        }
+    };
+
+    try
+    {
+        mkdirSync(join(root, '.changeset'));
+        writeFileSync(join(root, '.changeset/README.md'), '');
+        setVersions('8.1.0');
+        gitIn('init', '-q', '-b', 'main');
+        gitIn('add', '-A');
+        gitIn('commit', '-q', '-m', 'main');
+        gitIn('checkout', '-q', '-b', 'release');
+        assert.equal(releaseState(root, { config: target }).versioned, false, 'nothing bumped yet');
+        setVersions('8.1.1');
+        gitIn('commit', '-q', '-am', 'Version packages');
+        assert.deepEqual({ ...releaseState(root, { config: target }), base: null }, { versioned: true, version: '8.1.1', reasons: [], base: null });
+        // On main itself after the merge, the merge base is HEAD: nothing is above main, so `changeset status` runs.
+        gitIn('checkout', '-q', 'main');
+        gitIn('merge', '-q', '--ff-only', 'release');
+        assert.equal(releaseState(root, { config: target }).versioned, false);
+    }
+    finally
+    {
+        rmSync(root, { recursive: true, force: true });
+    }
 });
 
 test('Changesets versions the publishable packages as one fixed group', () =>
