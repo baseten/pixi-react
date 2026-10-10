@@ -13,6 +13,7 @@ export const CHROMIUM_VERSION = '133.0.6943.16';
 
 /** The only platform with committed baselines: Linux x64, as on the `ubuntu-24.04` CI runner. */
 export const BASELINE_PLATFORM = 'linux';
+export const BASELINE_ARCH = 'x64';
 
 /**
  * WebGL through ANGLE on SwiftShader, Chromium's CPU renderer: the same rasterizer on every machine, with no GPU or
