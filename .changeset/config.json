@@ -2,7 +2,19 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "@pixi/react",
+      "@pixi-react-provisional/core",
+      "@pixi-react-provisional/renderer",
+      "@pixi-react-provisional/react-19.0",
+      "@pixi-react-provisional/react-19.1",
+      "@pixi-react-provisional/react-19.2",
+      "@pixi-react-provisional/react-19.3",
+      "@pixi-react-provisional/react-18",
+      "@pixi-react-provisional/pixi-8"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",

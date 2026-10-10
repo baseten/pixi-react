@@ -20,6 +20,7 @@
  * - unused Pixi constructors can be eliminated: `NineSliceSprite`, which no fixture imports or registers, must be
  *   absent. KNOWN_GAPS lists fixtures where that is not true yet; such a fixture must still fail the assertion (an
  *   unexpected pass fails the run, so the list is kept honest);
+ * - our packages are bundled once each, at the release version (lockstep, issue 62);
  * - the Pixi code kept is no more than upstream's (issue 57): the facade fixture is also bundled against upstream
  *   `@pixi/react` 8.0.5 from the registry, in its own clean project with the same React, pixi.js and esbuild, and the
  *   facade and explicit fixtures may keep no more pixi.js modules and no more pixi.js bytes than that baseline.
@@ -190,6 +191,8 @@ export function bundlePlan(manifest)
     for (const scenario of list.filter((item) => item.bundle))
     {
         const dir = join(consumersRoot(), scenario.id);
+        // Lockstep (issue 62): one copy of each of our packages, at the release version.
+        const atRelease = (names) => Object.fromEntries(names.map((name) => [name, scenario.tree.sameVersion.version]));
 
         if (scenario.bundle === 'explicit')
         {
@@ -206,7 +209,7 @@ export function bundlePlan(manifest)
                     pixi: true,
                     allowedPackages: [...ours, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...PIXI_DEPS],
                     requiredPackages: [...ours, 'react-reconciler', 'pixi.js'],
-                    bundledVersions: { 'react-reconciler': reconciler, react: scenario.registry.react },
+                    bundledVersions: { ...atRelease(ours), 'react-reconciler': reconciler, react: scenario.registry.react },
                     absentMarkers: reconcilers.filter((version) => version !== reconciler).map((version) => ({ text: `"${version}"`, label: `another epoch's reconciler version "${version}"` })),
                     result: { registered: ['pixiContainer', 'pixiSprite'], react: scenario.bundleValues.REACT_ID, pixi: 'pixi-8' },
                     upstreamBound: true,
@@ -234,7 +237,7 @@ export function bundlePlan(manifest)
                     pixi: true,
                     allowedPackages: [facade, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...PIXI_DEPS],
                     requiredPackages: [facade, 'react-reconciler'],
-                    bundledVersions: { 'react-reconciler': '0.34.0', react: scenario.registry.react },
+                    bundledVersions: { ...atRelease([facade]), 'react-reconciler': '0.34.0', react: scenario.registry.react },
                     absentMarkers: reconcilers.filter((version) => version !== '0.34.0').map((version) => ({ text: `"${version}"`, label: `a non-default epoch's reconciler version "${version}"` })),
                     result: { application: 'object', extend: 'function' },
                     upstreamBound: true,
@@ -250,7 +253,7 @@ export function bundlePlan(manifest)
                 dir,
                 fixture: 'renderer.mjs',
                 values: scenario.bundleValues,
-                expect: { kind: 'renderer', pixi: false, allowedPackages: ours, requiredPackages: ours, result: { createRenderer: 'function' } },
+                expect: { kind: 'renderer', pixi: false, allowedPackages: ours, requiredPackages: ours, bundledVersions: atRelease(ours), result: { createRenderer: 'function' } },
             });
         }
     }

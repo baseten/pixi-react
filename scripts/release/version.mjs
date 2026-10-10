@@ -7,10 +7,14 @@
  * 2. Runs `changeset version`, which consumes the changesets, bumps package.json versions and writes CHANGELOG.md.
  * 3. Copies each new version into the source constant the adapter manifests report (release.packages.json
  *    `versionConstant`), which `changeset version` cannot see; each package's unit test keeps them equal.
- * 4. Records the ABI this release implements as `abi.released` in release.packages.json, the baseline the next
- *    policy check compares CORE_ABI against.
+ * 4. Records the ABI declarations this release ships (CORE_ABI and each adapter manifest's `abi`) as `abi.released` in
+ *    release.packages.json, the baseline the next policy check compares them against: a change needs at least a
+ *    minor lockstep release with an "ABI" note in its changeset.
  * 5. Regenerates the release compatibility table (compat-table.mjs) and the docs pins (docs-pins.mjs) for the new
  *    versions, so the "Version packages" commit carries them.
+ *
+ * With no release planned (no pending changesets), or on a commit it already versioned, it checks the policy and
+ * changes nothing.
  *
  * It never builds, packs or publishes. Usage: node scripts/release/version.mjs [--root <checkout>]
  */
@@ -21,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { writeCompatibilityTable } from './compat-table.mjs';
 import { loadReleaseConfig, readJson, repoRoot } from './config.mjs';
 import { writeDocsPins } from './docs-pins.mjs';
-import { checkPolicy, readCoreAbi, readPlan } from './policy.mjs';
+import { checkPolicy, currentPlan, readAbiDeclarations } from './policy.mjs';
 
 export function syncVersionConstants(root, config = loadReleaseConfig({ root }))
 {
@@ -48,7 +52,7 @@ export function recordReleasedAbi(root)
 {
     const file = join(root, 'release.packages.json');
     const raw = readJson(file);
-    const abi = readCoreAbi(root);
+    const abi = readAbiDeclarations(root);
 
     raw.abi.released = abi;
     writeFileSync(file, `${JSON.stringify(raw, null, 2)}\n`);
@@ -58,14 +62,29 @@ export function recordReleasedAbi(root)
 
 export function version(root = repoRoot, { log = console.log } = {})
 {
-    const before = checkPolicy({ root, plan: readPlan(root), config: loadReleaseConfig({ root }) });
+    const { state, plan } = currentPlan(root);
+    const before = checkPolicy({ root, plan, state, config: loadReleaseConfig({ root }) });
 
     if (before.problems.length) throw new Error(`release policy violations; nothing was versioned:\n  - ${before.problems.join('\n  - ')}`);
+    if (state.versioned)
+    {
+        log(`already versioned: every package is at ${state.version}, above main, and the changesets are consumed; nothing to do`);
+
+        return [];
+    }
+    if (!before.plan.length)
+    {
+        // No pending changesets (every pull request without one, and main after a release): nothing to version, and
+        // the released ABI and generated files stay as they are.
+        log(`no release planned: nothing to version (every package stays at ${before.version})`);
+
+        return [];
+    }
     execFileSync('pnpm', ['exec', 'changeset', 'version'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
     for (const line of syncVersionConstants(root)) log(`version constant: ${line}`);
     const abi = recordReleasedAbi(root);
 
-    log(`released ABI recorded: ${abi.major}.${abi.minor}`);
+    log(`released ABI recorded: core ${abi.core.major}.${abi.core.minor}; ${Object.keys(abi.adapters).length} adapter declaration files`);
     log(`generated: ${writeCompatibilityTable({ root })}`);
     for (const file of writeDocsPins({ root })) log(`docs pins: ${file}`);
 

@@ -4,7 +4,9 @@
  * Inspects staged release tarballs (issue 15) without installing them. Every check reads the tarball's own files:
  *
  * - names and versions follow release.packages.json; no `workspace:` range, no provisional or never-published name;
- * - a dependency on another publishable package is `^<that package's staged version>` (one ABI major, dedupable);
+ * - every staged package has one version (lockstep, issue 62), and a dependency on another publishable package is
+ *   that exact version: never a `^` or `~` range, so mixing versions installs a second core instead of silently
+ *   sharing one (the runtime ABI check then rejects the mix with a clear error);
  * - peers stay peers: react, react-dom and pixi.js are never ordinary dependencies; react-reconciler and its-fine are
  *   exact versions and only the React adapters and the facade depend on them; the facade depends on no modular package;
  * - every `exports` subpath resolves for `import` and `require` to a JS file and a declaration file that exist, and
@@ -80,12 +82,18 @@ export function inspectPackage(dir, entry, staged, config)
     }
     if (manifest.devDependencies) fail('ships devDependencies');
 
-    // Inter-package ranges: one caret range on the staged version, so every adapter shares one core.
-    for (const [name, spec] of Object.entries(deps))
+    // Inter-package dependencies: the exact same version (lockstep), never a range.
+    if (manifest.version !== entry.version) fail(`version ${manifest.version}, the release manifest says ${entry.version}`);
+    for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies'])
     {
-        const target = staged.find((candidate) => candidate.publicName === name);
+        for (const [name, spec] of Object.entries(manifest[field] ?? {}))
+        {
+            const target = staged.find((candidate) => candidate.publicName === name);
 
-        if (target && spec !== `^${target.version}`) fail(`dependencies.${name} is ${spec}, expected ^${target.version}`);
+            if (!target) continue;
+            if (field === 'peerDependencies') fail(`${name} is a peer; it must be an exact dependency`);
+            else if (spec !== target.version || spec !== manifest.version) fail(`${field}.${name} is ${spec}; packages of this release depend on each other at exactly the same version ${manifest.version}${(/^[~^]/).test(String(spec)) ? ' (no ^ or ~ ranges)' : ''}`);
+        }
     }
 
     // Peers stay external; reconcilers stay pinned in their owning adapter.
@@ -188,6 +196,9 @@ export function inspectStaged(tarballDir, { root = repoRoot } = {})
         const expected = new Set(config.packages.map((pkg) => pkg.publicName));
         const actual = new Set(report.packages.map((entry) => entry.publicName));
 
+        const versions = [...new Set(report.packages.map((entry) => entry.version))];
+
+        if (versions.length > 1) problems.push(`lockstep: the staged packages have ${versions.length} versions (${report.packages.map((entry) => `${entry.publicName}@${entry.version}`).join(', ')}); every package releases at the facade's version`);
         for (const name of expected) if (!actual.has(name)) problems.push(`missing tarball for ${name}`);
         for (const name of actual) if (!expected.has(name)) problems.push(`unexpected tarball ${name}`);
         for (const entry of report.packages)

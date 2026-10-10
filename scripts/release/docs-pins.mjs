@@ -10,6 +10,9 @@
  *
  * The Sandpack editor (apps/docs/src/components/Editor) reads the file; the version literals in the current docs pages
  * and the facade README (`react@19.3.0`, `https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/...`) are rewritten from it.
+ * The modular packages release in lockstep at the facade's version (issue 62), so every `<modular package>@x.y.z` in
+ * the current docs, the package READMEs and design/release.md is rewritten to the facade's release version, and an
+ * install command there that names a modular package without a version fails the check.
  * `--check` (and policy.mjs) fails when anything is stale, when an example sets its own versions, when a pinned
  * package appears without a version or as `latest`, or when the docs app's or the examples app's (apps/examples) own
  * React and pixi.js versions differ from the pins. scripts/release/version.mjs regenerates the pins after `changeset version`.
@@ -28,6 +31,8 @@ const DOCS_APP = 'apps/docs';
 const PINNED_APPS = [DOCS_APP, 'apps/examples'];
 /** Pages whose version literals follow the current pins: the current docs and the facade README. Snapshots are frozen. */
 const PINNED_TEXT_ROOTS = ['apps/docs/docs', 'packages/react/README.md'];
+/** Pages whose modular-package versions follow the lockstep version, besides the package READMEs (added per package). */
+const LOCKSTEP_TEXT_ROOTS = ['apps/docs/docs', 'design/release.md'];
 /** Sources that render examples; none may carry its own version of a pinned package. */
 const EXAMPLE_ROOTS = ['apps/docs/src', 'apps/docs/docs', 'apps/docs/versioned_docs', 'apps/examples/src'];
 const EXACT = /^\d+\.\d+\.\d+$/;
@@ -95,6 +100,51 @@ export function rewriteVersions(text, dependencies)
 
         return result;
     }).join('\n');
+}
+
+/**
+ * The modular packages' names (public in the committed namespace, and provisional, which package READMEs use and
+ * stage.mjs rewrites) and the one version they all release at, plus the pages that must name that version.
+ */
+export function lockstepPins(root = repoRoot)
+{
+    const config = committedConfig(root);
+    const facts = releaseFacts({ root, config });
+    const names = facts.packages.filter((pkg) => !pkg.facade).flatMap((pkg) => [pkg.publicName, pkg.workspaceName]);
+    const pages = [...new Set([
+        ...LOCKSTEP_TEXT_ROOTS.flatMap((dir) => walk(root, dir, (path) => (/\.(mdx?|tsx?|jsx?)$/).test(path))),
+        ...config.packages.flatMap((pkg) => walk(root, join(pkg.dir, 'README.md'), () => true)),
+    ])];
+
+    return { names: [...new Set(names)], version: facts.facade.version, pages };
+}
+
+const lockstepPattern = (name) => new RegExp(`${NAME_START}${escape(name)}@(\\d+\\.\\d+\\.\\d+)${VERSION_END}`, 'g');
+
+/** Rewrites `<modular package>@x.y.z` to the lockstep version, on every line. */
+export function rewriteLockstep(text, names, version)
+{
+    return names.reduce((result, name) => result.replace(lockstepPattern(name), `${name}@${version}`), text);
+}
+
+/** Problems in one page: a modular package at another version than the lockstep one, or installed without a version. */
+export function lockstepProblems(text, names, version, file)
+{
+    const problems = [];
+
+    for (const name of names)
+    {
+        for (const [, found] of text.matchAll(lockstepPattern(name)))
+        {
+            if (found !== version) problems.push(`${file}: ${name}@${found}; install all modular packages at the same version, ${version}`);
+        }
+    }
+    for (const line of text.split('\n').filter((item) => (/^\s*(?:npm (?:install|i)|pnpm add|yarn add)\s/).test(item)))
+    {
+        for (const name of names) if (line.split(/\s+/).includes(name)) problems.push(`${file}: "${line.trim()}" installs ${name} without a version; pin every modular package to ${version}`);
+    }
+
+    return problems;
 }
 
 /** Problems in one page's text: pinned packages without a version, at another version, or as `latest`. */
@@ -182,6 +232,9 @@ export function checkDocsPins({ root = repoRoot } = {})
             }
         }
     }
+    const lockstep = lockstepPins(root);
+
+    for (const page of lockstep.pages) problems.push(...lockstepProblems(readFileSync(join(root, page), 'utf8'), lockstep.names, lockstep.version, page));
     const editor = readFileSync(join(root, DOCS_APP, 'src/components/Editor/Editor.tsx'), 'utf8');
 
     if (!editor.includes('release-pins.json')) problems.push(`${DOCS_APP}/src/components/Editor/Editor.tsx must read its dependencies from ${PINS_FILE}`);
@@ -213,10 +266,14 @@ export function writeDocsPins({ root = repoRoot } = {})
         writeFileSync(file, serialize(pins));
         changed.push(PINS_FILE);
     }
-    for (const page of PINNED_TEXT_ROOTS.flatMap((dir) => walk(root, dir, (path) => (/\.(mdx?|tsx?|jsx?)$/).test(path))))
+    const lockstep = lockstepPins(root);
+    const pinned = new Set(PINNED_TEXT_ROOTS.flatMap((dir) => walk(root, dir, (path) => (/\.(mdx?|tsx?|jsx?)$/).test(path))));
+
+    for (const page of new Set([...pinned, ...lockstep.pages]))
     {
         const text = readFileSync(join(root, page), 'utf8');
-        const next = rewriteVersions(text, pins.current.dependencies);
+        const versioned = pinned.has(page) ? rewriteVersions(text, pins.current.dependencies) : text;
+        const next = lockstep.pages.includes(page) ? rewriteLockstep(versioned, lockstep.names, lockstep.version) : versioned;
 
         if (next !== text)
         {

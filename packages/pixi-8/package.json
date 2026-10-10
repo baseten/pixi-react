@@ -54,7 +54,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.current.json"
   },
   "dependencies": {
-    "@pixi-react-provisional/core": "workspace:^"
+    "@pixi-react-provisional/core": "workspace:*"
   },
   "peerDependencies": {
     "pixi.js": ">=8.2.6 <8.5.0 || >=8.5.1 <8.23.0",

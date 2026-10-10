@@ -9,10 +9,10 @@ published.
 
 ## Install
 
-Release 1 will publish this package as 1.0.0. Its major version is the adapter ABI major. Applications rarely install it directly: the renderer and every adapter depend on it with a caret range, so npm installs one copy for all of them. Add it to your own dependencies only to import from it (for example `CompatibilityError`, or the abstract adapter classes for a third-party adapter):
+Release 1 will publish this package as 8.1.0. Every modular package releases at the same version as `@pixi/react`, and the renderer and every adapter depend on this package at exactly that version, so npm installs one copy for all of them; install all of them at one version. The adapter ABI (`CORE_ABI` here, and each adapter manifest's `abi`) is versioned separately from this package's version. Applications rarely install it directly. Add it to your own dependencies only to import from it (for example `CompatibilityError`, or the abstract adapter classes for a third-party adapter):
 
 ```sh
-npm install @pixi-react-provisional/core
+npm install @pixi-react-provisional/core@8.1.0
 ```
 
 Nothing is published yet. Release tarballs carry the public names from `release.packages.json` (target scope `@pixi`, pending [issue 41](https://github.com/baseten/pixi-react/issues/41)). The [release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md) covers versions, install recipes, tested pairs and migration.

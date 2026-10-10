@@ -248,7 +248,7 @@ importers:
   packages/pixi-8:
     dependencies:
       '@pixi-react-provisional/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
     devDependencies:
       '@pixi-react-provisional/conformance':
@@ -415,7 +415,7 @@ importers:
   packages/react-18:
     dependencies:
       '@pixi-react-provisional/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       its-fine:
         specifier: 1.2.5
@@ -515,7 +515,7 @@ importers:
   packages/react-19.0:
     dependencies:
       '@pixi-react-provisional/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       its-fine:
         specifier: 2.1.1
@@ -645,7 +645,7 @@ importers:
   packages/react-19.1:
     dependencies:
       '@pixi-react-provisional/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       its-fine:
         specifier: 2.1.1
@@ -775,7 +775,7 @@ importers:
   packages/react-19.2:
     dependencies:
       '@pixi-react-provisional/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       its-fine:
         specifier: 2.1.1
@@ -905,7 +905,7 @@ importers:
   packages/react-19.3:
     dependencies:
       '@pixi-react-provisional/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       its-fine:
         specifier: 2.1.1
@@ -1017,7 +1017,7 @@ importers:
   packages/renderer:
     dependencies:
       '@pixi-react-provisional/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
     devDependencies:
       '@types/node':

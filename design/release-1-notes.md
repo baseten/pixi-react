@@ -27,8 +27,8 @@ reconciler and declares that (D1, as amended by issue 49). With npm 7 or later, 
 - upgrade React to 19.3;
 - stay on `@pixi/react` 8.0.5;
 - compose their own renderer: `createRenderer` from `@pixi/react-renderer` with `@pixi/react-19.0`, `-19.1` or `-19.2`
-  (or `@pixi/react-18` for React 18.3.1) and `@pixi/react-pixi-8`. The recipe is in the migration guide and in the
-  facade README.
+  (or `@pixi/react-18` for React 18.3.1) and `@pixi/react-pixi-8`, all at 8.1.0. The recipe is in the migration guide
+  and in the facade README.
 
 On a React 19 minor newer than 19.3, 8.1.0 installs, runs, and logs one console warning naming the tested version.
 
@@ -76,10 +76,13 @@ The PixiJS code is identical (the same 381 pixi.js modules; issue 57). The extra
 [#58](https://github.com/baseten/pixi-react/issues/58) tracks reducing it; the owner ruled that it does not block
 Release 1.
 
-## The modular packages, 1.0.0
+## The modular packages, 8.1.0
 
-First release of the packages `@pixi/react` is built from. Each is versioned independently with plain semver; core's
-major is the adapter ABI major (ABI 1).
+First release of the packages `@pixi/react` is built from. They release in lockstep with the facade: every package is
+8.1.0, and the renderer and every adapter depend on `@pixi/react-core` at exactly 8.1.0. **Install all `@pixi/react-*`
+packages at the same version.** Mixing versions installs a second copy of core; when the two implement different
+adapter ABIs, composition fails with `CompatibilityError` (`ABI_MISMATCH`). The adapter ABI (ABI 1 in this release) is
+versioned separately, in the adapter manifests: a later minor release may change it, and its changelog will say so.
 
 | Package | For | Peer |
 | --- | --- | --- |
