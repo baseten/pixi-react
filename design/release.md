@@ -247,6 +247,14 @@ Nothing below publishes. Publishing needs the [owner approvals](#before-publishi
    `## <version>` entry in every package's CHANGELOG. The dry run of that commit stages the versioned packages without
    versioning again. A pull request that changes a package without a changeset and without bumping the versions is
    not such a commit: `changeset status` still fails it, with a message saying to add a changeset.
+   Only the versioning result itself is accepted. The policy finds the version commit (the newest commit on HEAD's
+   first-parent history since the merge base whose parent had other package versions; the merge commit CI checks out
+   for a pull request is followed into the pull request's side) and fails when anything that ships changed after it:
+   a publishable package directory (except its CHANGELOG.md), `packages/react-shared`, `scripts/`,
+   `release.packages.json`, the lockfile, the workspace file or the root `package.json`. Docs, CI and changelog edits
+   after the version commit are fine. Merging main (or any branch) into the release branch after the version commit
+   also fails, even when main only changed docs: re-run `pnpm release:version` on top of it, so the release is the
+   versioning of exactly what it ships.
 5. **Stage.** `pnpm build && pnpm release:stage --out .release/tarballs`, then `inspect.mjs`, `consumers.mjs` and
    `bundles.mjs` on those tarballs (or take the tarballs of a passing dry run of the same commit).
 6. **Publish (not enabled).** After the owner approvals, a reviewed release workflow publishes the staged tarballs of a

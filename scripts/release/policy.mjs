@@ -166,11 +166,17 @@ export function compareVersions(a, b)
 
 /**
  * Whether the checkout is an already-versioned release commit (`pnpm release:version` ran and its result was
- * committed): no pending changeset, and every publishable package's version is above its version at `base`, the merge
- * base with main. Pure: `baseVersions` is null when there is no base to compare with. Anything else (a package not
- * bumped, a pending changeset) is an ordinary checkout, whose plan comes from `changeset status`.
+ * committed): no pending changeset, every publishable package's version above its version at `base` (the merge base
+ * with main), and nothing that ships changed after that version commit. Pure: `baseVersions` is null when there is no
+ * base to compare with, and `afterVersion` (from `versionCommitHistory`) says what happened after the version commit:
+ * `{ commit, merges, changed }`, or null when the version commit could not be found.
+ *
+ * - `versioned: true`: the versioning result itself; `changeset status` is skipped.
+ * - `blocked` non-empty: the versions were bumped, but published inputs changed after the version commit, or a branch
+ *   was merged in after it. Such a checkout is neither a release nor an ordinary change, and the policy fails it.
+ * - otherwise (`reasons`): an ordinary checkout, whose plan comes from `changeset status`.
  */
-export function classifyReleaseState({ pendingChangesets, currentVersions, baseVersions })
+export function classifyReleaseState({ pendingChangesets, currentVersions, baseVersions, afterVersion = null })
 {
     const reasons = [];
 
@@ -186,11 +192,22 @@ export function classifyReleaseState({ pendingChangesets, currentVersions, baseV
         }
     }
     const versions = [...new Set(Object.values(currentVersions))];
+    const version = versions.length === 1 ? versions[0] : null;
+    const blocked = [];
 
-    return { versioned: reasons.length === 0, version: versions.length === 1 ? versions[0] : null, reasons };
+    if (!reasons.length)
+    {
+        const at = afterVersion?.commit ? `the version commit ${afterVersion.commit.slice(0, 12)}` : 'the versioning';
+
+        if (!afterVersion) blocked.push('the versions are above main, but no commit since the merge base moved them there');
+        for (const merge of afterVersion?.merges ?? []) blocked.push(`${merge.slice(0, 12)} merged another branch into the release branch after ${at}; re-run pnpm release:version on top of it (main's changes are not in the versioned release)`);
+        if (afterVersion?.changed?.length) blocked.push(`published packages changed after ${at}: ${afterVersion.changed.join(', ')}; add a changeset and re-run pnpm release:version, or move the change to a new branch`);
+    }
+
+    return { versioned: !reasons.length && !blocked.length, version, reasons, blocked };
 }
 
-const git = (root, args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+const git = (root, args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 26 }).trim();
 
 /** The merge base of HEAD with `main` (or `origin/main`), or null outside a repository with either. */
 export function mainMergeBase(root = repoRoot)
@@ -210,30 +227,99 @@ export function mainMergeBase(root = repoRoot)
     return null;
 }
 
-/** `classifyReleaseState` for the checkout at `root`, reading the base versions from git. */
+/**
+ * Paths whose change after the version commit would ship unversioned: every publishable package directory, the
+ * private react-shared bundled into the React adapters, the build and release scripts, and the files that decide what
+ * is installed and how it is named. Each package's CHANGELOG.md may still be edited.
+ */
+export function publishedInputs(config)
+{
+    const dirs = [...config.packages.map((pkg) => `${pkg.dir}/`), 'packages/react-shared/', 'scripts/'];
+    const files = ['release.packages.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json'];
+    const changelogs = new Set(config.packages.map((pkg) => `${pkg.dir}/CHANGELOG.md`));
+
+    return (path) => !changelogs.has(path) && (files.includes(path) || dirs.some((dir) => path.startsWith(dir)));
+}
+
+/** The publishable packages' versions at a git revision (a package missing there is left out). */
+function versionsAt(root, rev, config)
+{
+    const versions = {};
+
+    for (const pkg of config.packages)
+    {
+        try
+        {
+            versions[pkg.workspaceName] = JSON.parse(git(root, ['show', `${rev}:${pkg.dir}/package.json`])).version;
+        }
+        catch
+        {
+            // Not in that revision.
+        }
+    }
+
+    return versions;
+}
+
+const sameVersions = (a, b) => JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
+
+/**
+ * What happened after the version commit: the newest commit on HEAD's first-parent history since `base` whose first
+ * parent had other package versions than the current ones. A merge whose first parent lacks the versions but whose
+ * second parent has them (the merge commit CI checks out for a pull request, or a merge-queue commit) is followed into
+ * its second parent; any other merge after the version commit is reported. `changed` lists the published inputs
+ * changed from the version commit to the branch tip, plus uncommitted and untracked ones when the tip is HEAD.
+ * Versions that are only in the working tree (release:version ran, not yet committed) count as the versioning itself.
+ */
+export function versionCommitHistory(root, { base, config, currentVersions })
+{
+    const shipped = publishedInputs(config);
+    const merges = [];
+    let tip = 'HEAD';
+
+    if (!sameVersions(versionsAt(root, 'HEAD', config), currentVersions)) return { commit: null, merges, changed: [] };
+    for (let depth = 0; depth < 20; depth += 1)
+    {
+        const lines = git(root, ['rev-list', '--first-parent', '--parents', `${base}..${tip}`]).split('\n').filter(Boolean);
+        let descend = null;
+
+        for (const line of lines)
+        {
+            const [commit, first, second] = line.split(' ');
+
+            if (sameVersions(versionsAt(root, first, config), currentVersions))
+            {
+                if (second) merges.push(commit);
+                continue;
+            }
+            if (second && sameVersions(versionsAt(root, second, config), currentVersions))
+            {
+                descend = second;
+                break;
+            }
+            const changed = git(root, ['diff', '--name-only', commit, tip === 'HEAD' ? 'HEAD' : tip]).split('\n');
+
+            if (tip === 'HEAD') changed.push(...git(root, ['diff', '--name-only', 'HEAD']).split('\n'), ...git(root, ['ls-files', '--others', '--exclude-standard']).split('\n'));
+
+            return { commit, merges, changed: [...new Set(changed.filter((path) => path && shipped(path)))].sort() };
+        }
+        if (!descend) return null;
+        tip = descend;
+    }
+
+    return null;
+}
+
+/** `classifyReleaseState` for the checkout at `root`, reading the base versions and the history from git. */
 export function releaseState(root = repoRoot, { config = loadReleaseConfig({ root }), base = mainMergeBase(root) } = {})
 {
     const pendingChangesets = readdirSync(join(root, '.changeset')).filter((file) => file.endsWith('.md') && file !== 'README.md');
     const currentVersions = Object.fromEntries(config.packages.map((pkg) => [pkg.workspaceName, readJson(join(root, pkg.dir, 'package.json')).version]));
-    let baseVersions = null;
+    const baseVersions = base ? versionsAt(root, base, config) : null;
+    const looksVersioned = classifyReleaseState({ pendingChangesets, currentVersions, baseVersions, afterVersion: { commit: null, merges: [], changed: [] } }).versioned;
+    const afterVersion = looksVersioned ? versionCommitHistory(root, { base, config, currentVersions }) : null;
 
-    if (base)
-    {
-        baseVersions = {};
-        for (const pkg of config.packages)
-        {
-            try
-            {
-                baseVersions[pkg.workspaceName] = JSON.parse(git(root, ['show', `${base}:${pkg.dir}/package.json`])).version;
-            }
-            catch
-            {
-                // A package new since main has no base version; it cannot block the comparison.
-            }
-        }
-    }
-
-    return { ...classifyReleaseState({ pendingChangesets, currentVersions, baseVersions }), base };
+    return { ...classifyReleaseState({ pendingChangesets, currentVersions, baseVersions, afterVersion }), base, versionCommit: afterVersion?.commit ?? null };
 }
 
 /** An empty plan: nothing pending. */
@@ -246,6 +332,8 @@ export const EMPTY_PLAN = Object.freeze({ changesets: [], releases: [] });
 export function currentPlan(root = repoRoot, options = {})
 {
     const state = releaseState(root, options);
+
+    if (state.blocked.length) throw new Error(`the versions are bumped above main, but this is not the versioning result itself:\n  - ${state.blocked.join('\n  - ')}`);
 
     return { state, plan: state.versioned ? EMPTY_PLAN : readPlan(root) };
 }

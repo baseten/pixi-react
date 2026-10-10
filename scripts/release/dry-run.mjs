@@ -94,6 +94,8 @@ function finish(code)
 
 step('disposable checkout', () =>
 {
+    // Versions bumped above main, but published inputs changed (or a branch was merged) after the version commit.
+    if (sourceState.blocked.length) throw new Error(`the source is not a releasable state:\n  - ${sourceState.blocked.join('\n  - ')}`);
     resetOutputDir(work);
     mkdirSync(checkout, { recursive: true });
     const files = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: repoRoot, encoding: 'utf8' }).split('\0').filter(Boolean);

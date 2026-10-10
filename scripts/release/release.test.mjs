@@ -9,7 +9,7 @@ import { compareWithUpstream, KNOWN_GAPS, UPSTREAM_BASELINE } from './bundles.mj
 import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
-import { abiChanges, abiDeclarationProblems, checkPolicy, classifyReleaseState, compareVersions, currentPlan, readAbiDeclarations, releaseState } from './policy.mjs';
+import { abiChanges, abiDeclarationProblems, checkPolicy, classifyReleaseState, compareVersions, currentPlan, publishedInputs, readAbiDeclarations, releaseState } from './policy.mjs';
 import { releaseManifest, tarballName } from './stage.mjs';
 import { syncVersionConstants } from './version.mjs';
 
@@ -268,13 +268,24 @@ test('an already-versioned release commit is recognized from the versions on mai
     assert.equal(compareVersions('8.10.0', '8.9.1'), 1);
     assert.equal(compareVersions('8.1.0', '8.1.0'), 0);
     // Release 1 versioned (facade 8.0.5 and modules 0.0.0 on main), and a later patch release (8.1.0 -> 8.1.1).
-    assert.deepEqual(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.0'), baseVersions: release1Base }), { versioned: true, version: '8.1.0', reasons: [] });
-    assert.deepEqual(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0') }), { versioned: true, version: '8.1.1', reasons: [] });
+    const clean = { commit: 'v'.repeat(40), merges: [], changed: [] };
+
+    assert.deepEqual(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.0'), baseVersions: release1Base, afterVersion: clean }), { versioned: true, version: '8.1.0', reasons: [], blocked: [] });
+    assert.deepEqual(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0'), afterVersion: clean }), { versioned: true, version: '8.1.1', reasons: [], blocked: [] });
+    // Bumped, but something that ships changed after the version commit, a branch was merged after it, or no
+    // version commit was found: blocked, never treated as the release.
+    const changed = classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0'), afterVersion: { ...clean, changed: ['packages/core/src/abi.ts'] } });
+
+    assert.equal(changed.versioned, false);
+    assert.match(changed.blocked.join(), /published packages changed after the version commit vvvvvvvvvvvv: packages\/core\/src\/abi\.ts; add a changeset and re-run pnpm release:version, or move the change to a new branch/);
+    assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0'), afterVersion: { ...clean, merges: ['m'.repeat(40)] } }).blocked.join(), /mmmmmmmmmmmm merged another branch into the release branch after the version commit .*; re-run pnpm release:version on top of it/);
+    assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0') }).blocked.join(), /no commit since the merge base moved them there/);
     // A pull request that changed packages without a changeset and without versioning: not versioned, so
     // `changeset status` runs and fails it.
     const unbumped = classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.0'), baseVersions: at('8.1.0') });
 
     assert.equal(unbumped.versioned, false);
+    assert.deepEqual(unbumped.blocked, [], 'an ordinary checkout is not blocked: changeset status decides');
     assert.match(unbumped.reasons.join('\n'), /@pixi\/react is 8\.1\.0, not above its 8\.1\.0 on main/);
     // One package left behind, pending changesets, or no main to compare with: not versioned.
     assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1', { '@pixi-react-provisional/core': '8.1.0' }), baseVersions: at('8.1.0') }).reasons.join(), /core is 8\.1\.0, not above its 8\.1\.0/);
@@ -282,36 +293,88 @@ test('an already-versioned release commit is recognized from the versions on mai
     assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: null }).reasons.join(), /no merge base with main/);
 });
 
-test('releaseState reads the versions on main from git', () =>
+test('publishedInputs covers what ships and leaves docs, CI and changelogs editable after the version commit', () =>
+{
+    const shipped = publishedInputs(target);
+
+    for (const path of ['packages/core/src/abi.ts', 'packages/react-18/README.md', 'packages/react-18/package.json', 'packages/react-shared/src/react-19/adapter.ts', 'scripts/build-react-adapter.mjs', 'scripts/release/stage.mjs', 'release.packages.json', 'pnpm-lock.yaml', 'package.json'])
+    {
+        assert.ok(shipped(path), path);
+    }
+    for (const path of ['packages/core/CHANGELOG.md', 'packages/react/CHANGELOG.md', 'design/release.md', 'apps/docs/docs/getting-started.mdx', '.github/workflows/release-dry-run.yml', 'packages/conformance/src/index.ts', 'apps/examples/package.json'])
+    {
+        assert.ok(!shipped(path), path);
+    }
+});
+
+test('releaseState reads the versions on main from git and accepts only the versioning result itself', () =>
 {
     const root = mkdtempSync(join(tmpdir(), 'release-state-'));
     const gitIn = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args], { cwd: root, stdio: 'ignore' });
+    const write = (path, text) =>
+    {
+        mkdirSync(join(root, path, '..'), { recursive: true });
+        writeFileSync(join(root, path), text);
+    };
     const setVersions = (version) =>
     {
-        for (const pkg of target.packages)
-        {
-            mkdirSync(join(root, pkg.dir), { recursive: true });
-            writeFileSync(join(root, pkg.dir, 'package.json'), JSON.stringify({ name: pkg.workspaceName, version }));
-        }
+        for (const pkg of target.packages) write(`${pkg.dir}/package.json`, JSON.stringify({ name: pkg.workspaceName, version }));
     };
+    const state = () => releaseState(root, { config: target });
 
     try
     {
-        mkdirSync(join(root, '.changeset'));
-        writeFileSync(join(root, '.changeset/README.md'), '');
+        write('.changeset/README.md', '');
+        write('packages/core/src/index.ts', 'export {};\n');
+        write('design/notes.md', 'notes\n');
         setVersions('8.1.0');
         gitIn('init', '-q', '-b', 'main');
         gitIn('add', '-A');
         gitIn('commit', '-q', '-m', 'main');
         gitIn('checkout', '-q', '-b', 'release');
-        assert.equal(releaseState(root, { config: target }).versioned, false, 'nothing bumped yet');
+        assert.equal(state().versioned, false, 'nothing bumped yet');
+        assert.deepEqual(state().blocked, []);
+        // The version commit alone is the release.
         setVersions('8.1.1');
-        gitIn('commit', '-q', '-am', 'Version packages');
-        assert.deepEqual({ ...releaseState(root, { config: target }), base: null }, { versioned: true, version: '8.1.1', reasons: [], base: null });
-        // On main itself after the merge, the merge base is HEAD: nothing is above main, so `changeset status` runs.
+        write('packages/core/CHANGELOG.md', '# core\n\n## 8.1.1\n');
+        gitIn('add', '-A');
+        gitIn('commit', '-q', '-m', 'Version packages');
+        const versionCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+
+        assert.deepEqual({ ...state(), base: null }, { versioned: true, version: '8.1.1', reasons: [], blocked: [], base: null, versionCommit });
+        // Docs, CI and a changelog wording fix after it are fine.
+        write('design/notes.md', 'more notes\n');
+        write('packages/core/CHANGELOG.md', '# core\n\n## 8.1.1\n\nReworded.\n');
+        gitIn('commit', '-q', '-am', 'docs after the version commit');
+        assert.equal(state().versioned, true);
+        // A source change after it, committed or not, is blocked.
+        write('packages/core/src/index.ts', 'export const late = 1;\n');
+        assert.match(state().blocked.join(), /published packages changed after the version commit .*: packages\/core\/src\/index\.ts/, 'uncommitted');
+        gitIn('commit', '-q', '-am', 'late source change');
+        assert.equal(state().versioned, false);
+        assert.match(state().blocked.join(), /packages\/core\/src\/index\.ts; add a changeset and re-run pnpm release:version/);
+        assert.throws(() => currentPlan(root, { config: target }), /not the versioning result itself/);
+        gitIn('reset', '-q', '--hard', 'HEAD~1');
+        // Merging main into the release branch after the version commit is blocked (rule: re-version on top of it),
+        // even when main only changed docs.
         gitIn('checkout', '-q', 'main');
-        gitIn('merge', '-q', '--ff-only', 'release');
-        assert.equal(releaseState(root, { config: target }).versioned, false);
+        write('design/main.md', 'main moved\n');
+        gitIn('add', '-A');
+        gitIn('commit', '-q', '-m', 'main moves on');
+        gitIn('checkout', '-q', 'release');
+        gitIn('merge', '-q', '--no-ff', '--no-edit', 'main');
+        assert.match(state().blocked.join(), /merged another branch into the release branch after the version commit/);
+        gitIn('reset', '-q', '--hard', 'HEAD~1');
+        // The merge commit CI checks out for the pull request (main first, the release branch second) is the release.
+        gitIn('checkout', '-q', '--detach', 'main');
+        gitIn('merge', '-q', '--no-ff', '--no-edit', 'release');
+        assert.equal(state().versioned, true, 'a pull request merge commit');
+        assert.equal(state().versionCommit, versionCommit);
+        // On main itself after the release merged, nothing is above main, so `changeset status` runs.
+        gitIn('checkout', '-q', 'main');
+        gitIn('merge', '-q', '--no-edit', 'release');
+        assert.equal(state().versioned, false);
+        assert.deepEqual(state().blocked, []);
     }
     finally
     {
