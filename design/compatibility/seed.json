@@ -11,25 +11,227 @@
   },
   "verifiedRanges": [
     {
-      "reactAdapter": "react-18",
-      "react": "18.3.1",
+      "reactAdapter": "react-18.0",
+      "react": "18.0.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
           "7.4.2",
           "7.4.3"
         ]
       }
     },
     {
-      "reactAdapter": "react-18",
+      "reactAdapter": "react-18.0",
+      "react": "18.0.0",
+      "pixiAdapter": "pixi-8",
+      "records": [
+        "2026-10-10.2"
+      ],
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-18.1",
+      "react": "18.1.0",
+      "pixiAdapter": "pixi-7",
+      "records": [
+        "2026-10-10.2"
+      ],
+      "backends": {
+        "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-18.1",
+      "react": "18.1.0",
+      "pixiAdapter": "pixi-8",
+      "records": [
+        "2026-10-10.2"
+      ],
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-18.2",
+      "react": "18.2.0",
+      "pixiAdapter": "pixi-7",
+      "records": [
+        "2026-10-10.2"
+      ],
+      "backends": {
+        "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-18.2",
+      "react": "18.2.0",
+      "pixiAdapter": "pixi-8",
+      "records": [
+        "2026-10-10.2"
+      ],
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-18.3",
+      "react": "18.3.1",
+      "pixiAdapter": "pixi-7",
+      "records": [
+        "2026-10-10.2"
+      ],
+      "backends": {
+        "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-18.3",
       "react": "18.3.1",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
@@ -77,10 +279,14 @@
       "react": "19.0.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
           "7.4.2",
           "7.4.3"
         ]
@@ -91,7 +297,7 @@
       "react": "19.0.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
@@ -139,10 +345,14 @@
       "react": "19.0.8",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
           "7.4.2",
           "7.4.3"
         ]
@@ -153,7 +363,7 @@
       "react": "19.0.8",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
@@ -201,10 +411,14 @@
       "react": "19.1.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
           "7.4.2",
           "7.4.3"
         ]
@@ -215,7 +429,7 @@
       "react": "19.1.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
@@ -263,10 +477,14 @@
       "react": "19.1.9",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
           "7.4.2",
           "7.4.3"
         ]
@@ -277,7 +495,7 @@
       "react": "19.1.9",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
@@ -325,10 +543,14 @@
       "react": "19.2.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
           "7.4.2",
           "7.4.3"
         ]
@@ -339,7 +561,7 @@
       "react": "19.2.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
@@ -387,10 +609,14 @@
       "react": "19.2.8",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
           "7.4.2",
           "7.4.3"
         ]
@@ -401,7 +627,7 @@
       "react": "19.2.8",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
@@ -449,10 +675,14 @@
       "react": "19.3.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
+          "7.2.0",
+          "7.2.4",
+          "7.3.0",
+          "7.3.3",
           "7.4.2",
           "7.4.3"
         ]
@@ -463,7 +693,7 @@
       "react": "19.3.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-10"
+        "2026-10-10.2"
       ],
       "backends": {
         "webgl": [
@@ -3020,7 +3250,7 @@
           "8.8.1",
           "8.9.2"
         ],
-        "reason": "On the software WebGPU fallback adapter these pixi.js versions draw nothing (the canvas reads [0,0,0,0]) although Pixi creates a WebGPU renderer and every conformance scenario passes. The cause appears to be in pixi.js before 8.10, not in the adapters.",
+        "reason": "An upstream pixi.js bug before 8.10 (pixijs/pixijs#11389, fixed by #11417, first released in 8.10.0): the WebGPU texture batch is sized from WebGL's MAX_TEXTURE_IMAGE_UNITS (32 on ANGLE/SwiftShader) while the WebGPU device keeps the default maxSampledTexturesPerShaderStage of 16, so the bind group layout and the batch pipeline are invalid and the canvas stays blank (reads [0,0,0,0]) although Pixi creates a WebGPU renderer and every conformance scenario passes. It is not specific to software rendering: any device whose WebGL texture-unit count exceeds its WebGPU per-stage limit is affected (upstream reports a Pixel 9 and Chrome on Ubuntu). Not in the adapters.",
         "signature": {
           "renderer": "webgpu",
           "canvas": [
@@ -3038,12 +3268,12 @@
           "screenshotMatches": false
         },
         "evidence": {
-          "record": "2026-10-10",
-          "observed": "Every React adapter and patch (8 cells per pixi.js version, 64 in all): Pixi created a WebGPU renderer and every conformance scenario passed, but the render check failed: the canvas copy and Pixi's extract read [0,0,0,0] and the screenshot shows the page instead of the red rectangle. The same cells pass on WebGL.",
+          "record": "2026-10-10.2",
+          "observed": "Every React adapter and patch on each listed version (8 cells per version in the first 2026-10-10 record, 11 in 2026-10-10.2): Pixi created a WebGPU renderer and every conformance scenario passed, but the render check failed: the canvas copy and Pixi's extract read [0,0,0,0] and the screenshot shows the page instead of the red rectangle. The same cells pass on WebGL. Under a WebGPU validation error scope the device reports 'The number of sampled textures (32) in the Fragment stage exceeds the maximum per-stage limit (16). While calling [Device].CreateBindGroupLayout', then 'Invalid RenderPipeline \"PIXI Pipeline\"' and an invalid command buffer on every frame; Chrome logs these as console warnings and Pixi does not surface them.",
           "adapter": "Dawn on SwiftShader's Vulkan device: vendor google, architecture swiftshader, isFallbackAdapter true. No GPU in the machine.",
-          "cause": "Appears to be in pixi.js before 8.10: it does not depend on the React adapter or the React version, and pixi.js 8.10.2 and every later minor render on the same adapter.",
-          "narrowed": "Not narrowed below 8.9.2 to 8.10.2: only the newest audited patch of each minor runs.",
-          "realGpu": "Untested on a real GPU; a hardware-profile run (gpuProfiles.hardware) can add that evidence."
+          "cause": "Before 8.10, Pixi sizes the batch (Batcher.defaultOptions.maxTextures, GpuGraphicsAdaptor, SdfShader) with getMaxTexturesPerBatch(), which reads WebGL's MAX_TEXTURE_IMAGE_UNITS (32 here), and requests the WebGPU device without requiredLimits, so maxSampledTexturesPerShaderStage stays 16. pixijs/pixijs#11417 (merge 89285a6, 2025-05-16, first in v8.10.0; https://github.com/pixijs/pixijs/pull/11417) sizes it from the device limit and fixes https://github.com/pixijs/pixijs/issues/11389 ('WebGPU broken on some devices'). No 8.9.x patch carries the fix.",
+          "narrowed": "Bisected with the pixi.js bundles on the same adapter: 8.2.6, 8.9.0, 8.9.2 and 8.9.2-dev.f4f8fb2 blank; 8.9.2-dev.89285a6 (the merge of #11417), 8.10.0, 8.10.1 and 8.10.2 render. First good release: 8.10.0.",
+          "realGpu": "A real GPU renders these versions when its WebGL and WebGPU texture limits agree: the hardware record 2026-10-10-macos-26-apple-m5-max (Apple M5 Max, Metal, isFallbackAdapter false; WebGL reports 16 texture units there) passed 8.2.6 to 8.9.2 on WebGPU with React 18.3.1 and 19.3.0. It is a partial record, so it verifies nothing; it shows the blank render is the #11389 limit mismatch, which this machine's software adapter has and that Mac does not, not WebGPU on 8.2-8.9 as such."
         }
       }
     ],

@@ -11,7 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareVersions } from '../../design/compatibility/cells/matrix.mjs';
-import { loadRecords, recordId } from '../../design/compatibility/verification.mjs';
+import { currentRecords, loadRecords, recordGate, recordId } from '../../design/compatibility/verification.mjs';
 import { committedConfig, loadSeedAt, releaseFacts, UPSTREAM_ROW } from './compat.mjs';
 import { repoRoot } from './config.mjs';
 
@@ -90,8 +90,10 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
     const seed = loadSeedAt(root);
     const backends = Object.keys(seed.adapterMatrix.renderers);
     // How each record rendered (software here; a real-GPU record adds evidence), and the expected blank renders.
-    const records = loadRecords(join(root, 'design/compatibility/verification'));
-    const renderingLine = records.map((record) => `Record [${recordId(record)}](compatibility/verification/${recordId(record)}.md): ${record.rendering.note}`).join(' ');
+    // Only the current records (the newest per machine and GPU profile) count; a record whose probes and incompatible
+    // pairs did not all run (a partial run) verifies nothing and is named as evidence only.
+    const records = currentRecords(loadRecords(join(root, 'design/compatibility/verification')));
+    const renderingLine = records.map((record) => `Record [${recordId(record)}](compatibility/verification/${recordId(record)}.md)${recordGate(record) ? '' : ` (${record.scope === 'partial' ? 'partial run' : 'incomplete gate'}: evidence only, verifies nothing)`}: ${record.rendering.note}`).join(' ');
     const blankLines = (seed.adapterMatrix.expectedBlankRender ?? []).map((entry) => `${BACKEND_LABEL[entry.renderer] ?? entry.renderer} with pixi.js ${versionSpan(entry.pixi)} (${seed.adapterMatrix.pixiAdapters[entry.pixiAdapter].id}, ${entry.gpuProfile} rendering) is an **expected blank render, unverified**: ${entry.reason} ${entry.evidence.narrowed} ${entry.evidence.realGpu}`);
     const { facade, pixi } = facts;
     const composed = facade.composedPackages.filter((pkg) => !['packages/core', 'packages/renderer'].includes(pkg.dir));
@@ -132,7 +134,8 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
         const exact = [...pkg.internal.map((name) => `${code(name)} ${pkg.version}`), pkg.reconciler && `react-reconciler ${pkg.reconciler}`, pkg.itsFine && `its-fine ${pkg.itsFine}`].filter(Boolean).join(', ') || '-';
         let cells = 'in every cell';
 
-        if (pkg.prCells) cells = `React ${pkg.prCells[0].react} with pixi.js ${pkg.prCells.map((cell) => cell.pixi).join(' and ')}`;
+        if (pkg.prCells?.length) cells = `React ${pkg.prCells[0].react} with pixi.js ${pkg.prCells.map((cell) => cell.pixi).join(' and ')}`;
+        else if (pkg.prCells) cells = 'no PR-tier cell: its package fixtures on every PR, the cells nightly';
         else if (pkg.pixiAdapter?.isDefault) cells = 'with every React adapter row above';
         else if (pkg.pixiAdapter) cells = `${pkg.pixiAdapter.prCells.map((cell) => `React ${cell.react} with pixi.js ${cell.pixi}`).join(', ')}; every React adapter nightly`;
 

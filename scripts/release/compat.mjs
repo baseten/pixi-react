@@ -4,7 +4,7 @@
 // and the docs pins (docs-pins.mjs) all read these facts from here, so none of them repeats a version by hand.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { compareVersions, defaultPixiAdapter, pixiEpochOf, pixiMinors, reactVersions, selectCells } from '../../design/compatibility/cells/matrix.mjs';
+import { compareVersions, defaultPixiAdapter, pixiEpochOf, pixiMinors, selectCells } from '../../design/compatibility/cells/matrix.mjs';
 import { loadReleaseConfig, readJson, repoRoot } from './config.mjs';
 
 /** The source of the facade's tested React constant (the runtime warning reads it). */
@@ -142,7 +142,6 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
         const manifest = manifestOf(pkg.dir);
         const react = byDir.get(pkg.dir);
         const pixiRow = pixiByDir.get(pkg.dir);
-        const reactPr = react ? reactVersions(seed, react.key).latest.version : null;
 
         return {
             dir: pkg.dir,
@@ -159,8 +158,10 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
             reactEpoch: react?.key ?? null,
             // Exact tuples a dated verification record verified for this package, per render backend (issue 17).
             verified: verifiedOf(react, pixiRow),
-            // The PR tier runs each React adapter at its newest audited patch against every PR-tier pixi.js version.
-            prCells: react ? prPixi.map((pixi) => ({ react: reactPr, pixi })) : null,
+            // The PR-tier cells of this React adapter with the default Pixi adapter (most run its newest audited patch
+            // against every PR-tier pixi.js version; React 18.1 and 18.2 have none and run nightly).
+            prCells: react ? selectCells(seed, 'pr').filter((cell) => cell.react.adapterKey === react.key && cell.pixi.adapterKey === facadePixi)
+                .map((cell) => ({ react: cell.react.version, pixi: cell.pixi.version })) : null,
             // A Pixi adapter: its manifest key, its declared range and the PR-tier cells that run it.
             pixiAdapter: pixiRow ? {
                 key: pixiRow.key,
