@@ -69,6 +69,45 @@ test('a failed probe, negative case, command or missing cell verifies nothing', 
     assert.deepEqual(deriveVerifiedRanges([record([cell('19.3.0', '8.22.0', { webgl: { status: 'not run' }, webgpu: pass('webgpu') })])]).map((entry) => entry.backends), [{ webgpu: ['8.22.0'] }]);
 });
 
+test('a command that was never recorded is not a pass: a cell with only conformance and backend evidence verifies nothing', () =>
+{
+    const bare = cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: pass('webgpu') }, { status: 'pass', commands: { conformance: 'pass' } });
+
+    assert.deepEqual(deriveVerifiedRanges([record([bare])]), []);
+    for (const name of ['install', 'tree', 'modules', 'types'])
+    {
+        const { [name]: _omitted, ...rest } = commands;
+
+        assert.deepEqual(deriveVerifiedRanges([record([cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: notApplicable }, { commands: rest })])]), [], `without ${name}`);
+    }
+    // validateRecord rejects a cell that claims a pass without every required command; a failed cell may stop early.
+    const [checked] = loadRecords();
+    const withCell = (target) =>
+    {
+        const candidate = clone(checked);
+
+        candidate.cells = [target];
+        candidate.summary = summarizeRecord(seed, candidate);
+
+        return candidate;
+    };
+
+    assert.throws(() => validateRecord(seed, withCell({ ...bare, backends: { webgl: { ...pass('webgl'), conformance: { passed: 80, failed: 0, skipped: 10, total: 90 } }, webgpu: notApplicable } })), /lacks required commands/);
+    assert.doesNotThrow(() => validateRecord(seed, withCell(cell('19.3.0', '8.22.0', { webgl: { status: 'fail' }, webgpu: { status: 'fail' } }, { status: 'fail', commands: { install: 'fail' } }))));
+});
+
+test('a later record of the same machine and day supersedes the earlier one by its sequence number', () =>
+{
+    const first = record([cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: pass('webgpu') })]);
+    const second = record([cell('19.3.0', '8.22.0', { webgl: { status: 'fail' }, webgpu: pass('webgpu') })], { id: '2026-10-10.2', sequence: 2 });
+    const tenth = { ...second, id: '2026-10-10.10', sequence: 10, cells: [cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: { status: 'fail' } })] };
+
+    assert.deepEqual(currentRecords([second, first]).map((entry) => entry.id), ['2026-10-10.2']);
+    assert.deepEqual(deriveVerifiedRanges([first, second]).map((entry) => entry.backends), [{ webgpu: ['8.22.0'] }]);
+    // Numeric, not lexicographic: .10 is later than .2.
+    assert.deepEqual(currentRecords([first, tenth, second]).map((entry) => entry.id), ['2026-10-10.10']);
+});
+
 test('records add up: a hardware record adds tuples and names itself beside the software one', () =>
 {
     const software = record([cell('19.3.0', '8.9.2', { webgl: pass('webgl'), webgpu: { status: 'expected-fail', renderer: 'webgpu' } })]);
