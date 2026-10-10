@@ -41,6 +41,9 @@ import {
 import type { HostContainer, ReconcilerRoot, RecoverableErrorInfoLike, RootCallbacks, SceneRenderer } from './host.js';
 import type { ApplicationProps, ApplicationRef, ReactBindings, Root, RootOptions } from './types.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 export interface BindingsConfig<S extends PixiTypes>
 {
     readonly adapterId: string;
@@ -245,8 +248,10 @@ export function createBindings<S extends PixiTypes>(runtime: Runtime<S>, config:
         if (value.token !== runtime.id)
         {
             throw new CompatibilityError(
-                `${hook} was called inside an application of another renderer runtime. Use the hooks returned by the `
-                + 'same createRenderer call as the <Application> that renders this component.',
+                process.env.NODE_ENV !== 'production'
+                    ? (`${hook} was called inside an application of another renderer runtime. Use the hooks returned by the `
+                    + 'same createRenderer call as the <Application> that renders this component.')
+                    : '',
                 { code: 'react-18.FOREIGN_RUNTIME', adapterIds: [adapterId] },
             );
         }
@@ -293,7 +298,7 @@ export function createBindings<S extends PixiTypes>(runtime: Runtime<S>, config:
         if (!runtime.pixi.applyProps)
         {
             throw new CompatibilityError(
-                `Pixi adapter "${runtime.manifests.pixi.id}" has no standalone applyProps.`,
+                process.env.NODE_ENV !== 'production' ? `Pixi adapter "${runtime.manifests.pixi.id}" has no standalone applyProps.` : '',
                 { code: 'CAPABILITY_MISSING', adapterIds: [runtime.manifests.pixi.id] },
             );
         }

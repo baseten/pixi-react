@@ -15,6 +15,9 @@ import {
 import type { SceneRenderer } from './host.js';
 import type { React18Family } from './types.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /** The audited facts of the React 18 adapter. */
 export interface React18Info
 {
@@ -106,14 +109,14 @@ export class React18Adapter extends ReactAdapter<React18Family>
 
         if (minorOf(actual) !== line)
         {
-            const major = actual.split('.')[0];
-            const instead = major === '19'
-                ? ` For React 19, install and use the adapter package that matches the installed React minor (for example @pixi-react-provisional/react-${minorOf(actual) ?? '19.x'}).`
-                : '';
-
             throw new CompatibilityError(
-                `@pixi-react-provisional/react-18 supports React ${line}.x (tested: ${testedReact.join(', ')}), `
-                + `but React ${actual} is installed.${instead}`,
+                process.env.NODE_ENV !== 'production'
+                    ? `@pixi-react-provisional/react-18 supports React ${line}.x (tested: ${testedReact.join(', ')}), `
+                        + `but React ${actual} is installed.${actual.split('.')[0] === '19'
+                            ? ' For React 19, install and use the adapter package that matches the installed React minor '
+                                + `(for example @pixi-react-provisional/react-${minorOf(actual) ?? '19.x'}).`
+                            : ''}`
+                    : '',
                 {
                     code: 'UNSUPPORTED_TUPLE',
                     adapterIds: [this.manifest.id],

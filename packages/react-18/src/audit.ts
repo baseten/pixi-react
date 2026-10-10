@@ -13,7 +13,7 @@ function group(reason: string, keys: readonly string[]): UnreachableKeys
     return Object.fromEntries(keys.map((key) => [key, reason]));
 }
 
-export const HYDRATION = group('supportsHydration is false', [
+export const HYDRATION = /* @__PURE__ */ group('supportsHydration is false', [
     'canHydrateInstance',
     'canHydrateSuspenseInstance',
     'canHydrateTextInstance',
@@ -51,7 +51,7 @@ export const HYDRATION = group('supportsHydration is false', [
     'shouldDeleteUnhydratedTailInstances',
 ]);
 
-export const PERSISTENCE = group('supportsPersistence is false', [
+export const PERSISTENCE = /* @__PURE__ */ group('supportsPersistence is false', [
     'appendChildToContainerChildSet',
     'cloneHiddenInstance',
     'cloneHiddenTextInstance',
@@ -61,7 +61,7 @@ export const PERSISTENCE = group('supportsPersistence is false', [
     'replaceContainerChildren',
 ]);
 
-export const TEST_SELECTORS = group('supportsTestSelectors is not set', [
+export const TEST_SELECTORS = /* @__PURE__ */ group('supportsTestSelectors is not set', [
     'findFiberRoot',
     'getBoundingRect',
     'getInstanceFromNode',
@@ -73,19 +73,19 @@ export const TEST_SELECTORS = group('supportsTestSelectors is not set', [
     'supportsTestSelectors',
 ]);
 
-export const MICROTASKS = group('supportsMicrotasks is not set; the scheduler drives sync work, as in the baseline', [
+export const MICROTASKS = /* @__PURE__ */ group('supportsMicrotasks is not set; the scheduler drives sync work, as in the baseline', [
     'scheduleMicrotask',
     'supportsMicrotasks',
 ]);
 
-export const TEXT = group('createTextInstance always throws, so no text instance exists', [
+export const TEXT = /* @__PURE__ */ group('createTextInstance always throws, so no text instance exists', [
     'commitTextUpdate',
     'hideTextInstance',
     'resetTextContent',
     'unhideTextInstance',
 ]);
 
-export const GATED_STABLE = group('feature-gated off in the stable bundle', [
+export const GATED_STABLE = /* @__PURE__ */ group('feature-gated off in the stable bundle', [
     // Scope API.
     'getInstanceFromScope',
     'prepareScopeUpdate',
@@ -94,13 +94,16 @@ export const GATED_STABLE = group('feature-gated off in the stable bundle', [
     'beforeActiveInstanceBlur',
 ]);
 
-export const MISC = group('not reachable from a scene renderer', [
+export const MISC = /* @__PURE__ */ group('not reachable from a scene renderer', [
     // finalizeInitialChildren always returns false.
     'commitMount',
 ]);
 
-/** Every key of the 0.29.2 bundle this renderer cannot reach, with the reason. */
-export const UNREACHABLE_HOST_KEYS: UnreachableKeys = Object.freeze({
+/**
+ * Every key of the 0.29.2 bundle this renderer cannot reach, with the reason.
+ * Test-only data (the host-key unit test reads it): a pure expression, so bundles that do not read it drop it.
+ */
+export const UNREACHABLE_HOST_KEYS: UnreachableKeys = /* @__PURE__ */ (() => Object.freeze({
     ...HYDRATION,
     ...PERSISTENCE,
     ...TEST_SELECTORS,
@@ -108,4 +111,4 @@ export const UNREACHABLE_HOST_KEYS: UnreachableKeys = Object.freeze({
     ...TEXT,
     ...GATED_STABLE,
     ...MISC,
-});
+}))();

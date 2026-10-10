@@ -1,5 +1,8 @@
 import { CompatibilityError, CoreErrorCodes } from './errors.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /**
  * DOM target ownership leases. This is the only state core shares between runtimes, and it holds nothing but
  * the owning runtime's identity: no catalogs, roots or React state.
@@ -73,8 +76,10 @@ export function assertNotLeased(targets: readonly object[], holder: LeaseHolder)
         if (current && current.owner !== holder.owner)
         {
             throw new CompatibilityError(
-                `This DOM target is already owned by ${current.description}. Unmount that root and await its `
-                + `teardown before ${holder.description} uses the target, or render into a different element.`,
+                process.env.NODE_ENV !== 'production'
+                    ? (`This DOM target is already owned by ${current.description}. Unmount that root and await its `
+                    + `teardown before ${holder.description} uses the target, or render into a different element.`)
+                    : '',
                 {
                     code: CoreErrorCodes.TARGET_LEASED,
                     adapterIds: [],

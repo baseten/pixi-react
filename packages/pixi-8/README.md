@@ -89,7 +89,12 @@ simply has no kind default.
 
 Core checks attach rules before any mutation, so a Particle outside a ParticleContainer, a Sprite inside a
 ParticleContainer or a JSX child of a RenderLayer throws `UNSUPPORTED_NODE` and leaves the tree unchanged. Every
-registry check throws in every build; there are no development-only invariants.
+registry check throws in every build; there are no development-only invariants. Only text is development-only
+([issue 58](https://github.com/baseten/pixi-react/issues/58)): in a production build (the application's bundler
+replaces `process.env.NODE_ENV` with `'production'`) the adapter's errors carry core's short message built from their
+code and details, and its console warnings (a Pixi-named event prop such as `onpointerdown`, `draw` on a node that is
+not a Graphics, a dashed prop naming a missing field, a removed prop with no default to restore) are not emitted. The
+behaviour they describe is the same in every build.
 
 **8.10 `removeParticles`.** Before 8.10, `removeParticles(begin, end)` passed `end` to `splice` as a delete count, and
 `removeParticles(begin)` removed nothing. From 8.10, `end` is an end index and omitting it removes everything to the

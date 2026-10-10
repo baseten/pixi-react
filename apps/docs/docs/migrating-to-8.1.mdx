@@ -95,6 +95,8 @@ The PixiJS code in your bundle is the same as with 8.0.5: the same 381 pixi.js m
 | Bundle | Minified | Gzip |
 | --- | --- | --- |
 | `@pixi/react` 8.0.5 | 663.6 KiB | 196.2 KiB |
-| `@pixi/react` 8.1.0 | 751.7 KiB | 222.9 KiB |
+| `@pixi/react` 8.1.0 | 732.2 KiB | 217.2 KiB |
 
-That is 88 KiB more (27 KiB gzip). Most of it is about 55 KiB of adapter code the app can reach, and react-reconciler 0.34, which React 19.3 needs (18.6 KiB more than 8.0.5's 0.31). Work to reduce it is tracked in [#58](https://github.com/baseten/pixi-react/issues/58).
+That is 68.6 KiB more (21.0 KiB gzip): adapter code the app can reach (64.4 KiB, against 8.0.5's 16.2 KiB), and react-reconciler 0.34, which React 19.3 needs (127.0 KiB, against 8.0.5's 0.31 at 112.3 KiB). Work to reduce it is tracked in [#58](https://github.com/baseten/pixi-react/issues/58).
+
+Production builds drop development-only diagnostics: errors are the same, with the same codes, but most `CompatibilityError` messages are short, for example `ABI_MISMATCH (pixi-8; expected {"major":1}; actual {"major":2,"minor":0}). A development build (NODE_ENV !== 'production') gives the full message.` Run a development build to see the full message.

@@ -55,8 +55,11 @@ import type { PixiTypes, Runtime } from '@pixi-react-provisional/core';
 
 export const RECONCILER_VERSION = '0.33.0';
 
-/** Keys the 0.33 bundle reads that this renderer cannot reach, with the reason. */
-export const UNREACHABLE_HOST_KEYS: UnreachableKeys = Object.freeze({
+/**
+ * Keys the 0.33 bundle reads that this renderer cannot reach, with the reason.
+ * Test-only data (the host-key unit test reads it): a pure expression, so bundles that do not read it drop it.
+ */
+export const UNREACHABLE_HOST_KEYS: UnreachableKeys = /* @__PURE__ */ (() => Object.freeze({
     ...HYDRATION,
     ...HYDRATION_0_32,
     ...HYDRATION_0_33,
@@ -74,7 +77,7 @@ export const UNREACHABLE_HOST_KEYS: UnreachableKeys = Object.freeze({
     isSingletonScope: 'supportsSingletons is not set',
     stopViewTransition: 'ViewTransition is gated off in the stable bundle',
     requestPostPaintCallback: 'transition tracing, gated off in the stable bundle',
-});
+}))();
 
 /** No suspended state of our own: scene nodes never suspend a commit. */
 const NO_SUSPENDED_STATE = null;

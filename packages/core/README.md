@@ -43,6 +43,22 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 Each check throws `ABI_MISMATCH`, `CAPABILITY_MISSING` or `UNSUPPORTED_TUPLE`. The error names the adapter IDs, the
 capability, and the expected and actual versions. Nothing is allocated until every check passes.
 
+### Production builds
+
+Every check runs and throws in every build ([issue 58](https://github.com/baseten/pixi-react/issues/58)). Only the
+message text is development-only: the sources build it behind `process.env.NODE_ENV !== 'production'`, which the
+published JavaScript leaves as written, so an application bundler that replaces `process.env.NODE_ENV` (as React
+requires) drops the text from a production bundle. In production a `CompatibilityError` keeps its class, `code`,
+`adapterIds`, `capability`, `expected`, `actual` and `cause`, and its message is built from them:
+
+```text
+ABI_MISMATCH (pixi-8; expected {"major":1}; actual {"major":2,"minor":0}). A development build (NODE_ENV !== 'production') gives the full message.
+```
+
+`UNKNOWN_ELEMENT` (an unregistered element) keeps its full message in every build. A `CompatibilityError` constructed
+with an empty message gets the same message built from its details; a non-empty message is kept as given. The runtime
+JavaScript is one bundled CommonJS file (`dist/cjs/index.js`); the declarations stay one per module.
+
 ### Runtime
 
 Every `compose` call returns a new runtime. Nothing below is module-global, and two runtimes share none of it.

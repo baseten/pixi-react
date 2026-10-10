@@ -1,3 +1,4 @@
+import { isRecord } from './abi.js';
 import { CompatibilityError } from './errors.js';
 
 import type { PixiAdapter } from './adapters.js';
@@ -11,6 +12,9 @@ import type {
     RegistryConflictPolicy,
 } from './types.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 export interface RegistryOptions
 {
     readonly policy: RegistryConflictPolicy;
@@ -18,11 +22,6 @@ export interface RegistryOptions
     readonly adapterIds: readonly string[];
     /** Throws when the owning runtime no longer accepts registrations. */
     readonly assertActive: () => void;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown>
-{
-    return typeof value === 'object' && value !== null;
 }
 
 /**
@@ -44,7 +43,7 @@ export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
     {
         if (typeof name !== 'string' || !name)
         {
-            throw new CompatibilityError(`Element names must be non-empty strings, got ${JSON.stringify(name)}.`, {
+            throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? `Element names must be non-empty strings, got ${JSON.stringify(name)}.` : '', {
                 code: 'UNKNOWN_ELEMENT',
                 adapterIds: this.options.adapterIds,
             });
@@ -55,7 +54,7 @@ export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
         if (typeof normalized !== 'string' || !normalized)
         {
             throw new CompatibilityError(
-                `Pixi adapter "${this.pixi.manifest.id}" normalized "${name}" to an invalid name.`,
+                process.env.NODE_ENV !== 'production' ? `Pixi adapter "${this.pixi.manifest.id}" normalized "${name}" to an invalid name.` : '',
                 { code: 'ABI_MISMATCH', adapterIds: [this.pixi.manifest.id] },
             );
         }
@@ -69,7 +68,7 @@ export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
 
         if (!isRecord(catalog))
         {
-            throw new TypeError('extend() expects an object mapping names to constructors.');
+            throw new TypeError(process.env.NODE_ENV !== 'production' ? 'extend() expects an object mapping names to constructors.' : 'Invalid extend() catalog.');
         }
 
         // Validate the whole catalog first, so a conflict registers nothing.
@@ -77,7 +76,7 @@ export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
         {
             if (typeof ctor !== 'function')
             {
-                throw new CompatibilityError(`extend({ ${key} }) expects a constructor, got ${typeof ctor}.`, {
+                throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? `extend({ ${key} }) expects a constructor, got ${typeof ctor}.` : '', {
                     code: 'UNSUPPORTED_NODE',
                     adapterIds: this.options.adapterIds,
                 });
@@ -103,6 +102,7 @@ export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
         {
             const key = this.normalize(name);
 
+            // The full message in every build: an unregistered element is the most common application error.
             throw new CompatibilityError(
                 `"${name}" is not registered in this runtime. Register its constructor first, e.g. extend({ ${key} }).`,
                 {
@@ -125,7 +125,7 @@ export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
     {
         if (typeof ctor !== 'function')
         {
-            throw new TypeError(`nameOf() expects a constructor, got ${typeof ctor}.`);
+            throw new TypeError(process.env.NODE_ENV !== 'production' ? `nameOf() expects a constructor, got ${typeof ctor}.` : 'Invalid nameOf() constructor.');
         }
 
         if (name !== undefined)
@@ -185,7 +185,7 @@ export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
         if (definition.ctor !== ctor || definition.name !== name)
         {
             throw new CompatibilityError(
-                `Pixi adapter "${this.pixi.manifest.id}" described "${name}" with a different name or constructor.`,
+                process.env.NODE_ENV !== 'production' ? `Pixi adapter "${this.pixi.manifest.id}" described "${name}" with a different name or constructor.` : '',
                 { code: 'ABI_MISMATCH', adapterIds: [this.pixi.manifest.id], expected: { name }, actual: { name: definition.name } },
             );
         }
@@ -237,9 +237,11 @@ export class RuntimeRegistry<S extends PixiTypes> implements Registry<S>
     private conflict(name: string): CompatibilityError
     {
         return new CompatibilityError(
-            `"${name}" is already registered in this runtime with a different constructor. Registering another `
-            + 'constructor under the same name would silently change what existing elements construct; choose a '
-            + 'different name.',
+            process.env.NODE_ENV !== 'production'
+                ? (`"${name}" is already registered in this runtime with a different constructor. Registering another `
+                + 'constructor under the same name would silently change what existing elements construct; choose a '
+                + 'different name.')
+                : '',
             { code: 'REGISTRY_CONFLICT', adapterIds: this.options.adapterIds, actual: { name } },
         );
     }

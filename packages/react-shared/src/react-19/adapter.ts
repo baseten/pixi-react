@@ -13,6 +13,9 @@ import {
 import type { EpochRenderer } from './host.js';
 import type { React19Family } from './types.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /** The audited facts of one React 19 minor and the package that implements it. */
 export interface EpochInfo
 {
@@ -103,14 +106,14 @@ export abstract class React19Adapter extends ReactAdapter<React19Family>
         {
             // A per-minor package names its sibling for the installed minor. A copy bundled under another name (the
             // @pixi/react facade) names none.
-            const instead = packageName.includes(epoch)
-                ? ' Install and use the adapter package that matches the installed React minor '
-                    + `(for example ${packageName.replace(epoch, minorOf(actual) ?? '<minor>')}).`
-                : '';
-
             throw new CompatibilityError(
-                `${packageName} supports React ${epoch}.x (tested: ${testedReact.join(', ')}), `
-                + `but React ${actual} is installed.${instead}`,
+                process.env.NODE_ENV !== 'production'
+                    ? `${packageName} supports React ${epoch}.x (tested: ${testedReact.join(', ')}), `
+                        + `but React ${actual} is installed.${packageName.includes(epoch)
+                            ? ' Install and use the adapter package that matches the installed React minor '
+                                + `(for example ${packageName.replace(epoch, minorOf(actual) ?? '<minor>')}).`
+                            : ''}`
+                    : '',
                 {
                     code: 'UNSUPPORTED_TUPLE',
                     adapterIds: [this.manifest.id],

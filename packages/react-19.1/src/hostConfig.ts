@@ -49,8 +49,11 @@ import type { PixiTypes, Runtime } from '@pixi-react-provisional/core';
 
 export const RECONCILER_VERSION = '0.32.0';
 
-/** Keys the 0.32 bundle reads that this renderer cannot reach, with the reason. */
-export const UNREACHABLE_HOST_KEYS: UnreachableKeys = Object.freeze({
+/**
+ * Keys the 0.32 bundle reads that this renderer cannot reach, with the reason.
+ * Test-only data (the host-key unit test reads it): a pure expression, so bundles that do not read it drop it.
+ */
+export const UNREACHABLE_HOST_KEYS: UnreachableKeys = /* @__PURE__ */ (() => Object.freeze({
     ...HYDRATION,
     ...PERSISTENCE,
     ...RESOURCES,
@@ -70,7 +73,7 @@ export const UNREACHABLE_HOST_KEYS: UnreachableKeys = Object.freeze({
     requestPostPaintCallback: 'transition tracing, gated off in the stable bundle',
     resolveEventType: 'read but never called by the 0.32 bundle',
     resolveEventTimeStamp: 'read but never called by the 0.32 bundle',
-});
+}))();
 
 type Config = HostConfig<string, HostProps, AnyHostContainer, AnyNode, object, object, null>;
 

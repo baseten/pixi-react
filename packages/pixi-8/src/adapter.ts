@@ -9,6 +9,9 @@ import { type AdapterManifest, type CapabilityMap, CompatibilityError, type Cons
 
 import type { Pixi8Types } from './types.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /** This package's version, recorded in the manifest. Kept in step with package.json by a unit test. */
 export const PACKAGE_VERSION = '0.0.0';
 
@@ -155,7 +158,7 @@ export class Pixi8AdapterBase extends PixiAdapter<Pixi8Types>
 
         if (!verdict.supported)
         {
-            throw new CompatibilityError(`The Pixi 8 adapter does not support this installation: ${verdict.reason}.`, {
+            throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? `The Pixi 8 adapter does not support this installation: ${verdict.reason}.` : '', {
                 code: 'UNSUPPORTED_TUPLE',
                 adapterIds: [ADAPTER_ID],
                 expected: { 'pixi.js': PIXI8_PEER_RANGE },
@@ -179,7 +182,7 @@ export class Pixi8AdapterBase extends PixiAdapter<Pixi8Types>
 
         if (!CanvasElement || !(target instanceof CanvasElement))
         {
-            throw new CompatibilityError('The Pixi 8 adapter renders into the canvas core created for the root.', {
+            throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? 'The Pixi 8 adapter renders into the canvas core created for the root.' : '', {
                 code: 'ABI_MISMATCH',
                 adapterIds: [ADAPTER_ID],
             });

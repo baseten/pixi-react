@@ -1,38 +1,3 @@
-export const PixiToReactEventPropNames = Object.freeze({
-    onclick: 'onClick',
-    onglobalmousemove: 'onGlobalMouseMove',
-    onglobalpointermove: 'onGlobalPointerMove',
-    onglobaltouchmove: 'onGlobalTouchMove',
-    onmousedown: 'onMouseDown',
-    onmouseenter: 'onMouseEnter',
-    onmouseleave: 'onMouseLeave',
-    onmousemove: 'onMouseMove',
-    onmouseout: 'onMouseOut',
-    onmouseover: 'onMouseOver',
-    onmouseup: 'onMouseUp',
-    onmouseupoutside: 'onMouseUpOutside',
-    onpointercancel: 'onPointerCancel',
-    onpointerdown: 'onPointerDown',
-    onpointerenter: 'onPointerEnter',
-    onpointerleave: 'onPointerLeave',
-    onpointermove: 'onPointerMove',
-    onpointerout: 'onPointerOut',
-    onpointerover: 'onPointerOver',
-    onpointertap: 'onPointerTap',
-    onpointerup: 'onPointerUp',
-    onpointerupoutside: 'onPointerUpOutside',
-    onrightclick: 'onRightClick',
-    onrightdown: 'onRightDown',
-    onrightup: 'onRightUp',
-    onrightupoutside: 'onRightUpOutside',
-    ontap: 'onTap',
-    ontouchcancel: 'onTouchCancel',
-    ontouchend: 'onTouchEnd',
-    ontouchendoutside: 'onTouchEndOutside',
-    ontouchmove: 'onTouchMove',
-    ontouchstart: 'onTouchStart',
-    onwheel: 'onWheel',
-});
 export const ReactToPixiEventPropNames = Object.freeze({
     onClick: 'onclick',
     onGlobalMouseMove: 'onglobalmousemove',
@@ -68,3 +33,45 @@ export const ReactToPixiEventPropNames = Object.freeze({
     onTouchStart: 'ontouchstart',
     onWheel: 'onwheel',
 });
+
+/**
+ * The reverse of `ReactToPixiEventPropNames`: each Pixi handler property to its PascalCase React prop. Derived at run
+ * time instead of written out a second time (issue 58); the declared type is upstream's literal table, unchanged.
+ */
+export const PixiToReactEventPropNames: Readonly<{
+    onclick: 'onClick';
+    onglobalmousemove: 'onGlobalMouseMove';
+    onglobalpointermove: 'onGlobalPointerMove';
+    onglobaltouchmove: 'onGlobalTouchMove';
+    onmousedown: 'onMouseDown';
+    onmouseenter: 'onMouseEnter';
+    onmouseleave: 'onMouseLeave';
+    onmousemove: 'onMouseMove';
+    onmouseout: 'onMouseOut';
+    onmouseover: 'onMouseOver';
+    onmouseup: 'onMouseUp';
+    onmouseupoutside: 'onMouseUpOutside';
+    onpointercancel: 'onPointerCancel';
+    onpointerdown: 'onPointerDown';
+    onpointerenter: 'onPointerEnter';
+    onpointerleave: 'onPointerLeave';
+    onpointermove: 'onPointerMove';
+    onpointerout: 'onPointerOut';
+    onpointerover: 'onPointerOver';
+    onpointertap: 'onPointerTap';
+    onpointerup: 'onPointerUp';
+    onpointerupoutside: 'onPointerUpOutside';
+    onrightclick: 'onRightClick';
+    onrightdown: 'onRightDown';
+    onrightup: 'onRightUp';
+    onrightupoutside: 'onRightUpOutside';
+    ontap: 'onTap';
+    ontouchcancel: 'onTouchCancel';
+    ontouchend: 'onTouchEnd';
+    ontouchendoutside: 'onTouchEndOutside';
+    ontouchmove: 'onTouchMove';
+    ontouchstart: 'onTouchStart';
+    onwheel: 'onWheel';
+}> = Object.freeze(Object.fromEntries(
+    Object.entries(ReactToPixiEventPropNames).map(([react, pixi]) => [pixi, react]),
+)) as typeof PixiToReactEventPropNames;
