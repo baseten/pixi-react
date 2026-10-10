@@ -56,7 +56,7 @@
       "package": "@pixi-react-provisional/conformance",
       "version": "0.0.0",
       "contentSha256": "b78154fa1680f1e73a870623ee4aa1b30d6d303b915761eedb42e9634364d0a2",
-      "codeSha256": "fb7af64f4c37a0073323a3f966bb6c6c74194a06fa018403197387f5b9f92ce8"
+      "codeSha256": "369dd1c19934d7541b9f7d484ecfdd348be2c02f27f7ebaf3d05ff46a95ea4e0"
     },
     "react-18": {
       "package": "@pixi-react-provisional/react-18",

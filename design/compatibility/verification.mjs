@@ -103,10 +103,11 @@ function failureSummary(row)
 }
 
 /**
- * The identity of an artifact's packed files without its Markdown (README): what a later documentation-only commit leaves
- * unchanged. `contentSha256` covers every packed file.
+ * The identity of an artifact's packed files without its Markdown (README) and without build logs (`.turbo/`, which a
+ * package without a `files` list packs): what a later documentation-only commit leaves unchanged. `contentSha256`
+ * covers every packed file.
  */
-export const codeHash = (files) => fileSetHash(Object.fromEntries(Object.entries(files).filter(([path]) => !path.endsWith('.md'))));
+export const codeHash = (files) => fileSetHash(Object.fromEntries(Object.entries(files).filter(([path]) => !path.endsWith('.md') && !path.startsWith('.turbo/'))));
 
 /** Packages whose resolved version and integrity a record keeps for each cell (from the cell's package-lock.json). */
 const RESOLVED = ['react', 'react-dom', 'pixi.js', 'react-reconciler', 'its-fine', 'scheduler', '@types/react', '@types/react-dom', 'typescript', 'vitest', 'playwright'];
@@ -548,7 +549,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
                 const same = now && codeHash(now.files) === artifact.codeSha256;
 
                 differs += same ? 0 : 1;
-                console.log(`${same ? 'same code' : 'DIFFERENT'}  ${id}${now && now.hash !== artifact.contentSha256 ? ' (Markdown differs)' : ''}`);
+                console.log(`${same ? 'same code' : 'DIFFERENT'}  ${id}${now && now.hash !== artifact.contentSha256 ? ' (Markdown or build logs differ)' : ''}`);
             }
             process.exitCode = differs ? 1 : 0;
             break;
