@@ -22,6 +22,9 @@ import type { PixiBinding } from './pixi.js';
 import type { Pixi7AppProps, Pixi7DestroyOptions, Pixi7InitOptions, Pixi7ResizeTarget, Pixi7Types } from './types.js';
 import type { NodeDefinition, PixiSession, TickOptions } from '@pixi-react-provisional/core';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /** What a session shares with every other session of the same Pixi module. */
 export interface SessionGlobals
 {
@@ -62,7 +65,8 @@ export function removeViewOf(options: Pixi7DestroyOptions['rendererDestroyOption
 
     const extra = Object.keys(options).filter((key) => key !== 'removeView');
 
-    if (extra.length)
+    // Development-only: production builds drop the warning and its text (issue 58).
+    if (process.env.NODE_ENV !== 'production' && extra.length)
     {
         console.warn(`[pixi-7] rendererDestroyOptions ${extra.map((key) => `\`${key}\``).join(', ')} ${extra.length === 1 ? 'is a' : 'are'} `
             + 'Pixi 8 option(s); Pixi 7\'s Application.destroy takes only removeView, so they were ignored.');

@@ -231,6 +231,41 @@ describe.each(cells)('positional construction on pixi.js $version', ({ pixi }) =
         expect(warn).toHaveBeenCalledWith(expect.stringContaining('use `onPointerTap`'));
     });
 
+    it('production builds behave the same without the development-only warnings and messages', () =>
+    {
+        const env = process.env.NODE_ENV;
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const handler = () => undefined;
+        const draw = vi.fn();
+
+        // The warnings are development-only (issue 58): the source reads NODE_ENV as written, for bundlers to replace.
+        process.env.NODE_ENV = 'production';
+
+        try
+        {
+            const node = make(nodes, pixi.Container, { onpointertap: handler, draw, label: 'x' });
+            const container = make(nodes, pixi.ParticleContainer, { maxSize: 10 });
+
+            expect(node.onpointertap).toBeNull();
+            expect(node.label).toBe('x');
+            expect(draw).not.toHaveBeenCalled();
+            nodes.applyChanges(container, { maxSize: 10 }, { maxSize: 20 });
+            expect('maxSize' in container).toBe(false);
+            expect(warn).not.toHaveBeenCalled();
+
+            const withheld = nodesFor(pixi, (capability) => capability !== CAPABILITIES.filter);
+            const error = thrown(() => withheld.describe(pixi.BlurFilter, 'BlurFilter'));
+
+            expect(error).toBeInstanceOf(CompatibilityError);
+            expect(error).toMatchObject({ code: 'UNSUPPORTED_NODE', capability: 'pixi7.filter' });
+            expect(error.message).not.toMatch(/adapter's options withhold it/);
+        }
+        finally
+        {
+            process.env.NODE_ENV = env;
+        }
+    });
+
     it('React visibility layers over the committed `visible`', () =>
     {
         const node = make(nodes, pixi.Container, { visible: false });

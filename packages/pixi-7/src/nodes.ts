@@ -14,6 +14,9 @@ import { CompatibilityError, type Constructor, type NodeDefinition } from '@pixi
 
 import type { PixiBinding } from './pixi.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /** Manifest ID of the adapter; errors name it. */
 export const ADAPTER_ID = 'pixi-7';
 
@@ -234,8 +237,10 @@ export class PixiNodes
             if (!this.enabled(capability))
             {
                 throw unsupported(
-                    `"${name}" is a Pixi 7 ${label}, but capability "${capability}" is not provided: this adapter's options `
-                    + 'withhold it.',
+                    process.env.NODE_ENV !== 'production'
+                        ? (`"${name}" is a Pixi 7 ${label}, but capability "${capability}" is not provided: this adapter's options `
+                        + 'withhold it.')
+                        : '',
                     { capability, actual: { [capability]: null } },
                 );
             }
@@ -272,11 +277,13 @@ export class PixiNodes
         const named = typeof ctor === 'function' && (ctor as { name?: unknown }).name;
 
         throw unsupported(
-            `"${name}" is not a renderable Pixi 7 scene node. Elements must be subclasses of the Container or Filter of the `
-            + `pixi.js ${pixi.VERSION} this adapter is bound to; resources such as Texture or GraphicsGeometry are passed as `
-            + 'props. Pixi 8-only classes (Particle, RenderLayer, DOMContainer, SplitText, GraphicsContext) do not exist in '
-            + 'Pixi 7, and a class from another pixi.js copy (for example Pixi 8) is not a Pixi 7 node'
-            + `${named ? ` (constructor ${String(named)})` : ''}.`,
+            process.env.NODE_ENV !== 'production'
+                ? (`"${name}" is not a renderable Pixi 7 scene node. Elements must be subclasses of the Container or Filter of the `
+                + `pixi.js ${pixi.VERSION} this adapter is bound to; resources such as Texture or GraphicsGeometry are passed as `
+                + 'props. Pixi 8-only classes (Particle, RenderLayer, DOMContainer, SplitText, GraphicsContext) do not exist in '
+                + 'Pixi 7, and a class from another pixi.js copy (for example Pixi 8) is not a Pixi 7 node'
+                + `${named ? ` (constructor ${String(named)})` : ''}.`)
+                : '',
         );
     }
 
@@ -368,7 +375,7 @@ export class PixiNodes
 
         if (!isObjectLike(node))
         {
-            throw unsupported(`The constructor of "${definition.name}" did not return an object.`);
+            throw unsupported(process.env.NODE_ENV !== 'production' ? `The constructor of "${definition.name}" did not return an object.` : '');
         }
 
         const constructorOnly = new Set((signature?.args ?? []).filter((arg) => arg.update === 'constructor').map((arg) => arg.prop));
@@ -431,8 +438,12 @@ export class PixiNodes
             }
             else if (state.constructorOnly.has(key))
             {
-                warnOnce(`constructor:${key}`, `\`${key}\` is a Pixi 7 constructor argument of this node; removing it has no effect `
-                    + 'until the node is created again (change its `key`).');
+                // Development-only: production builds drop the warning and its text (issue 58).
+                if (process.env.NODE_ENV !== 'production')
+                {
+                    warnOnce(`constructor:${key}`, `\`${key}\` is a Pixi 7 constructor argument of this node; removing it has no effect `
+                        + 'until the node is created again (change its `key`).');
+                }
             }
             else if (key !== 'draw' && !isPixiEventProp(key))
             {
@@ -488,12 +499,20 @@ export class PixiNodes
             }
             else if (isPixiEventProp(key))
             {
-                warnOnce(`event:${key}`, `Event props use PascalCase: instead of \`${key}\`, use \`${PIXI_TO_REACT_EVENT_PROP_NAMES[key]}\`.`);
+                // Development-only: production builds drop the warning and its text (issue 58).
+                if (process.env.NODE_ENV !== 'production')
+                {
+                    warnOnce(`event:${key}`, `Event props use PascalCase: instead of \`${key}\`, use \`${PIXI_TO_REACT_EVENT_PROP_NAMES[key]}\`.`);
+                }
             }
             else if (state.constructorOnly.has(key))
             {
-                warnOnce(`constructor:${key}`, `\`${key}\` is a Pixi 7 constructor argument of this node; changing it has no effect `
-                    + 'until the node is created again (change its `key`).');
+                // Development-only: production builds drop the warning and its text (issue 58).
+                if (process.env.NODE_ENV !== 'production')
+                {
+                    warnOnce(`constructor:${key}`, `\`${key}\` is a Pixi 7 constructor argument of this node; changing it has no effect `
+                        + 'until the node is created again (change its `key`).');
+                }
             }
             else
             {
@@ -546,7 +565,8 @@ export class PixiNodes
         {
             callback(node);
         }
-        else
+        // Development-only: production builds drop the warning and its text (issue 58).
+        else if (process.env.NODE_ENV !== 'production')
         {
             warnOnce(`draw:${String(node.constructor?.name)}`, 'The `draw` prop is only valid on Graphics nodes; it was ignored.');
         }
@@ -598,7 +618,11 @@ export class PixiNodes
 
         if (value === NO_DEFAULT)
         {
-            warnOnce(`restore:${key}`, `Removing the \`${key}\` prop could not restore a default value; the current value was kept.`);
+            // Development-only: production builds drop the warning and its text (issue 58).
+            if (process.env.NODE_ENV !== 'production')
+            {
+                warnOnce(`restore:${key}`, `Removing the \`${key}\` prop could not restore a default value; the current value was kept.`);
+            }
 
             return;
         }
@@ -715,7 +739,11 @@ export class PixiNodes
 
         if (!isObjectLike(target))
         {
-            warnOnce(`path:${key}`, `The dashed prop \`${key}\` names a missing field; it was ignored.`);
+            // Development-only: production builds drop the warning and its text (issue 58).
+            if (process.env.NODE_ENV !== 'production')
+            {
+                warnOnce(`path:${key}`, `The dashed prop \`${key}\` names a missing field; it was ignored.`);
+            }
 
             return;
         }
@@ -725,7 +753,8 @@ export class PixiNodes
             return;
         }
 
-        if (!path.length && Object.prototype.hasOwnProperty.call(RENAMED_IN_PIXI_8, field) && !(field in target))
+        // Development-only: production builds drop the warning and its text (issue 58).
+        if (process.env.NODE_ENV !== 'production' && !path.length && Object.prototype.hasOwnProperty.call(RENAMED_IN_PIXI_8, field) && !(field in target))
         {
             warnOnce(`renamed:${field}`, `\`${field}\` is a Pixi 8 property; Pixi 7 calls it \`${RENAMED_IN_PIXI_8[field]}\`.`);
         }

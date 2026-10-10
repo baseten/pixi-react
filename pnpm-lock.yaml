@@ -272,6 +272,9 @@ importers:
       '@vitest/browser':
         specifier: ^2.0.4
         version: 2.1.9(@types/node@22.13.1)(playwright@1.50.1)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.1)(lightningcss@1.29.1)(terser@5.38.0))(vitest@2.1.9)
+      esbuild:
+        specifier: 0.21.5
+        version: 0.21.5
       eslint:
         specifier: ^9.16.0
         version: 9.19.0(jiti@1.21.7)

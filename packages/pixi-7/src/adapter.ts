@@ -9,6 +9,9 @@ import { type AdapterManifest, type CapabilityMap, CompatibilityError, type Cons
 
 import type { Pixi7Types } from './types.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /**
  * This package's version, recorded in the manifest. Kept in step with package.json by a unit test. It is the lockstep
  * release version (the facade's), not a Pixi version: this package targets Pixi 7.
@@ -147,7 +150,7 @@ export class Pixi7AdapterBase extends PixiAdapter<Pixi7Types>
 
         if (!verdict.supported)
         {
-            throw new CompatibilityError(`The Pixi 7 adapter does not support this installation: ${verdict.reason}.`, {
+            throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? `The Pixi 7 adapter does not support this installation: ${verdict.reason}.` : '', {
                 code: 'UNSUPPORTED_TUPLE',
                 adapterIds: [ADAPTER_ID],
                 expected: { 'pixi.js': PIXI7_PEER_RANGE },
@@ -171,7 +174,7 @@ export class Pixi7AdapterBase extends PixiAdapter<Pixi7Types>
 
         if (!CanvasElement || !(target instanceof CanvasElement))
         {
-            throw new CompatibilityError('The Pixi 7 adapter renders into the canvas core created for the root.', {
+            throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? 'The Pixi 7 adapter renders into the canvas core created for the root.' : '', {
                 code: 'ABI_MISMATCH',
                 adapterIds: [ADAPTER_ID],
             });
