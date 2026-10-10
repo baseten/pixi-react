@@ -1,7 +1,7 @@
 /**
  * Catalogs and element names, as types. A catalog is what `extend` registers: an object of constructors keyed by
  * name. These types turn one into element names and props without naming React, so a React adapter's JSX entry
- * (`./jsx`) can map the same catalog. pixi.js 7.4.2 and 7.4.3 export the same classes, so there are no version-dependent
+ * (`./jsx`) can map the same catalog. pixi.js 7.2.0 to 7.4.3 export the same classes, so there are no version-dependent
  * entries.
  */
 import type {

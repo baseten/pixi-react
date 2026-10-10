@@ -30,16 +30,16 @@ test('the Pixi range is derived from the manifest: minimum, current and the excl
 
 test('the Pixi 7 adapter\'s range is derived from its own epoch, and a wider range or another package peer is rejected', () =>
 {
-    assert.equal(supportedPixiRange(seed, 'pixi7'), '>=7.4.2 <7.5.0');
+    assert.equal(supportedPixiRange(seed, 'pixi7'), '>=7.2.0 <7.4.0 || >=7.4.2 <7.5.0');
     const facts = releaseFacts({ config });
     const pixi7 = facts.packages.find((pkg) => pkg.dir === 'packages/pixi-7');
 
     assert.deepEqual(pixi7.pixiAdapter, {
         key: 'pixi7',
         isDefault: false,
-        range: '>=7.4.2 <7.5.0',
-        supportedRange: '>=7.4.2 <7.5.0',
-        prCells: [{ react: '18.3.1', reactAdapter: 'react-18', pixi: '7.4.2' }, { react: '19.3.0', reactAdapter: 'react-19.3', pixi: '7.4.3' }],
+        range: '>=7.2.0 <7.4.0 || >=7.4.2 <7.5.0',
+        supportedRange: '>=7.2.0 <7.4.0 || >=7.4.2 <7.5.0',
+        prCells: [{ react: '18.0.0', reactAdapter: 'react-18.0', pixi: '7.2.0' }, { react: '19.3.0', reactAdapter: 'react-19.3', pixi: '7.4.3' }],
         renderers: ['webgl'],
     });
     // Verified only where a dated record backs it (issue 17), per render backend; Pixi 7 has no WebGPU renderer.
@@ -49,11 +49,11 @@ test('the Pixi 7 adapter\'s range is derived from its own epoch, and a wider ran
 
     const widened = clone(seed);
 
-    widened.adapterMatrix.pixiAdapters.pixi7.declaredPeers['pixi.js'] = '>=7.3.0 <7.5.0';
+    widened.adapterMatrix.pixiAdapters.pixi7.declaredPeers['pixi.js'] = '>=7.1.0 <7.5.0';
     const problems = checkReleaseRules({ config, seed: widened }).join('\n');
 
-    assert.match(problems, /pixiAdapters\.pixi7\.declaredPeers\["pixi.js"\] is ">=7\.3\.0 <7\.5\.0", but the manifest's evidence \(pixiEpochs\.pixi7 minimum\/current, excludedVersions\) supports ">=7\.4\.2 <7\.5\.0"/);
-    assert.match(problems, /packages\/pixi-7\/package\.json's pixi\.js peer is ">=7\.4\.2 <7\.5\.0", the manifest's declared range \(pixiAdapters\.pixi7\) is ">=7\.3\.0 <7\.5\.0"/);
+    assert.match(problems, /pixiAdapters\.pixi7\.declaredPeers\["pixi.js"\] is ">=7\.1\.0 <7\.5\.0", but the manifest's evidence \(pixiEpochs\.pixi7 minimum\/current, excludedVersions\) supports ">=7\.2\.0 <7\.4\.0 \|\| >=7\.4\.2 <7\.5\.0"/);
+    assert.match(problems, /packages\/pixi-7\/package\.json's pixi\.js peer is ">=7\.2\.0 <7\.4\.0 \|\| >=7\.4\.2 <7\.5\.0", the manifest's declared range \(pixiAdapters\.pixi7\) is ">=7\.1\.0 <7\.5\.0"/);
 });
 
 test('the workspace satisfies the release rules', () =>
@@ -174,7 +174,7 @@ test('install recipes name every modular package at the lockstep version (issue 
 
     assert.equal(version, releaseFacts({ config }).facade.version, 'the lockstep version is the facade\'s release version');
     assert.ok(names.includes('@pixi/react-core') && names.includes('@pixi-react-provisional/pixi-8') && !names.includes('@pixi/react'));
-    assert.ok(pages.includes('apps/docs/docs/migrating-to-8.1.mdx') && pages.includes('packages/react-18/README.md') && pages.includes('design/release.md'));
+    assert.ok(pages.includes('apps/docs/docs/migrating-to-8.1.mdx') && pages.includes('packages/react-18.3/README.md') && pages.includes('design/release.md'));
     // A fixed example version, so the test holds after any release.
     const example = '8.1.0';
     const recipe = 'npm install @pixi/react-renderer@8.0.0 @pixi/react-19.1@8.1.0 @pixi-react-provisional/pixi-8@1.0.0 pixi.js react@19.1.9 react-dom@19.1.9';

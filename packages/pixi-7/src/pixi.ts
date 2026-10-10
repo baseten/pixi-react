@@ -13,7 +13,8 @@ import type * as Pixi from 'pixi.js';
 
 /**
  * The pixi.js 7 exports the implementation uses at runtime, imported by name by each entry point. Every one exists on
- * the 7.4.2 floor and on 7.4.3, so a strict ESM named import never fails within the peer range.
+ * the 7.2.0 floor and on every later tested release (7.2.4, 7.3.0, 7.3.3, 7.4.2, 7.4.3), so a strict ESM named import
+ * never fails within the peer range.
  *
  * - `Application`, `autoDetectRenderer`: the session runs Pixi 7's application construction itself (`session.ts`).
  * - `Container`, `Filter`: what a node is.

@@ -9,11 +9,18 @@ import { CompatibilityError } from '@pixi-react-provisional/core';
 describe('installed version bounds', () =>
 {
     it.each([
+        ['7.2.0', true],
+        ['7.2.4', true],
+        ['7.3.0', true],
+        ['7.3.3', true],
         ['7.4.2', true],
         ['7.4.3', true],
         ['7.4.9', true],
+        // 7.4.0 cannot be imported in Node ('Worker is not defined'); 7.4.1 was never published.
+        ['7.4.0', false],
         ['7.4.1', false],
-        ['7.3.3', false],
+        ['7.1.4', false],
+        ['7.0.5', false],
         ['7.5.0', false],
         ['6.5.10', false],
         ['8.2.6', false],
@@ -23,6 +30,12 @@ describe('installed version bounds', () =>
     ])('pixi.js %s supported: %s', (version, supported) =>
     {
         expect(checkSupportedVersion(version).supported).toBe(supported);
+    });
+
+    it('names 7.4.0 as excluded, not as out of range', () =>
+    {
+        expect(checkSupportedVersion('7.4.0')).toMatchObject({ supported: false, reason: 'pixi.js 7.4.0 is excluded' });
+        expect(checkSupportedVersion('7.1.4')).toMatchObject({ supported: false, reason: expect.stringContaining('is outside') });
     });
 
     it('names the Pixi 8 adapter when Pixi 8 is installed', () =>
@@ -70,7 +83,7 @@ describe('installed version bounds', () =>
         expect(error).toMatchObject({
             code: 'UNSUPPORTED_TUPLE',
             adapterIds: ['pixi-7'],
-            expected: { 'pixi.js': '>=7.4.2 <7.5.0' },
+            expected: { 'pixi.js': '>=7.2.0 <7.4.0 || >=7.4.2 <7.5.0' },
             actual: { 'pixi.js': '8.22.0' },
         });
     });
@@ -103,8 +116,8 @@ describe('installed version bounds', () =>
             expect(manifest.pixi).toMatchObject({
                 installed: version,
                 peerRange: PIXI7_PEER_RANGE,
-                bounds: { min: '7.4.2', maxExclusive: '7.5.0', excluded: [] },
-                testedVersions: ['7.4.2', '7.4.3'],
+                bounds: { min: '7.2.0', maxExclusive: '7.5.0', excluded: ['7.4.0', '7.4.1'] },
+                testedVersions: ['7.2.0', '7.2.4', '7.3.0', '7.3.3', '7.4.2', '7.4.3'],
             });
             expect(Object.keys(manifest.pixi.unsupported).sort()).toEqual(['pixi8.dom-container', 'pixi8.filter', 'pixi8.particle', 'pixi8.render-layer']);
             expect(manifest.packageVersion).toBe(packageJson.version);

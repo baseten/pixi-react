@@ -5,10 +5,12 @@ import react from '@vitejs/plugin-react';
  * Browser cells: the same tests against each pixi.js 7 version in the peer range, in Chromium. A cell aliases the bare
  * `pixi.js` specifier (in the adapter source, the probe and the tests alike) to a version-pinned install.
  *
- * - `conformance-*`: the conformance suite on the floor (7.4.2) and the newest 7.x release (7.4.3).
- * - `pixi-*`: Pixi 7-specific tests on both.
+ * - `conformance-*`: the conformance suite on the floor (7.2.0), 7.4.2 and the newest 7.x release (7.4.3). The
+ *   compatibility cells (design/compatibility/cells) also run 7.2.4, 7.3.0 and 7.3.3.
+ * - `pixi-*`: Pixi 7-specific tests on each.
  */
 const cells = [
+    { version: '7.2.0', module: 'pixi.js-floor' },
     { version: '7.4.2', module: 'pixi.js' },
     { version: '7.4.3', module: 'pixi.js-current' },
 ];

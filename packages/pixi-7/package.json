@@ -51,13 +51,13 @@
     "test:conformance": "vitest run --workspace vitest.browser.workspace.mts --project 'conformance*'",
     "test:e2e": "vitest run --workspace vitest.browser.workspace.mts",
     "test:unit": "tsc --noEmit -p tsconfig.json && vitest run && pnpm run check:graph",
-    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.current.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.current.json && tsc --noEmit -p tsconfig.floor.json"
   },
   "dependencies": {
     "@pixi-react-provisional/core": "workspace:*"
   },
   "peerDependencies": {
-    "pixi.js": ">=7.4.2 <7.5.0",
+    "pixi.js": ">=7.2.0 <7.4.0 || >=7.4.2 <7.5.0",
     "@types/react": "^18.3.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
@@ -78,6 +78,7 @@
     "jsdom": "^25.0.0",
     "pixi.js": "7.4.2",
     "pixi.js-current": "npm:pixi.js@7.4.3",
+    "pixi.js-floor": "npm:pixi.js@7.2.0",
     "playwright": "^1.45.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

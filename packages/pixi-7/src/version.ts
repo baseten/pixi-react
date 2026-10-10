@@ -15,21 +15,24 @@ export interface PixiVersion
 }
 
 /**
- * The peer range, also in `package.json`: the #3 audit's Pixi 7 candidate line (`pixiEpochs.pixi7` in
- * `design/compatibility/seed.json`), from the first-party floor 7.4.2 to the newest 7.x release, 7.4.3 (npm's
- * `latest-7.x`). Both are audited probe tuples, and every release in the range is tested exactly.
+ * The peer range, also in `package.json`: the audited Pixi 7 releases (`pixiEpochs.pixi7` and the `pixi7` adapter row
+ * in `design/compatibility/seed.json`), from the floor 7.2.0 to the newest 7.x release, 7.4.3 (npm's `latest-7.x`),
+ * without 7.4.0 and 7.4.1. The lowest and highest patch of 7.2 and 7.3 (7.2.0, 7.2.4, 7.3.0, 7.3.3) and 7.4.2 and 7.4.3
+ * are audited probe tuples and compatibility cells. 7.4.0 is excluded: its module scope reads the browser global
+ * `Worker`, so the adapter's entry cannot even be imported in Node ('Worker is not defined'). 7.4.1 was never
+ * published to npm. Below 7.2 the adapter cannot load: 7.1 lacks `HTMLText` and 7.0 the filters it imports by name.
  */
-export const PIXI7_PEER_RANGE = '>=7.4.2 <7.5.0';
+export const PIXI7_PEER_RANGE = '>=7.2.0 <7.4.0 || >=7.4.2 <7.5.0';
 
-/** The supported bounds as data: `[min, maxExclusive]` and explicitly excluded versions (none). */
+/** The supported bounds as data: `[min, maxExclusive]` and the explicitly excluded versions inside them. */
 export const PIXI7_BOUNDS = Object.freeze({
-    min: '7.4.2',
+    min: '7.2.0',
     maxExclusive: '7.5.0',
-    excluded: Object.freeze([] as string[]),
+    excluded: Object.freeze(['7.4.0', '7.4.1'] as string[]),
 } as const);
 
-/** The exact versions the adapter's browser cells and the compatibility matrix run against. */
-export const PIXI7_TESTED_VERSIONS = Object.freeze(['7.4.2', '7.4.3'] as const);
+/** The exact versions the compatibility matrix runs against (the package's own tests run 7.2.0, 7.4.2 and 7.4.3). */
+export const PIXI7_TESTED_VERSIONS = Object.freeze(['7.2.0', '7.2.4', '7.3.0', '7.3.3', '7.4.2', '7.4.3'] as const);
 
 const VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;
 
