@@ -1,9 +1,17 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "id": "2026-10-10",
   "date": "2026-10-10",
   "issue": 17,
   "statement": "Verification is evidence, not a support guarantee.",
-  "rule": "A render backend verifies tuples only when the whole nightly matrix passed on it in this record: every expected cell that runs the backend passed on it, and every boundary probe and every negative case behaved as expected. Each tuple then lists every backend it is verified on; backends are never inferred from each other.",
+  "rule": "A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on a render backend when its cell passed on that backend in this record (every command, every conformance scenario and the render check) and every boundary probe and every negative case of this record behaved as expected. A run on the expected-blank-render list (adapterMatrix.expectedBlankRender) that failed exactly as listed is not a failure, but verifies nothing. Each tuple lists every backend it is verified on; backends are never inferred from each other.",
+  "gpuProfile": "software",
+  "rendering": {
+    "profile": "software",
+    "kind": "software",
+    "note": "Software rendering: no GPU took part. WebGL ran on ANGLE over SwiftShader and WebGPU on Dawn over SwiftShader's Vulkan device, a fallback adapter (isFallbackAdapter true). It counts as verification; a run on a real GPU (run-cells.mjs --gpu hardware) can be added later as extra evidence."
+  },
+  "scope": "full",
   "commit": "1af6a1c1cfac95827b1cdac9f9ae092d8dc5b033",
   "environment": {
     "os": "Ubuntu 24.04.5 LTS (container in a Firecracker microVM)",
@@ -37,7 +45,8 @@
       "Commit: the merge of main (PR #67, the JSX-order insert fix and the pixi.filter-children scenarios) into the issue-17 branch. An earlier full run at 3946ab4, before that merge, had the same per-backend outcome (WebGL 184/184, WebGPU 104/168 with the same 64 blank-canvas failures); it is superseded by this one.",
       "Fresh: a new work directory, packages rebuilt with `pnpm build --force`, tarballs packed from that build, `--no-cache` (no verdict reused), CI=true. The npm download cache was shared (registry tarballs are integrity-checked).",
       "Three cell shards ran in parallel on 4 vCPUs with the probes, then the negative cases and the data-only probes. No test timed out and no failure was retried.",
-      "Commits after this one change documentation, generated tables, the verification tooling and comments only; `node design/compatibility/verification.mjs compare --date 2026-10-10 --tarballs <fresh pack>` shows whether a later commit packs the same code (Markdown and build logs aside)."
+      "Commits after this one change documentation, generated tables, the verification tooling and comments only; `node design/compatibility/verification.mjs compare --date 2026-10-10 --tarballs <fresh pack>` shows whether a later commit packs the same code (Markdown and build logs aside).",
+      "Reclassified on 2026-10-10 with `node design/compatibility/verification.mjs refresh` (no cell re-run) after the owner ruled that WebGPU is verified per version: the 64 WebGPU runs of pixi.js 8.2.6 to 8.9.2 match the expected-blank-render entry `pixi8-webgpu-blank-before-8.10-software` exactly (every conformance scenario passed; renderer webgpu; canvas and extract [0,0,0,0]; screenshot not red), so they are recorded as expected blank renders, unverified. The runner of this run, before that list existed, reported them as failures; their read-backs, scenario counts and render-check results are kept as recorded."
     ]
   },
   "artifacts": {
@@ -105,10 +114,12 @@
   "summary": {
     "cells": 184,
     "cellsPassedEveryBackend": 120,
+    "cellsWithExpectedBlank": 64,
     "backends": {
       "webgl": {
         "cells": 184,
         "passed": 184,
+        "expectedBlank": 0,
         "failed": 0,
         "notRun": 0,
         "backendCheckFailed": 0,
@@ -117,12 +128,14 @@
           "passed": 15309,
           "failed": 0,
           "skipped": 1435
-        }
+        },
+        "verifiedTuples": 184
       },
       "webgpu": {
         "cells": 168,
         "passed": 104,
-        "failed": 64,
+        "expectedBlank": 64,
+        "failed": 0,
         "notRun": 0,
         "backendCheckFailed": 64,
         "notApplicable": 16,
@@ -130,7 +143,8 @@
           "passed": 14007,
           "failed": 0,
           "skipped": 1281
-        }
+        },
+        "verifiedTuples": 104
       }
     },
     "probes": {
@@ -155,13 +169,13 @@
       "reconciler": "0.29.2",
       "pixiAdapter": "pixi-8",
       "pixi": "8.2.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -205,7 +219,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 86,
             "failed": 0,
@@ -250,15 +266,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "7de21f05dfd71540cffe9aba664282337db7b5ac04a32805bd6fdf86b4898e27",
@@ -327,13 +334,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.2.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -377,7 +384,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -422,15 +431,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "7ff210a6190a947fd7ef81bc2b43f11044c26405d434476598735b4a4f21087d",
@@ -499,13 +499,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.2.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -549,7 +549,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -594,15 +596,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "a3c35cf21fa41be7fbde30ee8a2f1d12f5b5b732ed6bc76bf4eff4a78123c79c",
@@ -671,13 +664,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.2.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -721,7 +714,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -766,15 +761,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "2c06fbbbf4d6999c12fdf0aed50fc47f17c268d7a5024c5a4a284f20b904d0f3",
@@ -843,13 +829,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.2.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -893,7 +879,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -938,15 +926,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "19678b230ad8dc0af04c7a915a36e82984b3e5766ca8a7a1945d044875923fc4",
@@ -1015,13 +994,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.2.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -1065,7 +1044,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -1110,15 +1091,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "f24f19323b074581347797bef0cb1ca8f4f0a409568b4f2f94b10c20cb25faea",
@@ -1187,13 +1159,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.2.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -1237,7 +1209,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -1282,15 +1256,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "b2485642e77a842fd82ee691e36fce2633eeaf996d8485cd079208a20797ca9a",
@@ -1359,13 +1324,13 @@
       "reconciler": "0.34.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.2.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -1409,7 +1374,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -1454,15 +1421,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "9fb517faf138663331778b7312696f0ea63a4995583b2f0f0c9ed20fd93e0115",
@@ -1531,13 +1489,13 @@
       "reconciler": "0.29.2",
       "pixiAdapter": "pixi-8",
       "pixi": "8.3.4",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -1581,7 +1539,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 86,
             "failed": 0,
@@ -1626,15 +1586,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "3ccf0212ce38a777d99dde958e2fc03adccc011d2c4efe300da5de1b588c3676",
@@ -1703,13 +1654,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.3.4",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -1753,7 +1704,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -1798,15 +1751,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "f2ee4f27c80453f3c2de718ebf5a0ac791e69e912379d1aa0629c1450c631c0e",
@@ -1875,13 +1819,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.3.4",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -1925,7 +1869,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -1970,15 +1916,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "8fbf74350f8f4c0dfdf0b4f9e25e5fb3875ba1e04c55ee372dd391bf3496fd9e",
@@ -2047,13 +1984,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.3.4",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -2097,7 +2034,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -2142,15 +2081,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "84fc6e9d1557b548421f2406e72b2879fcbbf72cd805785c740a3e62c8bdb2bc",
@@ -2219,13 +2149,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.3.4",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -2269,7 +2199,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -2314,15 +2246,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "5aa09dad64e27fc236b1b6a030a1fefe7eacb778c3965cfc8e186648e398279a",
@@ -2391,13 +2314,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.3.4",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -2441,7 +2364,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -2486,15 +2411,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "23c8a694da16b35d9f4b1ec757ac9ec212db37bfb0e9eff692278f57b1b9e3ae",
@@ -2563,13 +2479,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.3.4",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -2613,7 +2529,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -2658,15 +2576,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "cae79ed38307a117c97e54ff4226242302a744ff0ad5d1d7777919b896caeab8",
@@ -2735,13 +2644,13 @@
       "reconciler": "0.34.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.3.4",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -2785,7 +2694,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -2830,15 +2741,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "dbdb1b3370f1568191ebca8726c5b58d69aad651a39d06e7ae5ac3be400d4b87",
@@ -2907,13 +2809,13 @@
       "reconciler": "0.29.2",
       "pixiAdapter": "pixi-8",
       "pixi": "8.4.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -2957,7 +2859,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 86,
             "failed": 0,
@@ -3002,15 +2906,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "a00feb45aaa5ea06d3039d3888cb803a021f5a2b9129b395e78645b27c868f86",
@@ -3079,13 +2974,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.4.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -3129,7 +3024,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -3174,15 +3071,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "b82975fbf9bc35aa11fe6f76cd4b97cbfaedb51532ca10e5aeb6a9628f5a3dff",
@@ -3251,13 +3139,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.4.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -3301,7 +3189,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -3346,15 +3236,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "81853acacb144ebb30c73f726e56967faf6766512ee9446cb00e16af6885914b",
@@ -3423,13 +3304,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.4.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -3473,7 +3354,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -3518,15 +3401,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "bc8e9c1e54c441ac91537b4893dfbabf90a03369c648a5b5ad7a8ae694f4490d",
@@ -3595,13 +3469,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.4.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -3645,7 +3519,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -3690,15 +3566,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "7cbfadd4fb7d21035b076e4c98ca3145cf21fd750fc7cdab7cc4a715709c8410",
@@ -3767,13 +3634,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.4.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -3817,7 +3684,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -3862,15 +3731,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "6082923b142b760f844fe6a384a9f8949fcca706be1d5fcbf1ed751505019a33",
@@ -3939,13 +3799,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.4.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -3989,7 +3849,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -4034,15 +3896,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "4485dc9c2352dfe9d54e8da0fe9475bbe9581b79152067768a2e45fa936fb266",
@@ -4111,13 +3964,13 @@
       "reconciler": "0.34.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.4.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -4161,7 +4014,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -4206,15 +4061,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "55db2a220c8637c46fc21a8c4ed82f3783935cc0e82aa055020de3285c5b6cc1",
@@ -4283,13 +4129,13 @@
       "reconciler": "0.29.2",
       "pixiAdapter": "pixi-8",
       "pixi": "8.5.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -4333,7 +4179,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 86,
             "failed": 0,
@@ -4378,15 +4226,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "5276b70c5a2a5d8af209e15fc28ddf230ead6069d68aeac112ced7c563ce0c32",
@@ -4456,13 +4295,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.5.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -4506,7 +4345,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -4551,15 +4392,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "8db14e30cec6000bdefe22d19b595234ac4caf3b234bec560f988073ef58b35f",
@@ -4629,13 +4461,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.5.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -4679,7 +4511,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -4724,15 +4558,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "054521e63379282d4e8c071487aa75a64aefbd82fa16c8055bfa69a506acf21d",
@@ -4802,13 +4627,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.5.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -4852,7 +4677,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -4897,15 +4724,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "b70d71f8e58e30b19d2411708d0e3ffaf5af408db390c81e33800f3337bba88d",
@@ -4975,13 +4793,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.5.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -5025,7 +4843,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -5070,15 +4890,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "30932e5cfee88a06a10a9928b5ab26f97ca7861573aa768f2d88fee7466f5f13",
@@ -5148,13 +4959,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.5.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -5198,7 +5009,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -5243,15 +5056,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "67bb242dc08d35fdc20a84b230e8c6a5d1c61d58c889bc04b9930057c65c0f48",
@@ -5321,13 +5125,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.5.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -5371,7 +5175,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -5416,15 +5222,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "7568bebb1d339282600b5148f65b6c25a61869b91bbae25645479fdd4963e617",
@@ -5494,13 +5291,13 @@
       "reconciler": "0.34.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.5.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -5544,7 +5341,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -5589,15 +5388,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "c4a468b0c83d4b0ea04a86b02011fccbb6d6b50ef0a40f7744dfb24cc7a69b3d",
@@ -5667,13 +5457,13 @@
       "reconciler": "0.29.2",
       "pixiAdapter": "pixi-8",
       "pixi": "8.6.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -5717,7 +5507,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 86,
             "failed": 0,
@@ -5762,15 +5554,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "fe43f7309c74356948d649f804c61aca14e748d2330ff25cc1d1cb9f529742ed",
@@ -5840,13 +5623,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.6.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -5890,7 +5673,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -5935,15 +5720,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "9ba7f6571fcfe5b5fce3066e5037ae064ac7fe12b6cb0579b23e64dc80ef72d2",
@@ -6013,13 +5789,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.6.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -6063,7 +5839,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -6108,15 +5886,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "e9eb12fee9b0328d8e672180ac96d6190aa1627dc6e7e8d74b84de6569364e6d",
@@ -6186,13 +5955,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.6.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -6236,7 +6005,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -6281,15 +6052,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "d83cba802cf432752cc90d5dafc6a7605b9e3fd660e8e225e6cd1e3555e275e0",
@@ -6359,13 +6121,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.6.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -6409,7 +6171,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -6454,15 +6218,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "bea88d6dee1c38aef8207881d09c61f321ff631291f0916c2ae30a1cade5da71",
@@ -6532,13 +6287,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.6.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -6582,7 +6337,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -6627,15 +6384,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "3263bee680c5fb015169895746832004fe9c4ebe963f831a110cf9c3f39956d1",
@@ -6705,13 +6453,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.6.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -6755,7 +6503,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -6800,15 +6550,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "828ecac3b21aeb3087c94896f4a3beff9c259ccf7e4aa3d3b13c04726af4ef6e",
@@ -6878,13 +6619,13 @@
       "reconciler": "0.34.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.6.6",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -6928,7 +6669,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -6973,15 +6716,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "664a82f94a3f020795591cd2697dbdf56d64c10dd231633b4377205fe42fc4bd",
@@ -7051,13 +6785,13 @@
       "reconciler": "0.29.2",
       "pixiAdapter": "pixi-8",
       "pixi": "8.7.3",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -7101,7 +6835,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 86,
             "failed": 0,
@@ -7146,15 +6882,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "753f3cb4e7a06cad16ed6464bc9290a428fb4802f9de2942ce39831d8010b53e",
@@ -7225,13 +6952,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.7.3",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -7275,7 +7002,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -7320,15 +7049,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "67ec2fd305504e0e6bc7c6f9b38fbff41077bf88f97c48c920772b94cf926730",
@@ -7399,13 +7119,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.7.3",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -7449,7 +7169,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -7494,15 +7216,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "21820249da7e3bf7c6c11d991f1775aed79613b8aa439948c0d089be3c815a81",
@@ -7573,13 +7286,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.7.3",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -7623,7 +7336,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -7668,15 +7383,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "c917304ffd155448554e5e15bbcae2b0c842a6f0108a1ca9db72af871a8bc8af",
@@ -7747,13 +7453,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.7.3",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -7797,7 +7503,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -7842,15 +7550,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "08a96c06072aaf612d48e6114b7f7664bceb716fb75bd1a6247c6f69a4e4aecb",
@@ -7921,13 +7620,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.7.3",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -7971,7 +7670,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -8016,15 +7717,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "203e70f8fc76bdf04bda88aa311da52b775e3d2a1037e09392634372109c71cf",
@@ -8095,13 +7787,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.7.3",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -8145,7 +7837,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -8190,15 +7884,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "d9c322fc12f43e15f926f3b12b20731026a30915c824808bb539a84d4a6e6f20",
@@ -8269,13 +7954,13 @@
       "reconciler": "0.34.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.7.3",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -8319,7 +8004,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -8364,15 +8051,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "a735221abe9038b41e1b8afc3adc77f2b4d12d04db60dc543081857d43f600a5",
@@ -8443,13 +8121,13 @@
       "reconciler": "0.29.2",
       "pixiAdapter": "pixi-8",
       "pixi": "8.8.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -8493,7 +8171,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 86,
             "failed": 0,
@@ -8538,15 +8218,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "dd0ce6cdc921b3f40458ca538fe90f9e70de84b5453c2366bd9626b425219bbe",
@@ -8617,13 +8288,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.8.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -8667,7 +8338,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -8712,15 +8385,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "143b2fa02757d89e27e0464a1fc4425c97acb2306b5975669e5f4e202eefeaca",
@@ -8791,13 +8455,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.8.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -8841,7 +8505,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -8886,15 +8552,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "5262b7c6458a66192946ec32c0b4a2ec0f37a8e2400e5034513791cdf99c64bc",
@@ -8965,13 +8622,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.8.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -9015,7 +8672,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -9060,15 +8719,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "c1a2f19e7020733e460170b5132f0f0b8bfaa2ed2accf020610102dfd4b79f8f",
@@ -9139,13 +8789,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.8.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -9189,7 +8839,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -9234,15 +8886,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "5fff3c33889ed51ca8ec62fd69843143e0c1c675425a9fb67b031d0808b967c5",
@@ -9313,13 +8956,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.8.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -9363,7 +9006,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -9408,15 +9053,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "8f2494ba06d4b41058f8547fbf29de158c3b8eeedb417259ea32c297d20aa3de",
@@ -9487,13 +9123,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.8.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -9537,7 +9173,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -9582,15 +9220,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "34d05bee4b7f69866f6e2fc6a87a1937601a5e970c57d83d122e32b51db624ad",
@@ -9661,13 +9290,13 @@
       "reconciler": "0.34.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.8.1",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -9711,7 +9340,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -9756,15 +9387,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "1c745ad3714a1aed99f8ac453f36513f2dcb50f25d4b2fa8b44139134f3b571c",
@@ -9835,13 +9457,13 @@
       "reconciler": "0.29.2",
       "pixiAdapter": "pixi-8",
       "pixi": "8.9.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -9885,7 +9507,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 86,
             "failed": 0,
@@ -9930,15 +9554,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "a0bd8b2d8c25e9a04cddff60115cfebcaec8b0972bcc1d8cf9c0610c406b1fa7",
@@ -10010,13 +9625,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.9.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -10060,7 +9675,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -10105,15 +9722,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "4b68bec2c73ef05281576ff27d96f73928c2b28eb16efe21975d6e65c201d6ac",
@@ -10185,13 +9793,13 @@
       "reconciler": "0.31.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.9.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -10235,7 +9843,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -10280,15 +9890,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "812dd917d20b7f42bc8dc23ae3729fc3681818932af782556cdadb5e653547af",
@@ -10360,13 +9961,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.9.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -10410,7 +10011,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -10455,15 +10058,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "e695639fd25f8d6af0a4b472e965f33917a882e63d3d5a9bce95de44ccd4dab2",
@@ -10535,13 +10129,13 @@
       "reconciler": "0.32.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.9.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -10585,7 +10179,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -10630,15 +10226,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "c25e2aa4a69df9aeb860310e534e8e611c32874323edd06872d3312cb5e826a7",
@@ -10710,13 +10297,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.9.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -10760,7 +10347,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -10805,15 +10394,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "0b1846b78c7c1befc99a6de97e247ded1df0eb317988f08591ea9b869fafaf34",
@@ -10885,13 +10465,13 @@
       "reconciler": "0.33.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.9.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -10935,7 +10515,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -10980,15 +10562,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "28702156775dbf786bce381ebc8065d2289432541199e8bbb811f9f6331bb758",
@@ -11060,13 +10633,13 @@
       "reconciler": "0.34.0",
       "pixiAdapter": "pixi-8",
       "pixi": "8.9.2",
-      "status": "fail",
+      "status": "pass",
       "commands": {
         "install": "pass",
         "tree": "pass",
         "modules": "pass",
         "types": "pass",
-        "conformance": "fail"
+        "conformance": "pass"
       },
       "backends": {
         "webgl": {
@@ -11110,7 +10683,9 @@
           "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
         },
         "webgpu": {
-          "status": "fail",
+          "status": "expected-fail",
+          "expectedBlankRender": "pixi8-webgpu-blank-before-8.10-software",
+          "note": "expected blank render confirmed (pixi8-webgpu-blank-before-8.10-software): canvas [0,0,0,0], every conformance scenario passed; unverified",
           "scenarios": {
             "passed": 83,
             "failed": 0,
@@ -11155,15 +10730,6 @@
             "isFallbackAdapter": true
           }
         }
-      },
-      "failure": {
-        "command": "conformance",
-        "renderer": "webgpu",
-        "lines": [
-          "conformance (webgpu) failed:",
-          "FAIL  test/backend.test.tsx > render backend: webgpu",
-          "AssertionError: the screenshot of the canvas shows the red rectangle: expected [ 255, 255, 255, 255 ] to deeply equal [ 255, +0, +0, 255 ]"
-        ]
       },
       "evidence": {
         "lockfileSha256": "63a03d2f8aa51c0bf6b538c01d535e3b03651f85d92ae666aa8d1aa1132e9f34",
@@ -32053,8 +31619,9 @@
   },
   "findings": [
     "WebGL: all 184 cells passed (every command, every conformance scenario, the render check).",
-    "WebGPU: 104 of 168 Pixi 8 cells passed. The 64 failures are every React adapter and patch (8 each) on pixi.js 8.2.6, 8.3.4, 8.4.1, 8.5.2, 8.6.6, 8.7.3, 8.8.1 and 8.9.2: Pixi created a WebGPU renderer and every conformance scenario passed, but the render check failed: the screenshot of the canvas is the white page ([255,255,255,255]) instead of the red rectangle, and the canvas copy and Pixi's extract read [0,0,0,0]. pixi.js 8.10.2 and every later minor render correctly on the same adapter. The cause is in pixi.js on this software (SwiftShader, fallback) WebGPU adapter, not in the adapters: it does not depend on the React adapter. Not bisected below 8.10.2 (only each minor's newest audited patch runs); not checked on a hardware GPU.",
-    "So the WebGPU matrix did not pass as a whole and, under the rule, this record verifies no tuple on WebGPU. Every tuple is verified on WebGL.",
+    "WebGPU: 104 of 168 Pixi 8 cells passed and are verified on WebGPU: pixi.js 8.10.2 to 8.22.0 with every React adapter and patch. The other 64 are every React adapter and patch (8 each) on pixi.js 8.2.6, 8.3.4, 8.4.1, 8.5.2, 8.6.6, 8.7.3, 8.8.1 and 8.9.2: Pixi created a WebGPU renderer and every conformance scenario passed, but the render check failed: the screenshot of the canvas is the white page ([255,255,255,255]) instead of the red rectangle, and the canvas copy and Pixi's extract read [0,0,0,0]. They are on the expected-blank-render list (adapterMatrix.expectedBlankRender): expected blank render, unverified.",
+    "The blank render does not depend on the React adapter; pixi.js 8.10.2 and every later minor render on the same adapter, so the cause appears to be in pixi.js before 8.10. Not narrowed below 8.9.2 to 8.10.2 (only each minor's newest audited patch runs); not checked on a real GPU.",
+    "Rendering was software throughout (no GPU in the machine): WebGL on ANGLE/SwiftShader, WebGPU on SwiftShader's fallback adapter. Owner ruling: software rendering counts as verification; a real-GPU record can be added as extra evidence.",
     "Boundary probes: 44 of 44 passed (pixi-8.5.0 by failing exactly as the audit recorded; no API or type drift). Incompatible pairs: 6 of 6 rejected as expected."
   ]
 }

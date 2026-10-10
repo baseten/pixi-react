@@ -4,8 +4,64 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, posix, resolve } from 'node:path';
-import { fileSetHash } from './matrix.mjs';
+import { dirname, join, posix, resolve } from 'node:path';
+import { gunzipSync } from 'node:zlib';
+import { fileSetHash, platformCommand } from './matrix.mjs';
+
+/**
+ * Extracts a gzipped npm tarball into `dest`, dropping its first path component (`package/`), like
+ * `tar -xzf FILE -C DEST --strip-components=1` but without a `tar` binary (Windows' bsdtar and Git Bash's GNU tar
+ * disagree about drive-letter paths). Regular files and directories only, which is all `pnpm pack` writes.
+ */
+export function extractTarball(file, dest)
+{
+    const data = gunzipSync(readFileSync(file));
+    const text = (block, start, length) => block.subarray(start, start + length).toString('utf8').replace(/\0[\s\S]*$/, '');
+    let offset = 0;
+    let pax = {};
+    let longName = null;
+
+    while (offset + 512 <= data.length)
+    {
+        const header = data.subarray(offset, offset + 512);
+
+        if (header.every((byte) => byte === 0)) break;
+        const prefix = text(header, 345, 155);
+        const name = prefix ? `${prefix}/${text(header, 0, 100)}` : text(header, 0, 100);
+        const size = parseInt(text(header, 124, 12).trim() || '0', 8);
+        const type = header[156] === 0 ? '0' : String.fromCharCode(header[156]);
+        const body = data.subarray(offset + 512, offset + 512 + size);
+
+        offset += 512 + (Math.ceil(size / 512) * 512);
+        if (type === 'x')
+        {
+            // A pax extended header: "<length> <key>=<value>\n" records; `path` overrides the next entry's name.
+            pax = Object.fromEntries(body.toString('utf8').split('\n').filter(Boolean).map((record) => record.slice(record.indexOf(' ') + 1)).map((record) => [record.slice(0, record.indexOf('=')), record.slice(record.indexOf('=') + 1)]));
+            continue;
+        }
+        if (type === 'g') continue;
+        if (type === 'L')
+        {
+            longName = text(body, 0, body.length);
+            continue;
+        }
+        const path = (pax.path ?? longName ?? name).split('/').slice(1).filter(Boolean);
+
+        pax = {};
+        longName = null;
+        if (!path.length) continue;
+        assert.ok(!path.includes('..'), `${file}: unsafe path ${path.join('/')}`);
+        const target = join(dest, ...path);
+
+        if (type === '5') mkdirSync(target, { recursive: true });
+        else if (type === '0' || type === '7')
+        {
+            mkdirSync(dirname(target), { recursive: true });
+            writeFileSync(target, body);
+        }
+        else throw new Error(`${file}: unsupported tar entry type ${type} for ${path.join('/')}`);
+    }
+}
 
 const sha = (buffer) => createHash('sha256').update(buffer).digest('hex');
 
@@ -94,12 +150,13 @@ export function packArtifacts(seed, dest, root)
             const dir = resolve(root, artifact.dir);
 
             if (artifact.role !== 'harness' && !existsSync(join(dir, 'dist'))) throw new Error(`${artifact.package} is not built (no ${join(dir, 'dist')}); run "pnpm build" first.`);
-            const output = execFileSync('pnpm', ['pack', '--json', '--pack-destination', dest], { cwd: dir, encoding: 'utf8' });
+            const pnpm = platformCommand('pnpm', ['pack', '--json', '--pack-destination', dest]);
+            const output = execFileSync(pnpm.file, pnpm.args, { cwd: dir, encoding: 'utf8', shell: pnpm.shell });
             const { filename } = JSON.parse(output.slice(output.indexOf('{')));
             const extracted = join(scratch, id);
 
             mkdirSync(extracted, { recursive: true });
-            execFileSync('tar', ['-xzf', filename, '-C', extracted, '--strip-components=1']);
+            extractTarball(filename, extracted);
             const files = walk(extracted);
             const manifest = JSON.parse(readFileSync(join(extracted, 'package.json'), 'utf8'));
             const hashes = Object.fromEntries(files.map((file) => [file, file === 'package.json' ? sha(canonical(manifest)) : sha(readFileSync(join(extracted, file)))]));

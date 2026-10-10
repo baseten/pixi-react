@@ -3,38 +3,53 @@
 /**
  * Dated verification records (issue 17) and the `verifiedRanges` derived from them.
  *
- * A verification record is the machine-readable result of one full nightly run of the compatibility matrix
- * (`run-cells.mjs run --tier nightly --patches all`, every boundary probe, every negative case) at one commit, with
- * each render backend checked separately, plus the data-only probes in a separate section that never verifies
- * anything. `design/compatibility/verification/<date>.json` is the record; `<date>.md` is rendered from it.
+ * A verification record is the machine-readable result of one nightly run of the compatibility matrix
+ * (`run-cells.mjs run --tier nightly --patches all`, every boundary probe, every negative case) at one commit on one
+ * machine under one GPU profile, with each render backend checked separately, plus the data-only probes in a separate
+ * section that never verifies anything. `design/compatibility/verification/<id>.json` is the record and `<id>.md` is
+ * rendered from it; `<id>` is the date, or the date and a machine slug (`2026-10-12-macos-m2`) for a record from another
+ * machine. Records accumulate: a hardware (real-GPU) record adds evidence beside the software one.
  *
  * Verification is evidence, not a support guarantee.
  *
- * The rule (`VERIFICATION_RULE`): a render backend verifies tuples only when the whole nightly matrix passed on it in
- * that record: every expected cell that runs the backend passed on it, and every boundary probe and every negative case
- * behaved as expected. Then each tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on that
- * backend. Backends are never inferred from each other: a tuple lists each backend it is verified on.
+ * The rule (`VERIFICATION_RULE`), per tuple (React adapter, exact React, Pixi adapter, exact pixi.js) and per render
+ * backend: the tuple is verified on the backend when its cell passed on that backend in a record (every command, every
+ * conformance scenario and the render check) and every boundary probe and negative case of that record behaved as
+ * expected. A run on the expected-blank-render list (`adapterMatrix.expectedBlankRender`) that failed exactly as listed
+ * is not a failure, but verifies nothing. Backends are never inferred from each other.
  *
  * Usage:
- *   node design/compatibility/verification.mjs build --work DIR --date YYYY-MM-DD --commit SHA [--environment FILE]
+ *   node design/compatibility/verification.mjs build --work DIR --date YYYY-MM-DD --commit SHA [--machine SLUG]
+ *       [--scope full|partial] [--extra FILE]   # a record from a run's work directory (partial: only the cells it ran)
+ *   node design/compatibility/verification.mjs refresh [--record ID] [--extra FILE]   # re-apply the manifest's lists and the rule
  *   node design/compatibility/verification.mjs render [--check]   # the .md files from the .json records
  *   node design/compatibility/verification.mjs ranges [--write]   # verifiedRanges from the records (into seed.json)
- *   node design/compatibility/verification.mjs compare --date YYYY-MM-DD --tarballs DIR   # same packed code as the run?
+ *   node design/compatibility/verification.mjs compare --record ID --tarballs DIR   # same packed code as the run?
  */
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { arch, cpus, release, totalmem, type, version } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { boundaryProbes, compareVersions, fileSetHash, negativeCells, selectCells } from './cells/matrix.mjs';
+import { boundaryProbes, classifyExpectedBlank, compareVersions, expectedBlankFor, fileSetHash, gpuProfileOf, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
 export const RECORDS_DIR = join(here, 'verification');
 export const STATEMENT = 'Verification is evidence, not a support guarantee.';
-export const VERIFICATION_RULE = 'A render backend verifies tuples only when the whole nightly matrix passed on it in this record: every expected '
-    + 'cell that runs the backend passed on it, and every boundary probe and every negative case behaved as expected. '
-    + 'Each tuple then lists every backend it is verified on; backends are never inferred from each other.';
+export const SCHEMA_VERSION = 2;
+export const VERIFICATION_RULE = 'A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on a render backend when its cell '
+    + 'passed on that backend in this record (every command, every conformance scenario and the render check) and every boundary probe '
+    + 'and every negative case of this record behaved as expected. A run on the expected-blank-render list (adapterMatrix.expectedBlankRender) '
+    + 'that failed exactly as listed is not a failure, but verifies nothing. Each tuple lists every backend it is verified on; backends '
+    + 'are never inferred from each other.';
+/** What a record says about how it rendered, by GPU profile: software verification counts, with this note. */
+export const SOFTWARE_NOTE = 'Software rendering: no GPU took part. WebGL ran on ANGLE over SwiftShader and WebGPU on Dawn over SwiftShader\'s '
+    + 'Vulkan device, a fallback adapter (isFallbackAdapter true). It counts as verification; a run on a real GPU '
+    + '(run-cells.mjs --gpu hardware) can be added later as extra evidence.';
+const RECORD_FILE = /^(\d{4}-\d{2}-\d{2})(-[a-z0-9]+(?:-[a-z0-9]+)*)?\.json$/;
 
 const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 const backendNames = (seed) => Object.keys(seed.adapterMatrix.renderers);
@@ -58,20 +73,9 @@ const counts = (conformance) => (conformance ? { passed: conformance.passed, fai
 function splitReport(file)
 {
     if (!file || !existsSync(file)) return null;
-    const report = readJson(file);
-    const tally = (predicate) =>
-    {
-        const results = (report.testResults ?? []).filter((result) => predicate(result.name)).flatMap((result) => result.assertionResults ?? []);
+    const { scenarios, backendCheck } = splitConformanceReport(readJson(file));
 
-        return {
-            passed: results.filter((result) => result.status === 'passed').length,
-            failed: results.filter((result) => result.status === 'failed').length,
-            skipped: results.filter((result) => !['passed', 'failed'].includes(result.status)).length,
-        };
-    };
-    const check = tally((name) => name.endsWith('backend.test.tsx'));
-
-    return { suite: tally((name) => !name.endsWith('backend.test.tsx')), backendCheck: check.failed ? 'fail' : check.passed ? 'pass' : 'not run' };
+    return { suite: scenarios, backendCheck };
 }
 
 /** One backend of one result row, as recorded. */
@@ -83,12 +87,14 @@ function backendEntry(backend, reportFile)
 
     return {
         status: backend.status,
+        ...(backend.expectedBlankRender ? { expectedBlankRender: backend.expectedBlankRender, note: backend.note } : {}),
         ...(split ? { scenarios: split.suite, backendCheck: split.backendCheck } : {}),
         conformance: counts(backend.conformance),
         renderer: info.actual ?? null,
         readback: info.readback ?? null,
         ...(info.webglRenderer ? { webglRenderer: info.webglRenderer } : {}),
         ...(info.gpuAdapter ? { gpuAdapter: info.gpuAdapter } : {}),
+        ...(info.gpu ? { gpu: info.gpu } : {}),
     };
 }
 
@@ -151,11 +157,116 @@ function cellEvidence(outDir, integrities)
     return evidence;
 }
 
+const firstLine = (text) => (text ?? '').split('\n')[0].trim();
+
+function commandVersion(name)
+{
+    const command = platformCommand(name, ['--version']);
+    const result = spawnSync(command.file, command.args, { encoding: 'utf8', shell: command.shell });
+
+    return result.status === 0 ? firstLine(result.stdout) : 'unknown';
+}
+
+/** A short description of a WebGPU adapter as the render check reported it. */
+const describeAdapter = (adapter) => (adapter ? `${[adapter.vendor, adapter.architecture, adapter.device, adapter.description].filter(Boolean).join(' / ') || 'unnamed adapter'}, isFallbackAdapter ${adapter.isFallbackAdapter}` : null);
+
+/**
+ * The machine a run's results came from, when the caller gives none (`--extra`): OS, CPU, Node, npm, pnpm, and what the
+ * browser reported in the render checks (Chromium version, WebGL renderer, WebGPU adapter).
+ */
+export function collectEnvironment(seed, rows, gpuProfile)
+{
+    const infos = rows.flatMap((row) => Object.values(row.backends ?? {}).map((backend) => backend.backend).filter(Boolean));
+    const userAgent = infos.find((info) => info.userAgent)?.userAgent ?? '';
+    const chrome = userAgent.match(/(HeadlessChrome|Chrome)\/([\d.]+)/);
+    const webgl = [...new Set(infos.map((info) => info.webglRenderer).filter(Boolean))];
+    const webgpu = [...new Set(infos.map((info) => describeAdapter(info.gpuAdapter)).filter(Boolean))];
+    const cpu = cpus();
+
+    return {
+        os: `${version()} (${type()} ${release()})`,
+        kernel: release(),
+        arch: arch(),
+        cpu: `${cpu.length} x ${cpu[0]?.model ?? 'unknown CPU'}, ${Math.round(totalmem() / 2 ** 30)} GiB RAM`,
+        node: process.versions.node,
+        npm: commandVersion('npm'),
+        pnpm: commandVersion('pnpm'),
+        playwright: seed.adapterMatrix.toolchain.playwright,
+        chromium: chrome ? `Chromium ${chrome[2]}${chrome[1] === 'HeadlessChrome' ? ' headless' : ' headed'}` : 'unknown',
+        gpu: gpuProfile === 'hardware' ? `real GPU: ${[...webgl, ...webgpu].join('; ') || 'not reported'}` : 'none used: every backend renders in software',
+        backends: { ...(webgl.length ? { webgl: webgl.join('; ') } : {}), ...(webgpu.length ? { webgpu: webgpu.join('; ') } : {}) },
+    };
+}
+
+/** How a record rendered: the GPU profile and a plain statement, which the record and every summary of it repeat. */
+export function renderingOf(seed, gpuProfile, environment)
+{
+    const profile = gpuProfileOf(seed, gpuProfile);
+
+    return profile.expect === 'software'
+        ? { profile: profile.id, kind: 'software', note: SOFTWARE_NOTE }
+        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${environment?.gpu ?? 'see the environment'}. The render check confirmed no backend ran on a software renderer or a fallback adapter.` };
+}
+
+/** Whether a record's boundary probes and negative cases all behaved as expected: without it, the record verifies nothing. */
+export function recordGate(record)
+{
+    return record.probes.length > 0 && record.probes.every((probe) => ['pass', 'expected-fail'].includes(probe.status))
+        && record.negatives.length > 0 && record.negatives.every((negative) => negative.status === 'expected-fail');
+}
+
+/** The verification rule for one tuple of a record on one backend. */
+export function tupleVerified(record, cell, backend, gate = recordGate(record))
+{
+    // Every command but the per-backend conformance run (whose result is the backend entry) must pass.
+    return gate && cell.backends[backend]?.status === 'pass' && Object.entries(cell.commands).every(([name, status]) => name === 'conformance' || status === 'pass');
+}
+
+/** The summary block of a record, from its cells, probes and negative cases. */
+export function summarizeRecord(seed, record)
+{
+    const gate = recordGate(record);
+    const backends = {};
+
+    for (const name of backendNames(seed))
+    {
+        const applicable = record.cells.filter((cell) => cell.backends[name] && cell.backends[name].status !== 'not applicable');
+
+        backends[name] = {
+            cells: applicable.length,
+            passed: applicable.filter((cell) => cell.backends[name].status === 'pass').length,
+            expectedBlank: applicable.filter((cell) => cell.backends[name].status === 'expected-fail').length,
+            failed: applicable.filter((cell) => cell.backends[name].status === 'fail').length,
+            notRun: applicable.filter((cell) => !['pass', 'fail', 'expected-fail'].includes(cell.backends[name].status)).length,
+            backendCheckFailed: applicable.filter((cell) => cell.backends[name].backendCheck === 'fail').length,
+            notApplicable: record.cells.length - applicable.length,
+            scenarios: applicable.reduce((total, cell) =>
+            {
+                const scenarios = cell.backends[name].scenarios;
+
+                return scenarios ? { passed: total.passed + scenarios.passed, failed: total.failed + scenarios.failed, skipped: total.skipped + scenarios.skipped } : total;
+            }, { passed: 0, failed: 0, skipped: 0 }),
+            verifiedTuples: applicable.filter((cell) => tupleVerified(record, cell, name, gate)).length,
+        };
+    }
+    const { probes, negatives } = record;
+
+    return {
+        cells: record.cells.length,
+        cellsPassedEveryBackend: record.cells.filter((cell) => cell.status === 'pass' && Object.values(cell.backends).every((entry) => ['pass', 'not applicable'].includes(entry.status))).length,
+        cellsWithExpectedBlank: record.cells.filter((cell) => Object.values(cell.backends).some((entry) => entry.status === 'expected-fail')).length,
+        backends,
+        probes: { total: probes.length, passed: probes.filter((probe) => ['pass', 'expected-fail'].includes(probe.status)).length, expectedFailures: probes.filter((probe) => probe.status === 'expected-fail').length, failed: probes.filter((probe) => probe.status === 'fail').length, missing: probes.filter((probe) => probe.status === 'missing').length },
+        negatives: { total: negatives.length, rejectedAsExpected: negatives.filter((row) => row.status === 'expected-fail').length, failed: negatives.filter((row) => row.status === 'fail').length, missing: negatives.filter((row) => row.status === 'missing').length },
+    };
+}
+
 /**
  * Builds a verification record from a run's work directory (`results/` of the nightly cells, probes and negative
- * cases; `data-results/` of the data-only probes).
+ * cases; `data-results/` of the data-only probes). `scope: 'partial'` records only the cells that have a result (a
+ * targeted run); a full record lists every nightly cell and counts a missing one as missing.
  */
-export function buildRecord(seed, { work, date, commit, environment, run, dataSpec })
+export function buildRecord(seed, { work, date, commit, environment, run, dataSpec, machine, scope = 'full' })
 {
     const backends = backendNames(seed);
     const { rows, probes } = (() =>
@@ -165,9 +276,18 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
         return { rows: all.filter((row) => row.kind !== 'probe'), probes: all.filter((row) => row.kind === 'probe') };
     })();
     const byId = new Map(rows.map((row) => [row.id, row]));
+    // Matrix cells decide the GPU profile (negative cases stop before rendering).
+    const profiles = [...new Set(rows.filter((row) => row.kind === 'cell').map((row) => row.gpuProfile ?? seed.adapterMatrix.defaultGpuProfile))];
+
+    assert.ok(profiles.length <= 1, `the results mix GPU profiles (${profiles.join(', ')}): one record covers one profile`);
+    const gpuProfile = profiles[0] ?? seed.adapterMatrix.defaultGpuProfile;
+    const env = environment && Object.keys(environment).length ? environment : collectEnvironment(seed, rows, gpuProfile);
+
+    assert.ok(['full', 'partial'].includes(scope), `scope ${scope}`);
+    assert.ok(gpuProfileOf(seed, gpuProfile).expect !== 'hardware' || machine, 'a hardware record needs --machine (a slug naming the machine, OS and GPU)');
     // npm integrity of every resolved package version any cell installed (cells list the versions they resolved).
     const integrities = {};
-    const cells = expectedCells(seed).map((cell) =>
+    const cells = expectedCells(seed).filter((cell) => scope === 'full' || byId.has(cell.id)).map((cell) =>
     {
         const row = byId.get(cell.id);
         const entry = {
@@ -217,48 +337,25 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
         commands: Object.fromEntries(Object.entries(row.commands ?? {}).map(([name, step]) => [name, { status: step.status, ...(step.excerpt ? { excerpt: step.excerpt.slice(0, 8) } : {}) }])),
         backends: Object.fromEntries(Object.entries(row.backends ?? {}).map(([name, backend]) => [name, { ...backendEntry(backend, join(work, 'data-out', row.id, `conformance-${name}.json`)), ...(backend.excerpt ? { excerpt: backend.excerpt.slice(0, 8) } : {}) }])),
     }));
-    const summary = {};
-
-    for (const name of backends)
-    {
-        const applicable = cells.filter((cell) => cell.backends[name].status !== 'not applicable');
-
-        summary[name] = {
-            cells: applicable.length,
-            passed: applicable.filter((cell) => cell.backends[name].status === 'pass').length,
-            failed: applicable.filter((cell) => cell.backends[name].status === 'fail').length,
-            notRun: applicable.filter((cell) => !['pass', 'fail'].includes(cell.backends[name].status)).length,
-            backendCheckFailed: applicable.filter((cell) => cell.backends[name].backendCheck === 'fail').length,
-            notApplicable: cells.length - applicable.length,
-            scenarios: applicable.reduce((total, cell) =>
-            {
-                const scenarios = cell.backends[name].scenarios;
-
-                return scenarios ? { passed: total.passed + scenarios.passed, failed: total.failed + scenarios.failed, skipped: total.skipped + scenarios.skipped } : total;
-            }, { passed: 0, failed: 0, skipped: 0 }),
-        };
-    }
-
-    return {
-        schemaVersion: 1,
+    const record = {
+        schemaVersion: SCHEMA_VERSION,
+        id: machine ? `${date}-${machine}` : date,
         date,
+        ...(machine ? { machine } : {}),
         issue: 17,
         statement: STATEMENT,
         rule: VERIFICATION_RULE,
+        gpuProfile,
+        rendering: renderingOf(seed, gpuProfile, env),
+        scope,
         commit,
-        environment,
+        environment: env,
         run,
         // The packed workspace artifacts every cell installed: content hashes of the files `pnpm pack` produced.
         artifacts: existsSync(join(work, 'tarballs', 'artifacts.json'))
             ? Object.fromEntries(Object.entries(readJson(join(work, 'tarballs', 'artifacts.json'))).map(([id, artifact]) => [id, { package: artifact.package, version: artifact.version, contentSha256: artifact.hash, codeSha256: codeHash(artifact.files) }]))
             : {},
-        summary: {
-            cells: cells.length,
-            cellsPassedEveryBackend: cells.filter((cell) => cell.status === 'pass').length,
-            backends: summary,
-            probes: { total: probeRows.length, passed: probeRows.filter((probe) => ['pass', 'expected-fail'].includes(probe.status)).length, expectedFailures: probeRows.filter((probe) => probe.status === 'expected-fail').length, failed: probeRows.filter((probe) => probe.status === 'fail').length, missing: probeRows.filter((probe) => probe.status === 'missing').length },
-            negatives: { total: negatives.length, rejectedAsExpected: negatives.filter((row) => row.status === 'expected-fail').length, failed: negatives.filter((row) => row.status === 'fail').length, missing: negatives.filter((row) => row.status === 'missing').length },
-        },
+        summary: null,
         cells,
         integrities: Object.fromEntries(Object.entries(integrities).sort(([a], [b]) => a.localeCompare(b))),
         probes: probeRows,
@@ -270,67 +367,71 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
             results: data,
         },
     };
-}
 
-/** Whether a backend's whole nightly matrix passed in a record (the verification rule). */
-export function backendComplete(record, backend)
-{
-    const cells = record.cells.filter((cell) => cell.backends[backend] && cell.backends[backend].status !== 'not applicable');
+    record.summary = summarizeRecord(seed, record);
 
-    return cells.length > 0
-        // Every command but the per-backend conformance run (whose result is the backend entry) must pass.
-        && cells.every((cell) => cell.backends[backend].status === 'pass' && Object.entries(cell.commands).every(([name, status]) => name === 'conformance' || status === 'pass'))
-        // A probe of a known failure (pixi-8.5.0) passes by failing exactly as recorded: `expected-fail`.
-        && record.probes.every((probe) => ['pass', 'expected-fail'].includes(probe.status))
-        && record.negatives.every((negative) => negative.status === 'expected-fail');
+    return record;
 }
 
 /**
- * verifiedRanges from records: one entry per (React adapter, exact React, Pixi adapter), listing for each backend
- * the exact pixi.js versions verified on it. Entries name the record they come from. Only exact tuples: no interval.
+ * verifiedRanges from records: one entry per (React adapter, exact React, Pixi adapter), listing for each backend the
+ * exact pixi.js versions verified on it, and the records that verified any of them. Records add up: a tuple verified in
+ * any record (software or hardware) is verified. Only exact tuples: no interval.
  */
 export function deriveVerifiedRanges(records)
 {
     const entries = new Map();
 
-    for (const record of [...records].sort((a, b) => a.date.localeCompare(b.date)))
+    for (const record of [...records].sort((a, b) => recordId(a).localeCompare(recordId(b))))
     {
-        const complete = Object.fromEntries(Object.keys(record.summary.backends).map((backend) => [backend, backendComplete(record, backend)]));
+        const gate = recordGate(record);
 
         for (const cell of record.cells)
         {
-            for (const [backend, ok] of Object.entries(complete))
+            for (const backend of Object.keys(cell.backends))
             {
-                if (!ok || cell.backends[backend]?.status !== 'pass') continue;
+                if (!tupleVerified(record, cell, backend, gate)) continue;
                 const key = `${cell.reactAdapter}|${cell.react}|${cell.pixiAdapter}`;
-                const entry = entries.get(key) ?? { reactAdapter: cell.reactAdapter, react: cell.react, pixiAdapter: cell.pixiAdapter, record: record.date, backends: {} };
+                const entry = entries.get(key) ?? { reactAdapter: cell.reactAdapter, react: cell.react, pixiAdapter: cell.pixiAdapter, records: [], backends: {} };
 
-                entry.record = record.date;
+                if (!entry.records.includes(recordId(record))) entry.records.push(recordId(record));
                 entry.backends[backend] = [...new Set([...(entry.backends[backend] ?? []), cell.pixi])].sort(compareVersions);
                 entries.set(key, entry);
             }
         }
     }
+    for (const entry of entries.values()) entry.backends = Object.fromEntries(Object.keys(entry.backends).sort().map((name) => [name, entry.backends[name]]));
 
     return [...entries.values()].sort((a, b) => a.reactAdapter.localeCompare(b.reactAdapter, 'en', { numeric: true }) || compareVersions(a.react, b.react) || a.pixiAdapter.localeCompare(b.pixiAdapter));
 }
+
+/** A record's id: its file name without `.json` (the date, or the date and a machine slug). */
+export const recordId = (record) => record.id ?? record.date;
 
 /** The records checked in under design/compatibility/verification, oldest first. */
 export function loadRecords(dir = RECORDS_DIR)
 {
     if (!existsSync(dir)) return [];
 
-    return readdirSync(dir).filter((name) => /^\d{4}-\d{2}-\d{2}\.json$/.test(name)).sort().map((name) => readJson(join(dir, name)));
+    return readdirSync(dir).filter((name) => RECORD_FILE.test(name)).sort().map((name) => readJson(join(dir, name)));
 }
 
 /** Structural checks of a record (validate.mjs runs them on every checked-in record). */
-export function validateRecord(seed, record, name = record.date)
+export function validateRecord(seed, record, name = recordId(record))
 {
-    assert.equal(record.schemaVersion, 1, `${name}: schemaVersion`);
+    assert.equal(record.schemaVersion, SCHEMA_VERSION, `${name}: schemaVersion`);
     assert.match(record.date, /^\d{4}-\d{2}-\d{2}$/, `${name}: date`);
+    assert.equal(record.id, record.machine ? `${record.date}-${record.machine}` : record.date, `${name}: id is the date, or the date and the machine slug`);
     assert.match(record.commit, /^[0-9a-f]{40}$/, `${name}: commit`);
     assert.equal(record.statement, STATEMENT, `${name}: statement`);
     assert.equal(record.rule, VERIFICATION_RULE, `${name}: rule`);
+    const profile = gpuProfileOf(seed, record.gpuProfile);
+
+    assert.equal(record.rendering?.profile, profile.id, `${name}: rendering.profile`);
+    assert.equal(record.rendering.kind, profile.expect, `${name}: rendering.kind`);
+    if (profile.expect === 'software') assert.equal(record.rendering.note, SOFTWARE_NOTE, `${name}: a software record carries the software-rendering note`);
+    else assert.ok(record.machine, `${name}: a hardware record names its machine`);
+    assert.ok(['full', 'partial'].includes(record.scope), `${name}: scope`);
     assert.ok(record.environment?.node && record.environment?.chromium && record.environment?.os, `${name}: environment`);
     const ids = record.cells.map((cell) => cell.id);
 
@@ -345,9 +446,101 @@ export function validateRecord(seed, record, name = record.date)
                 assert.ok(entry.conformance && entry.conformance.failed === 0 && entry.conformance.passed > 0, `${name}: ${cell.id} ${backend}: a pass needs conformance counts with no failure`);
                 assert.equal(entry.renderer, backend, `${name}: ${cell.id} ${backend}: a pass must have run on the ${backend} renderer`);
             }
+            if (entry.status === 'expected-fail')
+            {
+                // An expected blank render is one the manifest lists for this profile, and it failed exactly as listed.
+                const listed = expectedBlankFor(seed, { pixiAdapter: cell.pixiAdapter, pixi: cell.pixi, renderer: backend, gpuProfile: record.gpuProfile });
+
+                assert.ok(listed, `${name}: ${cell.id} ${backend}: an expected blank render that adapterMatrix.expectedBlankRender does not list for the ${record.gpuProfile} profile`);
+                assert.equal(entry.expectedBlankRender, listed.id, `${name}: ${cell.id} ${backend}: expectedBlankRender`);
+                assert.equal(classifyExpectedBlank(listed, entry).status, 'expected-fail', `${name}: ${cell.id} ${backend}: does not match the listed blank render`);
+            }
         }
     }
+    assert.deepEqual(record.summary, summarizeRecord(seed, record), `${name}: summary is stale (node design/compatibility/verification.mjs refresh)`);
     for (const row of record.dataOnly?.results ?? []) assert.ok(row.id.startsWith('data-'), `${name}: data-only result ${row.id}`);
+}
+
+/**
+ * The expected-blank-render list against the records (validate.mjs): an entry's evidence names a record of its GPU
+ * profile that ran its cells, and in every record of that profile each listed cell's run on the backend is an expected
+ * blank render: one that rendered (or failed otherwise) means the list needs pruning (or the cell is a real failure).
+ */
+export function checkExpectedBlankAgainstRecords(seed, records)
+{
+    const problems = [];
+
+    for (const entry of seed.adapterMatrix.expectedBlankRender ?? [])
+    {
+        const adapterId = seed.adapterMatrix.pixiAdapters[entry.pixiAdapter].id;
+        const evidence = records.find((record) => recordId(record) === entry.evidence.record);
+
+        if (!evidence) problems.push(`${entry.id}: evidence.record ${entry.evidence.record} is not a checked-in record`);
+        else if (evidence.gpuProfile !== entry.gpuProfile) problems.push(`${entry.id}: record ${entry.evidence.record} ran the ${evidence.gpuProfile} profile, not ${entry.gpuProfile}`);
+        for (const record of records.filter((candidate) => candidate.gpuProfile === entry.gpuProfile))
+        {
+            for (const version of entry.pixi)
+            {
+                const cells = record.cells.filter((cell) => cell.pixiAdapter === adapterId && cell.pixi === version);
+
+                if (record === evidence && !cells.length) problems.push(`${entry.id}: record ${recordId(record)} has no pixi.js ${version} cell`);
+                for (const cell of cells)
+                {
+                    const status = cell.backends[entry.renderer]?.status;
+
+                    if (status !== 'expected-fail' && status !== 'not run') problems.push(`${entry.id}: ${recordId(record)} ${cell.id} ${entry.renderer} is ${status}, not an expected blank render${status === 'pass' ? ': prune the list' : ''}`);
+                }
+            }
+        }
+    }
+
+    return problems;
+}
+
+/**
+ * Re-applies the current manifest and rule to a record without re-running anything: a backend run the runner reported
+ * as failed that matches an expected-blank-render entry exactly becomes an expected blank render (the runner before that
+ * list reported it as a failure), and the summary, rule, statement and rendering note are recomputed.
+ */
+export function refreshRecord(seed, record)
+{
+    const next = { ...record, schemaVersion: SCHEMA_VERSION, id: record.id ?? (record.machine ? `${record.date}-${record.machine}` : record.date), statement: STATEMENT, rule: VERIFICATION_RULE };
+
+    next.gpuProfile ??= seed.adapterMatrix.defaultGpuProfile;
+    next.rendering = renderingOf(seed, next.gpuProfile, next.environment);
+    next.scope ??= 'full';
+    next.cells = record.cells.map((cell) =>
+    {
+        const backends = { ...cell.backends };
+        let changed = false;
+
+        for (const [backend, entry] of Object.entries(backends))
+        {
+            const listed = expectedBlankFor(seed, { pixiAdapter: cell.pixiAdapter, pixi: cell.pixi, renderer: backend, gpuProfile: next.gpuProfile });
+
+            if (!listed || entry.status !== 'fail') continue;
+            const verdict = classifyExpectedBlank(listed, entry);
+
+            if (verdict.status !== 'expected-fail') continue;
+            const { status: _status, ...rest } = entry;
+
+            backends[backend] = { status: 'expected-fail', expectedBlankRender: listed.id, note: verdict.message, ...rest };
+            changed = true;
+        }
+        if (!changed) return cell;
+        const ok = Object.values(backends).every((entry) => ['pass', 'expected-fail', 'not applicable'].includes(entry.status));
+        const commands = { ...cell.commands, ...(ok && cell.commands.conformance ? { conformance: 'pass' } : {}) };
+        const passed = ok && Object.values(commands).every((status) => status === 'pass');
+        const { failure: _failure, ...rest } = cell;
+
+        return { ...rest, status: passed ? 'pass' : cell.status, commands, backends, ...(passed ? {} : { failure: cell.failure }) };
+    });
+    next.summary = summarizeRecord(seed, next);
+
+    // Keep the key order of a built record.
+    const order = ['schemaVersion', 'id', 'date', 'machine', 'issue', 'statement', 'rule', 'gpuProfile', 'rendering', 'scope', 'commit', 'environment', 'run', 'artifacts', 'summary', 'cells', 'integrities', 'probes', 'negatives', 'dataOnly', 'findings'];
+
+    return Object.fromEntries([...order.filter((key) => key in next), ...Object.keys(next).filter((key) => !order.includes(key))].map((key) => [key, next[key]]));
 }
 
 /** The Markdown rendering of a record. */
@@ -359,19 +552,37 @@ export function renderRecord(record)
     const mark = (entry) =>
     {
         if (!entry || entry.status === 'not applicable') return 'n/a';
-        if (entry.status !== 'pass' && entry.status !== 'fail') return entry.status;
+        if (!['pass', 'fail', 'expected-fail'].includes(entry.status)) return entry.status;
         const counts = entry.scenarios ? ` ${entry.scenarios.passed}/${entry.scenarios.skipped}/${entry.scenarios.failed}` : '';
+
+        if (entry.status === 'expected-fail') return `expected blank (unverified)${counts}`;
         const check = entry.backendCheck === 'fail' ? ', render check FAIL' : '';
 
         return `${entry.status === 'pass' ? 'pass' : '**FAIL**'}${counts}${check}`;
     };
-    const complete = Object.fromEntries(backends.map((backend) => [backend, backendComplete(record, backend)]));
+    const id = recordId(record);
+    const blanks = new Map();
+
+    for (const cell of record.cells)
+    {
+        for (const [backend, entry] of Object.entries(cell.backends))
+        {
+            if (entry.status !== 'expected-fail') continue;
+            const item = blanks.get(entry.expectedBlankRender) ?? { backend, cells: 0, pixi: new Set() };
+
+            item.cells++;
+            item.pixi.add(cell.pixi);
+            blanks.set(entry.expectedBlankRender, item);
+        }
+    }
     const lines = [
-        `# Verification record ${record.date}`,
+        `# Verification record ${id}`,
         '',
-        `<!-- Generated by \`node design/compatibility/verification.mjs render\` from ${record.date}.json; do not edit. -->`,
+        `<!-- Generated by \`node design/compatibility/verification.mjs render\` from ${id}.json; do not edit. -->`,
         '',
-        `**${record.statement}** This record is the result of one full nightly run of the [compatibility matrix](../cells/COMPATIBILITY.md) at commit \`${record.commit}\`, with each render backend checked separately. The machine-readable record is [${record.date}.json](${record.date}.json); \`verifiedRanges\` in [seed.json](../seed.json) is derived from it (\`node design/compatibility/verification.mjs ranges\`), and \`validate.mjs\` checks that they agree.`,
+        `**${record.statement}** This record is the result of one ${record.scope === 'full' ? 'full nightly run' : 'partial (targeted) run'} of the [compatibility matrix](../cells/COMPATIBILITY.md) at commit \`${record.commit}\`${record.machine ? ` on ${record.machine}` : ''}, with each render backend checked separately. The machine-readable record is [${id}.json](${id}.json); \`verifiedRanges\` in [seed.json](../seed.json) is derived from the records (\`node design/compatibility/verification.mjs ranges\`), and \`validate.mjs\` checks that they agree.`,
+        '',
+        `**Rendering: ${record.rendering.kind} (GPU profile \`${record.rendering.profile}\`).** ${record.rendering.note}`,
         '',
         `Rule: ${record.rule}`,
         '',
@@ -380,6 +591,7 @@ export function renderRecord(record)
         '| Item | Value |',
         '| --- | --- |',
         `| Commit | \`${record.commit}\` |`,
+        `| GPU profile | ${record.rendering.profile} (${record.rendering.kind} rendering) |`,
         `| OS | ${env.os}, kernel ${env.kernel}, ${env.arch} |`,
         `| CPU | ${env.cpu} |`,
         `| Node / npm / pnpm | ${env.node} / ${env.npm} / ${env.pnpm} |`,
@@ -395,26 +607,42 @@ export function renderRecord(record)
         '',
         '## Summary',
         '',
-        `${record.summary.cells} cells (${record.summary.cellsPassedEveryBackend} passed on every backend they run), ${record.summary.probes.passed} of ${record.summary.probes.total} boundary probes passed (${record.summary.probes.expectedFailures} of them by failing exactly as the audit recorded), ${record.summary.negatives.rejectedAsExpected} of ${record.summary.negatives.total} incompatible pairs rejected as expected.`,
+        `${record.summary.cells} cells (${record.summary.cellsPassedEveryBackend} passed on every backend they run, ${record.summary.cellsWithExpectedBlank} with an expected blank render on one backend), ${record.summary.probes.passed} of ${record.summary.probes.total} boundary probes passed (${record.summary.probes.expectedFailures} of them by failing exactly as the audit recorded), ${record.summary.negatives.rejectedAsExpected} of ${record.summary.negatives.total} incompatible pairs rejected as expected${recordGate(record) ? '' : '. **Not every probe and negative case behaved as expected, so this record verifies nothing**'}.`,
         '',
-        '| Backend | Cells | Passed | Failed | Render check failed | Not run | Not applicable | Conformance scenarios passed / skipped / failed | Whole matrix passed (verifies) |',
-        '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+        '| Backend | Cells | Passed | Expected blank (unverified) | Failed | Render check failed | Not run | Not applicable | Conformance scenarios passed / skipped / failed | Tuples verified |',
+        '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
         ...backends.map((backend) =>
         {
             const s = record.summary.backends[backend];
 
-            return `| ${label[backend] ?? backend} | ${s.cells} | ${s.passed} | ${s.failed} | ${s.backendCheckFailed} | ${s.notRun} | ${s.notApplicable} | ${s.scenarios.passed} / ${s.scenarios.skipped} / ${s.scenarios.failed} | ${complete[backend] ? 'yes' : '**no**'} |`;
+            return `| ${label[backend] ?? backend} | ${s.cells} | ${s.passed} | ${s.expectedBlank} | ${s.failed} | ${s.backendCheckFailed} | ${s.notRun} | ${s.notApplicable} | ${s.scenarios.passed} / ${s.scenarios.skipped} / ${s.scenarios.failed} | ${s.verifiedTuples} |`;
         }),
         '',
+    ];
+
+    if (blanks.size)
+    {
+        lines.push(
+            '## Expected blank renders (unverified)',
+            '',
+            'Runs on the manifest\'s expected-blank-render list (`adapterMatrix.expectedBlankRender`, where each entry gives its reason and evidence) that failed exactly as listed: every conformance scenario passed and the canvas read back blank. They are not failures of the run and verify nothing.',
+            '',
+            '| Entry | Backend | Cells | pixi.js |',
+            '| --- | --- | --- | --- |',
+            ...[...blanks.entries()].map(([entry, item]) => `| ${entry} | ${label[item.backend] ?? item.backend} | ${item.cells} | ${[...item.pixi].sort(compareVersions).join(', ')} |`),
+            '',
+        );
+    }
+    lines.push(
         '## Cells',
         '',
-        'Each backend column shows the status and the conformance scenarios passed/skipped/failed (skips are scenarios whose capability the cell does not provide). Each backend run also has a render check (harness/test/backend.test.tsx: the requested renderer is the one Pixi created, and a screenshot of the canvas shows the red rectangle it drew); "render check FAIL" marks a run whose scenarios passed but whose canvas stayed blank. Pixi 7 has no WebGPU renderer (n/a).',
+        'Each backend column shows the status and the conformance scenarios passed/skipped/failed (skips are scenarios whose capability the cell does not provide). Each backend run also has a render check (harness/test/backend.test.tsx: the requested renderer is the one Pixi created, and a screenshot of the canvas shows the red rectangle it drew); "render check FAIL" marks a run whose scenarios passed but whose canvas stayed blank, and "expected blank (unverified)" one the expected-blank-render list covers. Pixi 7 has no WebGPU renderer (n/a).',
         '',
         `| Cell | React adapter | reconciler | Pixi adapter | Commands | ${backends.map((backend) => label[backend] ?? backend).join(' | ')} |`,
         `| --- | --- | --- | --- | --- | ${backends.map(() => '---').join(' | ')} |`,
         ...record.cells.map((cell) => `| ${cell.id} | ${cell.reactAdapter} | ${cell.reconciler} | ${cell.pixiAdapter} | ${Object.values(cell.commands).every((status) => status === 'pass') ? 'all pass' : Object.entries(cell.commands).filter(([, status]) => status !== 'pass').map(([name]) => `${name} FAIL`).join(', ') || cell.status} | ${backends.map((backend) => mark(cell.backends[backend])).join(' | ')} |`),
         '',
-    ];
+    );
     const failures = record.cells.filter((cell) => cell.failure);
 
     if (failures.length)
@@ -471,9 +699,9 @@ export function checkRenderedRecords(dir = RECORDS_DIR)
 {
     return loadRecords(dir).flatMap((record) =>
     {
-        const file = join(dir, `${record.date}.md`);
+        const file = join(dir, `${recordId(record)}.md`);
 
-        return existsSync(file) && readFileSync(file, 'utf8') === renderRecord(record) ? [] : [`design/compatibility/verification/${record.date}.md is stale: run node design/compatibility/verification.mjs render`];
+        return existsSync(file) && readFileSync(file, 'utf8') === renderRecord(record) ? [] : [`design/compatibility/verification/${recordId(record)}.md is stale: run node design/compatibility/verification.mjs render`];
     });
 }
 
@@ -484,29 +712,52 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
     const seedFile = join(here, 'seed.json');
     const seed = readJson(seedFile);
 
+    const writeRecord = (record) =>
+    {
+        writeFileSync(join(RECORDS_DIR, `${recordId(record)}.json`), `${JSON.stringify(record, null, 2)}\n`);
+        writeFileSync(join(RECORDS_DIR, `${recordId(record)}.md`), renderRecord(record));
+        console.log(`wrote design/compatibility/verification/${recordId(record)}.json and .md`);
+    };
+    // Findings and run notes (`--extra FILE`: { environment, run, findings, dataFindings }) are written by a person.
+    const extra = option('extra') ? readJson(resolve(option('extra'))) : {};
+    const applyExtra = (record) =>
+    {
+        if (extra.run) record.run = extra.run;
+        if (extra.findings) record.findings = extra.findings;
+        if (extra.dataFindings) record.dataOnly.findings = extra.dataFindings;
+    };
+
     switch (command)
     {
         case 'build':
         {
             const date = option('date');
-            const extra = option('extra') ? readJson(resolve(option('extra'))) : {};
             const record = buildRecord(seed, {
                 work: resolve(option('work')),
                 date,
                 commit: option('commit'),
+                machine: option('machine'),
+                scope: option('scope') ?? 'full',
                 environment: extra.environment ?? {},
                 run: extra.run ?? { commands: [], notes: [] },
                 dataSpec: readJson(join(here, 'cells/data-only.json')),
             });
 
-            if (extra.findings) record.findings = extra.findings;
-            if (extra.dataFindings) record.dataOnly.findings = extra.dataFindings;
+            applyExtra(record);
             validateRecord(seed, record);
-            writeFileSync(join(RECORDS_DIR, `${date}.json`), `${JSON.stringify(record, null, 2)}\n`);
-            writeFileSync(join(RECORDS_DIR, `${date}.md`), renderRecord(record));
-            console.log(`wrote design/compatibility/verification/${date}.json and .md`);
+            writeRecord(record);
             break;
         }
+        case 'refresh':
+            for (const record of loadRecords().filter((candidate) => !option('record') || recordId(candidate) === option('record')))
+            {
+                const next = refreshRecord(seed, record);
+
+                applyExtra(next);
+                validateRecord(seed, next);
+                writeRecord(next);
+            }
+            break;
         case 'render':
             if (rest.includes('--check'))
             {
@@ -520,7 +771,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
                 console.log('verification records are rendered');
                 break;
             }
-            for (const record of loadRecords()) writeFileSync(join(RECORDS_DIR, `${record.date}.md`), renderRecord(record));
+            for (const record of loadRecords()) writeFileSync(join(RECORDS_DIR, `${recordId(record)}.md`), renderRecord(record));
             console.log('rendered the verification records');
             break;
         case 'ranges':
@@ -539,7 +790,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
         case 'compare':
         {
             // Whether freshly packed artifacts (run-cells.mjs pack --out DIR) carry the same code as a record's run.
-            const record = readJson(join(RECORDS_DIR, `${option('date')}.json`));
+            const record = readJson(join(RECORDS_DIR, `${option('record') ?? option('date')}.json`));
             const packed = readJson(join(resolve(option('tarballs')), 'artifacts.json'));
             let differs = 0;
 
@@ -555,7 +806,12 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
             break;
         }
         default:
-            console.error(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(2, 23).join('\n'));
+        {
+            const lines = readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n');
+
+            console.error(lines.slice(2, lines.indexOf(' */')).join('\n'));
             process.exitCode = 2;
+            break;
+        }
     }
 }

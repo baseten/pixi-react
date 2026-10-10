@@ -6,6 +6,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFile
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { platformCommand } from './cells/matrix.mjs';
 import { declarationSeries } from './declaration-series.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -29,7 +30,9 @@ for (const tuple of selected)
     writeFileSync(join(cwd, 'package.json'), JSON.stringify({ private: true, type: 'module', dependencies: tuple.packages }));
     const run = (command, args) =>
     {
-        const r = spawnSync(command, args, { cwd, encoding: 'utf8', timeout: 180000, env: { ...process.env, NODE_ENV: 'development' }, maxBuffer: 8 * 1024 * 1024 });
+        // npm through its .cmd shim on Windows (node itself runs directly).
+        const spec = command === process.execPath ? { file: command, args, shell: false } : platformCommand(command, args);
+        const r = spawnSync(spec.file, spec.args, { cwd, encoding: 'utf8', timeout: 180000, env: { ...process.env, NODE_ENV: 'development' }, maxBuffer: 8 * 1024 * 1024, shell: spec.shell });
 
         return { status: r.status, signal: r.signal, error: r.error?.message, stdout: r.stdout, stderr: r.stderr };
     };

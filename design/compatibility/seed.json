@@ -14,7 +14,9 @@
       "reactAdapter": "react-18",
       "react": "18.3.1",
       "pixiAdapter": "pixi-7",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "7.4.2",
@@ -26,7 +28,9 @@
       "reactAdapter": "react-18",
       "react": "18.3.1",
       "pixiAdapter": "pixi-8",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "8.2.6",
@@ -37,6 +41,21 @@
           "8.7.3",
           "8.8.1",
           "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
           "8.10.2",
           "8.11.0",
           "8.12.0",
@@ -57,7 +76,9 @@
       "reactAdapter": "react-19.0",
       "react": "19.0.0",
       "pixiAdapter": "pixi-7",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "7.4.2",
@@ -69,7 +90,9 @@
       "reactAdapter": "react-19.0",
       "react": "19.0.0",
       "pixiAdapter": "pixi-8",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "8.2.6",
@@ -80,6 +103,21 @@
           "8.7.3",
           "8.8.1",
           "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
           "8.10.2",
           "8.11.0",
           "8.12.0",
@@ -100,7 +138,9 @@
       "reactAdapter": "react-19.0",
       "react": "19.0.8",
       "pixiAdapter": "pixi-7",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "7.4.2",
@@ -112,7 +152,9 @@
       "reactAdapter": "react-19.0",
       "react": "19.0.8",
       "pixiAdapter": "pixi-8",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "8.2.6",
@@ -123,6 +165,21 @@
           "8.7.3",
           "8.8.1",
           "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
           "8.10.2",
           "8.11.0",
           "8.12.0",
@@ -143,7 +200,9 @@
       "reactAdapter": "react-19.1",
       "react": "19.1.0",
       "pixiAdapter": "pixi-7",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "7.4.2",
@@ -155,7 +214,9 @@
       "reactAdapter": "react-19.1",
       "react": "19.1.0",
       "pixiAdapter": "pixi-8",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "8.2.6",
@@ -166,6 +227,21 @@
           "8.7.3",
           "8.8.1",
           "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
           "8.10.2",
           "8.11.0",
           "8.12.0",
@@ -186,7 +262,9 @@
       "reactAdapter": "react-19.1",
       "react": "19.1.9",
       "pixiAdapter": "pixi-7",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "7.4.2",
@@ -198,7 +276,9 @@
       "reactAdapter": "react-19.1",
       "react": "19.1.9",
       "pixiAdapter": "pixi-8",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "8.2.6",
@@ -209,6 +289,21 @@
           "8.7.3",
           "8.8.1",
           "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
           "8.10.2",
           "8.11.0",
           "8.12.0",
@@ -229,7 +324,9 @@
       "reactAdapter": "react-19.2",
       "react": "19.2.0",
       "pixiAdapter": "pixi-7",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "7.4.2",
@@ -241,7 +338,9 @@
       "reactAdapter": "react-19.2",
       "react": "19.2.0",
       "pixiAdapter": "pixi-8",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "8.2.6",
@@ -265,6 +364,21 @@
           "8.20.1",
           "8.21.0",
           "8.22.0"
+        ],
+        "webgpu": [
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
         ]
       }
     },
@@ -272,7 +386,9 @@
       "reactAdapter": "react-19.2",
       "react": "19.2.8",
       "pixiAdapter": "pixi-7",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "7.4.2",
@@ -284,7 +400,9 @@
       "reactAdapter": "react-19.2",
       "react": "19.2.8",
       "pixiAdapter": "pixi-8",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "8.2.6",
@@ -308,6 +426,21 @@
           "8.20.1",
           "8.21.0",
           "8.22.0"
+        ],
+        "webgpu": [
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
         ]
       }
     },
@@ -315,7 +448,9 @@
       "reactAdapter": "react-19.3",
       "react": "19.3.0",
       "pixiAdapter": "pixi-7",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "7.4.2",
@@ -327,7 +462,9 @@
       "reactAdapter": "react-19.3",
       "react": "19.3.0",
       "pixiAdapter": "pixi-8",
-      "record": "2026-10-10",
+      "records": [
+        "2026-10-10"
+      ],
       "backends": {
         "webgl": [
           "8.2.6",
@@ -338,6 +475,21 @@
           "8.7.3",
           "8.8.1",
           "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
           "8.10.2",
           "8.11.0",
           "8.12.0",
@@ -1953,27 +2105,56 @@
         "conformance": 420
       }
     },
-    "rendererNote": "Render backends a cell conformance run can use. Each backend is checked separately (never inferred from the other): the conformance suite runs once per backend the tier and the Pixi adapter both list, with these Chromium flags, and test/renderer.ts fails any Pixi application that does not get the requested renderer. Both are software here: WebGL is ANGLE on SwiftShader, WebGPU is Dawn on SwiftShader's Vulkan device (a fallback adapter), as in the examples WebGPU smoke test.",
+    "rendererNote": "Render backends a cell conformance run can use. Each backend is checked separately (never inferred from the other): the conformance suite runs once per backend the tier and the Pixi adapter both list, and test/renderer.ts fails any Pixi application that does not get the requested renderer. The Chromium flags that provide each backend come from the GPU profile of the run (`gpuProfiles`).",
     "renderers": {
       "webgl": {
-        "chromiumArgs": [
-          "--use-gl=angle",
-          "--use-angle=swiftshader",
-          "--enable-unsafe-swiftshader"
-        ]
+        "label": "WebGL"
       },
       "webgpu": {
-        "chromiumArgs": [
-          "--use-gl=angle",
-          "--use-angle=swiftshader",
-          "--enable-unsafe-swiftshader",
-          "--enable-unsafe-webgpu",
-          "--enable-features=Vulkan",
-          "--use-vulkan=swiftshader",
-          "--use-webgpu-adapter=swiftshader"
-        ]
+        "label": "WebGPU"
       }
     },
+    "defaultGpuProfile": "software",
+    "gpuProfiles": {
+      "software": {
+        "description": "Software rendering, no GPU: WebGL is ANGLE on SwiftShader, WebGPU is Dawn on SwiftShader's Vulkan device, which Chromium exposes only as a fallback adapter (isFallbackAdapter true), as in the examples WebGPU smoke test. What CI runs, and what the 2026-10-10 record ran on.",
+        "headless": true,
+        "expect": "software",
+        "chromiumArgs": {
+          "webgl": [
+            "--use-gl=angle",
+            "--use-angle=swiftshader",
+            "--enable-unsafe-swiftshader"
+          ],
+          "webgpu": [
+            "--use-gl=angle",
+            "--use-angle=swiftshader",
+            "--enable-unsafe-swiftshader",
+            "--enable-unsafe-webgpu",
+            "--enable-features=Vulkan",
+            "--use-vulkan=swiftshader",
+            "--use-webgpu-adapter=swiftshader"
+          ]
+        }
+      },
+      "hardware": {
+        "description": "A real GPU through the platform's default path (Metal on macOS, Direct3D on Windows): no SwiftShader or fallback flags, in a headed browser. The render check fails when a run lands on a software renderer or a fallback adapter. For contributors' machines; CI has no GPU.",
+        "headless": false,
+        "expect": "hardware",
+        "chromiumArgs": {
+          "webgl": [],
+          "webgpu": []
+        }
+      }
+    },
+    "softwareRendererPatterns": [
+      "SwiftShader",
+      "llvmpipe",
+      "softpipe",
+      "lavapipe",
+      "Software Rasterizer",
+      "Microsoft Basic Render Driver"
+    ],
     "artifacts": {
       "core": {
         "dir": "packages/core",
@@ -2351,6 +2532,50 @@
         "sameClassNote": "Each entry binds the pixi.js module its own loader resolves, so ESM and CJS legitimately differ in Node (pixi-7 README, D6)."
       }
     },
+    "expectedBlankRender": [
+      {
+        "id": "pixi8-webgpu-blank-before-8.10-software",
+        "verification": "unverified",
+        "pixiAdapter": "pixi8",
+        "renderer": "webgpu",
+        "gpuProfile": "software",
+        "pixi": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2"
+        ],
+        "reason": "On the software WebGPU fallback adapter these pixi.js versions draw nothing (the canvas reads [0,0,0,0]) although Pixi creates a WebGPU renderer and every conformance scenario passes. The cause appears to be in pixi.js before 8.10, not in the adapters.",
+        "signature": {
+          "renderer": "webgpu",
+          "canvas": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "extract": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "screenshotMatches": false
+        },
+        "evidence": {
+          "record": "2026-10-10",
+          "observed": "Every React adapter and patch (8 cells per pixi.js version, 64 in all): Pixi created a WebGPU renderer and every conformance scenario passed, but the render check failed: the canvas copy and Pixi's extract read [0,0,0,0] and the screenshot shows the page instead of the red rectangle. The same cells pass on WebGL.",
+          "adapter": "Dawn on SwiftShader's Vulkan device: vendor google, architecture swiftshader, isFallbackAdapter true. No GPU in the machine.",
+          "cause": "Appears to be in pixi.js before 8.10: it does not depend on the React adapter or the React version, and pixi.js 8.10.2 and every later minor render on the same adapter.",
+          "narrowed": "Not narrowed below 8.9.2 to 8.10.2: only the newest audited patch of each minor runs.",
+          "realGpu": "Untested on a real GPU; a hardware-profile run (gpuProfiles.hardware) can add that evidence."
+        }
+      }
+    ],
     "formats": [
       "esm",
       "cjs"

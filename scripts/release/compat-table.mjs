@@ -11,6 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareVersions } from '../../design/compatibility/cells/matrix.mjs';
+import { loadRecords, recordId } from '../../design/compatibility/verification.mjs';
 import { committedConfig, loadSeedAt, releaseFacts, UPSTREAM_ROW } from './compat.mjs';
 import { repoRoot } from './config.mjs';
 
@@ -56,7 +57,7 @@ export function verifiedLabel(verified, backends, applicable = backends)
     });
     const records = verified?.records ?? [];
 
-    return `${parts.join('. ')}${records.length ? ` ([record ${records.at(-1)}](compatibility/verification/${records.at(-1)}.md))` : ''}`;
+    return `${parts.join('. ')}${records.length ? ` (${records.length === 1 ? 'record' : 'records'} ${records.map((id) => `[${id}](compatibility/verification/${id}.md)`).join(', ')})` : ''}`;
 }
 const versionLabel = (pkg) => `${pkg.version}${pkg.pending ? ' (Release 1, not yet published)' : ''}`;
 
@@ -65,7 +66,12 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
 {
     const config = committedConfig(root);
     const facts = releaseFacts({ root, config });
-    const backends = Object.keys(loadSeedAt(root).adapterMatrix.renderers);
+    const seed = loadSeedAt(root);
+    const backends = Object.keys(seed.adapterMatrix.renderers);
+    // How each record rendered (software here; a real-GPU record adds evidence), and the expected blank renders.
+    const records = loadRecords(join(root, 'design/compatibility/verification'));
+    const renderingLine = records.map((record) => `Record [${recordId(record)}](compatibility/verification/${recordId(record)}.md): ${record.rendering.note}`).join(' ');
+    const blankLines = (seed.adapterMatrix.expectedBlankRender ?? []).map((entry) => `${BACKEND_LABEL[entry.renderer] ?? entry.renderer} with pixi.js ${versionSpan(entry.pixi)} (${seed.adapterMatrix.pixiAdapters[entry.pixiAdapter].id}, ${entry.gpuProfile} rendering) is an **expected blank render, unverified**: ${entry.reason} ${entry.evidence.narrowed} ${entry.evidence.realGpu}`);
     const { facade, pixi } = facts;
     const composed = facade.composedPackages.filter((pkg) => !['packages/core', 'packages/renderer'].includes(pkg.dir));
     const lines = [
@@ -75,11 +81,14 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
         '',
         `Names are the \`${facts.namespace}\` namespace of release.packages.json (pending [issue 41](https://github.com/baseten/pixi-react/issues/41)). `
             + '**Tested** means: covered by the PR-tier cells of the [#13 matrix](compatibility/cells/COMPATIBILITY.md), the required check on every pull request. '
-            + '**Verified** means: the full nightly matrix passed on that render backend (WebGL and WebGPU are checked separately) in a dated '
-            + '[verification record](compatibility/verification/); the exact tuples it verified are `verifiedRanges` in the manifest. '
+            + '**Verified** means, per render backend (WebGL and WebGPU are checked separately): the tuple\'s nightly cell passed on that backend in a dated '
+            + '[verification record](compatibility/verification/) whose boundary probes and incompatible pairs all behaved as expected; the exact tuples are `verifiedRanges` in the manifest. '
             + 'Verification is evidence, not a support guarantee, and never widens a peer range '
             + '(see [release.md](release.md#tested-and-verified)).',
         '',
+        `**Rendering.** ${renderingLine}`,
+        '',
+        ...blankLines.flatMap((line) => [line, '']),
         '## The facade',
         '',
         `| ${code(facade.publicName)} | React peer | React tested | pixi.js peer | pixi.js tested on every PR | pixi.js in the nightly cells | Verified (the adapter packages it builds in) | Builds in |`,

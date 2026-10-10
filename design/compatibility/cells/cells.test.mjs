@@ -1,13 +1,14 @@
 // Offline tests of the cell generator, cache keys, entry scoping and drift detection. Run with
 // `node --test design/compatibility/cells/*.test.mjs`; nothing here installs a package.
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { cellKey, loadSeed, negativeCells, renderCompatibilityDoc, selectCells, validateAdapterMatrix } from './matrix.mjs';
-import { entryClosure } from './pack.mjs';
+import { cellKey, expectedBlankFor, gpuProfileOf, loadSeed, negativeCells, platformCommand, renderCompatibilityDoc, renderTable, selectCells, validateAdapterMatrix } from './matrix.mjs';
+import { entryClosure, extractTarball } from './pack.mjs';
 import { compareWithEvidence } from './probes.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -285,4 +286,58 @@ test('cache keys: the generated effective configuration is part of the key', () 
 
     assert.notEqual(key({ formats: ['esm', 'cjs'] }), key({ formats: ['esm'] }));
     assert.notEqual(key({ adapters: { pixi: { provides: ['pixi.renderLayer'] } } }), key({ adapters: { pixi: { provides: [] } } }));
+});
+
+test('GPU profiles: software by default (SwiftShader flags), hardware with none and a headed browser', () =>
+{
+    const software = gpuProfileOf(seed);
+    const hardware = gpuProfileOf(seed, 'hardware');
+
+    assert.equal(software.id, 'software');
+    assert.ok(software.headless && software.chromiumArgs.webgpu.includes('--use-webgpu-adapter=swiftshader'));
+    assert.equal(hardware.expect, 'hardware');
+    assert.equal(hardware.headless, false);
+    assert.deepEqual(Object.values(hardware.chromiumArgs).flat().filter((arg) => /swiftshader/i.test(arg)), []);
+    assert.throws(() => gpuProfileOf(seed, 'metal'), /unknown GPU profile metal/);
+});
+
+test('the expected-blank-render list applies to its own backend, versions and GPU profile only', () =>
+{
+    const lookup = (pixi, renderer = 'webgpu', gpuProfile = 'software', pixiAdapter = 'pixi8') => expectedBlankFor(seed, { pixiAdapter, pixi, renderer, gpuProfile })?.id ?? null;
+    const [entry] = seed.adapterMatrix.expectedBlankRender;
+
+    assert.equal(lookup('8.9.2'), entry.id);
+    assert.equal(lookup('8.2.6', 'webgpu', 'software', 'pixi-8'), entry.id, 'by adapter id as well as key');
+    assert.equal(lookup('8.10.2'), null);
+    assert.equal(lookup('8.9.2', 'webgl'), null);
+    assert.equal(lookup('8.9.2', 'webgpu', 'hardware'), null);
+});
+
+test('the table shows an expected blank render as a pass on the other backend, never as verified', () =>
+{
+    const row = { id: 'react-19.3.0_pixi-8.9.2', kind: 'cell', adapterLabel: 'react-19.3', reactVersion: '19.3.0', pixiVersion: '8.9.2', status: 'pass', backends: { webgl: { status: 'pass' }, webgpu: { status: 'expected-fail' } } };
+
+    assert.match(renderTable(seed, [row]), /pass \(WebGL\), WebGPU expected blank \(unverified\)/);
+});
+
+test('package managers spawn without a POSIX shell, through .cmd shims on Windows', () =>
+{
+    assert.deepEqual(platformCommand('npm', ['install', '--strict-peer-deps'], 'linux'), { file: 'npm', args: ['install', '--strict-peer-deps'], shell: false });
+    assert.deepEqual(platformCommand('pnpm', ['pack', '--pack-destination', 'C:\\Users\\a b\\out'], 'win32'), { file: 'pnpm.cmd', args: ['pack', '--pack-destination', '"C:\\Users\\a b\\out"'], shell: true });
+});
+
+test('tarballs extract without a tar binary, stripping the package/ prefix', (t) =>
+{
+    const root = mkdtempSync(join(tmpdir(), 'compat-tar-test-'));
+
+    t.after(() => rmSync(root, { recursive: true, force: true }));
+    mkdirSync(join(root, 'src', 'package', 'dist', 'deep'), { recursive: true });
+    writeFileSync(join(root, 'src', 'package', 'package.json'), '{"name":"x"}');
+    writeFileSync(join(root, 'src', 'package', 'dist', 'deep', `${'long-name-'.repeat(12)}.js`), 'export {};\n');
+    const made = spawnSync('tar', ['-czf', join(root, 'x.tgz'), '-C', join(root, 'src'), 'package'], { encoding: 'utf8' });
+
+    if (made.status !== 0) return t.skip('no tar binary to build the fixture');
+    extractTarball(join(root, 'x.tgz'), join(root, 'out'));
+    assert.equal(readFileSync(join(root, 'out', 'package.json'), 'utf8'), '{"name":"x"}');
+    assert.equal(readFileSync(join(root, 'out', 'dist', 'deep', `${'long-name-'.repeat(12)}.js`), 'utf8'), 'export {};\n');
 });

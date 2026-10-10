@@ -66,7 +66,7 @@ export function supportedPixiRange(seed, adapterKey = defaultPixiAdapter(seed))
 
 /**
  * The `verifiedRanges` entries (seed.json, derived from the dated verification records in design/compatibility/verification)
- * that match a filter, summarised per render backend: the exact tuples verified on each, and the record date.
+ * that match a filter, summarised per render backend: the exact tuples verified on each, and the records (ids) behind them.
  */
 export function verifiedTuples(seed, { reactAdapter, reactVersions, pixiAdapter } = {})
 {
@@ -83,7 +83,7 @@ export function verifiedTuples(seed, { reactAdapter, reactVersions, pixiAdapter 
         }
     }
 
-    return { records: [...new Set(entries.map((entry) => entry.record))].sort(), backends };
+    return { records: [...new Set(entries.flatMap((entry) => entry.records))].sort(), backends };
 }
 
 /** The version a package releases next: its Release 1 version until anything is released, then its package.json version. */

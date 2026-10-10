@@ -2,7 +2,9 @@
 // cell's own node_modules, so a peer or declaration problem cannot be hidden by a workspace copy.
 //
 // COMPAT_RENDERER selects the render backend of this run (a key of `renderers` in cell.json, `webgl` by default): the
-// Chromium flags that provide it, and (through test/renderer.ts) the application options that request it.
+// Chromium flags that provide it, and (through test/renderer.ts) the application options that request it. The flags and
+// whether the browser is headless come from the run's GPU profile (cell.json `gpuProfile`): the software profile runs
+// headless on SwiftShader; the hardware profile runs headed with no flags, on the platform's own GPU path.
 import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vitest/config';
 
@@ -28,6 +30,6 @@ export default defineConfig({
         // Data-only probes (never verification cells) also lend React < 18.3 the `act` the suite calls.
         setupFiles: [...(cell.dataOnly ? ['test/data-only.ts'] : []), 'test/renderer.ts'],
         testTimeout: 15_000,
-        browser: { enabled: true, name: 'chromium', provider: 'playwright', headless: true, providerOptions: { launch: { args: backend.chromiumArgs } } },
+        browser: { enabled: true, name: 'chromium', provider: 'playwright', headless: cell.gpuProfile?.headless ?? true, providerOptions: { launch: { args: backend.chromiumArgs } } },
     },
 });
