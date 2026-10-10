@@ -13,6 +13,8 @@
  * 5. Regenerates the release compatibility table (compat-table.mjs) and the docs pins (docs-pins.mjs) for the new
  *    versions, so the "Version packages" commit carries them.
  *
+ * With no release planned (no pending changesets) it checks the policy and changes nothing.
+ *
  * It never builds, packs or publishes. Usage: node scripts/release/version.mjs [--root <checkout>]
  */
 import { execFileSync } from 'node:child_process';
@@ -62,6 +64,14 @@ export function version(root = repoRoot, { log = console.log } = {})
     const before = checkPolicy({ root, plan: readPlan(root), config: loadReleaseConfig({ root }) });
 
     if (before.problems.length) throw new Error(`release policy violations; nothing was versioned:\n  - ${before.problems.join('\n  - ')}`);
+    if (!before.plan.length)
+    {
+        // No pending changesets (every pull request without one, and main after a release): nothing to version, and
+        // the released ABI and generated files stay as they are.
+        log(`no release planned: nothing to version (every package stays at ${before.version})`);
+
+        return [];
+    }
     execFileSync('pnpm', ['exec', 'changeset', 'version'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
     for (const line of syncVersionConstants(root)) log(`version constant: ${line}`);
     const abi = recordReleasedAbi(root);

@@ -8,7 +8,9 @@
  * 2. `changeset status --output`: the release plan before versioning.
  * 3. `scripts/release/version.mjs`: policy check, `changeset version`, version constants, released ABI.
  * 4. Checks the result: every package at its planned version, the changesets consumed, a CHANGELOG per released
- *    package, and the policy clean against the now-empty plan.
+ *    package, and the policy clean against the now-empty plan. With no release planned (no pending changesets: any
+ *    pull request without one, and main after a release) nothing is versioned or committed; the checkout must be
+ *    unchanged and the policy clean, and the steps below run on the current versions.
  * 5. `pnpm build`, then stage.mjs (tarballs with public names), inspect.mjs, consumers.mjs and bundles.mjs.
  *
  * Usage: node scripts/release/dry-run.mjs [--work <dir>] [--namespace target|fallback] [--keep]
@@ -142,18 +144,23 @@ step('verify the versioned checkout', () =>
     const left = readdirSync(join(checkout, '.changeset')).filter((file) => file.endsWith('.md') && file !== 'README.md');
 
     if (left.length) problems.push(`changesets not consumed: ${left.join(', ')}`);
-    if (problems.length) throw new Error(problems.join('\n'));
     const diff = sh('git', ['status', '--short']).trim();
 
-    // The "Version packages" commit of the real flow; Changesets compares later status runs against it.
-    sh('git', ['add', '-A']);
-    sh('git', [...IDENTITY, 'commit', '-q', '-m', 'Version packages (dry run)']);
+    if (!plan.releases.length && diff) problems.push(`no release was planned, but versioning changed the checkout:\n${diff}`);
+    if (problems.length) throw new Error(problems.join('\n'));
+    if (plan.releases.length)
+    {
+        // The "Version packages" commit of the real flow; Changesets compares later status runs against it.
+        sh('git', ['add', '-A']);
+        sh('git', [...IDENTITY, 'commit', '-q', '-m', 'Version packages (dry run)']);
+    }
+    else console.log('  no release planned: nothing versioned, nothing to commit; staging the current versions');
     const policy = sh(process.execPath, ['scripts/release/policy.mjs']);
 
     console.log(diff.replace(/^/gm, '  '));
     console.log(policy.trim().split('\n').pop());
 
-    return { changed: diff.split('\n'), policy: policy.trim().split('\n').pop() };
+    return { releasePlanned: plan.releases.length > 0, changed: diff ? diff.split('\n') : [], policy: policy.trim().split('\n').pop() };
 });
 
 step('build', () =>
@@ -201,7 +208,9 @@ const lines = [
     '',
     '## Release plan',
     '',
-    ...plan.releases.map((release) => `- \`${release.name}\` ${release.oldVersion} → ${release.newVersion} (${release.type})`),
+    ...(plan.releases.length
+        ? plan.releases.map((release) => `- \`${release.name}\` ${release.oldVersion} → ${release.newVersion} (${release.type})`)
+        : ['No release planned (no pending changesets): nothing was versioned. The tarballs, consumers and bundles below are the current versions.']),
     '',
     '## Tarballs',
     '',

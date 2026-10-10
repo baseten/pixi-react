@@ -79,8 +79,11 @@ test('the checked-in compatibility table is current', () =>
     assert.deepEqual(checkCompatibilityTable(), [], `${TABLE_FILE} is stale: run node scripts/release/compat-table.mjs --write`);
     const table = renderCompatibilityTable();
     const facade = readJson(join(repoRoot, 'packages/react/package.json'));
+    const facts = releaseFacts({ config }).facade;
+    // Release 1 is labelled until it is versioned; after that the row is the facade's current version (issue 62).
+    const label = `${facts.version}${facts.pending ? ' (Release 1, not yet published)' : ''}`;
 
-    assert.ok(table.includes(`| 8.1.0 (Release 1, not yet published) | \`${facade.peerDependencies.react}\` | 19.3.0 | \`${facade.peerDependencies['pixi.js'].replaceAll('|', '\\|')}\``), 'facade row');
+    assert.ok(table.includes(`| ${label} | \`${facade.peerDependencies.react}\` | 19.3.0 | \`${facade.peerDependencies['pixi.js'].replaceAll('|', '\\|')}\``), 'facade row');
     for (const pkg of config.packages) assert.ok(table.includes(`\`${pkg.publicName}\``), pkg.publicName);
     assert.doesNotMatch(table, /certified/i, 'the table says "tested" until a range is promoted');
 });
@@ -140,7 +143,7 @@ test('install recipes name every modular package at the lockstep version (issue 
 {
     const { names, version, pages } = lockstepPins();
 
-    assert.equal(version, '8.1.0');
+    assert.equal(version, releaseFacts({ config }).facade.version, 'the lockstep version is the facade\'s release version');
     assert.ok(names.includes('@pixi/react-core') && names.includes('@pixi-react-provisional/pixi-8') && !names.includes('@pixi/react'));
     assert.ok(pages.includes('apps/docs/docs/migrating-to-8.1.mdx') && pages.includes('packages/react-18/README.md') && pages.includes('design/release.md'));
     const recipe = 'npm install @pixi/react-renderer@8.0.0 @pixi/react-19.1@8.1.0 @pixi-react-provisional/pixi-8@1.0.0 pixi.js react@19.1.9 react-dom@19.1.9';

@@ -3,9 +3,10 @@ name: Release dry run
 # The release dry run of design/release.md (issues 40 and 62): version, build, stage, inspect, packed consumers and
 # bundle assertions in a disposable copy. It never publishes: no secrets, read-only token.
 # Branch protection should require the check "Release dry run". It has no `paths` filter, so it runs on every pull
-# request and never stays pending.
+# request and merge-queue commit and never stays pending.
 
 on:
+  merge_group:
   pull_request:
   push:
     branches: [main]
@@ -32,8 +33,9 @@ jobs:
           persist-credentials: false
           # `changeset status` (the policy check's release plan) compares against main.
           fetch-depth: 0
-      # `changeset status` runs `git merge-base main HEAD`. A pull_request checkout is a detached merge commit with
-      # only origin/main, so give it the local branch (a push to main already has one).
+      # `changeset status` runs `git merge-base main HEAD`. A pull_request checkout (a detached merge commit) and a
+      # merge_group checkout (a gh-readonly-queue/main/... branch) have only origin/main, so give them the local
+      # branch; a push to main already has one.
       - name: Local main branch for changeset status
         run: git show-ref --verify --quiet refs/heads/main || git branch main origin/main
       - uses: ./.github/actions/setup

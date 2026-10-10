@@ -159,7 +159,7 @@ enforces these rules on the pending Changesets plan:
 | Change | Required release | Enforced by |
 | --- | --- | --- |
 | Any ABI change since the last release: a new ABI method or capability (`CORE_ABI.minor` +1), an incompatible change (`CORE_ABI.major` +1), or an adapter that declares another ABI | At least a **minor** release of the lockstep group, and a changeset of at least minor level whose summary says `ABI`: the changelog must tell users that the release changes the ABI between core and the adapters, and that mixing versions may then fail | `the adapter ABI changed since the last release (…): the lockstep packages need at least a minor changeset` and `… must document it in its summary (mention "ABI")` |
-| An adapter's manifest ABI major differs from core's | Not allowed | `declares ABI major …, core implements …` |
+| An adapter's manifest ABI major differs from core's, or its ABI minor is newer than `CORE_ABI.minor` (core rejects it at runtime) | Not allowed: raise `CORE_ABI.minor` with the new methods first | `declares ABI major …, core implements …` and `declares ABI …, but core implements only …` |
 | Removing an ABI method within a major (`CORE_ABI.minor` −1) | Not allowed; it is an ABI major change | `CORE_ABI minor fell …` |
 
 `abi.released` in `release.packages.json` records the ABI declarations of the last release: CORE_ABI and every adapter
@@ -258,6 +258,10 @@ Nothing below publishes. Publishing needs the [owner approvals](#before-publishi
    new versions. Always use this command; never run `changeset version` alone.
 4. It checks that every package reached its planned version, that the changesets were consumed and that each package
    has a CHANGELOG. It then commits the result as "Version packages" and runs the policy check again.
+   With no release planned (no pending changesets: a pull request without a changeset, or `main` after a release),
+   `pnpm release:version` checks the policy and changes nothing, so there is nothing to commit; the dry run checks that
+   the checkout is unchanged and the policy clean, and steps 5 to 8 run on the current versions. `dry-run.md` then says
+   "No release planned".
 5. `pnpm build`, then `pnpm release:stage` (`scripts/release/stage.mjs`), which writes the tarballs with public names
    and `release-manifest.json` (name, version, sha512, dependencies) to the output directory.
 6. `scripts/release/inspect.mjs`: tarball inspection, [below](#what-is-checked-before-a-release).
@@ -274,11 +278,13 @@ each consumer project directory.
 ### The dry run in CI
 
 [`.github/workflows/release-dry-run.yml`](../.github/workflows/release-dry-run.yml) (approved by the owner as a
-**required** check, issue 62) runs `pnpm test:release` and then the full dry run, on every pull request, every push to
-`main` and by hand. It has no `paths` filter, so a required check never stays pending. It publishes nothing: the token
+**required** check, issue 62) runs `pnpm test:release` and then the full dry run, on every pull request, every merge-queue
+commit (`merge_group`), every push to `main` and by hand. It has no `paths` filter, so a required check never stays pending. It publishes nothing: the token
 is read-only (`contents: read`), checkout keeps no credentials, and it uses no secrets. It fetches the full history and
-creates a local `main` branch when the checkout has none (a pull request's merge commit), because `changeset status`
-compares against `main`. It installs no browser: the consumers and bundles run on Node, npm and esbuild. The reports
+creates a local `main` branch when the checkout has none (a pull request's merge commit, or a merge-queue branch),
+because `changeset status` compares against `main`. `changeset status` exits non-zero when a pull request changes a
+published package without any pending changeset, so the check fails until one is added; with no package change, or on
+`main` itself, it passes. It installs no browser: the consumers and bundles run on Node, npm and esbuild. The reports
 (`dry-run.json`, `dry-run.md`, `consumers.json`, `bundles.json`, `release-manifest.json`) are kept as the
 `release-dry-run` artifact for 14 days; the tarballs are not.
 

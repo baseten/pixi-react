@@ -8,7 +8,7 @@ import { compareWithUpstream, KNOWN_GAPS, UPSTREAM_BASELINE } from './bundles.mj
 import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
-import { abiChanges, checkPolicy, readAbiDeclarations, readPlan } from './policy.mjs';
+import { abiChanges, abiDeclarationProblems, checkPolicy, readAbiDeclarations, readPlan } from './policy.mjs';
 import { releaseManifest, tarballName } from './stage.mjs';
 import { syncVersionConstants } from './version.mjs';
 
@@ -222,14 +222,37 @@ test('the consumer tree check rejects one of our packages at another version', (
     }
 });
 
-test('the committed release plan satisfies the policy (Release 1: every package 8.1.0, in lockstep)', () =>
+/**
+ * What the committed plan must look like in any release state (the required dry-run check runs this on every pull
+ * request): before Release 1 (`abi.released` null) every package plans its `release1` version; afterwards either
+ * nothing is planned, or the fixed group plans every package at one version.
+ */
+function committedPlanProblems(result, config)
+{
+    const planned = Object.fromEntries(result.plan.map((release) => [release.name, release.newVersion]));
+    const names = config.packages.map((pkg) => pkg.workspaceName);
+    const problems = [];
+
+    if (config.releasedAbi === null)
+    {
+        for (const pkg of config.packages) if (planned[pkg.workspaceName] !== pkg.release1) problems.push(`Release 1: ${pkg.workspaceName} plans ${planned[pkg.workspaceName] ?? 'nothing'}, expected ${pkg.release1}`);
+    }
+    else if (result.plan.length)
+    {
+        for (const name of names) if (planned[name] !== result.version) problems.push(`${name} plans ${planned[name] ?? 'nothing'}, the lockstep release is ${result.version}`);
+    }
+    for (const name of Object.keys(planned)) if (!names.includes(name)) problems.push(`${name} is not a publishable package but is in the plan`);
+
+    return problems;
+}
+
+test('the committed release plan satisfies the policy, in lockstep (Release 1: every package 8.1.0)', () =>
 {
     const result = checkPolicy({ plan: readPlan() });
 
     assert.deepEqual(result.problems, []);
-    assert.equal(result.version, '8.1.0');
-    assert.ok(target.packages.every((pkg) => pkg.release1 === '8.1.0'), 'release.packages.json: Release 1 is 8.1.0 for every package');
-    assert.deepEqual(Object.fromEntries(result.plan.map((release) => [release.name, release.newVersion])), Object.fromEntries(target.packages.map((pkg) => [pkg.workspaceName, '8.1.0'])));
+    assert.deepEqual(committedPlanProblems(result, target), []);
+    if (target.releasedAbi === null) assert.ok(target.packages.every((pkg) => pkg.release1 === '8.1.0'), 'release.packages.json: Release 1 is 8.1.0 for every package');
 });
 
 test('Changesets versions the publishable packages as one fixed group', () =>
@@ -259,6 +282,26 @@ const group = target.packages.map((pkg) => pkg.workspaceName);
 /** Every lockstep package at `type` -> `version`, the facade explicit and the others carried by the fixed group. */
 const lockstepPlan = (type, version, summary) => plan(Object.fromEntries(group.map((name) => [name, [type, version, name === '@pixi/react']])), summary);
 const releasedNow = () => ({ ...target, releasedAbi: readAbiDeclarations() });
+
+test('the committed-plan expectations hold before Release 1, with an empty plan, and for a later lockstep plan', () =>
+{
+    const released = { ...target, releasedAbi: readAbiDeclarations() };
+    const unreleased = { ...target, releasedAbi: null };
+    const result = (version, entries) => ({ version, plan: entries.map(([name, newVersion]) => ({ name, newVersion })) });
+    const all = (version) => group.map((name) => [name, version]);
+
+    // Unreleased: Release 1 must be planned.
+    assert.deepEqual(committedPlanProblems(result('8.1.0', all('8.1.0')), unreleased), []);
+    assert.match(committedPlanProblems(result('8.0.5', []), unreleased).join('\n'), /Release 1: @pixi\/react plans nothing, expected 8\.1\.0/);
+    // After a release, no pending changesets is valid: every pull request without one, and main after the release.
+    assert.deepEqual(committedPlanProblems(result('8.1.0', []), released), []);
+    // A later release moves every package to one version.
+    assert.deepEqual(committedPlanProblems(result('8.1.1', all('8.1.1')), released), []);
+    assert.deepEqual(committedPlanProblems(result('8.2.0', all('8.2.0')), released), []);
+    assert.match(committedPlanProblems(result('8.2.0', [...all('8.2.0').slice(1), ['docs', '0.0.1']]), released).join('\n'), /@pixi\/react plans nothing, the lockstep release is 8\.2\.0\n.*docs is not a publishable package/);
+    // The policy accepts the same later plans once something is released.
+    for (const [type, version] of [['patch', '8.1.1'], ['minor', '8.2.0']]) assert.deepEqual(checkPolicy({ config: released, plan: lockstepPlan(type, version) }).problems, []);
+});
 
 test('policy: a package off the lockstep version fails (negative)', () =>
 {
@@ -307,12 +350,26 @@ test('an ABI change needs at least a minor lockstep release and an "ABI" note in
     assert.match(checkPolicy({ config: { ...target, releasedAbi: { major: 1, minor: 0 } }, plan: lockstepPlan('patch', '8.1.1') }).problems.join('\n'), /abi\.released must be \{ core/);
 });
 
+test('an adapter may not declare an ABI minor newer than CORE_ABI (core would reject it at runtime)', () =>
+{
+    const current = readAbiDeclarations();
+    const [file] = Object.keys(current.adapters);
+    const withAdapter = (abi) => ({ ...current, adapters: { ...current.adapters, [file]: [abi] } });
+
+    assert.deepEqual(abiDeclarationProblems(current), []);
+    assert.deepEqual(abiDeclarationProblems(withAdapter({ ...current.core })), []);
+    assert.deepEqual(abiDeclarationProblems({ ...withAdapter({ major: 1, minor: 0 }), core: { major: 1, minor: 2 } }), [], 'an adapter on an older ABI minor is accepted');
+    assert.match(abiDeclarationProblems(withAdapter({ major: current.core.major, minor: current.core.minor + 1 })).join(), /declares ABI 1\.1, but core implements only 1\.0: core would reject the adapter \(ABI_MISMATCH\)/);
+    assert.match(abiDeclarationProblems(withAdapter({ major: current.core.major + 1, minor: 0 })).join(), /declares ABI major 2, core implements 1/);
+});
+
 test('Release 1 must reach exactly the configured versions', () =>
 {
-    const problems = checkPolicy({ plan: plan({ '@pixi/react': ['major', '9.0.0'], '@pixi-react-provisional/core': ['minor', '8.1.0'] }) }).problems.join('\n');
+    // Explicitly unreleased, so the test still holds after Release 1 is versioned.
+    const problems = checkPolicy({ config: { ...target, releasedAbi: null }, plan: plan({ '@pixi/react': ['major', '9.0.0'], '@pixi-react-provisional/core': ['minor', '8.1.0'], '@pixi-react-provisional/renderer': ['patch', '8.0.6'] }) }).problems.join('\n');
 
     assert.match(problems, /Release 1: @pixi\/react would release 9\.0\.0, expected 8\.1\.0/);
-    assert.match(problems, /Release 1: @pixi-react-provisional\/renderer would release 0\.0\.0, expected 8\.1\.0/);
+    assert.match(problems, /Release 1: @pixi-react-provisional\/renderer would release 8\.0\.6, expected 8\.1\.0/);
 });
 
 test('syncVersionConstants copies package.json versions into the source constants', () =>

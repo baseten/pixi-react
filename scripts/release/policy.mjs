@@ -17,7 +17,8 @@
  *    `prepublishOnly`).
  * 3. Lockstep: once the pending plan is applied, every publishable package is at one version, whose major is the Pixi
  *    major of the facade's pixi.js peer.
- * 4. ABI: every adapter's manifest ABI major equals CORE_ABI's (packages/core/src/abi.ts). The ABI version is
+ * 4. ABI: every adapter's manifest ABI major equals CORE_ABI's (packages/core/src/abi.ts), and its ABI minor is not
+ *    newer than CORE_ABI's (core rejects such an adapter at runtime). The ABI version is
  *    independent of the npm version. When CORE_ABI or an adapter's ABI declaration differs from the released one
  *    (`abi.released`), the lockstep group needs at least a minor release, and a changeset of at least minor level
  *    whose summary says "ABI" (the changelog note): an ABI break between core and the adapters may ship in a minor,
@@ -95,6 +96,26 @@ export function abiChanges(released, current)
     }
 
     return changes;
+}
+
+/**
+ * Adapter ABI declarations core would reject at runtime (packages/core/src/abi.ts): another ABI major, or an ABI minor
+ * newer than CORE_ABI's (the adapter would need methods this core does not implement).
+ */
+export function abiDeclarationProblems(abi)
+{
+    const problems = [];
+
+    for (const [file, declared] of Object.entries(abi.adapters))
+    {
+        for (const item of declared)
+        {
+            if (item.major !== abi.core.major) problems.push(`${file} declares ABI major ${item.major}, core implements ${abi.core.major}`);
+            else if (item.minor > abi.core.minor) problems.push(`${file} declares ABI ${formatAbi(item)}, but core implements only ${formatAbi(abi.core)}: core would reject the adapter (ABI_MISMATCH); raise CORE_ABI.minor with the new methods first`);
+        }
+    }
+
+    return problems;
 }
 
 /** `changeset status --output` for the current pending changesets. */
@@ -218,10 +239,7 @@ export function checkPolicy({ root = repoRoot, plan, config = loadReleaseConfig(
     const abi = readAbiDeclarations(root);
     const coreAbi = abi.core;
 
-    for (const [file, declared] of Object.entries(abi.adapters))
-    {
-        for (const item of declared) if (item.major !== coreAbi.major) fail(`${file} declares ABI major ${item.major}, core implements ${coreAbi.major}`);
-    }
+    problems.push(...abiDeclarationProblems(abi));
     const released = config.releasedAbi;
     const groupBump = Math.max(0, ...config.packages.map((pkg) => RANK[releases.get(pkg.workspaceName)?.type ?? 'none']));
 
