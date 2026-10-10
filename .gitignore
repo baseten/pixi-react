@@ -17,5 +17,8 @@ apps/docs/build
 # Adapter compatibility cells: packed tarballs, verdicts and diagnostics (design/compatibility/cells)
 .compat/
 
+# Example browser tests: Playwright results, traces, report (apps/examples/README.md). Baselines are committed.
+apps/examples/.playwright/
+
 # Release staging: tarballs, consumer projects and bundle reports (scripts/release)
 .release/

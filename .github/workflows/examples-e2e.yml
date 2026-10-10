@@ -1,0 +1,183 @@
+name: Examples E2E
+
+# Browser tests of the docs example app (issue 19): functional Playwright tests of every route and canvas screenshots
+# against the reviewed baselines in apps/examples/e2e/snapshots, run against the locally built library packages and
+# the production build of the app. Branch protection should require the single check "Examples E2E (required)".
+# No `paths` filter: a required check must report on every change. See apps/examples/README.md, "Browser tests".
+
+on:
+  merge_group:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      render_baselines:
+        description: Also render the visual baselines on the CI runner and upload them as an artifact for a person to review (nothing is committed)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+  EXAMPLES: '@pixi-react-provisional/examples'
+
+jobs:
+  e2e:
+    name: Examples browser and visual tests (WebGL)
+    # Pinned image: the baselines are Linux x64 renders (apps/examples/e2e/environment.ts).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      # Same Turbo cache scheme as the Verify jobs: a task is restored only when its own input hash matches.
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ runner.arch }}-examples-e2e-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ runner.arch }}-examples-e2e-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-
+
+      - name: Read the pinned Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter "$EXAMPLES" exec node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # The browser build is fixed by the Playwright version, so the cache key is that version.
+      - name: Restore Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        run: pnpm --filter "$EXAMPLES" exec playwright install chromium
+
+      - name: Build the library packages and the example app
+        id: build
+        run: pnpm run build
+
+      - name: Check the bundle uses the local packages
+        run: pnpm --filter "$EXAMPLES" run check:bundle
+
+      # The steps of `pnpm test:examples`, split so the report below runs after a failure too. CI=true: no retries,
+      # no test.only, and no baseline is ever written.
+      - name: Functional and visual tests
+        id: tests
+        run: pnpm --filter "$EXAMPLES" exec playwright test --project=functional --project=visual
+
+      # Fails when a required project ran no tests or skipped one, so a snapshot cannot be skipped silently.
+      - name: Require every functional and visual test to pass
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: node apps/examples/scripts/check-report.mjs --require functional --require visual
+
+      - name: Upload traces, screenshots and diffs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: examples-e2e-failure
+          path: apps/examples/.playwright
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Not required and not deterministic: never part of the baselines, and nothing required depends on this job, so its
+  # failure or timeout cannot fail "Examples E2E (required)". A missing WebGPU adapter skips the tests with the reason
+  # in the job summary. It builds on its own, so it does not wait for or slow down the required job.
+  webgpu-smoke:
+    name: Examples WebGPU smoke (not required)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ runner.arch }}-examples-webgpu-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ runner.arch }}-examples-webgpu-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-
+
+      - name: Read the pinned Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter "$EXAMPLES" exec node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        run: pnpm --filter "$EXAMPLES" exec playwright install chromium
+
+      - name: Build the library packages and the example app
+        run: pnpm run build
+
+      - name: WebGPU smoke test
+        run: pnpm --filter "$EXAMPLES" run test:examples:webgpu
+
+      - name: Upload WebGPU smoke failure details
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: examples-webgpu-smoke-failure
+          path: apps/examples/.playwright
+          if-no-files-found: ignore
+          retention-days: 7
+
+  render-baselines:
+    name: Render visual baselines for review
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.render_baselines }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install Chromium
+        run: pnpm --filter "$EXAMPLES" exec playwright install chromium
+      - name: Build the library packages and the example app
+        run: pnpm run build
+      # Writes changed snapshots into the checkout only; a person compares them and commits what they accept.
+      - name: Render the visual baselines
+        run: pnpm --filter "$EXAMPLES" exec playwright test --project=visual --update-snapshots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: examples-visual-baselines-candidate
+          path: apps/examples/e2e/snapshots
+          if-no-files-found: error
+          retention-days: 14
+
+  # The one check branch protection requires. It depends on the required test job only (never on webgpu-smoke). It runs
+  # even when the tests failed or were cancelled (`always()`), and anything but success (a failure, a cancellation or a
+  # skipped job) fails it.
+  required:
+    name: Examples E2E (required)
+    needs: [e2e]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require the browser and visual tests to succeed
+        env:
+          RESULT: ${{ needs.e2e.result }}
+        run: |
+          echo "Examples browser and visual tests: $RESULT"
+          [ "$RESULT" = success ] || { echo "::error::The example browser or visual tests did not succeed ($RESULT); see the job summary and the examples-e2e-failure artifact"; exit 1; }

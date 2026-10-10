@@ -21,6 +21,7 @@
     "test:contract": "pnpm --filter @pixi-react-provisional/design-contract test:contract",
     "test:conformance": "turbo run test:conformance",
     "test:e2e": "turbo run test:e2e",
+    "test:examples": "turbo run test:examples",
     "test:unit": "turbo run test:unit",
     "test:lint": "turbo run lint",
     "test:types": "turbo run typecheck --filter=!docs",
