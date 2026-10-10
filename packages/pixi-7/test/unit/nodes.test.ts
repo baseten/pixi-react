@@ -266,6 +266,27 @@ describe.each(cells)('positional construction on pixi.js $version', ({ pixi }) =
         }
     });
 
+    it('insertions next to a filter sibling keep the JSX order of children and of filters', () =>
+    {
+        const container = make(nodes, pixi.Container);
+        const [a, b, c] = ['a', 'b', 'c'].map((name) => make(nodes, pixi.Container, { name }));
+        // Real filters need a DOM; the adapter tells filters apart by prototype, so bare instances stand in for them.
+        const [f0, f1, f2] = [0, 1, 2].map(() => Object.create(pixi.Filter.prototype) as object);
+
+        for (const child of [a, f1, c, f2]) nodes.append(container, child);
+
+        // A display node before a filter goes before the next display sibling in JSX order (c), not last.
+        nodes.insertBefore(container, b, f1);
+        expect(container.children).toEqual([a, b, c]);
+        // A filter before a display node goes before the next filter in JSX order (f2), not last.
+        nodes.insertBefore(container, f0, c);
+        expect(container.filters).toEqual([f1, f0, f2]);
+        // With no display sibling after the filter, the node goes last.
+        nodes.remove(container, a);
+        nodes.insertBefore(container, a, f2);
+        expect(container.children).toEqual([b, c, a]);
+    });
+
     it('React visibility layers over the committed `visible`', () =>
     {
         const node = make(nodes, pixi.Container, { visible: false });
