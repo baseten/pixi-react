@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useMemo, useSyncExternalStore } from 'react';
-import { type ExampleMode, Harness, HarnessProvider } from './harness';
+import { type ExampleBackend, type ExampleMode, Harness, HarnessProvider } from './harness';
 import { components, type ExampleEntry, examples } from './routes';
 
 function Status({ harness }: { harness: Harness })
@@ -12,10 +12,10 @@ function Status({ harness }: { harness: Harness })
     return <span>Status: {status}</span>;
 }
 
-function ExampleRoute({ example, mode }: { example: ExampleEntry; mode: ExampleMode })
+function ExampleRoute({ example, mode, backend }: { example: ExampleEntry; mode: ExampleMode; backend: ExampleBackend })
 {
     const Example = components[example.id];
-    const harness = useMemo(() => new Harness(example.id, mode), [example.id, mode]);
+    const harness = useMemo(() => new Harness(example.id, mode, backend), [example.id, mode, backend]);
 
     useEffect(() => harness.install(), [harness]);
 
@@ -77,17 +77,17 @@ function Index()
     );
 }
 
-function Page({ id, mode }: { id: string; mode: ExampleMode })
+function Page({ id, mode, backend }: { id: string; mode: ExampleMode; backend: ExampleBackend })
 {
     if (id === '') return <Index />;
     const example = examples.find((entry) => entry.id === id);
 
     if (!example) return <main data-testid="not-found"><h1>No example named “{id}”</h1></main>;
 
-    return <ExampleRoute example={example} mode={mode} />;
+    return <ExampleRoute example={example} mode={mode} backend={backend} />;
 }
 
-export function Shell({ path, mode }: { path: string; mode: ExampleMode })
+export function Shell({ path, mode, backend = 'webgl' }: { path: string; mode: ExampleMode; backend?: ExampleBackend })
 {
     return (
         <>
@@ -95,7 +95,7 @@ export function Shell({ path, mode }: { path: string; mode: ExampleMode })
                 <a href="/">Examples</a>
                 {examples.map((entry) => <a key={entry.id} href={`/${entry.id}${mode === 'test' ? '?test' : ''}`}>{entry.title}</a>)}
             </nav>
-            <Page id={path.replace(/^\/+|\/+$/g, '')} mode={mode} />
+            <Page id={path.replace(/^\/+|\/+$/g, '')} mode={mode} backend={backend} />
         </>
     );
 }
