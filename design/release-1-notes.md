@@ -27,7 +27,7 @@ reconciler and declares that (D1, as amended by issue 49). With npm 7 or later, 
 - upgrade React to 19.3;
 - stay on `@pixi/react` 8.0.5;
 - compose their own renderer: `createRenderer` from `@pixi/react-renderer` with `@pixi/react-19.0`, `-19.1` or `-19.2`
-  (or `@pixi/react-18` for React 18.3.1) and `@pixi/react-pixi-8`, all at 8.1.0. The recipe is in the migration guide
+  (or `@pixi/react-18.0` … `@pixi/react-18.3` for React 18) and `@pixi/react-pixi-8`, all at 8.1.0. The recipe is in the migration guide
   and in the facade README.
 
 On a React 19 minor newer than 19.3, 8.1.0 installs, runs, and logs one console warning naming the tested version.
@@ -107,8 +107,9 @@ versioned separately, in the adapter manifests: a later minor release may change
 | `@pixi/react-core` | The adapter ABI, `CompatibilityError`, base classes for third-party adapters | - |
 | `@pixi/react-renderer` | `createRenderer({ react, pixi })` | - |
 | `@pixi/react-19.0` … `@pixi/react-19.3` | One React 19 minor each, with its exact reconciler and its-fine | exact tested React versions |
-| `@pixi/react-18` | React 18.3.1 | `react` 18.3.1 |
+| `@pixi/react-18.0` … `@pixi/react-18.3` | One React 18 minor each (React 18.0.0, 18.1.0, 18.2.0, 18.3.1), with its exact reconciler and its-fine 1.2.5 | the minor's tested React version |
 | `@pixi/react-pixi-8` | PixiJS 8 | the same pixi.js range as `@pixi/react` |
+| `@pixi/react-pixi-7` | PixiJS 7 | pixi.js `>=7.2.0 <7.4.0 \|\| >=7.4.2 <7.5.0` |
 
 New APIs, available only through `createRenderer`: `useContextBridge`, `component(Ctor)`, root error callbacks on
 `Application`, and `Root.status`. The exact versions each package is tested with are in the generated
@@ -117,9 +118,9 @@ New APIs, available only through `createRenderer`: `useContextBridge`, `componen
 ## Tested and verified
 
 React 19.3.0 (and each adapter's exact React versions) with pixi.js 8.2.6 and 8.22.0 run in the required PR-tier
-compatibility cells on every change: these versions are **tested**. The [2026-10-10 verification record](compatibility/verification/2026-10-10.md)
-ran the full nightly matrix and **verifies** every React adapter at both audited patches with every Pixi 8 minor's
-newest audited patch and pixi.js 7.4.2 and 7.4.3 on **WebGL**, and with pixi.js 8.10.2 … 8.22.0 on **WebGPU**. On
+compatibility cells on every change: these versions are **tested**. The [2026-10-10.2 verification record](compatibility/verification/2026-10-10.2.md)
+ran the full nightly matrix and **verifies** every React adapter (React 18.0 to 19.3) at every audited patch with every
+Pixi 8 minor's newest audited patch and pixi.js 7.2.0, 7.2.4, 7.3.0, 7.3.3, 7.4.2 and 7.4.3 on **WebGL**, and with pixi.js 8.10.2 … 8.22.0 on **WebGPU**. On
 WebGPU, pixi.js 8.2.6 to 8.9.2 are an expected blank render, unverified: a blank canvas on the software WebGPU adapter,
 although every conformance scenario passes. The record ran on software rendering (SwiftShader, no GPU); a run on a
 real GPU can be added as extra evidence. The verified tuples are `verifiedRanges` in the compatibility manifest.

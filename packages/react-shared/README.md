@@ -9,17 +9,26 @@ into its own `dist/shared/`. Only our own code is bundled this way; third-party 
 
 | Entry | Used by | Contents |
 | --- | --- | --- |
-| `./common` | `react-18`, `react-19.0` … `react-19.3` | What every adapter shares verbatim: the runtime-independent mutation host operations, the node → runtime `WeakMap` behind the shared reconciler, `HostContainer` (a root's record and its runtime), the DOM-event → priority mapping, `rawTextError`, timeouts |
+| `./common` | `react-18.0` … `react-18.3`, `react-19.0` … `react-19.3` | What every adapter shares verbatim: the runtime-independent mutation host operations, the node → runtime `WeakMap` behind the shared reconciler, `HostContainer` (a root's record and its runtime), the DOM-event → priority mapping, `rawTextError`, timeouts |
+| `./react-18` | `react-18.0` … `react-18.3` | The React 18 adapter base class (`React18AdapterBase`), the bindings (roots with `onRecoverableError` only, `forwardRef` refs, the its-fine 1.x bridge), the React 18 host config (`createReact18HostConfig`: payload-based updates, `getCurrentEventPriority`) and root renderer (`flushSync` unmount), `UNSUPPORTED_CAPABILITIES`, and the host-key audit groups every React 18 bundle reads. Compiled against React 18's own types (`tsconfig.react-18*.json`, with `@types/react` 18.3.31 and its-fine 1.2.5 as aliased devDependencies), never the React 19 types the rest of this package uses |
+| `./react-18/public` | `react-18.0` … `react-18.3` | The types and values every React 18 minor package re-exports |
 | `./react-19` | `react-19.0` … `react-19.3` | The React 19 adapter base class (`React19AdapterBase`), the bindings (roots, `Application`, hooks, `component`, context bridge), the React 19 host operations (priorities, `commitUpdate`, `HostTransitionContext`), the fragment-ref/ViewTransition rejections and the host-key audit groups |
 | `./react-19/public` | `react-19.0` … `react-19.3` | The types and values every React 19 minor package re-exports |
+| `./test-support/react-18` | the React 18 packages' unit tests | The unit suite each React 18 minor package runs against its own sources and build |
 | `./test-support/react-19` | the React 19 packages' unit tests | The unit suite each React 19 minor package runs against its own sources and build |
 
 `fixtures/react-19/` holds the per-tuple suite that every React 19 fixture (`packages/react-19.<minor>/fixtures/*`)
 runs, including the multiple-runtime regression tests (`multipleRuntimes.tsx`) and a guard that fails any fixture
 test during which React warns about multiple renderers (`multipleRenderersGuard.ts`).
 
-React 18 shares only `./common`: its bindings, host keys, root factory and types differ from React 19's (one root
-error channel, `forwardRef`, payload-based updates, its-fine 1.x), so they stay in `packages/react-18`.
+`fixtures/react-18/` holds the suite every React 18 fixture (`packages/react-18.<minor>/fixtures/*`) runs in Chromium
+with the packed packages and the real Pixi 8 adapter: its packed install and tree check (`install.mjs`), the Vitest
+projects (`config.mjs`, which also loads `lendAct.ts` for React before 18.3), the conformance binding, the React 18
+suite and a consumer type probe.
+
+React 18 shares only `./common` with React 19: its bindings, host keys, root factory and types differ from React 19's
+(one root error channel, `forwardRef`, payload-based updates, its-fine 1.x), so they live in `./react-18`, shared by
+the four React 18 minor packages, whose reconcilers (0.27.0, 0.28.0, 0.29.0, 0.29.2) take the same host config.
 
 ## One shared reconciler per package copy
 

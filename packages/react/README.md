@@ -131,7 +131,7 @@ bundles stay self-contained, as upstream's were.
 
 "Tested" means the release's compatibility cells run that combination on every change: React 19.3.0 with pixi.js
 8.2.6 and 8.22.0, plus probes at every Pixi 8 boundary. "Verified" means a tuple's nightly cell passed on that render backend in a dated record: the
-[2026-10-10 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.md) verifies
+[2026-10-10.2 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.2.md) verifies
 the React 19.3 and Pixi 8 adapter packages this package builds in, with React 19.3.0 and the newest audited patch of
 every Pixi 8 minor (8.2.6 … 8.22.0), on **WebGL**, and with 8.10.2 … 8.22.0 on **WebGPU** (on WebGPU, 8.2.6 to 8.9.2
 are an expected blank render, unverified: a blank canvas on the software WebGPU adapter). It ran on software rendering
@@ -184,20 +184,20 @@ npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react
 ```ts
 // pixi-react.ts: create the renderer once, at module level, and import from here instead of '@pixi/react'
 import { createRenderer } from '@pixi-react-provisional/renderer';
-import { React19Adapter } from '@pixi-react-provisional/react-19.1'; // or: import { React18Adapter } from '@pixi-react-provisional/react-18'
+import { React19Adapter } from '@pixi-react-provisional/react-19.1'; // or, on React 18.x: import { React18Adapter } from '@pixi-react-provisional/react-18.<x>'
 import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
 
 export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
     createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
 ```
 
-On PixiJS 7 (7.4.2 or 7.4.3), compose the PixiJS 7 adapter the same way. `@pixi/react` itself stays on PixiJS 8; the
+On PixiJS 7 (7.2.x, 7.3.x, 7.4.2 or 7.4.3; not 7.4.0), compose the PixiJS 7 adapter the same way. `@pixi/react` itself stays on PixiJS 8; the
 PixiJS 7 adapter is a modular package only, released at the same version as every other package although it targets
 PixiJS 7, and it exposes this API, not the 7.x `Stage` API
 ([pixi-7 README](https://github.com/baseten/pixi-react/blob/main/packages/pixi-7/README.md)):
 
 ```sh
-npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18@8.1.0 @pixi-react-provisional/pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
+npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18.3@8.1.0 @pixi-react-provisional/pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
 ```
 
 ```ts

@@ -52,7 +52,7 @@ The profile is part of every cell's configuration (and its cache key), and each 
 
 ### Expected blank renders
 
-`adapterMatrix.expectedBlankRender` lists backend runs whose render check is known to show a blank canvas under one GPU profile, each with its `reason`, the read-back `signature` and its `evidence` (record, what was observed, the adapter, the apparent cause, how far it was narrowed, real-GPU status). Today: pixi.js 8.2.6 to 8.9.2 on WebGPU under the software profile, where every conformance scenario passes but the canvas reads `[0,0,0,0]`; pixi.js 8.10.2 and later render. Like the 8.5.0 ParticleContainer known-failure probe, a listed run is **expected** (`expected-fail`; the cell passes, so the nightly stays green, and it verifies nothing on that backend) only when every conformance scenario passed and the render check failed exactly as listed. It **fails** when the canvas renders ("unexpected render ... remove its pixi.js version": prune the list), when any scenario fails, or when the render check fails some other way. `validate.mjs` rejects an entry without a reason or evidence, or with a version the nightly does not run, and checks the list against the records: the evidence record ran the listed cells, and no record of that profile shows a listed cell rendering.
+`adapterMatrix.expectedBlankRender` lists backend runs whose render check is known to show a blank canvas under one GPU profile, each with its `reason`, the read-back `signature` and its `evidence` (record, what was observed, the adapter, the apparent cause, how far it was narrowed, real-GPU status). Today: pixi.js 8.2.6 to 8.9.2 on WebGPU under the software profile, where every conformance scenario passes but the canvas reads `[0,0,0,0]`: an upstream pixi.js bug ([#11389](https://github.com/pixijs/pixijs/issues/11389), fixed in 8.10.0 by [#11417](https://github.com/pixijs/pixijs/pull/11417)) sizes the WebGPU batch from WebGL's texture-unit count (32 on SwiftShader) above the device's per-stage limit (16). pixi.js 8.10.0 and later render; real GPUs whose limits agree (the Apple M5 Max hardware record) render 8.2–8.9 too. Like the 8.5.0 ParticleContainer known-failure probe, a listed run is **expected** (`expected-fail`; the cell passes, so the nightly stays green, and it verifies nothing on that backend) only when every conformance scenario passed and the render check failed exactly as listed. It **fails** when the canvas renders ("unexpected render ... remove its pixi.js version": prune the list), when any scenario fails, or when the render check fails some other way. `validate.mjs` rejects an entry without a reason or evidence, or with a version the nightly does not run, and checks the list against the records: the evidence record ran the listed cells, and no record of that profile shows a listed cell rendering.
 
 ### Running on a real GPU
 
@@ -69,60 +69,82 @@ For a contributor with a GPU on **macOS** or **Windows**. Linux is not supported
 
 Check with `node --version` (v22.22.0 or a later 22.x), `pnpm --version` (10.28.0) and `npm --version`.
 
+On both systems the cells install into the OS temp directory and refuse to run when any parent of it holds a `node_modules` directory (it could hide a missing dependency). If the runner reports `.../node_modules exists above the isolated project`, point the temp directory at a fresh one for the session: `export TMPDIR=/tmp/compat-tmp && mkdir -p $TMPDIR` (macOS) or `$env:TEMP = $env:TMP = 'C:\compat-tmp'; mkdir C:\compat-tmp` (PowerShell).
+
 Windows only, three things to set once:
 
 - **Execution policy.** `npm`, `npx` and `pnpm` are PowerShell scripts (`.ps1` shims); if PowerShell refuses to run them, allow local scripts for your user: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 - **Long paths.** The cells install deep `node_modules` trees under `%TEMP%`. Clone into a short path (for example `C:\src`) and, if npm reports `ENAMETOOLONG` or a path-too-long error, enable Win32 long paths in an administrator PowerShell and reboot: `New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force`.
 - **Line endings.** Clone with `core.autocrlf=false` (the clone command below sets it for this clone only). With CRLF checkouts the packed artifacts differ from the commit's, so `verification.mjs compare` cannot show that the record ran the commit's code.
 
-#### 2. Clone, install, build, and install the browser
+#### 2. Set three variables
+
+Every command below reads `$BRANCH`, `$MACHINE` and `$TODAY`, so it is the same in both shells (PowerShell variable names ignore case). Nothing in a command is a placeholder to edit.
+
+macOS (zsh):
+
+```sh
+BRANCH=claude/react18-minors-pixi7-widen       # the branch you were asked to run
+MACHINE=$(printf 'macos-%s-%s' "$(sw_vers -productVersion | cut -d. -f1)" "$(sysctl -n machdep.cpu.brand_string)" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/-*$//')
+TODAY=$(date +%F)
+echo "$MACHINE $TODAY"                         # for example: macos-26-apple-m5-max 2026-10-12
+```
+
+Windows (PowerShell):
+
+```powershell
+$BRANCH = 'claude/react18-minors-pixi7-widen'   # the branch you were asked to run
+$os = (Get-CimInstance Win32_OperatingSystem).Caption -replace '^Microsoft ', ''
+$gpu = (Get-CimInstance Win32_VideoController | Where-Object { $_.Name -notmatch 'Basic|Remote|Virtual|Parsec' } | Select-Object -First 1).Name
+$MACHINE = ("$os $gpu".ToLower() -replace '[^a-z0-9]+', '-').Trim('-')
+$TODAY = Get-Date -Format yyyy-MM-dd
+"$MACHINE $TODAY"                              # for example: windows-11-pro-nvidia-geforce-rtx-4070 2026-10-12
+```
+
+On a machine with two GPUs (integrated and discrete), check that `$gpu` names the one Chromium uses (the record reports the GPU the browser saw), and set `$MACHINE` by hand if not, as lowercase words joined by hyphens. Keep the same `$MACHINE` for every later run on that machine.
+
+#### 3. Clone, install, build, and install the browser
 
 ```sh
 git clone -c core.autocrlf=false https://github.com/baseten/pixi-react.git
 cd pixi-react
-git checkout <the branch or commit you were asked to run>
+git checkout $BRANCH
 pnpm install --frozen-lockfile
 pnpm build
-npx playwright@1.50.1 install chromium     # the browser of the pinned Playwright (run-cells.mjs toolchain --name playwright)
+npx playwright@1.50.1 install chromium
 node design/compatibility/cells/run-cells.mjs pack --out .compat/gpu/tarballs
 ```
 
-On a contributor machine `npx playwright@1.50.1 install chromium` is the right way to get the browser (CI and the maintainer's container install it differently).
+`npx playwright@1.50.1 install chromium` installs the browser of the pinned Playwright (`node design/compatibility/cells/run-cells.mjs toolchain --name playwright` prints its version); on a contributor machine that is the right way to get it.
 
-#### 3. A targeted run (about 23 cells)
+#### 4. A targeted run (23 cells)
 
 The WebGPU expected-blank versions (pixi.js 8.2.6 … 8.9.2) plus 8.10.2 and 8.22.0, with React 18.3.1 and 19.3.0, on both backends (20 cells), then three Pixi 7.2/7.3 and React 18.0 cells. A browser window opens for each backend run; leave the machine alone while it runs.
 
 ```sh
 node design/compatibility/cells/run-cells.mjs run --tier nightly --patches all --gpu hardware --no-cache --work .compat/gpu --tarballs .compat/gpu/tarballs --react 18.3.1,19.3.0 --pixi 8.2.6,8.3.4,8.4.1,8.5.2,8.6.6,8.7.3,8.8.1,8.9.2,8.10.2,8.22.0
 node design/compatibility/cells/run-cells.mjs run --tier nightly --patches all --gpu hardware --no-cache --work .compat/gpu --tarballs .compat/gpu/tarballs --cell react-18.0.0_pixi-8.22.0,react-18.0.0_pixi-7.2.0,react-19.3.0_pixi-7.3.3
+node design/compatibility/verification.mjs build --work .compat/gpu --date $TODAY --commit $(git rev-parse HEAD) --machine $MACHINE --scope partial
 ```
 
-#### 4. Or the full run
+#### 5. Or the full run
 
-Every nightly cell (297: every React adapter at its minimum and latest audited patch × the newest audited patch of every Pixi 8 minor and every audited Pixi 7 release), then the boundary probes and the incompatible pairs, which a record needs before it verifies anything. On the maintainer's 4-vCPU software run the cells took about 75 minutes in three parallel shards; one shard on a laptop takes a few hours.
+Every nightly cell (297: every React adapter at its minimum and latest audited patch × the newest audited patch of every Pixi 8 minor and every audited Pixi 7 release), then the boundary probes and the incompatible pairs, which a record needs before it verifies anything. On the maintainer's 4-vCPU software run the cells took 59 minutes in three parallel shards (about 35 s per cell per shard); one shard on a laptop takes about one to three hours. Use a fresh work directory (delete `.compat/gpu` first, then pack again as in step 3), so a targeted run's results do not mix in.
 
 ```sh
 node design/compatibility/cells/run-cells.mjs run --tier nightly --patches all --gpu hardware --no-cache --work .compat/gpu --tarballs .compat/gpu/tarballs
 node design/compatibility/cells/run-cells.mjs probes --tier nightly --work .compat/gpu
 node design/compatibility/cells/run-cells.mjs run --negative --no-cache --gpu hardware --work .compat/gpu --tarballs .compat/gpu/tarballs
+node design/compatibility/verification.mjs build --work .compat/gpu --date $TODAY --commit $(git rev-parse HEAD) --machine $MACHINE
 ```
 
-A failing cell does not stop the run; its diagnostics are in `.compat/gpu/out/<cell>/`.
+A failing cell does not stop the run; its diagnostics are in `.compat/gpu/out/` (one directory per cell).
 
-#### 5. Build the record
-
-Turn the work directory into a dated record keyed by machine, OS and GPU. The machine slug is lowercase words joined by hyphens, for example `macos-14-apple-m2` or `windows-11-rtx-4070`. Add `--scope partial` for the targeted run. In PowerShell, write the date as `(Get-Date -Format yyyy-MM-dd)`; `$(git rev-parse HEAD)` works in both shells.
-
-```sh
-node design/compatibility/verification.mjs build --work .compat/gpu --date 2026-10-12 --commit $(git rev-parse HEAD) --machine macos-14-apple-m2 --scope partial
-```
-
-It writes `design/compatibility/verification/<date>-<machine>.json` and `.md`, with the OS, CPU, Node, npm, pnpm and Chromium versions and the GPU the render checks reported (WebGL `UNMASKED_RENDERER`, the WebGPU adapter and `isFallbackAdapter`). A second record of the same machine on the same day takes `--sequence 2` (`<date>-<machine>.2`).
+The `build` command writes `design/compatibility/verification/$TODAY-$MACHINE.json` and `.md`, with the OS, CPU, Node, npm, pnpm and Chromium versions and the GPU the render checks reported (WebGL `UNMASKED_RENDERER`, the WebGPU adapter and `isFallbackAdapter`). A full record supersedes an earlier partial one of the same machine with no other change: a later date counts as newer, and on the same date add `--sequence 2` (it writes `$TODAY-$MACHINE.2`); building again with the same date and no `--sequence` replaces the file.
 
 #### 6. What to send back
 
-The two record files, `design/compatibility/verification/<id>.json` and `<id>.md` (a pull request, or attached to the issue). If any cell failed, also a zip of its `.compat/gpu/out/<cell>/` directories (logs, reports, screenshots). The maintainer then runs `node design/compatibility/verification.mjs ranges --write` and `node scripts/release/compat-table.mjs --write`; the record sits beside the software one, which stays.
+The two record files the `build` command printed (`design/compatibility/verification/` plus the date and machine slug, `.json` and `.md`), in a pull request or attached to the issue. If any cell failed, also a zip of `.compat/gpu/out` (logs, reports, screenshots), for example `zip -r gpu-out.zip .compat/gpu/out` (macOS) or `Compress-Archive .compat/gpu/out gpu-out.zip` (PowerShell). The maintainer then runs `node design/compatibility/verification.mjs ranges --write` and `node scripts/release/compat-table.mjs --write`; the record sits beside the software one, which stays.
 
 A full hardware record verifies the tuples that passed on it; a partial record without probes and negative cases verifies nothing and is evidence only. Within one machine and GPU profile only the newest record counts (a later failure revokes that machine's earlier verification, and a later partial run replaces an earlier full one), so rerun on the same machine with the same `--machine` slug only to supersede; records of different machines or profiles add up. Under the hardware profile the expected-blank list does not apply: 8.2.6 … 8.9.2 must render on WebGPU to pass.
 

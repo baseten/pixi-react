@@ -46,15 +46,15 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 
 The same factory composes the Pixi 7 adapter ([`pixi-7`](../pixi-7/README.md), issue 16) with any React adapter;
 only the Pixi adapter and the installed pixi.js change. The Pixi 7 adapter releases at the same version as every other
-package (8.1.0 for Release 1), although it targets pixi.js `>=7.4.2 <7.5.0`.
+package (8.1.0 for Release 1), although it targets pixi.js `>=7.2.0 <7.4.0 || >=7.4.2 <7.5.0`.
 
 ```sh
-npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18@8.1.0 @pixi-react-provisional/pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
+npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18.3@8.1.0 @pixi-react-provisional/pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
 ```
 
 ```ts
 import { createRenderer } from '@pixi-react-provisional/renderer';
-import { React18Adapter } from '@pixi-react-provisional/react-18'; // or React19Adapter from a React 19 minor's package
+import { React18Adapter } from '@pixi-react-provisional/react-18.3'; // the package of your React minor: react-18.0 … react-18.3, react-19.0 … react-19.3
 import { Pixi7Adapter } from '@pixi-react-provisional/pixi-7';
 import { Container, Sprite } from 'pixi.js';
 
