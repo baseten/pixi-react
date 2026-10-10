@@ -93,7 +93,23 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
   - #40 merged as #60, covering the release rules, the generated compatibility table, the docs pins, and the Release 1 notes and migration guide. Release 1 says "tested", not "certified", until the nightly matrix and certificate records exist.
   - #18 merged as #61. It adds the `apps/examples` app, built from the local packages, with test hooks for #19. The smoke test runs in the existing E2E job.
   - Measurement on #58: ESM tree shaking would save only about 4 KiB gzip. The owner ruled that bundle size does not block Release 1.
-  - Next: #19. It needs a required CI job, which needs owner approval for the workflow edit.
+  - #19 merged as #64: the examples E2E and visual regression suite, with the required check `Examples E2E (required)`. The screenshots matched on GitHub's runners.
+  - Owner rulings (2026-10-10):
+    - Lockstep versions: every package releases at the facade's version (8.1.0), with exact same-version dependencies between our packages. ABI breaks may ship in a minor.
+    - The release dry run is a required CI check.
+    - Release 1 says "tested", not "certified".
+    - Google Fonts stays.
+    - The Sandpack examples stay pinned to 8.1.0.
+    - The `createRenderer` example goes into the docs after #41.
+    - The fallback npm scope is decided later.
+  - #62 merged as #63, after seven Codex rounds:
+    - lockstep versions and the `Release dry run` required check;
+    - the policy tells apart an ordinary checkout, the version commit, and a blocked release branch;
+    - the recovery is a fresh release branch from main.
+  - **Wave 2 build work is complete.** Deferred: #16/#17 (Pixi 7) and #58 (bundle size, not a Release 1 blocker).
+  - Owner actions:
+    - require `Compatibility (required)`, `Examples E2E (required)` and `Release dry run` in branch protection;
+    - decide the namespace (#41) and the publish switch once the PixiJS team has replied.
 
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
 
