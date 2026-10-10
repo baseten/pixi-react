@@ -154,10 +154,12 @@ pixi.js outside its range, is reported the first time you call into `@pixi/react
   unmount before init. The list is in the
   [migration guide](https://github.com/baseten/pixi-react/blob/main/apps/docs/docs/migrating-to-8.1.mdx).
 - **Bundle size.** The Pixi code in your bundle is the same as with 8.0.5, but the rest is larger: a minified
-  production bundle of a small app grows from 663.6 KiB (196.2 KiB gzip) to 751.7 KiB (222.9 KiB gzip), +88 KiB
-  (+27 KiB gzip). Most of it is about 55 KiB of adapter code the app can reach and react-reconciler 0.34, which
-  React 19.3 needs (+18.6 KiB over 8.0.5's 0.31). [#58](https://github.com/baseten/pixi-react/issues/58) tracks
-  reducing it.
+  production bundle of a small app grows from 663.6 KiB (196.2 KiB gzip) to 732.2 KiB (217.2 KiB gzip), +68.6 KiB
+  (+21.0 KiB gzip): adapter code the app can reach (64.4 KiB, against 8.0.5's 16.2 KiB) and react-reconciler 0.34,
+  which React 19.3 needs (127.0 KiB, against 8.0.5's 0.31 at 112.3 KiB).
+  [#58](https://github.com/baseten/pixi-react/issues/58) tracks reducing it. Production builds drop
+  development-only diagnostic text; errors keep their codes and details, and a development build gives the full
+  message.
 
 #### Staying on an older React 19 minor, or on React 18
 
