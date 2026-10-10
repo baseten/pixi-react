@@ -18,10 +18,10 @@ export const { Application, createRoot, extend, useApplication, useTick, compone
 
 ## Install
 
-Release 1 will publish this package as 1.0.0. React is a peer, limited to the exact versions this package is tested with, so install one of them exactly. `react-reconciler` and its-fine are exact dependencies and come with the package:
+Release 1 will publish this package as 8.1.0. React is a peer, limited to the exact versions this package is tested with, so install one of them exactly. `react-reconciler` and its-fine are exact dependencies and come with the package. They release together at the same version as `@pixi/react` and depend on each other at exactly that version, so install all of them (core, the renderer and the adapters) at one version.
 
 ```sh
-npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-19.3 @pixi-react-provisional/pixi-8 pixi.js react@19.3.0 react-dom@19.3.0
+npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-19.3@8.1.0 @pixi-react-provisional/pixi-8@8.1.0 pixi.js react@19.3.0 react-dom@19.3.0
 ```
 
 Nothing is published yet. Release tarballs carry the public names from `release.packages.json` (target scope `@pixi`, pending [issue 41](https://github.com/baseten/pixi-react/issues/41)). The [release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md) covers versions, install recipes, tested pairs and migration.

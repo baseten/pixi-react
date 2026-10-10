@@ -5,7 +5,8 @@
  *
  * For each package in release.packages.json:
  * 1. `pnpm pack` in the package directory, so the tarball holds exactly what a registry would serve and every
- *    `workspace:` range is replaced by the version range pnpm publishes (`workspace:^` becomes `^<version>`).
+ *    `workspace:` range is replaced by the version pnpm publishes (`workspace:*` becomes the exact `<version>`, which
+ *    is every package's version: they release in lockstep).
  * 2. The packed manifest gets the package's public name in the selected namespace, its dependencies on other
  *    publishable packages are renamed the same way, and `scripts` and `devDependencies` are dropped (a consumer
  *    never runs or installs them). `private` stays true unless release.packages.json enables publishing.

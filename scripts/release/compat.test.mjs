@@ -8,7 +8,7 @@ import { DEVELOPMENT_BUILD } from './bundles.mjs';
 import { checkReleaseRules, committedConfig, exactList, loadSeedAt, pixiMajors, releaseFacts, supportedPixiRange } from './compat.mjs';
 import { checkCompatibilityTable, renderCompatibilityTable, TABLE_FILE } from './compat-table.mjs';
 import { readJson, repoRoot } from './config.mjs';
-import { checkDocsPins, PINS_FILE, renderPins, rewriteVersions, textProblems } from './docs-pins.mjs';
+import { checkDocsPins, lockstepPins, lockstepProblems, PINS_FILE, renderPins, rewriteLockstep, rewriteVersions, textProblems } from './docs-pins.mjs';
 
 const config = committedConfig();
 const seed = loadSeedAt();
@@ -134,6 +134,24 @@ test('the pin rewriter and text checks catch drift, missing versions and moving 
 
     assert.equal(rewriteVersions(modular, pins), modular);
     assert.deepEqual(textProblems(modular, pins, 'page'), []);
+});
+
+test('install recipes name every modular package at the lockstep version (issue 62)', () =>
+{
+    const { names, version, pages } = lockstepPins();
+
+    assert.equal(version, '8.1.0');
+    assert.ok(names.includes('@pixi/react-core') && names.includes('@pixi-react-provisional/pixi-8') && !names.includes('@pixi/react'));
+    assert.ok(pages.includes('apps/docs/docs/migrating-to-8.1.mdx') && pages.includes('packages/react-18/README.md') && pages.includes('design/release.md'));
+    const recipe = 'npm install @pixi/react-renderer@8.0.0 @pixi/react-19.1@8.1.0 @pixi-react-provisional/pixi-8@1.0.0 pixi.js react@19.1.9 react-dom@19.1.9';
+    const fixed = rewriteLockstep(recipe, names, version);
+
+    assert.equal(fixed, 'npm install @pixi/react-renderer@8.1.0 @pixi/react-19.1@8.1.0 @pixi-react-provisional/pixi-8@8.1.0 pixi.js react@19.1.9 react-dom@19.1.9');
+    assert.deepEqual(lockstepProblems(fixed, names, version, 'page'), []);
+    assert.match(lockstepProblems(recipe, names, version, 'page').join('\n'), /@pixi\/react-renderer@8\.0\.0; install all modular packages at the same version, 8\.1\.0/);
+    assert.match(lockstepProblems('npm install @pixi/react-renderer @pixi/react-18@8.1.0', names, version, 'page').join('\n'), /installs @pixi\/react-renderer without a version/);
+    // The facade is not a modular package, and a longer name is not a shorter one.
+    assert.equal(rewriteLockstep('@pixi/react@8.0.5 @pixi/react-18-fixture@1.0.0', names, version), '@pixi/react@8.0.5 @pixi/react-18-fixture@1.0.0');
 });
 
 test('a production bundle may not contain a development build of React\'s packages', () =>

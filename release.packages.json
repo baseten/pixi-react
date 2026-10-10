@@ -1,5 +1,5 @@
 {
-  "$comment": "Single source of truth for the public npm names of the publishable workspace packages (issue 15). The workspace keeps its provisional names; scripts/release/stage.mjs rewrites them into the selected namespace when it packs release tarballs. See design/release.md.",
+  "$comment": "Single source of truth for the public npm names of the publishable workspace packages (issue 15). The workspace keeps its provisional names; scripts/release/stage.mjs rewrites them into the selected namespace when it packs release tarballs. Every package listed here releases at the facade's version (lockstep, issue 62): .changeset/config.json puts exactly these in one \"fixed\" group. See design/release.md.",
   "namespace": "target",
   "namespaces": {
     "target": {
@@ -20,7 +20,7 @@
     "reason": "Nothing is published until the owner configures a destination (issue 15, issue 41). Staged tarballs keep \"private\": true while this is false."
   },
   "abi": {
-    "$comment": "The ABI the last released core implemented (null before Release 1). scripts/release/version.mjs records CORE_ABI here after `changeset version`; policy.mjs compares the source CORE_ABI against it.",
+    "$comment": "The ABI declarations of the last release (null before Release 1): { core: CORE_ABI, adapters: { [source file]: [{ major, minor }] } }. scripts/release/version.mjs records them after `changeset version`; policy.mjs requires at least a minor lockstep release, with an \"ABI\" note in a changeset, when the source declarations differ from them (issue 62).",
     "released": null
   },
   "packages": {
@@ -32,47 +32,47 @@
     "packages/core": {
       "workspaceName": "@pixi-react-provisional/core",
       "suffix": "core",
-      "release1": "1.0.0"
+      "release1": "8.1.0"
     },
     "packages/renderer": {
       "workspaceName": "@pixi-react-provisional/renderer",
       "suffix": "renderer",
-      "release1": "1.0.0"
+      "release1": "8.1.0"
     },
     "packages/react-19.0": {
       "workspaceName": "@pixi-react-provisional/react-19.0",
       "suffix": "19.0",
-      "release1": "1.0.0",
+      "release1": "8.1.0",
       "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
     },
     "packages/react-19.1": {
       "workspaceName": "@pixi-react-provisional/react-19.1",
       "suffix": "19.1",
-      "release1": "1.0.0",
+      "release1": "8.1.0",
       "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
     },
     "packages/react-19.2": {
       "workspaceName": "@pixi-react-provisional/react-19.2",
       "suffix": "19.2",
-      "release1": "1.0.0",
+      "release1": "8.1.0",
       "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
     },
     "packages/react-19.3": {
       "workspaceName": "@pixi-react-provisional/react-19.3",
       "suffix": "19.3",
-      "release1": "1.0.0",
+      "release1": "8.1.0",
       "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
     },
     "packages/react-18": {
       "workspaceName": "@pixi-react-provisional/react-18",
       "suffix": "18",
-      "release1": "1.0.0",
+      "release1": "8.1.0",
       "versionConstant": { "file": "src/version.ts", "pattern": "PACKAGE_VERSION = '(?<version>[^']*)'" }
     },
     "packages/pixi-8": {
       "workspaceName": "@pixi-react-provisional/pixi-8",
       "suffix": "pixi-8",
-      "release1": "1.0.0",
+      "release1": "8.1.0",
       "versionConstant": { "file": "src/adapter.ts", "pattern": "PACKAGE_VERSION = '(?<version>[^']*)'" }
     }
   },

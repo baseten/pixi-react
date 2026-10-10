@@ -55,14 +55,14 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
     for (const pkg of facts.packages.filter((item) => !item.facade))
     {
         const peers = Object.entries(pkg.peers).filter(([name]) => !name.startsWith('@types/')).map(([name, range]) => `${name} ${code(range)}`).join(', ') || '-';
-        const exact = [pkg.reconciler && `react-reconciler ${pkg.reconciler}`, pkg.itsFine && `its-fine ${pkg.itsFine}`].filter(Boolean).join(', ') || '-';
+        const exact = [...pkg.internal.map((name) => `${code(name)} ${pkg.version}`), pkg.reconciler && `react-reconciler ${pkg.reconciler}`, pkg.itsFine && `its-fine ${pkg.itsFine}`].filter(Boolean).join(', ') || '-';
         let cells = pkg.dir === 'packages/pixi-8' ? 'with every React adapter row above' : 'in every cell';
 
         if (pkg.prCells) cells = `React ${pkg.prCells[0].react} with pixi.js ${pkg.prCells.map((cell) => cell.pixi).join(' and ')}`;
 
         lines.push(`| ${code(pkg.publicName)} | ${versionLabel(pkg)} | ${peers} | ${exact} | ${cells} |`);
     }
-    lines.push('', 'Each package depends on core with `^<core version>`; core\'s major is the adapter ABI major (see [release.md](release.md#the-modular-packages-start-at-100-cores-major-is-the-abi-major)).', '');
+    lines.push('', `Every package releases at the facade's version (${facade.version}), and a dependency between our packages names exactly that version: install all \`${config.names.modulePrefix}*\` packages at the same version (see [release.md](release.md#lockstep-versions)).`, '');
 
     return lines.join('\n');
 }

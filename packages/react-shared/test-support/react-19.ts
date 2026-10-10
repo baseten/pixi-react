@@ -353,7 +353,7 @@ export function describeReact19Package(pkg: React19PackageUnderTest): void
         it('declares exactly core, react-reconciler and its-fine, pinned, and only react as a peer', () =>
         {
             expect(manifest.dependencies).toEqual({
-                '@pixi-react-provisional/core': 'workspace:^', // published as ^<core version>: one core per ABI major (design/release.md)
+                '@pixi-react-provisional/core': 'workspace:*', // published as the exact same version: lockstep (design/release.md)
                 'its-fine': '2.1.1',
                 'react-reconciler': hostConfig.RECONCILER_VERSION,
             });

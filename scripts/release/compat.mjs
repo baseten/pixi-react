@@ -120,6 +120,8 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
             peers: manifest.peerDependencies ?? {},
             reconciler: manifest.dependencies?.['react-reconciler'] ?? null,
             itsFine: manifest.dependencies?.['its-fine'] ?? null,
+            // Our packages it depends on; each at exactly this release's version (lockstep, issue 62).
+            internal: Object.keys(manifest.dependencies ?? {}).filter((name) => config.byWorkspaceName.has(name)).map((name) => config.byWorkspaceName.get(name).publicName),
             reactEpoch: react?.key ?? null,
             // The PR tier runs each React adapter at its newest audited patch against every PR-tier pixi.js version.
             prCells: react ? prPixi.map((pixi) => ({ react: reactPr, pixi })) : null,

@@ -33,14 +33,16 @@ On a React 19 minor newer than 19.3, 8.1.0 installs (the peer is a caret range),
 
 ### Older React 19 minors and React 18: `createRenderer`
 
-`@pixi/react` is built from modular packages, which Release 1 publishes alongside it: core, the renderer factory, one React adapter per React minor, and the PixiJS 8 adapter. Install the renderer, the adapter for your React minor, the PixiJS adapter, and a React version from that adapter's peer range:
+`@pixi/react` is built from modular packages, which Release 1 publishes alongside it, all at 8.1.0: core, the renderer factory, one React adapter per React minor, and the PixiJS 8 adapter. Install the renderer, the adapter for your React minor, the PixiJS adapter, and a React version from that adapter's peer range.
+
+**Install all `@pixi/react-*` packages at the same version.** They are released together, always at the same version as `@pixi/react`, and each depends on the others at exactly that version. Mixing versions installs a second copy of the core package, and when the copies implement different adapter interfaces, `createRenderer` throws a `CompatibilityError` (`ABI_MISMATCH`).
 
 ```bash
 # React 19.1 (use @pixi/react-19.0 with React 19.0.8, or @pixi/react-19.2 with React 19.2.8)
-npm install @pixi/react-renderer @pixi/react-19.1 @pixi/react-pixi-8 pixi.js react@19.1.9 react-dom@19.1.9
+npm install @pixi/react-renderer@8.1.0 @pixi/react-19.1@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@19.1.9 react-dom@19.1.9
 
 # React 18
-npm install @pixi/react-renderer @pixi/react-18 @pixi/react-pixi-8 pixi.js react@18.3.1 react-dom@18.3.1
+npm install @pixi/react-renderer@8.1.0 @pixi/react-18@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@18.3.1 react-dom@18.3.1
 ```
 
 Then create the renderer once, in a module of your own, and import from it instead of from `@pixi/react`:

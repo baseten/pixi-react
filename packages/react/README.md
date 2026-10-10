@@ -163,13 +163,15 @@ pixi.js outside its range, is reported the first time you call into `@pixi/react
 
 Release 1 also publishes the modular packages that `@pixi/react` is built from: core, the renderer factory, one React
 adapter package per React minor (19.0, 19.1, 19.2, 19.3 and 18), and the PixiJS 8 adapter. An application on an older
-React minor composes the same pieces itself with `createRenderer`, choosing the adapter package of its React minor:
+React minor composes the same pieces itself with `createRenderer`, choosing the adapter package of its React minor.
+The modular packages release together at the same version as `@pixi/react`, and depend on each other at exactly that
+version: install all of them at one version.
 
 ```sh
 # React 19.1, for example; use react-19.0, -19.2 or -19.3 with a React version from that package's peer range
-npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-19.1 @pixi-react-provisional/pixi-8 pixi.js react@19.1.9 react-dom@19.1.9
+npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-19.1@8.1.0 @pixi-react-provisional/pixi-8@8.1.0 pixi.js react@19.1.9 react-dom@19.1.9
 # React 18
-npm install @pixi-react-provisional/renderer @pixi-react-provisional/react-18 @pixi-react-provisional/pixi-8 pixi.js react@18.3.1 react-dom@18.3.1
+npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18@8.1.0 @pixi-react-provisional/pixi-8@8.1.0 pixi.js react@18.3.1 react-dom@18.3.1
 ```
 
 ```ts

@@ -14,6 +14,9 @@
  *   that cell's reconciler and bridge may be installed; a React 18 consumer gets no React 19 package of any kind.
  * - `renderer-only` and `core-only`: the neutral factory and core install no React, no reconciler and no pixi.js.
  *
+ * Every scenario installs all of our packages at one version, the release's (lockstep, issue 62): the tree check
+ * fails if any installed copy of one of our packages has another version.
+ *
  * Each scenario runs `npm ls --all` (must be clean), the tree expectations (pinned packages counted as physical copies), `consumer/check-modules.mjs` (import and
  * require, adapter manifests, composition and registration), `consumer/check-declarations.cjs` (NodeNext import and
  * require declarations, runtime/declaration parity) and `tsc` over the scenario's `.mts` and `.cts` programs.
@@ -163,6 +166,7 @@ export function scenarios(manifest, { root = repoRoot } = {})
     // The explicit bundle scenarios: React 19.3 and React 18 with the newest certified pixi.js.
     for (const item of list)
     {
+        item.tree.sameVersion = { names: ours, version: facade.version };
         if (item.program === 'explicit') item.bundle = item.registry.esbuild ? 'explicit' : null;
         if (!item.bundle) delete item.registry.esbuild;
     }
@@ -264,6 +268,15 @@ export function checkTree(scenario, tree, installs)
     for (const [name, ranges] of Object.entries(scenario.tree.forbiddenVersions ?? {}))
     {
         for (const version of versionsOf(name)) if (ranges.some((range) => satisfiesCaretMajor(version, range))) problems.push(`${name}@${version} is installed; this consumer must not get it`);
+    }
+    if (scenario.tree.sameVersion)
+    {
+        const { names, version } = scenario.tree.sameVersion;
+
+        for (const name of names)
+        {
+            for (const copy of copiesOf(name)) if (copy.version !== version) problems.push(`${name}@${copy.version} at ${copy.location}: install all of our packages at the same version (${version})`);
+        }
     }
     if (scenario.tree.onlyDirect)
     {

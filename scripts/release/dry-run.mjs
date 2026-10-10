@@ -193,6 +193,7 @@ step('bundle assertions', () =>
 });
 
 const manifest = readJson(join(tarballs, 'release-manifest.json'));
+const ours = new Set(manifest.packages.map((entry) => entry.publicName));
 const lines = [
     `# Release dry run (${report.namespace} namespace)`,
     '',
@@ -205,6 +206,12 @@ const lines = [
     '## Tarballs',
     '',
     ...manifest.packages.map((entry) => `- \`${entry.file}\` \`${entry.publicName}@${entry.version}\` (${entry.workspaceName}), ${entry.size} bytes, ${entry.sha512.slice(0, 22)}…, private: ${entry.private}`),
+    '',
+    '## Dependencies between our packages (lockstep: exact versions)',
+    '',
+    `Versions: ${[...new Set(manifest.packages.map((entry) => entry.version))].join(', ')}`,
+    '',
+    ...manifest.packages.flatMap((entry) => Object.entries(entry.dependencies).filter(([name]) => ours.has(name)).map(([name, spec]) => `- \`${entry.publicName}@${entry.version}\` → \`${name}@${spec}\``)),
     '',
     `Consumers and bundles: see consumers.json and bundles.json in ${tarballs}.`,
 ];

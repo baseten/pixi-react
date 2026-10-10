@@ -8,7 +8,7 @@ import { compareWithUpstream, KNOWN_GAPS, UPSTREAM_BASELINE } from './bundles.mj
 import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
-import { checkPolicy, readPlan } from './policy.mjs';
+import { abiChanges, checkPolicy, readAbiDeclarations, readPlan } from './policy.mjs';
 import { releaseManifest, tarballName } from './stage.mjs';
 import { syncVersionConstants } from './version.mjs';
 
@@ -60,22 +60,22 @@ test('releaseManifest renames, strips scripts and devDependencies, and fails clo
     const pkg = target.packages.find((item) => item.dir === 'packages/react-19.3');
     const manifest = releaseManifest({
         name: pkg.workspaceName,
-        version: '1.0.0',
+        version: '8.1.0',
         private: true,
         scripts: { build: 'x', postinstall: 'y' },
-        dependencies: { '@pixi-react-provisional/core': '^1.0.0', 'react-reconciler': '0.34.0' },
+        dependencies: { '@pixi-react-provisional/core': '8.1.0', 'react-reconciler': '0.34.0' },
         devDependencies: { '@pixi-react-provisional/react-shared': '0.0.0' },
         peerDependencies: { react: '19.3.0' },
     }, pkg, target);
 
     assert.equal(manifest.name, '@pixi/react-19.3');
-    assert.deepEqual(manifest.dependencies, { '@pixi/react-core': '^1.0.0', 'react-reconciler': '0.34.0' });
+    assert.deepEqual(manifest.dependencies, { '@pixi/react-core': '8.1.0', 'react-reconciler': '0.34.0' });
     assert.equal(manifest.scripts, undefined);
     assert.equal(manifest.devDependencies, undefined);
     assert.equal(manifest.private, true, 'private while publishing is disabled');
     assert.throws(() => releaseManifest({ name: pkg.workspaceName, dependencies: { '@pixi-react-provisional/react-shared': '0.0.0' } }, pkg, target), /never published/);
     assert.throws(() => releaseManifest({ name: pkg.workspaceName, dependencies: { '@pixi-react-provisional/core': 'workspace:^' } }, pkg, target), /still workspace:/);
-    assert.equal(tarballName('@pixi/react-19.3', '1.0.0'), 'pixi-react-19.3-1.0.0.tgz');
+    assert.equal(tarballName('@pixi/react-19.3', '8.1.0'), 'pixi-react-19.3-8.1.0.tgz');
 });
 
 test('resolveExport follows condition order like Node and TypeScript', () =>
@@ -104,13 +104,13 @@ function fakePackage(manifest, files)
 
 test('inspectPackage accepts a well-formed adapter and reports each kind of defect', () =>
 {
-    const entry = { dir: 'packages/react-19.3', publicName: '@pixi/react-19.3' };
-    const staged = [{ publicName: '@pixi/react-core', version: '1.0.0' }, { publicName: '@pixi/react-19.3', version: '1.0.0' }];
+    const entry = { dir: 'packages/react-19.3', publicName: '@pixi/react-19.3', version: '8.1.0' };
+    const staged = [{ publicName: '@pixi/react-core', version: '8.1.0' }, { publicName: '@pixi/react-19.3', version: '8.1.0' }];
     const good = {
-        name: '@pixi/react-19.3', version: '1.0.0', private: true, license: 'MIT',
+        name: '@pixi/react-19.3', version: '8.1.0', private: true, license: 'MIT',
         exports: { '.': { import: { types: './dist/index.d.mts', default: './dist/index.mjs' }, require: { types: './dist/index.d.ts', default: './dist/index.js' } } },
         imports: { '#reconciler': 'react-reconciler' },
-        dependencies: { '@pixi/react-core': '^1.0.0', 'react-reconciler': '0.34.0', 'its-fine': '2.1.1' },
+        dependencies: { '@pixi/react-core': '8.1.0', 'react-reconciler': '0.34.0', 'its-fine': '2.1.1' },
         peerDependencies: { react: '19.3.0' },
     };
     const files = {
@@ -144,7 +144,7 @@ test('inspectPackage accepts a well-formed adapter and reports each kind of defe
         ...good,
         private: false,
         scripts: { postinstall: 'node build.js' },
-        dependencies: { '@pixi/react-core': '1.0.0', 'react-reconciler': '^0.34.0', react: '19.3.0' },
+        dependencies: { '@pixi/react-core': '8.0.5', 'react-reconciler': '^0.34.0', react: '19.3.0' },
         peerDependencies: { react: '^19.3.0' },
     }, { ...files, 'dist/index.js': 'require(\'lodash\'); require(\'#missing\');' });
 
@@ -152,7 +152,7 @@ test('inspectPackage accepts a well-formed adapter and reports each kind of defe
     {
         const problems = inspectPackage(bad, entry, staged, target).problems.join('\n');
 
-        for (const expected of [/"private" is false/, /dependencies\.@pixi\/react-core is 1\.0\.0, expected \^1\.0\.0/, /react is a dependency/, /react-reconciler is \^0\.34\.0/, /without an exact its-fine/, /not a list of exact versions/, /lifecycle script "postinstall"/, /imports undeclared lodash/, /#missing/])
+        for (const expected of [/"private" is false/, /dependencies\.@pixi\/react-core is 8\.0\.5; packages of this release depend on each other at exactly the same version 8\.1\.0/, /react is a dependency/, /react-reconciler is \^0\.34\.0/, /without an exact its-fine/, /not a list of exact versions/, /lifecycle script "postinstall"/, /imports undeclared lodash/, /#missing/])
         {
             assert.match(problems, expected);
         }
@@ -163,53 +163,156 @@ test('inspectPackage accepts a well-formed adapter and reports each kind of defe
     }
 });
 
-test('the committed release plan satisfies the policy (Release 1: facade 8.1.0, modular packages 1.0.0)', () =>
+test('inspection rejects a ^ or ~ range, or another version, between our packages (negative)', () =>
+{
+    const entry = { dir: 'packages/renderer', publicName: '@pixi/react-renderer', version: '8.1.0' };
+    const staged = [{ publicName: '@pixi/react-core', version: '8.1.0' }, { publicName: '@pixi/react-renderer', version: '8.1.0' }];
+    const manifest = (dependencies, extra = {}) => ({
+        name: '@pixi/react-renderer', version: '8.1.0', private: true, license: 'MIT',
+        exports: { '.': { import: { types: './index.d.mts', default: './index.mjs' }, require: { types: './index.d.ts', default: './index.js' } } },
+        dependencies,
+        ...extra,
+    });
+    const files = { 'index.js': 'require(\'@pixi/react-core\');', 'index.mjs': 'export {};', 'index.d.ts': 'export {};', 'index.d.mts': 'export {};' };
+    const problemsFor = (pkg) =>
+    {
+        const dir = fakePackage(pkg, files);
+
+        try
+        {
+            return inspectPackage(dir, entry, staged, target).problems.join('\n');
+        }
+        finally
+        {
+            rmSync(dir, { recursive: true, force: true });
+        }
+    };
+
+    assert.equal(problemsFor(manifest({ '@pixi/react-core': '8.1.0' })), '');
+    assert.match(problemsFor(manifest({ '@pixi/react-core': '^8.1.0' })), /dependencies\.@pixi\/react-core is \^8\.1\.0; packages of this release depend on each other at exactly the same version 8\.1\.0 \(no \^ or ~ ranges\)/);
+    assert.match(problemsFor(manifest({ '@pixi/react-core': '~8.1.0' })), /dependencies\.@pixi\/react-core is ~8\.1\.0; .* \(no \^ or ~ ranges\)/);
+    assert.match(problemsFor(manifest({}, { optionalDependencies: { '@pixi/react-core': '>=8.1.0' } })), /optionalDependencies\.@pixi\/react-core is >=8\.1\.0/);
+    assert.match(problemsFor(manifest({}, { peerDependencies: { '@pixi/react-core': '8.1.0' } })), /@pixi\/react-core is a peer; it must be an exact dependency/);
+    // The tarball's own version must be the release manifest's (the lockstep version).
+    assert.match(problemsFor({ ...manifest({ '@pixi/react-core': '8.1.0' }), version: '8.1.1' }), /version 8\.1\.1, the release manifest says 8\.1\.0/);
+});
+
+test('the consumer tree check rejects one of our packages at another version', () =>
+{
+    const dir = mkdtempSync(join(tmpdir(), 'release-lockstep-'));
+    const install = (location, name, version) =>
+    {
+        mkdirSync(join(dir, location), { recursive: true });
+        writeFileSync(join(dir, location, 'package.json'), JSON.stringify({ name, version }));
+    };
+
+    try
+    {
+        install('node_modules/@pixi/react-core', '@pixi/react-core', '8.1.0');
+        install('node_modules/@pixi/react-renderer', '@pixi/react-renderer', '8.1.0');
+        const scenario = { registry: {}, tree: { sameVersion: { names: ['@pixi/react-core', '@pixi/react-renderer', '@pixi/react-19.3'], version: '8.1.0' } } };
+
+        assert.deepEqual(checkTree(scenario, { dependencies: {} }, scanInstalls(dir)).problems, []);
+        install('node_modules/@pixi/react-renderer/node_modules/@pixi/react-core', '@pixi/react-core', '8.2.0');
+        assert.match(checkTree(scenario, { dependencies: {} }, scanInstalls(dir)).problems.join('\n'), /@pixi\/react-core@8\.2\.0 at node_modules\/@pixi\/react-renderer\/node_modules\/@pixi\/react-core: install all of our packages at the same version \(8\.1\.0\)/);
+    }
+    finally
+    {
+        rmSync(dir, { recursive: true, force: true });
+    }
+});
+
+test('the committed release plan satisfies the policy (Release 1: every package 8.1.0, in lockstep)', () =>
 {
     const result = checkPolicy({ plan: readPlan() });
 
     assert.deepEqual(result.problems, []);
-    assert.deepEqual(Object.fromEntries(result.plan.map((release) => [release.name, release.newVersion])), Object.fromEntries(target.packages.map((pkg) => [pkg.workspaceName, pkg.release1])));
+    assert.equal(result.version, '8.1.0');
+    assert.ok(target.packages.every((pkg) => pkg.release1 === '8.1.0'), 'release.packages.json: Release 1 is 8.1.0 for every package');
+    assert.deepEqual(Object.fromEntries(result.plan.map((release) => [release.name, release.newVersion])), Object.fromEntries(target.packages.map((pkg) => [pkg.workspaceName, '8.1.0'])));
+});
+
+test('Changesets versions the publishable packages as one fixed group', () =>
+{
+    const config = JSON.parse(readFileSync(join(repoRoot, '.changeset/config.json'), 'utf8'));
+
+    assert.deepEqual(config.fixed.map((group) => [...group].sort()), [target.packages.map((pkg) => pkg.workspaceName).sort()]);
+    assert.deepEqual(config.linked, []);
+    for (const pkg of target.packages.filter((item) => !item.facade))
+    {
+        const manifest = JSON.parse(readFileSync(join(repoRoot, pkg.dir, 'package.json'), 'utf8'));
+
+        for (const [name, spec] of Object.entries(manifest.dependencies ?? {})) if (target.byWorkspaceName.has(name)) assert.equal(spec, 'workspace:*', `${pkg.workspaceName} -> ${name}`);
+    }
 });
 
 /** A synthetic plan over the real workspace: each entry `name: [type, newVersion, explicit?]`. */
-function plan(entries)
+function plan(entries, summary = 'synthetic')
 {
-    const releases = Object.entries(entries).map(([name, [type, newVersion]]) => ({ name, type, newVersion, oldVersion: '0.0.0', changesets: [] }));
+    const releases = Object.entries(entries).map(([name, [type, newVersion]]) => ({ name, type, newVersion, oldVersion: '8.1.0', changesets: [] }));
     const explicit = Object.entries(entries).filter(([, [, , isExplicit]]) => isExplicit !== false).map(([name, [type]]) => ({ name, type }));
 
-    return { changesets: [{ id: 'synthetic', releases: explicit }], releases };
+    return { changesets: [{ id: 'synthetic', summary, releases: explicit }], releases };
 }
 
-test('an ABI major change needs an explicit major release of every package that depends on core', () =>
+const group = target.packages.map((pkg) => pkg.workspaceName);
+/** Every lockstep package at `type` -> `version`, the facade explicit and the others carried by the fixed group. */
+const lockstepPlan = (type, version, summary) => plan(Object.fromEntries(group.map((name) => [name, [type, version, name === '@pixi/react']])), summary);
+const releasedNow = () => ({ ...target, releasedAbi: readAbiDeclarations() });
+
+test('policy: a package off the lockstep version fails (negative)', () =>
 {
-    const released = { ...target, releasedAbi: { major: 1, minor: 0 } };
-    const dependents = target.packages.filter((pkg) => !pkg.facade && pkg.dir !== 'packages/core').map((pkg) => pkg.workspaceName);
-    // Core goes to 2.0.0, but CORE_ABI in the source is still 1: the core major must equal the ABI major.
-    const coreOnly = checkPolicy({ config: released, plan: plan({ '@pixi-react-provisional/core': ['major', '2.0.0'], ...Object.fromEntries(dependents.map((name) => [name, ['patch', '1.0.1', false]])) }) }).problems.join('\n');
+    const config = releasedNow();
 
-    assert.match(coreOnly, /core will be 2\.0\.0, but its major must equal the ABI major 1/);
-    for (const name of dependents) assert.match(coreOnly, new RegExp(`${name.replace(/[.]/g, '\\.')} depends on core and needs its own major changeset`));
+    assert.deepEqual(checkPolicy({ config, plan: lockstepPlan('patch', '8.1.1') }).problems, []);
+    const entries = Object.fromEntries(group.map((name) => [name, ['patch', '8.1.1']]));
 
-    const withDependents = checkPolicy({ config: released, plan: plan({ '@pixi-react-provisional/core': ['major', '2.0.0'], ...Object.fromEntries(dependents.map((name) => [name, ['major', '2.0.0']])) }) }).problems;
+    entries['@pixi-react-provisional/core'] = ['major', '9.0.0'];
+    entries['@pixi-react-provisional/react-18'] = ['none', '8.1.0'];
+    const problems = checkPolicy({ config, plan: plan(entries) }).problems.join('\n');
 
-    assert.ok(!withDependents.some((problem) => problem.includes('needs its own major changeset')), withDependents.join('\n'));
+    assert.match(problems, /lockstep: every publishable package must release at the facade's version 8\.1\.1, but @pixi-react-provisional\/core 9\.0\.0, @pixi-react-provisional\/react-18 8\.1\.0/);
+    // One version, but not the Pixi major of the facade's pixi.js peer.
+    assert.match(checkPolicy({ config, plan: lockstepPlan('major', '9.0.0') }).problems.join('\n'), /lockstep: the packages would release 9\.0\.0, but their major must equal the Pixi major of the facade's pixi\.js peer \(8\)/);
 });
 
-test('an ABI minor increase needs at least a minor core release', () =>
+test('an ABI change needs at least a minor lockstep release and an "ABI" note in a changeset', () =>
 {
-    const config = { ...target, releasedAbi: { major: 1, minor: -1 } };
-    const patch = checkPolicy({ config, plan: plan({ '@pixi-react-provisional/core': ['patch', '1.0.1'] }) }).problems.join('\n');
+    const current = readAbiDeclarations();
+    const [adapterFile] = Object.keys(current.adapters);
+    const coreMinor = { ...target, releasedAbi: { ...current, core: { major: current.core.major, minor: current.core.minor - 1 } } };
+    const adapterMinor = { ...target, releasedAbi: { ...current, adapters: { ...current.adapters, [adapterFile]: current.adapters[adapterFile].map((abi) => ({ ...abi, minor: abi.minor + 1 })) } } };
 
-    assert.match(patch, /CORE_ABI minor rose to 0 \(released -1\): core needs at least a minor changeset/);
-    assert.doesNotMatch(checkPolicy({ config, plan: plan({ '@pixi-react-provisional/core': ['minor', '1.1.0'] }) }).problems.join('\n'), /minor rose/);
+    assert.deepEqual(abiChanges(current, current), []);
+    assert.match(abiChanges(coreMinor.releasedAbi, current).join(), /CORE_ABI 1\.-1 -> 1\.0/);
+    assert.match(abiChanges(adapterMinor.releasedAbi, current).join(), new RegExp(`${adapterFile.replace(/[.]/g, '\\.')} ABI 1\\.1 -> 1\\.0`));
+    for (const config of [coreMinor, adapterMinor])
+    {
+        const patch = checkPolicy({ config, plan: lockstepPlan('patch', '8.1.1', 'Fix the ABI handshake') }).problems.join('\n');
+
+        assert.match(patch, /the adapter ABI changed since the last release \(.+\): the lockstep packages need at least a minor changeset/);
+        const unnoted = checkPolicy({ config, plan: lockstepPlan('minor', '8.2.0', 'New capability') }).problems.join('\n');
+
+        assert.doesNotMatch(unnoted, /need at least a minor changeset/);
+        assert.match(unnoted, /a changeset of at least minor level must document it in its summary \(mention "ABI"\)/);
+        assert.deepEqual(checkPolicy({ config, plan: lockstepPlan('minor', '8.2.0', 'ABI 1.1: adapters may require the new capability; mixing versions fails with ABI_MISMATCH') }).problems, []);
+    }
+    // No ABI change: a patch needs no note.
+    assert.deepEqual(checkPolicy({ config: releasedNow(), plan: lockstepPlan('patch', '8.1.1') }).problems, []);
+    // CORE_ABI's minor may not fall within a major, whatever the release.
+    const fell = { ...target, releasedAbi: { ...current, core: { major: current.core.major, minor: current.core.minor + 1 } } };
+
+    assert.match(checkPolicy({ config: fell, plan: lockstepPlan('minor', '8.2.0', 'ABI change') }).problems.join('\n'), /CORE_ABI minor fell from 1 to 0/);
+    // The old one-number shape is rejected rather than misread.
+    assert.match(checkPolicy({ config: { ...target, releasedAbi: { major: 1, minor: 0 } }, plan: lockstepPlan('patch', '8.1.1') }).problems.join('\n'), /abi\.released must be \{ core/);
 });
 
 test('Release 1 must reach exactly the configured versions', () =>
 {
-    const problems = checkPolicy({ plan: plan({ '@pixi/react': ['major', '9.0.0'], '@pixi-react-provisional/core': ['major', '1.0.0'] }) }).problems.join('\n');
+    const problems = checkPolicy({ plan: plan({ '@pixi/react': ['major', '9.0.0'], '@pixi-react-provisional/core': ['minor', '8.1.0'] }) }).problems.join('\n');
 
     assert.match(problems, /Release 1: @pixi\/react would release 9\.0\.0, expected 8\.1\.0/);
-    assert.match(problems, /Release 1: @pixi-react-provisional\/renderer would release 0\.0\.0, expected 1\.0\.0/);
+    assert.match(problems, /Release 1: @pixi-react-provisional\/renderer would release 0\.0\.0, expected 8\.1\.0/);
 });
 
 test('syncVersionConstants copies package.json versions into the source constants', () =>

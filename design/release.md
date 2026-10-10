@@ -1,4 +1,4 @@
-# Release policy, packaging and installation (issues 15 and 40)
+# Release policy, packaging and installation (issues 15, 40 and 62)
 
 This page defines how the facade and the modular packages are versioned, packed and installed. It covers the release
 plan for Release 1, the checks that run before any release, and how consumers install each package. **Nothing is
@@ -14,27 +14,39 @@ Owner rulings of 2026-10-09 applied here:
 
 Owner rulings for [issue 40](https://github.com/baseten/pixi-react/issues/40) (2026-10-09), applied here:
 
-- Release 1 is the facade `@pixi/react` 8.1.0 plus the modular packages at 1.0.0. The facade keeps D1: its React peer
+- Release 1 is the facade `@pixi/react` 8.1.0 plus the modular packages, also at 8.1.0 (issue 62, below). The facade keeps D1: its React peer
   is `^19.3.0`, with a runtime warning on another React 19 minor ([migration guide](../apps/docs/docs/migrating-to-8.1.mdx),
   [release notes](release-1-notes.md)).
-- The facade's major tracks the Pixi major; its minor and patch versions are independent. The modular packages use
-  plain semver. Peer ranges are widened only with matrix evidence.
+- The facade's major tracks the Pixi major; its minor and patch versions are independent of Pixi's. Peer ranges are
+  widened only with matrix evidence.
 - Dependency-update automation (Renovate or Dependabot) is deferred until there is agreement to move to the upstream
   repository (issue 41). New React and Pixi versions follow the [manual flow](#adding-a-react-or-pixi-version-the-manual-flow).
 - Release 1 calls its versions **tested**, not certified ([below](#what-tested-means)).
 - Bundle size ([#58](https://github.com/baseten/pixi-react/issues/58)) does not block Release 1; the release notes
   state it.
 
+Owner rulings for [issue 62](https://github.com/baseten/pixi-react/issues/62) (2026-10-10), applied here. They replace
+the independent versions of issue 15:
+
+- **Lockstep versions.** Every published package releases together at the facade's version: the facade, core, the
+  renderer, `react-19.0` … `react-19.3`, `react-18` and `pixi-8`. Release 1 is 8.1.0 for all of them.
+- **The major still tracks the Pixi major**, so an ABI-breaking change between core and the adapters may ship in a
+  minor, documented in the changelog.
+- **Exact dependencies between our packages.** The renderer and every adapter depend on core at exactly the same
+  version (`"8.1.0"`, not `^8.1.0`). Users install all `@pixi/react-*` packages at the same version. The runtime ABI
+  check stays as the backstop.
+- **The release dry run is a required CI check** ([below](#the-dry-run-in-ci)).
+
 ## Packages and public names
 
 | Workspace | Workspace name | Public name (target) | Release 1 |
 | --- | --- | --- | --- |
 | `packages/react` | `@pixi/react` | `@pixi/react` (the facade) | 8.1.0 |
-| `packages/core` | `@pixi-react-provisional/core` | `@pixi/react-core` | 1.0.0 |
-| `packages/renderer` | `@pixi-react-provisional/renderer` | `@pixi/react-renderer` | 1.0.0 |
-| `packages/react-19.0` … `react-19.3` | `@pixi-react-provisional/react-19.x` | `@pixi/react-19.0` … `@pixi/react-19.3` | 1.0.0 |
-| `packages/react-18` | `@pixi-react-provisional/react-18` | `@pixi/react-18` | 1.0.0 |
-| `packages/pixi-8` | `@pixi-react-provisional/pixi-8` | `@pixi/react-pixi-8` | 1.0.0 |
+| `packages/core` | `@pixi-react-provisional/core` | `@pixi/react-core` | 8.1.0 |
+| `packages/renderer` | `@pixi-react-provisional/renderer` | `@pixi/react-renderer` | 8.1.0 |
+| `packages/react-19.0` … `react-19.3` | `@pixi-react-provisional/react-19.x` | `@pixi/react-19.0` … `@pixi/react-19.3` | 8.1.0 |
+| `packages/react-18` | `@pixi-react-provisional/react-18` | `@pixi/react-18` | 8.1.0 |
+| `packages/pixi-8` | `@pixi-react-provisional/pixi-8` | `@pixi/react-pixi-8` | 8.1.0 |
 
 These packages are never published: `react-shared` (bundled into each React adapter at build time), `conformance`,
 `type-consumers`, `design/contract`, every `*-fixture-*` package, `apps/docs` and `apps/examples`. Each of them is `"private": true`, and
@@ -80,8 +92,18 @@ Consumers therefore see the names they install.
 
 ## Version policy
 
-Versions are independent: each package has its own version and changelog, and Changesets has no `fixed` or `linked`
-groups.
+### Lockstep versions
+
+Every published package releases at the facade's version (issue 62). The nine packages of `release.packages.json` form
+one Changesets `fixed` group, so a changeset for any of them releases all of them, at the highest bump among the pending
+changesets; never-published packages stay ignored. Each package still has its own CHANGELOG.
+
+`policy.mjs` checks the group (exactly the publishable packages, nothing `linked`), and that once the pending plan is
+applied every publishable package is at one version whose major is the Pixi major of the facade's `pixi.js` peer.
+`inspect.mjs` checks the same on the staged tarballs.
+
+Why lockstep: one number tells a user which packages belong together, and the exact dependencies below make a release
+a tested set. Core and the adapters can then change their ABI in any release without encoding the ABI in core's version.
 
 ### The facade's major tracks the Pixi major
 
@@ -100,45 +122,48 @@ groups.
 ### The facade continues upstream's line
 
 The facade's workspace version is upstream's last release, `8.0.5`. Release 1 is a minor changeset, which makes it
-`8.1.0`. The facade follows semver for upstream's public API (D4): a behaviour change that a working upstream program
-can observe is held for the documented future major. The facade has no runtime dependency on any modular package: it
-bundles their code. Its own versions are therefore independent of theirs.
+`8.1.0`; the modular packages' workspace versions are `0.0.0`, and the `fixed` group releases them from the group's
+highest version, so they reach `8.1.0` too (`changeset status` reports them as `8.0.5 -> 8.1.0`). The facade follows
+semver for upstream's public API (D4): a behaviour change that a working upstream program can observe is held for the
+documented future major. The facade has no runtime dependency on any modular package: it bundles their code.
 
-### The modular packages start at 1.0.0: core's major is the ABI major
+### The ABI version is independent of the npm version
 
 Adapters and core negotiate through the adapter ABI (`CORE_ABI = { major: 1, minor: 0 }` in
-`packages/core/src/abi.ts`, and each adapter manifest's `abi`). The rule is that **core's major version equals the ABI
-major**. Release 1 is ABI 1, so core is `1.0.0`. The other modular packages also start at `1.0.0`, so the first
-generation reads as one. After Release 1, each adapter versions on its own.
+`packages/core/src/abi.ts`, and each adapter manifest's `abi`). The ABI stays in the adapter manifests, and core still
+rejects an adapter of another ABI major (`ABI_MISMATCH`) before anything is allocated. But no npm version encodes it:
+before issue 62, core's major was the ABI major (Release 1 would have been `1.0.0`, and an ABI break a core major).
+Under lockstep, core's major is the Pixi major like every other package's, so an ABI change, even a breaking one, can
+ship in a minor. That is safe because every package depends on the others at the exact same version: a consistent
+install never mixes ABIs.
 
-`1.0.0` is chosen over `0.1.0` because npm's caret ranges handle `0.x` differently. `^0.1.0` means `<0.2.0`, so under
-`0.x` every minor would act as a major, and the ABI major would be encoded in core's minor. Then `^0.1.0` could not
-express "any ABI 1 core". With `1.0.0`, `^1.0.0` means exactly that, and an ABI major is an npm major. A version number
-is not a certificate: support is still exactly the tested peers (D5) and the #13 matrix, and `1.0.0` adds no claim
-beyond that.
+Mixing versions is not supported. A second version of an adapter brings its own exact core, so npm installs a second
+copy of core. If the two cores' ABIs differ, composition fails with `ABI_MISMATCH`, naming the adapter. If they do not,
+the composition may work, but each copy has its own `CompatibilityError` class; nothing is promised for that install.
 
 ### Dependency ranges
 
 | Dependency | In the workspace | Published as | Why |
 | --- | --- | --- | --- |
-| A modular package on core | `workspace:^` | `^<core version at release>` | Any core of the same ABI major satisfies it, so npm installs **one** core for every adapter. Core identity matters: one registry, one `CompatibilityError` class. The floor is the core the adapter was built and tested against, so it already implements every ABI minor the adapter needs |
+| A package of ours on another (the renderer and every adapter on core) | `workspace:*` | `<version>`: exactly the release's version, never `^` or `~` | pnpm pack writes the exact version. Packages of one release share one core: one registry, one `CompatibilityError` class, and the ABI the release was tested with. `policy.mjs` rejects any other workspace range, `inspect.mjs` any other published one |
 | A React adapter on `react-reconciler`, `its-fine` | exact | exact | Each reconciler is pinned in the adapter that owns it (D2 reversed). The policy check rejects a reconciler anywhere except the React adapters and the facade |
 | `react`, `react-dom`, `pixi.js` | peer | peer | Never a dependency of any published package. The React adapters' peers list exact tested versions (D5). The facade's React peer is `^19.3.0` (D1 as amended by issue 49) |
 | The facade on modular packages | devDependencies | none | The facade bundles our adapter code. Non-default adapters are never facade dependencies |
 
 ### When an ABI changes
 
-`scripts/release/policy.mjs` enforces these rules on the pending Changesets plan:
+An ABI change is a change to `CORE_ABI` or to an adapter manifest's `abi` declaration (in `packages/pixi-8/src/adapter.ts`,
+`packages/react-18/src/adapter.ts` and `packages/react-shared/src/react-19/adapter.ts`). `scripts/release/policy.mjs`
+enforces these rules on the pending Changesets plan:
 
 | Change | Required release | Enforced by |
 | --- | --- | --- |
-| A new ABI method or capability that adapters may require (`CORE_ABI.minor` +1) | At least a **minor** core release. An adapter that starts to require it is released with the new core as its floor (`workspace:^` writes it) | `CORE_ABI minor rose … core needs at least a minor changeset` |
-| An incompatible ABI change (`CORE_ABI.major` +1) | A **major** core release, so core's major again equals the ABI major. Every published package that depends on core (renderer, every React adapter, pixi-8) also needs **its own explicit major changeset**, so that no adapter keeps a range on the old ABI. Changesets alone would only patch-bump dependents | `core will be X, but its major must equal the ABI major` and `… depends on core and needs its own major changeset` |
+| Any ABI change since the last release: a new ABI method or capability (`CORE_ABI.minor` +1), an incompatible change (`CORE_ABI.major` +1), or an adapter that declares another ABI | At least a **minor** release of the lockstep group, and a changeset of at least minor level whose summary says `ABI`: the changelog must tell users that the release changes the ABI between core and the adapters, and that mixing versions may then fail | `the adapter ABI changed since the last release (…): the lockstep packages need at least a minor changeset` and `… must document it in its summary (mention "ABI")` |
 | An adapter's manifest ABI major differs from core's | Not allowed | `declares ABI major …, core implements …` |
 | Removing an ABI method within a major (`CORE_ABI.minor` −1) | Not allowed; it is an ABI major change | `CORE_ABI minor fell …` |
 
-`abi.released` in `release.packages.json` records the ABI of the last release. `pnpm release:version` sets it, so
-the next run can tell whether the ABI moved.
+`abi.released` in `release.packages.json` records the ABI declarations of the last release: CORE_ABI and every adapter
+declaration, by source file. `pnpm release:version` sets it, so the next run can tell whether the ABI moved.
 
 ### Peer ranges move only with matrix evidence
 
@@ -189,11 +214,13 @@ add the range to `advertisedRanges` (and relax the `validate.mjs` assertion with
 
 ### Other changes
 
+The bump of a release is the highest among its changesets, for every package of the group.
+
 | Change | Bump |
 | --- | --- |
 | A React adapter tests an additional React patch (peer gains an exact version) | minor |
 | The Pixi adapter's peer range gains tested Pixi versions | minor |
-| A peer version is dropped, or the reconciler or its-fine changes in a way consumers can observe | major. A reconciler bump is an adapter release that needs its matrix again (D2) |
+| A peer version is dropped, or the reconciler or its-fine changes in a way consumers can observe | breaking: like a breaking facade change, it waits for the next Pixi major (the lockstep major). A reconciler bump is an adapter release that needs its matrix again (D2) |
 | A failure-path repair or an internal fix | patch |
 | A new export, option or capability | minor |
 
@@ -202,9 +229,10 @@ add the range to `advertisedRanges` (and relax the `validate.mjs` assertion with
 Nothing below publishes. Publishing needs the [owner approvals](#before-publishing-owner-approvals) first.
 
 1. **Describe each change.** In every pull request with a consumer-visible change, run `pnpm changeset` and choose the
-   bump per the tables above. Never-published packages are ignored.
+   bump per the tables above. Name the packages that changed; the `fixed` group releases all of them at one version.
+   Never-published packages are ignored.
 2. **Check the policy.** `pnpm test:release` runs the release tooling tests and `pnpm release:policy`: classification,
-   manifests, ABI, Release 1 versions, the [peer rules](#peer-ranges-move-only-with-matrix-evidence), and whether the
+   manifests, lockstep versions, ABI, Release 1 versions, the [peer rules](#peer-ranges-move-only-with-matrix-evidence), and whether the
    generated [compatibility table](release-compatibility.md) and [docs pins](#docs-versions-and-pins) are current.
 3. **Dry run.** `pnpm release:dry-run` versions, builds, stages and verifies everything in a disposable copy; this
    checkout is never modified (steps below). Read `dry-run.md` and `bundles.json` in its output.
@@ -243,70 +271,18 @@ inside or above it, and a non-empty directory without the `.pixi-react-release-o
 The same guard covers `release:stage --out` (which may also be a new or marked directory under `.release/`) and
 each consumer project directory.
 
-### The dry run in CI (needs owner approval)
+### The dry run in CI
 
-The dry run is not in CI yet: workflows under `.github/` need the owner's approval, so issue 40 proposes this job
-instead of adding it. It runs on pull requests that touch the release inputs, on `main` and by hand; it publishes
-nothing, has read-only permissions and no secrets, and keeps the dry run's report as an artifact. It is ready to apply
-as `.github/workflows/release-dry-run.yml`:
+[`.github/workflows/release-dry-run.yml`](../.github/workflows/release-dry-run.yml) (approved by the owner as a
+**required** check, issue 62) runs `pnpm test:release` and then the full dry run, on every pull request, every push to
+`main` and by hand. It has no `paths` filter, so a required check never stays pending. It publishes nothing: the token
+is read-only (`contents: read`), checkout keeps no credentials, and it uses no secrets. It fetches the full history and
+creates a local `main` branch when the checkout has none (a pull request's merge commit), because `changeset status`
+compares against `main`. It installs no browser: the consumers and bundles run on Node, npm and esbuild. The reports
+(`dry-run.json`, `dry-run.md`, `consumers.json`, `bundles.json`, `release-manifest.json`) are kept as the
+`release-dry-run` artifact for 14 days; the tarballs are not.
 
-```yaml
-name: Release dry run
-
-# The release dry run of design/release.md (issue 40): version, build, stage, inspect, packed consumers and bundle
-# assertions in a disposable copy. It never publishes: no secrets, read-only token.
-
-on:
-  pull_request:
-    paths:
-      - '.changeset/**'
-      - 'release.packages.json'
-      - 'scripts/release/**'
-      - 'design/compatibility/seed.json'
-      - 'packages/**'
-      - 'apps/docs/**'
-      - 'pnpm-lock.yaml'
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
-env:
-  TURBO_TELEMETRY_DISABLED: 1
-
-jobs:
-  dry-run:
-    name: Release dry run
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          # `changeset status` (the policy check's release plan) compares against main.
-          fetch-depth: 0
-      - uses: ./.github/actions/setup
-      - name: Release tooling tests and policy
-        run: pnpm test:release
-      - name: Dry run (version, build, stage, inspect, consumers, bundles)
-        run: node scripts/release/dry-run.mjs --work "$RUNNER_TEMP/release-dry-run"
-      - name: Keep the report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-dry-run
-          path: |
-            ${{ runner.temp }}/release-dry-run/tarballs/*.json
-            ${{ runner.temp }}/release-dry-run/tarballs/*.md
-          if-no-files-found: warn
-          retention-days: 14
-```
+Branch protection must require the check **Release dry run** (the job name) for it to block merging.
 
 The full dry run took about 4 minutes locally with warm caches (13 consumer projects, 7 bundle fixtures); the
 45-minute timeout leaves room for cold npm caches.
@@ -317,7 +293,8 @@ The full dry run took about 4 minutes locally with warm caches (13 consumer proj
 
 - names and versions follow `release.packages.json`;
 - no `workspace:` range, no provisional name, no never-published package;
-- a dependency on another package of ours is `^<its staged version>`;
+- every tarball has the same version (lockstep), and a dependency on another package of ours is exactly that version,
+  never a `^` or `~` range (nor a peer);
 - peers never appear as dependencies, and reconcilers are exact and only in their owning adapter;
 - the facade depends on no modular package;
 - every `exports` subpath resolves for both `import` and `require` to a JS file and a declaration file that exist;
@@ -332,16 +309,18 @@ postinstall, build step, filesystem discovery or adapter guessing is needed.
 | Scenario | Installs | Must hold |
 | --- | --- | --- |
 | `facade` | `@pixi/react`, React 19.3.0, pixi.js 8.22.0 | No modular package in the tree. One react-reconciler (0.34.0). `extend` works through `import` and `require`. Declarations are the same under both and match the runtime exports. `tsc` NodeNext `.mts` and `.cts` |
-| `explicit-<cell>` (10: each PR-tier cell of the #13 matrix) | core, renderer, that cell's React adapter, pixi-8, with the cell's exact React, types and pixi.js | `npm ls` is clean. Exactly one version of each of our packages. Only that epoch's reconciler and its-fine. No facade and no other adapter. React 18 consumers get no React 19 package. Both formats compose with `createRenderer` and register `Container` and `Sprite`. Manifests report the package's own version and ABI. Declarations hold for each entry, including the `jsx` subpaths |
+| `explicit-<cell>` (10: each PR-tier cell of the #13 matrix) | core, renderer, that cell's React adapter, pixi-8, with the cell's exact React, types and pixi.js | `npm ls` is clean. Exactly one copy of each of our packages, all at the release version. Only that epoch's reconciler and its-fine. No facade and no other adapter. React 18 consumers get no React 19 package. Both formats compose with `createRenderer` and register `Container` and `Sprite`. Manifests report the package's own version and ABI. Declarations hold for each entry, including the `jsx` subpaths |
 | `renderer-only` | core, renderer | No React, reconciler, its-fine or pixi.js is installed: the neutral factory is consumable with only the chosen adapters |
 | `core-only` | core | Zero transitive dependencies |
 
+Every scenario also fails if any installed copy of one of our packages has a version other than the release's.
 The scenarios are generated from `design/compatibility/seed.json` and `release.packages.json`; none is listed by hand.
 
 **Bundles** (`bundles.mjs`): fixed fixtures (`scripts/release/fixtures/bundle/`) are bundled with esbuild 0.21.5 (the
 workspace's version) inside those consumer projects:
 
-- **Unused adapter implementations are absent.** Only the chosen packages contribute bytes. Exactly one
+- **Unused adapter implementations are absent.** Only the chosen packages contribute bytes, each from one copy at the
+  release version. Exactly one
   react-reconciler is bundled: the chosen epoch's, at its exact version. No other epoch's reconciler version string
   appears in the output. The facade bundle contains no non-default adapter. The neutral factory bundles only core and
   renderer (29.5 KiB minified, 8.9 KiB gzip).
@@ -451,8 +430,9 @@ epoch is tested only when all of these hold:
   an `artifacts` row and audited probe tuples (lowest and highest patch).
 - [ ] **Cells**: the PR tier and the nightly tier pass for the new epoch against pixi.js 8.2.6 … current, including the
   conformance suite in Chromium, and the incompatible-pair cells still fail as expected.
-- [ ] **Packaging**: a `release.packages.json` entry, a 1.0.0 (or next) changeset, and the release consumers and
-  bundles of a dry run.
+- [ ] **Packaging**: a `release.packages.json` entry (its `release1` is only for Release 1), the new package added to
+  the `fixed` group in `.changeset/config.json` (it starts at the group's version), a minor changeset, and the release
+  consumers and bundles of a dry run.
 - [ ] **The facade (D1)**: moving the facade to the new epoch is a facade minor; `policy.mjs` then requires its React
   peer, `TESTED_REACT`, reconciler and its-fine to follow.
 
@@ -504,8 +484,9 @@ Nothing is published until the owner approves each of these, in a reviewed chang
 2. **The publish switch**: `publish.enabled` and `publish.registry` in `release.packages.json`, removing the modular
    packages' `"private": true`, and reconciling the fork-safety guard (it rejects every `@pixi/` name today)
    ([Enabling publication](#enabling-publication)).
-3. **The CI workflows**: the [release dry run job](#the-dry-run-in-ci-needs-owner-approval), then a release workflow
-   that publishes the staged tarballs of a passing dry run. Both live under `.github/`.
+3. **The CI workflows**: the [release dry run job](#the-dry-run-in-ci) is approved and added (issue 62); branch
+   protection must require **Release dry run**. A release workflow that publishes the staged tarballs of a passing dry
+   run still needs approval.
 4. **Tested or certified**: whether Release 1 ships as "tested" ([above](#what-tested-means)) or waits for a promoted
    range.
 5. **Bundle size** ([#58](https://github.com/baseten/pixi-react/issues/58)): ruled not to block Release 1; the notes
@@ -546,14 +527,15 @@ explicit route below.
 ### Explicit composition: choose the adapters
 
 Install the neutral factory, the React adapter for the installed React minor, the Pixi adapter, and the exact React
-version the adapter is tested with. Core comes as their dependency. Add it to your own dependencies only if you import it,
-for example for `CompatibilityError`.
+version the adapter is tested with. **Install all `@pixi/react-*` packages at the same version**: they release in
+lockstep and depend on each other at exactly that version. Core comes as their dependency. Add it to your own
+dependencies only if you import it, for example for `CompatibilityError`, and then at the same version too.
 
 ```sh
 # React 19.1, for example; use @pixi/react-19.0, -19.2 or -19.3 with a React version from that package's peer range
-npm install @pixi/react-renderer @pixi/react-19.1 @pixi/react-pixi-8 pixi.js react@19.1.9 react-dom@19.1.9
+npm install @pixi/react-renderer@8.1.0 @pixi/react-19.1@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@19.1.9 react-dom@19.1.9
 # React 18
-npm install @pixi/react-renderer @pixi/react-18 @pixi/react-pixi-8 pixi.js react@18.3.1 react-dom@18.3.1
+npm install @pixi/react-renderer@8.1.0 @pixi/react-18@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@18.3.1 react-dom@18.3.1
 ```
 
 ```ts
@@ -600,8 +582,10 @@ generated [release compatibility table](release-compatibility.md) lists them per
 - `component(Ctor, name?)` (modular packages only) returns a typed component for one constructor, without JSX
   augmentation.
 - `runtime.registry.register(definition)` is the descriptor route for nodes that need custom attach rules. A
-  third-party adapter subclasses `ReactAdapter` or `PixiAdapter` from `@pixi/react-core` and depends on it with
-  `^<ABI major>` (see the [architecture](adapter-architecture.md#composition-classes-and-open-extension)).
+  third-party adapter subclasses `ReactAdapter` or `PixiAdapter` from `@pixi/react-core`. Core's version no longer
+  names the ABI, so such an adapter should take core as a peer (the application's one core) over the core versions
+  whose ABI it implements; the runtime ABI check rejects any other (see the
+  [architecture](adapter-architecture.md#composition-classes-and-open-extension)).
 
 ### Migrating from upstream `@pixi/react`
 

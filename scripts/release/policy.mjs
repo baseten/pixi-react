@@ -1,25 +1,31 @@
 #!/usr/bin/env node
 /* eslint-disable no-console -- command-line script: its output is the report. */
 /**
- * Offline release-policy check (issue 15). Reads the workspace, release.packages.json, .changeset/config.json and the
- * pending release plan (`changeset status --output`), and fails on any violation of design/release.md:
+ * Offline release-policy check (issues 15, 40 and 62). Reads the workspace, release.packages.json,
+ * .changeset/config.json and the pending release plan (`changeset status --output`), and fails on any violation of
+ * design/release.md:
  *
  * 1. Classification: every workspace package is either publishable (release.packages.json `packages`) or never
- *    published (`neverPublished`, each private); Changesets ignores exactly the never-published set, versions
- *    independently (no `fixed`/`linked` groups) and never tags private packages.
- * 2. Manifests: a publishable package depends on another one only through `workspace:^` (published as a caret range
- *    on the current version, so adapters share one core), never on a never-published package; React, ReactDOM and
- *    pixi.js are peers, never dependencies; react-reconciler and its-fine are exact and only in the React adapters
- *    and the facade; the facade depends on no workspace package; every source version constant equals its
- *    package.json version; and publishing stays impossible until the owner enables it (modular packages private,
- *    the facade guarded by `prepublishOnly`).
- * 3. ABI: core's major version is the ABI major (`CORE_ABI.major` in packages/core/src/abi.ts) once the pending plan
- *    is applied; every adapter's manifest ABI major equals it. When the plan bumps core's major (an ABI major change),
- *    every publishable package that depends on core needs its own explicit major changeset, so no adapter keeps a
- *    range on the previous ABI. An ABI minor increase since the released ABI needs at least a minor core release.
- * 4. Release 1: while nothing has been released (`abi.released` is null) the plan must produce exactly the
- *    `release1` versions (the facade 8.1.0, the modular packages 1.0.0).
- * 5. Peers and generated files (issue 40, compat.mjs): the facade's react and pixi.js peers equal the compatibility
+ *    published (`neverPublished`, each private); Changesets ignores exactly the never-published set, puts exactly the
+ *    publishable set in one `fixed` group (lockstep versions, issue 62), has no `linked` groups and never tags private
+ *    packages.
+ * 2. Manifests: a publishable package depends on another one only through `workspace:*` (published as the exact same
+ *    version, never a `^` or `~` range), never on a never-published package; React, ReactDOM and pixi.js are peers,
+ *    never dependencies; react-reconciler and its-fine are exact and only in the React adapters and the facade; the
+ *    facade depends on no workspace package; every source version constant equals its package.json version; and
+ *    publishing stays impossible until the owner enables it (modular packages private, the facade guarded by
+ *    `prepublishOnly`).
+ * 3. Lockstep: once the pending plan is applied, every publishable package is at one version, whose major is the Pixi
+ *    major of the facade's pixi.js peer.
+ * 4. ABI: every adapter's manifest ABI major equals CORE_ABI's (packages/core/src/abi.ts). The ABI version is
+ *    independent of the npm version. When CORE_ABI or an adapter's ABI declaration differs from the released one
+ *    (`abi.released`), the lockstep group needs at least a minor release, and a changeset of at least minor level
+ *    whose summary says "ABI" (the changelog note): an ABI break between core and the adapters may ship in a minor,
+ *    because every package depends on the others at the exact same version. CORE_ABI's minor may not fall within a
+ *    major.
+ * 5. Release 1: while nothing has been released (`abi.released` is null) the plan must produce exactly the
+ *    `release1` versions (8.1.0 for every package).
+ * 6. Peers and generated files (issue 40, compat.mjs): the facade's react and pixi.js peers equal the compatibility
  *    manifest's newest tested ranges, the Pixi range is the one the manifest's evidence supports, the facade's major
  *    equals the Pixi major, and the generated compatibility table and docs pins are current.
  *
@@ -30,7 +36,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkReleaseRules } from './compat.mjs';
+import { checkReleaseRules, pixiMajors } from './compat.mjs';
 import { checkCompatibilityTable } from './compat-table.mjs';
 import { listWorkspace, loadReleaseConfig, readJson, repoRoot } from './config.mjs';
 import { checkDocsPins } from './docs-pins.mjs';
@@ -51,6 +57,44 @@ export function readCoreAbi(root = repoRoot)
     if (!match) throw new Error('CORE_ABI = Object.freeze({ major, minor }) not found in packages/core/src/abi.ts');
 
     return { major: Number(match[1]), minor: Number(match[2]) };
+}
+
+/**
+ * Every ABI declaration in the source: `{ core: CORE_ABI, adapters: { [file]: [{ major, minor }, ...] } }`. version.mjs
+ * records this as `abi.released`; a difference from it is an ABI change.
+ */
+export function readAbiDeclarations(root = repoRoot)
+{
+    const adapters = {};
+
+    for (const file of ADAPTER_ABI_SOURCES)
+    {
+        const found = [...readFileSync(join(root, file), 'utf8').matchAll(/abi: Object\.freeze\(\{ major: (\d+)(?: as const)?, minor: (\d+) \}\)/g)];
+
+        if (!found.length) throw new Error(`${file} declares no adapter ABI (abi: Object.freeze({ major, minor }))`);
+        adapters[file] = found.map(([, abiMajor, abiMinor]) => ({ major: Number(abiMajor), minor: Number(abiMinor) }));
+    }
+
+    return { core: readCoreAbi(root), adapters };
+}
+
+const formatAbi = (abi) => `${abi.major}.${abi.minor}`;
+
+/** What differs between the released ABI declarations and the current ones, as readable lines (empty: no change). */
+export function abiChanges(released, current)
+{
+    const changes = [];
+
+    if (formatAbi(released.core) !== formatAbi(current.core)) changes.push(`CORE_ABI ${formatAbi(released.core)} -> ${formatAbi(current.core)}`);
+    for (const file of new Set([...Object.keys(released.adapters ?? {}), ...Object.keys(current.adapters)]))
+    {
+        const before = (released.adapters?.[file] ?? []).map(formatAbi).join(', ') || 'none';
+        const after = (current.adapters[file] ?? []).map(formatAbi).join(', ') || 'none';
+
+        if (before !== after) changes.push(`${file} ABI ${before} -> ${after}`);
+    }
+
+    return changes;
 }
 
 /** `changeset status --output` for the current pending changesets. */
@@ -99,12 +143,14 @@ export function checkPolicy({ root = repoRoot, plan, config = loadReleaseConfig(
     const actualIgnore = [...(changesetConfig.ignore ?? [])].sort();
 
     if (JSON.stringify(expectedIgnore) !== JSON.stringify(actualIgnore)) fail(`.changeset/config.json "ignore" must be exactly the never-published packages ${JSON.stringify(expectedIgnore)}, found ${JSON.stringify(actualIgnore)}`);
-    if ((changesetConfig.fixed ?? []).length || (changesetConfig.linked ?? []).length) fail('.changeset/config.json must version independently: "fixed" and "linked" must be empty');
+    const fixed = changesetConfig.fixed ?? [];
+    const lockstep = config.packages.map((pkg) => pkg.workspaceName).sort();
+
+    if (fixed.length !== 1 || JSON.stringify([...fixed[0]].sort()) !== JSON.stringify(lockstep)) fail(`.changeset/config.json "fixed" must be one group of exactly the publishable packages ${JSON.stringify(lockstep)} (lockstep versions), found ${JSON.stringify(fixed)}`);
+    if ((changesetConfig.linked ?? []).length) fail('.changeset/config.json "linked" must be empty: the publishable packages are one "fixed" group');
     if (changesetConfig.privatePackages?.version !== true || changesetConfig.privatePackages?.tag !== false) fail('.changeset/config.json "privatePackages" must be { version: true, tag: false }: the modular packages stay private until publishing is enabled, and nothing is tagged');
 
     // 2. Manifests.
-    const coreAbi = readCoreAbi(root);
-
     for (const pkg of config.packages)
     {
         const manifest = byName.get(pkg.workspaceName)?.manifest;
@@ -118,7 +164,7 @@ export function checkPolicy({ root = repoRoot, plan, config = loadReleaseConfig(
             for (const [name, spec] of Object.entries(manifest[field] ?? {}))
             {
                 if (config.isNeverPublished(name)) fail(`${pkg.workspaceName}: ${field} names never-published ${name}`);
-                if (publishable.has(name) && field !== 'peerDependencies' && spec !== 'workspace:^') fail(`${pkg.workspaceName}: ${field}.${name} is ${spec}; use "workspace:^" (published as ^<version>, one ABI major)`);
+                if (publishable.has(name) && field !== 'peerDependencies' && spec !== 'workspace:*') fail(`${pkg.workspaceName}: ${field}.${name} is ${spec}; use "workspace:*" (published as the exact same version: install all packages at one version)`);
                 if (publishable.has(name) && field === 'peerDependencies') fail(`${pkg.workspaceName}: ${name} must be a dependency, not a peer`);
             }
         }
@@ -152,60 +198,58 @@ export function checkPolicy({ root = repoRoot, plan, config = loadReleaseConfig(
         }
     }
 
-    // 3. ABI.
-    for (const file of ADAPTER_ABI_SOURCES)
-    {
-        for (const [, abiMajor] of readFileSync(join(root, file), 'utf8').matchAll(/abi: Object\.freeze\(\{ major: (\d+)/g))
-        {
-            if (Number(abiMajor) !== coreAbi.major) fail(`${file} declares ABI major ${abiMajor}, core implements ${coreAbi.major}`);
-        }
-    }
+    // 3. Lockstep: one version for every publishable package once the plan is applied, on the Pixi major.
     const releases = new Map((plan?.releases ?? []).map((release) => [release.name, release]));
-    const explicit = new Map();
+    const planned = new Map(config.packages.map((pkg) => [pkg.workspaceName, releases.get(pkg.workspaceName)?.newVersion ?? byName.get(pkg.workspaceName)?.manifest.version]));
+    const versions = [...new Set(planned.values())];
+    const facadePkg = config.packages.find((pkg) => pkg.facade);
+    const version = planned.get(facadePkg.workspaceName);
+    const pixiMajorsOfFacade = pixiMajors(byName.get(facadePkg.workspaceName)?.manifest.peerDependencies?.['pixi.js'] ?? '');
 
-    for (const changeset of plan?.changesets ?? [])
+    if (versions.length > 1)
     {
-        for (const release of changeset.releases) explicit.set(release.name, Math.max(explicit.get(release.name) ?? 0, RANK[release.type]));
+        const off = [...planned].filter(([, value]) => value !== version).map(([name, value]) => `${name} ${value}`);
+
+        fail(`lockstep: every publishable package must release at the facade's version ${version}, but ${off.join(', ')} (keep them in the "fixed" group and release them together)`);
     }
-    const corePkg = config.packages.find((pkg) => pkg.dir === 'packages/core');
-    const coreRelease = releases.get(corePkg.workspaceName);
-    const coreVersion = coreRelease?.newVersion ?? byName.get(corePkg.workspaceName).manifest.version;
-    const coreBump = coreRelease?.type ?? 'none';
+    if (pixiMajorsOfFacade.length !== 1 || major(version) !== pixiMajorsOfFacade[0]) fail(`lockstep: the packages would release ${version}, but their major must equal the Pixi major of the facade's pixi.js peer (${pixiMajorsOfFacade.join(', ') || 'none'})`);
 
-    if (major(coreVersion) !== coreAbi.major) fail(`core will be ${coreVersion}, but its major must equal the ABI major ${coreAbi.major} (CORE_ABI): ${coreRelease ? 'change the core changeset' : 'add a core changeset'}`);
-    const dependents = config.packages.filter((pkg) => Object.keys(byName.get(pkg.workspaceName)?.manifest.dependencies ?? {}).includes(corePkg.workspaceName));
+    // 4. ABI: declarations agree with core; a change since the released ABI needs at least a minor lockstep release.
+    const abi = readAbiDeclarations(root);
+    const coreAbi = abi.core;
 
-    if (coreBump === 'major')
+    for (const [file, declared] of Object.entries(abi.adapters))
     {
-        for (const pkg of dependents)
-        {
-            if ((explicit.get(pkg.workspaceName) ?? 0) < RANK.major) fail(`core's major changes (ABI ${coreAbi.major}): ${pkg.workspaceName} depends on core and needs its own major changeset, so its range moves to the new ABI with an explicit release`);
-        }
+        for (const item of declared) if (item.major !== coreAbi.major) fail(`${file} declares ABI major ${item.major}, core implements ${coreAbi.major}`);
     }
     const released = config.releasedAbi;
+    const groupBump = Math.max(0, ...config.packages.map((pkg) => RANK[releases.get(pkg.workspaceName)?.type ?? 'none']));
 
-    if (released)
+    if (released && !released.core) fail('release.packages.json abi.released must be { core: { major, minor }, adapters: { [file]: [...] } } (written by scripts/release/version.mjs)');
+    else if (released)
     {
-        if (coreAbi.major !== released.major && coreBump !== 'major') fail(`CORE_ABI is ${coreAbi.major}.${coreAbi.minor} but ABI ${released.major}.${released.minor} was released: an ABI major change needs a major core changeset`);
-        if (coreAbi.major === released.major && coreAbi.minor > released.minor && RANK[coreBump] < RANK.minor) fail(`CORE_ABI minor rose to ${coreAbi.minor} (released ${released.minor}): core needs at least a minor changeset`);
-        if (coreAbi.major === released.major && coreAbi.minor < released.minor) fail(`CORE_ABI minor fell from ${released.minor} to ${coreAbi.minor}: removing ABI methods is an ABI major change`);
+        const changes = abiChanges(released, abi);
+        const group = new Set(config.packages.map((pkg) => pkg.workspaceName));
+        const noted = (plan?.changesets ?? []).some((changeset) => (/\bABI\b/).test(changeset.summary ?? '')
+            && changeset.releases.some((release) => group.has(release.name) && RANK[release.type] >= RANK.minor));
+
+        if (changes.length && groupBump < RANK.minor) fail(`the adapter ABI changed since the last release (${changes.join('; ')}): the lockstep packages need at least a minor changeset`);
+        if (changes.length && !noted) fail(`the adapter ABI changed since the last release (${changes.join('; ')}): a changeset of at least minor level must document it in its summary (mention "ABI"), so the changelog warns that mixing versions may fail`);
+        if (coreAbi.major === released.core.major && coreAbi.minor < released.core.minor) fail(`CORE_ABI minor fell from ${released.core.minor} to ${coreAbi.minor}: removing ABI methods is an ABI major change`);
     }
     else
     {
-        // 4. Release 1.
+        // 5. Release 1.
         for (const pkg of config.packages)
         {
-            const release = releases.get(pkg.workspaceName);
-            const planned = release?.newVersion ?? byName.get(pkg.workspaceName)?.manifest.version;
-
-            if (pkg.release1 && planned !== pkg.release1) fail(`Release 1: ${pkg.workspaceName} would release ${planned}, expected ${pkg.release1}`);
+            if (pkg.release1 && planned.get(pkg.workspaceName) !== pkg.release1) fail(`Release 1: ${pkg.workspaceName} would release ${planned.get(pkg.workspaceName)}, expected ${pkg.release1}`);
         }
     }
 
-    // 5. Peers and generated files.
+    // 6. Peers and generated files.
     problems.push(...checkReleaseRules({ root, config, plan }), ...checkCompatibilityTable({ root }), ...checkDocsPins({ root }));
 
-    return { problems, coreAbi, coreVersion, plan: (plan?.releases ?? []).filter((release) => release.type !== 'none').map(({ name, type, oldVersion, newVersion }) => ({ name, type, oldVersion, newVersion })) };
+    return { problems, coreAbi, version, plan: (plan?.releases ?? []).filter((release) => release.type !== 'none').map(({ name, type, oldVersion, newVersion }) => ({ name, type, oldVersion, newVersion })) };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url)))
@@ -221,5 +265,5 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
         console.error(`\nRelease policy violations:\n  - ${result.problems.join('\n  - ')}`);
         process.exit(1);
     }
-    console.log(`\npolicy: ok (ABI ${result.coreAbi.major}.${result.coreAbi.minor}; core ${result.coreVersion} after the plan)`);
+    console.log(`\npolicy: ok (ABI ${result.coreAbi.major}.${result.coreAbi.minor}; every package at ${result.version} after the plan)`);
 }
