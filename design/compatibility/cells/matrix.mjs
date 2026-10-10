@@ -113,6 +113,22 @@ function describeReact(seed, epochId, version)
     return { epoch: epochId, adapterKey, adapter, version, tuple };
 }
 
+/**
+ * The render backends of a cell: the requested ones (a tier's `renderers`, `webgl` when none is given) that the Pixi
+ * adapter's `renderers` row lists, in the manifest's order. Pixi 7, for example, has no WebGPU renderer.
+ */
+export function cellRenderers(seed, pixiAdapterKey, requested)
+{
+    const matrix = seed.adapterMatrix;
+    const available = Object.keys(matrix.pixiAdapters[pixiAdapterKey].renderers ?? {});
+    const wanted = requested ?? ['webgl'];
+
+    return Object.keys(matrix.renderers).filter((name) => wanted.includes(name) && available.includes(name));
+}
+
+/** The render backends a tier asks for (`tiers.<tier>.renderers`), or an explicit `--renderers` override. */
+export const tierRenderers = (seed, tier, override) => override ?? seed.adapterMatrix.tiers[tier].renderers ?? ['webgl'];
+
 /** Builds one cell from a React selection and a Pixi version. */
 export function makeCell(seed, { react, pixi, commands, negative }, options = {})
 {
@@ -147,6 +163,8 @@ export function makeCell(seed, { react, pixi, commands, negative }, options = {}
         toolchain: matrix.toolchain,
         install: negative?.install ?? {},
         commands: selected.filter((name) => order.includes(name)).sort((a, b) => order.indexOf(a) - order.indexOf(b)),
+        // Render backends the conformance command runs, each separately: those the tier asks for that the Pixi adapter has.
+        renderers: cellRenderers(seed, pixiAdapterKey, options.renderers),
         expect: negative?.expect ?? null,
         description: negative?.description ?? null,
         ...(options.extra ?? {}),
@@ -247,10 +265,11 @@ function tierSelections(seed, tier, patches)
  * Cells of a tier. `patches` overrides the tier's React patch selection ('latest' or 'all') of its cross products;
  * `filter` keeps cells whose id or label contains any listed substring.
  */
-export function selectCells(seed, tier, { patches, filter } = {})
+export function selectCells(seed, tier, { patches, filter, renderers } = {})
 {
     assert.ok(seed.adapterMatrix.tiers[tier], `unknown tier ${tier}`);
-    const cells = tierSelections(seed, tier, patches).map(({ react, pixi }) => makeCell(seed, { react, pixi }));
+    const chosen = tierRenderers(seed, tier, renderers);
+    const cells = tierSelections(seed, tier, patches).map(({ react, pixi }) => makeCell(seed, { react, pixi }, { renderers: chosen }));
 
     const unique = new Set(cells.map((cell) => cell.id));
 
@@ -299,6 +318,15 @@ export function validateAdapterMatrix(seed)
     }
     for (const id of matrix.commonArtifacts) assert.ok(matrix.artifacts[id], `common artifact ${id}`);
     for (const command of matrix.commands.order) assert.ok(Number.isInteger(matrix.commands.timeoutSeconds[command]), `timeout for ${command}`);
+    const backends = Object.keys(matrix.renderers ?? {});
+
+    assert.ok(backends.includes('webgl'), 'renderers must define webgl');
+    for (const name of backends) assert.ok(Array.isArray(matrix.renderers[name].chromiumArgs), `renderers.${name}.chromiumArgs`);
+    for (const [tier, config] of Object.entries(matrix.tiers))
+    {
+        assert.ok(Array.isArray(config.renderers) && config.renderers.length > 0, `${tier}: renderers`);
+        for (const name of config.renderers) assert.ok(backends.includes(name), `${tier}: unknown renderer ${name}`);
+    }
 
     for (const [key, adapter] of Object.entries(matrix.reactAdapters))
     {
@@ -334,6 +362,8 @@ export function validateAdapterMatrix(seed)
         assert.match(adapter.probeFactory, /^[A-Za-z0-9_]+$/, `${key}: probeFactory`);
         assert.ok(adapter.conformanceAppOptions && typeof adapter.conformanceAppOptions === 'object', `${key}: conformanceAppOptions`);
         assert.ok(Array.isArray(adapter.conformanceCapabilities), `${key}: conformanceCapabilities`);
+        assert.ok(adapter.renderers?.webgl, `${key}: renderers.webgl`);
+        for (const [name, backend] of Object.entries(adapter.renderers)) assert.ok(backends.includes(name) && backend.appOptions && typeof backend.appOptions === 'object', `${key}: renderers.${name}`);
         assert.match(adapter.typeConsumer, /^consumer\.[\w-]+\.tsx$/, `${key}: typeConsumer (a harness/typecheck file; cells.test.mjs checks it exists)`);
     }
 
@@ -413,13 +443,26 @@ export function cellKey(seed, cell, artifacts, harness, environment, effective =
     // The effective manifest rows (ABI, capabilities, peers, expected failures, probes) decide what the checks assert.
     // `effective` is the generated cell configuration the harness asserts (derived capabilities, formats, tree);
     // callers that run cells pass it so indirect manifest inputs also invalidate the verdict.
-    const config = { react: cell.react, pixi: cell.pixi, install: cell.install, effective };
+    const config = { react: cell.react, pixi: cell.pixi, install: cell.install, renderers: cell.renderers, effective };
     const input = { schema: 3, id: cell.id, commands: cell.commands, deps: cell.deps, toolchain: cell.toolchain, artifacts: used, harness, environment, expect: cell.expect, config };
 
     return { key: sha256(input).slice(0, 40), depsKey: sha256({ deps: cell.deps, toolchain: cell.toolchain, commands: cell.commands, environment }).slice(0, 40), input };
 }
 
 const statusMark = { pass: 'pass', 'cached-pass': 'pass (cached)', 'expected-fail': 'expected failure', fail: 'FAIL', skipped: 'not run' };
+const backendLabel = { webgl: 'WebGL', webgpu: 'WebGPU' };
+
+/** A result cell's text: its status, and with per-backend results the status of each backend it ran. */
+function resultMark(row)
+{
+    const known = row.knownFailures?.length && row.status !== 'fail' ? ` + ${row.knownFailures.length} known defect` : '';
+    const backends = Object.entries(row.backends ?? {});
+
+    if (!backends.length || row.status === 'cached-pass') return `${statusMark[row.status] ?? row.status}${known}`;
+    if (backends.every(([, backend]) => backend.status === 'pass')) return `pass (${backends.map(([name]) => backendLabel[name] ?? name).join(', ')})${known}`;
+
+    return `${statusMark[row.status] ?? row.status}: ${backends.map(([name, backend]) => `${backendLabel[name] ?? name} ${backend.status === 'pass' ? 'pass' : backend.status.toUpperCase()}`).join(', ')}${known}`;
+}
 
 /** Markdown compatibility table (React adapters by Pixi version) from result rows `{ id, react, pixi, status }`. */
 export function renderTable(seed, rows, { title = 'Adapter compatibility table', manifestOnly = false, intro = true } = {})
@@ -443,7 +486,7 @@ export function renderTable(seed, rows, { title = 'Adapter compatibility table',
         {
             const row = lookup.get(`${key}|${pixi}`);
 
-            return row ? (manifestOnly ? 'cell' : `${statusMark[row.status] ?? row.status}${row.knownFailures?.length && row.status !== 'fail' ? ` + ${row.knownFailures.length} known defect` : ''}`) : '-';
+            return row ? (manifestOnly ? 'cell' : resultMark(row)) : '-';
         }).join(' | ')} |`);
     }
     const negatives = rows.filter((row) => row.kind === 'negative');

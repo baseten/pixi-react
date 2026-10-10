@@ -1608,6 +1608,27 @@
         "conformance": 420
       }
     },
+    "rendererNote": "Render backends a cell conformance run can use. Each backend is checked separately (never inferred from the other): the conformance suite runs once per backend the tier and the Pixi adapter both list, with these Chromium flags, and test/renderer.ts fails any Pixi application that does not get the requested renderer. Both are software here: WebGL is ANGLE on SwiftShader, WebGPU is Dawn on SwiftShader's Vulkan device (a fallback adapter), as in the examples WebGPU smoke test.",
+    "renderers": {
+      "webgl": {
+        "chromiumArgs": [
+          "--use-gl=angle",
+          "--use-angle=swiftshader",
+          "--enable-unsafe-swiftshader"
+        ]
+      },
+      "webgpu": {
+        "chromiumArgs": [
+          "--use-gl=angle",
+          "--use-angle=swiftshader",
+          "--enable-unsafe-swiftshader",
+          "--enable-unsafe-webgpu",
+          "--enable-features=Vulkan",
+          "--use-vulkan=swiftshader",
+          "--use-webgpu-adapter=swiftshader"
+        ]
+      }
+    },
     "artifacts": {
       "core": {
         "dir": "packages/core",
@@ -1901,6 +1922,18 @@
           "backgroundAlpha": 0,
           "preference": "webgl"
         },
+        "renderers": {
+          "webgl": {
+            "appOptions": {
+              "preference": "webgl"
+            }
+          },
+          "webgpu": {
+            "appOptions": {
+              "preference": "webgpu"
+            }
+          }
+        },
         "conformanceCapabilities": [
           "pixi.graphics-context",
           "pixi.renderer-destroy-options"
@@ -1954,6 +1987,12 @@
           "backgroundAlpha": 0,
           "hello": false
         },
+        "renderers": {
+          "webgl": {
+            "appOptions": {}
+          }
+        },
+        "rendererNote": "Pixi 7 has no WebGPU renderer: its cells run on WebGL only, and WebGPU is not applicable to them.",
         "conformanceCapabilities": [],
         "conformanceNote": "Pixi 7 lacks the Pixi 8 scene capabilities pixi.graphics-context (no GraphicsContext) and pixi.renderer-destroy-options (Application.destroy takes removeView, a boolean): the runner skips those two scenarios and names the capability.",
         "typeConsumer": "consumer.pixi7.tsx",
@@ -1981,6 +2020,9 @@
             "current"
           ]
         },
+        "renderers": [
+          "webgl"
+        ],
         "boundaryProbes": [
           {
             "id": "pixi-8.2.6",
@@ -2036,6 +2078,10 @@
         "pixi": {
           "versions": "all-minors"
         },
+        "renderers": [
+          "webgl",
+          "webgpu"
+        ],
         "boundaryProbes": "all",
         "negative": "all",
         "pixiAdapters": {
