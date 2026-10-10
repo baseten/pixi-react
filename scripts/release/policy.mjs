@@ -166,8 +166,8 @@ export function compareVersions(a, b)
 
 /**
  * Whether the checkout is an already-versioned release commit (`pnpm release:version` ran and its result was
- * committed): no pending changeset, every publishable package's version above its version at `base` (the merge base
- * with main), and nothing that ships changed after that version commit. Pure: `baseVersions` is null when there is no
+ * committed): every publishable package's version above its version at `base` (the merge base with main), no pending
+ * changeset, and nothing that ships changed after that version commit. Pure: `baseVersions` is null when there is no
  * base to compare with, and `afterVersion` (from `versionCommitHistory`) says what happened after the version commit:
  * `{ commit, merges, changed }`, or null when the version commit could not be found.
  *
@@ -178,9 +178,11 @@ export function compareVersions(a, b)
  */
 export function classifyReleaseState({ pendingChangesets, currentVersions, baseVersions, afterVersion = null })
 {
+    // `reasons`: why the versions were not bumped above main. Pending changesets are not such a reason: on a branch whose
+    // versions were bumped they mean something (main's next change, in a pull request's merge commit) arrived after the
+    // versioning, which blocks it rather than making it an ordinary checkout.
     const reasons = [];
 
-    if (pendingChangesets.length) reasons.push(`changesets are pending (${pendingChangesets.join(', ')})`);
     if (!baseVersions) reasons.push('there is no merge base with main to compare versions with');
     else
     {
@@ -204,6 +206,7 @@ export function classifyReleaseState({ pendingChangesets, currentVersions, baseV
         // branch, so main still has them, and a fresh release branch from main can be versioned again.
         const fresh = 'cut a new release branch from main and run pnpm release:version there (main still has the changesets)';
 
+        if (pendingChangesets.length) blocked.push(`changesets are pending (${pendingChangesets.join(', ')}) on top of ${at}, so the versioned release does not include them; ${fresh}`);
         for (const merge of afterVersion?.merges ?? []) blocked.push(`${merge.slice(0, 12)} merged another branch into the release branch after ${at}, so the versioned release no longer matches what it ships; ${fresh}`);
         if (afterVersion?.changed?.length) blocked.push(`published packages changed after ${at}: ${afterVersion.changed.join(', ')}; land the change on main with a changeset, then ${fresh}`);
     }
@@ -213,22 +216,42 @@ export function classifyReleaseState({ pendingChangesets, currentVersions, baseV
 
 const git = (root, args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 26 }).trim();
 
-/** The merge base of HEAD with `main` (or `origin/main`), or null outside a repository with either. */
+/**
+ * The merge base of HEAD with main: with `main` and `origin/main` both present, the more recent of the two merge bases,
+ * so a stale local `main` (one never updated since the clone) cannot make an ordinary branch look versioned. Null
+ * outside a repository with either.
+ */
 export function mainMergeBase(root = repoRoot)
 {
+    const bases = [];
+
     for (const ref of ['main', 'origin/main'])
     {
         try
         {
-            return git(root, ['merge-base', ref, 'HEAD']);
+            bases.push(git(root, ['merge-base', ref, 'HEAD']));
         }
         catch
         {
-            // Try the next ref.
+            // That ref is missing.
         }
     }
+    if (bases.length < 2 || bases[0] === bases[1]) return bases[0] ?? null;
+    const isAncestor = (a, b) =>
+    {
+        try
+        {
+            git(root, ['merge-base', '--is-ancestor', a, b]);
 
-    return null;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    };
+
+    return isAncestor(bases[0], bases[1]) ? bases[1] : bases[0];
 }
 
 /**
@@ -239,7 +262,8 @@ export function mainMergeBase(root = repoRoot)
 export function publishedInputs(config)
 {
     const dirs = [...config.packages.map((pkg) => `${pkg.dir}/`), 'packages/react-shared/', 'scripts/'];
-    const files = ['release.packages.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json'];
+    // .nvmrc selects the Node runtime the dry run builds and stages with.
+    const files = ['release.packages.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json', '.nvmrc'];
     const changelogs = new Set(config.packages.map((pkg) => `${pkg.dir}/CHANGELOG.md`));
 
     return (path) => !changelogs.has(path) && (files.includes(path) || dirs.some((dir) => path.startsWith(dir)));
@@ -326,7 +350,8 @@ export function releaseState(root = repoRoot, { config = loadReleaseConfig({ roo
     const pendingChangesets = readdirSync(join(root, '.changeset')).filter((file) => file.endsWith('.md') && file !== 'README.md');
     const currentVersions = Object.fromEntries(config.packages.map((pkg) => [pkg.workspaceName, readJson(join(root, pkg.dir, 'package.json')).version]));
     const baseVersions = base ? versionsAt(root, base, config) : null;
-    const looksVersioned = classifyReleaseState({ pendingChangesets, currentVersions, baseVersions, afterVersion: { commit: null, merges: [], changed: [] } }).versioned;
+    // Whether the versions were bumped above main, before looking at history or pending changesets.
+    const looksVersioned = classifyReleaseState({ pendingChangesets: [], currentVersions, baseVersions, afterVersion: { commit: null, merges: [], changed: [] } }).versioned;
     const afterVersion = looksVersioned ? versionCommitHistory(root, { base, config, currentVersions }) : null;
 
     return { ...classifyReleaseState({ pendingChangesets, currentVersions, baseVersions, afterVersion }), base, versionCommit: afterVersion?.commit ?? null };

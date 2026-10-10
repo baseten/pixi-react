@@ -9,7 +9,7 @@ import { compareWithUpstream, KNOWN_GAPS, UPSTREAM_BASELINE } from './bundles.mj
 import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
-import { abiChanges, abiDeclarationProblems, checkPolicy, classifyReleaseState, compareVersions, currentPlan, publishedInputs, readAbiDeclarations, releaseState } from './policy.mjs';
+import { abiChanges, abiDeclarationProblems, checkPolicy, classifyReleaseState, compareVersions, currentPlan, mainMergeBase, publishedInputs, readAbiDeclarations, releaseState } from './policy.mjs';
 import { releaseManifest, tarballName } from './stage.mjs';
 import { syncVersionConstants } from './version.mjs';
 
@@ -289,7 +289,13 @@ test('an already-versioned release commit is recognized from the versions on mai
     assert.match(unbumped.reasons.join('\n'), /@pixi\/react is 8\.1\.0, not above its 8\.1\.0 on main/);
     // One package left behind, pending changesets, or no main to compare with: not versioned.
     assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1', { '@pixi-react-provisional/core': '8.1.0' }), baseVersions: at('8.1.0') }).reasons.join(), /core is 8\.1\.0, not above its 8\.1\.0/);
-    assert.match(classifyReleaseState({ pendingChangesets: ['fix.md'], currentVersions: at('8.1.1'), baseVersions: at('8.1.0') }).reasons.join(), /changesets are pending \(fix\.md\)/);
+    // Pending changesets on a bumped branch (main's next change in a pull request's merge commit) block it.
+    const pendingAfter = classifyReleaseState({ pendingChangesets: ['fix.md'], currentVersions: at('8.1.1'), baseVersions: at('8.1.0'), afterVersion: clean });
+
+    assert.equal(pendingAfter.versioned, false);
+    assert.match(pendingAfter.blocked.join(), /changesets are pending \(fix\.md\) on top of the version commit/);
+    // Pending changesets on an unbumped branch are an ordinary checkout.
+    assert.deepEqual(classifyReleaseState({ pendingChangesets: ['fix.md'], currentVersions: at('8.1.0'), baseVersions: at('8.1.0') }).blocked, []);
     assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: null }).reasons.join(), /no merge base with main/);
 });
 
@@ -297,7 +303,7 @@ test('publishedInputs covers what ships and leaves docs, CI and changelogs edita
 {
     const shipped = publishedInputs(target);
 
-    for (const path of ['packages/core/src/abi.ts', 'packages/react-18/README.md', 'packages/react-18/package.json', 'packages/react-shared/src/react-19/adapter.ts', 'scripts/build-react-adapter.mjs', 'scripts/release/stage.mjs', 'release.packages.json', 'pnpm-lock.yaml', 'package.json'])
+    for (const path of ['.nvmrc', 'packages/core/src/abi.ts', 'packages/react-18/README.md', 'packages/react-18/package.json', 'packages/react-shared/src/react-19/adapter.ts', 'scripts/build-react-adapter.mjs', 'scripts/release/stage.mjs', 'release.packages.json', 'pnpm-lock.yaml', 'package.json'])
     {
         assert.ok(shipped(path), path);
     }
@@ -384,6 +390,19 @@ test('releaseState reads the versions on main from git and accepts only the vers
         gitIn('checkout', '-q', '--detach', 'main');
         gitIn('merge', '-q', '--no-ff', '--no-edit', 'release');
         assert.match(state().blocked.join(), /published packages changed after the version commit .*scripts\/build-react-adapter\.mjs/, 'main side of a pull request merge');
+        gitIn('checkout', '-q', 'main');
+        gitIn('reset', '-q', '--hard', 'HEAD~1');
+        gitIn('checkout', '-q', '--detach', 'main');
+        gitIn('merge', '-q', '--no-ff', '--no-edit', 'release');
+        gitIn('checkout', '-q', 'main');
+        // main gains a change with its changeset after the versioning: its pull request merge commit is blocked.
+        write('.changeset/next.md', '---\n"@pixi-react-provisional/core": patch\n---\n\nNext.\n');
+        write('packages/core/src/next.ts', 'export {};\n');
+        gitIn('add', '-A');
+        gitIn('commit', '-q', '-m', 'main gains a change and its changeset');
+        gitIn('checkout', '-q', '--detach', 'main');
+        gitIn('merge', '-q', '--no-ff', '--no-edit', 'release');
+        assert.match(state().blocked.join(), /changesets are pending \(next\.md\) on top of the version commit/, 'pending changeset from main');
         gitIn('checkout', '-q', 'main');
         gitIn('reset', '-q', '--hard', 'HEAD~1');
         gitIn('checkout', '-q', '--detach', 'main');
@@ -639,4 +658,33 @@ test('bundles keep no more Pixi code than upstream 8.0.5, and no Pixi tree-shaki
     assert.deepEqual(compareWithUpstream({ pixiModules: 146, pixiBytes: 200000 }, upstream), []);
     assert.equal(compareWithUpstream({ pixiModules: 633, pixiBytes: 513000 }, upstream).length, 1, 'more modules');
     assert.equal(compareWithUpstream({ pixiModules: 381, pixiBytes: 513001 }, upstream).length, 1, 'more bytes');
+});
+
+test('mainMergeBase uses the more recent of main and origin/main, so a stale local main does not mislead', () =>
+{
+    const root = mkdtempSync(join(tmpdir(), 'merge-base-'));
+    const gitIn = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+
+    try
+    {
+        gitIn('init', '-q', '-b', 'main');
+        gitIn('commit', '-q', '--allow-empty', '-m', 'old');
+        const old = gitIn('rev-parse', 'HEAD');
+
+        gitIn('commit', '-q', '--allow-empty', '-m', 'new');
+        const fresh = gitIn('rev-parse', 'HEAD');
+
+        gitIn('update-ref', 'refs/remotes/origin/main', fresh);
+        gitIn('checkout', '-q', '-b', 'feature');
+        gitIn('commit', '-q', '--allow-empty', '-m', 'feature');
+        gitIn('branch', '-f', 'main', old);
+        assert.equal(mainMergeBase(root), fresh, 'stale local main');
+        gitIn('branch', '-f', 'main', fresh);
+        gitIn('update-ref', 'refs/remotes/origin/main', old);
+        assert.equal(mainMergeBase(root), fresh, 'stale origin/main');
+    }
+    finally
+    {
+        rmSync(root, { recursive: true, force: true });
+    }
 });

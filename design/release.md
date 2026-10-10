@@ -251,7 +251,7 @@ Nothing below publishes. Publishing needs the [owner approvals](#before-publishi
    first-parent history since the merge base whose parent had other package versions; the merge commit CI checks out
    for a pull request is followed into the pull request's side) and fails when anything that ships changed after it:
    a publishable package directory (except its CHANGELOG.md), `packages/react-shared`, `scripts/`,
-   `release.packages.json`, the lockfile, the workspace file or the root `package.json`. Docs, CI and changelog edits
+   `release.packages.json`, the lockfile, the workspace file, the root `package.json` or `.nvmrc` (the Node runtime the dry run builds with). Changesets pending on top of the version commit (main's next change, arriving in a pull request's merge commit) block it too. Docs, CI and changelog edits
    after the version commit are fine. Merging main (or any branch) into the release branch after the version commit
    also fails, even when main only changed docs. To recover (no history rewrite, no revert): land any late change on
    main with its changeset, then cut a new release branch from main and run `pnpm release:version` there. The
