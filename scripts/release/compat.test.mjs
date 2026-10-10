@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { DEVELOPMENT_BUILD } from './bundles.mjs';
 import { checkReleaseRules, committedConfig, exactList, loadSeedAt, pixiMajors, releaseFacts, supportedPixiRange } from './compat.mjs';
-import { checkCompatibilityTable, renderCompatibilityTable, TABLE_FILE } from './compat-table.mjs';
+import { checkCompatibilityTable, renderCompatibilityTable, TABLE_FILE, verifiedLabel } from './compat-table.mjs';
 import { readJson, repoRoot } from './config.mjs';
 import { checkDocsPins, lockstepPins, lockstepProblems, PINS_FILE, renderPins, rewriteLockstep, rewriteVersions, textProblems } from './docs-pins.mjs';
 
@@ -194,4 +194,18 @@ test('a production bundle may not contain a development build of React\'s packag
     assert.ok(DEVELOPMENT_BUILD.test('node_modules/@pixi/react/node_modules/scheduler/cjs/scheduler.development.js'));
     assert.ok(!DEVELOPMENT_BUILD.test('node_modules/react-reconciler/cjs/react-reconciler.production.js'));
     assert.ok(!DEVELOPMENT_BUILD.test('node_modules/pixi.js/lib/environment/development.js'));
+});
+
+test('verified labels name exact pairings, never a cross product of sparse evidence', () =>
+{
+    const tuple = (react, pixi, pixiAdapter = 'pixi-8') => ({ reactAdapter: 'react-x', react, pixiAdapter, pixi });
+    const sparse = { records: ['2026-10-10'], backends: { webgl: [tuple('18.3.1', '8.2.6'), tuple('19.3.0', '8.22.0')] } };
+    const label = verifiedLabel(sparse, ['webgl']);
+
+    assert.match(label, /React 18\.3\.1 × pixi\.js 8\.2\.6; React 19\.3\.0 × pixi\.js 8\.22\.0/);
+    assert.doesNotMatch(label, /18\.3\.1, 19\.3\.0/, 'two pairs are not four');
+    // React versions with the same pixi.js set share a statement; a different set gets its own.
+    const shared = { records: [], backends: { webgpu: [tuple('19.0.0', '8.10.2'), tuple('19.0.0', '8.22.0'), tuple('19.3.0', '8.10.2'), tuple('19.3.0', '8.22.0'), tuple('18.3.1', '8.22.0')] } };
+
+    assert.equal(verifiedLabel(shared, ['webgpu']), 'WebGPU: React 18.3.1 × pixi.js 8.22.0; React 19.0.0, 19.3.0 × pixi.js 8.10.2, 8.22.0');
 });

@@ -29,8 +29,9 @@ function versionSpan(versions)
 }
 
 /**
- * What the dated verification records verified for a package, per render backend: React versions with the pixi.js
- * versions of each Pixi adapter. `not verified` for a backend without a verified tuple.
+ * What the dated verification records verified for a package, per render backend, as exact pairings: per Pixi adapter,
+ * the React versions that share the same set of verified pixi.js versions, with that set. Sparse evidence is never
+ * widened into a cross product. `not verified` for a backend without a verified tuple.
  */
 export function verifiedLabel(verified, backends, applicable = backends)
 {
@@ -41,19 +42,39 @@ export function verifiedLabel(verified, backends, applicable = backends)
         if (!applicable.includes(backend)) return `${BACKEND_LABEL[backend] ?? backend}: not applicable`;
 
         if (!tuples.length) return `${BACKEND_LABEL[backend] ?? backend}: not verified`;
-        const groups = new Map();
+        // Pixi adapter -> React version -> the pixi.js versions verified with it.
+        const byAdapter = new Map();
 
         for (const tuple of tuples)
         {
-            const key = `${tuple.pixiAdapter}`;
-            const group = groups.get(key) ?? { react: new Set(), pixi: [] };
+            const reacts = byAdapter.get(tuple.pixiAdapter) ?? new Map();
 
-            group.react.add(tuple.react);
-            group.pixi.push(tuple.pixi);
-            groups.set(key, group);
+            reacts.set(tuple.react, new Set([...(reacts.get(tuple.react) ?? []), tuple.pixi]));
+            byAdapter.set(tuple.pixiAdapter, reacts);
+        }
+        const statements = [];
+
+        for (const reacts of byAdapter.values())
+        {
+            // React versions with an identical pixi.js set share one statement; every pair it names is verified.
+            const groups = new Map();
+
+            for (const [react, pixi] of reacts)
+            {
+                const sorted = [...pixi].sort(compareVersions);
+                const key = sorted.join(',');
+                const group = groups.get(key) ?? { react: [], pixi: sorted };
+
+                group.react.push(react);
+                groups.set(key, group);
+            }
+            for (const group of [...groups.values()].sort((a, b) => compareVersions(a.react.sort(compareVersions)[0], b.react.sort(compareVersions)[0])))
+            {
+                statements.push(`React ${versionSpan(group.react)} × pixi.js ${versionSpan(group.pixi)}`);
+            }
         }
 
-        return `${BACKEND_LABEL[backend] ?? backend}: ${[...groups.values()].map((group) => `React ${versionSpan([...group.react])} × pixi.js ${versionSpan(group.pixi)}`).join('; ')}`;
+        return `${BACKEND_LABEL[backend] ?? backend}: ${statements.join('; ')}`;
     });
     const records = verified?.records ?? [];
 
