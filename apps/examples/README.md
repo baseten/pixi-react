@@ -32,8 +32,8 @@ The checks:
 | `test:unit` | `test/catalog.test.mjs`, offline. The catalog, routes, sources and docs registry agree. The sources have no remote URL, randomness or clock. Every harness line is marked, and the docs copy (with harness lines stripped) is clean. |
 | `check:bundle` | After `build`: from `dist/module-graph.json`, the facade and the modular packages come from the local build output (not a registry copy, not their sources), and the bundle has exactly one `pixi.js`, `react` and `react-dom`, at the docs pins. |
 | `test:examples` | After `build`: `check:bundle`, then the [browser tests](#browser-tests) (functional and visual) against the production build. The root `pnpm test:examples` builds first. This is the required CI check **Examples E2E (required)**. |
-| `test:examples:dev` | The functional browser tests against the dev server: development React, StrictMode effect replays and dev-only warnings. Needs no build of this app, only of the workspace packages. |
-| `test:examples:webgpu` | The WebGPU smoke test. Not required; see [WebGPU](#webgpu). |
+| `test:examples:dev` | The functional browser tests against the dev server: development React, StrictMode effect replays and dev-only warnings. Needs no build of this app, only of the workspace packages. Runs `scripts/run-e2e.mjs dev`, which sets `EXAMPLES_SERVER=dev` portably (Windows included). |
+| `test:examples:webgpu` | The WebGPU smoke test, then its report (skip reasons included); exits with Playwright's status. Not required; see [WebGPU](#webgpu). Runs `scripts/run-e2e.mjs webgpu`. |
 | `test:examples:update` | Renders missing or changed visual baselines. Review them before committing; see [Visual baselines](#visual-baselines). |
 
 ## Routes
@@ -205,18 +205,21 @@ them like any other visual change.
 `webgpu-smoke` runs every route with `?test&backend=webgpu` in a browser launched with WebGPU on SwiftShader's Vulkan
 device (`WEBGPU_ARGS`), and checks the route reaches a rendered frame on Pixi's WebGPU renderer and ticks. It takes no
 screenshots: WebGPU output is not part of the deterministic baseline. When the browser has no WebGPU adapter, each
-test is skipped with the reason, which the job summary shows. In CI it runs after the required tests with
-`continue-on-error`, so it never decides the required check.
+test is skipped with the reason, which the job summary shows. In CI it is a job of its own that the required check
+does not depend on.
 
 ### CI
 
 [`.github/workflows/examples-e2e.yml`](../../.github/workflows/examples-e2e.yml) runs on pull requests, merge queues,
-pushes to `main` and by hand. One job builds the library packages and this app, runs `check:bundle`, the functional and
-visual projects and `check-report.mjs`, uploads `.playwright/` (traces, screenshots, expected/actual/diff images, the HTML
-report) as `examples-e2e-failure` on a failure, then runs the WebGPU smoke test. The aggregate job **Examples E2E
-(required)** is the check to require in branch protection: it fails unless the test job succeeded, including when that
-job failed, was cancelled or was skipped. Timeouts: 25 minutes for the job, 15 for the whole Playwright run, 30 s per
-test and 10 s per assertion.
+pushes to `main` and by hand. The required job builds the library packages and this app, runs `check:bundle`, the
+functional and visual projects and `check-report.mjs`, and uploads `.playwright/` (traces, screenshots,
+expected/actual/diff images, the HTML report) as `examples-e2e-failure` on a failure. The aggregate job **Examples E2E
+(required)** depends on that job only and is the check to require in branch protection: it fails unless the test job
+succeeded, including when that job failed, was cancelled or was skipped. Timeouts: 25 minutes for the job, 15 for the
+whole Playwright run, 30 s per test and 10 s per assertion.
+
+The WebGPU smoke test is a separate job, **Examples WebGPU smoke (not required)**, with its own build and a 15 minute
+timeout. Nothing required depends on it, so neither its failure nor its timeout can fail the required check.
 
 These tests used to run as `test:e2e` (the smoke test of issue 18) inside the **E2E tests** cell of the Verify
 workflow. They now run only here, so the root `pnpm test:e2e` no longer includes this app and nothing runs twice.

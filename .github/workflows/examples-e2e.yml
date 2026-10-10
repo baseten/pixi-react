@@ -91,17 +91,49 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # Not required and not deterministic: never part of the baselines or of the required result. A missing WebGPU
-      # adapter skips it with the reason in the job summary.
-      - name: WebGPU smoke test (not required)
-        id: webgpu
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        continue-on-error: true
-        timeout-minutes: 5
+  # Not required and not deterministic: never part of the baselines, and nothing required depends on this job, so its
+  # failure or timeout cannot fail "Examples E2E (required)". A missing WebGPU adapter skips the tests with the reason
+  # in the job summary. It builds on its own, so it does not wait for or slow down the required job.
+  webgpu-smoke:
+    name: Examples WebGPU smoke (not required)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ runner.arch }}-examples-webgpu-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ runner.arch }}-examples-webgpu-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml', 'turbo.json') }}-
+
+      - name: Read the pinned Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter "$EXAMPLES" exec node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        run: pnpm --filter "$EXAMPLES" exec playwright install chromium
+
+      - name: Build the library packages and the example app
+        run: pnpm run build
+
+      - name: WebGPU smoke test
         run: pnpm --filter "$EXAMPLES" run test:examples:webgpu
 
       - name: Upload WebGPU smoke failure details
-        if: ${{ !cancelled() && steps.webgpu.outcome == 'failure' }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
           name: examples-webgpu-smoke-failure
@@ -133,8 +165,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # The one check branch protection requires. It runs even when the tests failed or were cancelled (`always()`), and
-  # anything but success (a failure, a cancellation or a skipped job) fails it.
+  # The one check branch protection requires. It depends on the required test job only (never on webgpu-smoke). It runs
+  # even when the tests failed or were cancelled (`always()`), and anything but success (a failure, a cancellation or a
+  # skipped job) fails it.
   required:
     name: Examples E2E (required)
     needs: [e2e]

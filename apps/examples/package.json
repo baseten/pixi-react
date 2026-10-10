@@ -21,8 +21,8 @@
     "check:bundle": "node scripts/check-bundle.mjs",
     "lint": "eslint --max-warnings 0 .",
     "test:examples": "node scripts/check-bundle.mjs && playwright test --project=functional --project=visual && node scripts/check-report.mjs --require functional --require visual",
-    "test:examples:dev": "EXAMPLES_SERVER=dev playwright test --project=functional",
-    "test:examples:webgpu": "playwright test --project=webgpu-smoke; status=$?; node scripts/check-report.mjs --report webgpu-smoke; exit $status",
+    "test:examples:dev": "node scripts/run-e2e.mjs dev",
+    "test:examples:webgpu": "node scripts/run-e2e.mjs webgpu",
     "test:examples:update": "playwright test --project=visual --update-snapshots",
     "test:unit": "node --test test/*.test.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p e2e/tsconfig.json"
