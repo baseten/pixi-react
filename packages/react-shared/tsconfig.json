@@ -6,5 +6,6 @@
     "rootDir": ".",
     "types": ["node"]
   },
-  "include": ["src/**/*", "test-support/**/*"]
+  "include": ["src/**/*", "test-support/**/*"],
+  "exclude": ["src/react-18/**/*", "test-support/react-18/**/*"]
 }

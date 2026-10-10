@@ -75,8 +75,8 @@ export const OWN_CODE_BUDGETS = Object.freeze({
     facade: 68000,
     // core + renderer + react-19.3 + pixi-8: 72196 before, 56463 after; 56854 with the JSX-order insert fix.
     'explicit:react-19.3': 58300,
-    // core + renderer + react-18 + pixi-8: 65962 before, 54719 after; 55110 with the JSX-order insert fix.
-    'explicit:react-18': 56600,
+    // core + renderer + react-18.3 + pixi-8: 65962 before, 54719 after; 55110 with the JSX-order insert fix (as react-18).
+    'explicit:react-18.3': 56600,
     // core + renderer + react-19.3 + pixi-7 (issue 16, built and stripped like pixi-8): 55668; 56059 with the JSX-order insert fix.
     'explicit:react-19.3+pixi-7': 57500,
     // core + renderer: 29577 before, 23175 after.

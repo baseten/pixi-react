@@ -9,9 +9,10 @@
  * Scenarios (derived, not listed by hand):
  * - `facade`: the default `@pixi/react` with React 19.3 and the newest tested pixi.js. No modular package may be
  *   installed with it.
- * - `explicit-<cell>`: one per PR-tier compatibility cell of the #13 manifest (design/compatibility/seed.json): core,
- *   renderer, that cell's React adapter and that cell's Pixi adapter (Pixi 8, or Pixi 7 for the Pixi 7 cells), with
- *   the cell's exact React, types and pixi.js. Only that cell's reconciler and bridge may be installed; a React 18
+ * - `explicit-<cell>`: one per PR-tier compatibility cell of the #13 manifest (design/compatibility/seed.json), plus,
+ *   for each React adapter no PR-tier cell installs (React 18.1 and 18.2, which run nightly), its nightly cell at its
+ *   latest React patch and the newest tested Pixi 8: core, renderer, that cell's React adapter and that cell's Pixi
+ *   adapter (Pixi 8, or Pixi 7 for the Pixi 7 cells), with the cell's exact React, types and pixi.js. Only that cell's reconciler and bridge may be installed; a React 18
  *   consumer gets no React 19 package of any kind, and no consumer gets another React or Pixi adapter.
  * - `renderer-only` and `core-only`: the neutral factory and core install no React, no reconciler and no pixi.js.
  *
@@ -31,6 +32,21 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defaultPixiAdapter, loadSeed, pixiEpochOf, selectCells } from '../../design/compatibility/cells/matrix.mjs';
 import { loadReleaseConfig, repoRoot, resetOutputDir } from './config.mjs';
+
+/**
+ * The cells the explicit consumers install: every PR-tier cell, and for each React adapter without one, its nightly cell
+ * with the default Pixi adapter's newest tested pixi.js, so every published React package has a packed consumer.
+ */
+export function consumerCells(seed)
+{
+    const pr = selectCells(seed, 'pr');
+    const covered = new Set(pr.map((cell) => cell.react.adapterKey));
+    const current = pixiEpochOf(seed, defaultPixiAdapter(seed)).current;
+    const extra = selectCells(seed, 'nightly').filter((cell) => !covered.has(cell.react.adapterKey)
+        && cell.pixi.adapterKey === defaultPixiAdapter(seed) && cell.pixi.version === current);
+
+    return [...pr, ...extra];
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -88,7 +104,7 @@ export function scenarios(manifest, { root = repoRoot } = {})
         programValues: { FACADE: facade.publicName },
         bundle: 'facade',
     });
-    for (const cell of selectCells(seed, 'pr'))
+    for (const cell of consumerCells(seed))
     {
         const adapter = cell.react.adapter;
         const pixiAdapter = cell.pixi.adapter;
@@ -109,8 +125,8 @@ export function scenarios(manifest, { root = repoRoot } = {})
                 '@types/react-dom': adapter.typesReactDom,
                 'pixi.js': cell.pixi.version,
                 typescript: matrix.toolchain.typescript,
-                // Bundles: React 18 and the facade's React epoch, each with its Pixi adapter's newest tested pixi.js.
-                ...(cell.pixi.version === pixiEpochOf(seed, cell.pixi.adapterKey).current && (isReact18 || adapter.artifact === 'react-19.3') ? { esbuild: TOOLCHAIN.esbuild } : {}),
+                // Bundles: React 18.3 and the facade's React epoch, each with its Pixi adapter's newest tested pixi.js.
+                ...(cell.pixi.version === pixiEpochOf(seed, cell.pixi.adapterKey).current && ['react-18.3', 'react-19.3'].includes(adapter.artifact) ? { esbuild: TOOLCHAIN.esbuild } : {}),
             },
             tree: {
                 exactly: {

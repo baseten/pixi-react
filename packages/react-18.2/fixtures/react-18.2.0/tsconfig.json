@@ -1,0 +1,65 @@
+{
+  "//": "Typechecks the fixture, the shared React 18 sources and the consumer probe against @types/react 18 and the PACKED packages' published declarations (.installed). React types are pinned to this fixture's copy so no React 19 declarations from the workspace enter the program.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "types": [],
+    "paths": {
+      "react": [
+        "./node_modules/@types/react/index.d.ts"
+      ],
+      "react/*": [
+        "./node_modules/@types/react/*"
+      ],
+      "react-dom": [
+        "./node_modules/@types/react-dom/index.d.ts"
+      ],
+      "react-dom/*": [
+        "./node_modules/@types/react-dom/*"
+      ],
+      "pixi.js": [
+        "./node_modules/pixi.js/lib/index.d.ts"
+      ],
+      "vitest": [
+        "./node_modules/vitest/dist/index.d.ts"
+      ],
+      "@pixi-react-provisional/core": [
+        "./.installed/node_modules/@pixi-react-provisional/core/dist/esm/index.d.mts"
+      ],
+      "@pixi-react-provisional/renderer": [
+        "./.installed/node_modules/@pixi-react-provisional/renderer/dist/esm/index.d.mts"
+      ],
+      "@pixi-react-provisional/react-18.2": [
+        "./.installed/node_modules/@pixi-react-provisional/react-18.2/dist/index.d.mts"
+      ],
+      "@pixi-react-provisional/react-18-under-test": [
+        "./.installed/node_modules/@pixi-react-provisional/react-18.2/dist/index.d.mts"
+      ],
+      "@pixi-react-provisional/pixi-8": [
+        "./.installed/node_modules/@pixi-react-provisional/pixi-8/dist/esm/index.d.mts"
+      ],
+      "@pixi-react-provisional/conformance": [
+        "./node_modules/@pixi-react-provisional/conformance/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "test/**/*",
+    "../../../react-shared/fixtures/react-18/**/*",
+    "vitest.workspace.mts"
+  ]
+}

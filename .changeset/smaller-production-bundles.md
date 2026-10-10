@@ -6,7 +6,7 @@
 "@pixi-react-provisional/react-19.1": patch
 "@pixi-react-provisional/react-19.2": patch
 "@pixi-react-provisional/react-19.3": patch
-"@pixi-react-provisional/react-18": patch
+"@pixi-react-provisional/react-18.3": patch
 "@pixi-react-provisional/pixi-8": patch
 ---
 

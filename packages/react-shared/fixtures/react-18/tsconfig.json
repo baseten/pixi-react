@@ -1,0 +1,5 @@
+{
+  "//": "Editor and lint project for the shared React 18 fixture sources; each fixture typechecks them against its own React 18 types.",
+  "extends": "../../../react-18.3/fixtures/react-18.3.1/tsconfig.json",
+  "include": ["./**/*.ts", "./**/*.tsx", "./**/*.d.mts"]
+}
