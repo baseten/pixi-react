@@ -1,6 +1,6 @@
 /**
  * Keeps the example set consistent (issue 18): catalog.json, the app's routes, the docs registry and the sources.
- * Offline and browser-free; the browser smoke test is scripts/smoke.mjs.
+ * Offline and browser-free; the browser tests are the Playwright suite in e2e/ (README.md, "Browser tests").
  */
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';

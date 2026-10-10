@@ -2,7 +2,7 @@
   "name": "@pixi-react-provisional/examples",
   "version": "0.0.0",
   "private": true,
-  "description": "Private, never published: the deterministic docs examples as a standalone Vite app, built against the local workspace facade (@pixi/react) and the createRenderer composition. The docs embed the same source files; issue 19's browser tests use the routes as fixtures. See README.md.",
+  "description": "Private, never published: the deterministic docs examples as a standalone Vite app, built against the local workspace facade (@pixi/react) and the createRenderer composition. The docs embed the same source files; issue 19's Playwright browser and visual tests use the routes as fixtures. See README.md.",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -20,11 +20,12 @@
     "preview": "vite preview",
     "check:bundle": "node scripts/check-bundle.mjs",
     "lint": "eslint --max-warnings 0 .",
-    "smoke": "node scripts/smoke.mjs",
-    "smoke:dev": "node scripts/smoke.mjs --dev",
-    "test:e2e": "vite build && node scripts/check-bundle.mjs && node scripts/smoke.mjs",
+    "test:examples": "node scripts/check-bundle.mjs && playwright test --project=functional --project=visual && node scripts/check-report.mjs --require functional --require visual",
+    "test:examples:dev": "EXAMPLES_SERVER=dev playwright test --project=functional",
+    "test:examples:webgpu": "playwright test --project=webgpu-smoke; status=$?; node scripts/check-report.mjs --report webgpu-smoke; exit $status",
+    "test:examples:update": "playwright test --project=visual --update-snapshots",
     "test:unit": "node --test test/*.test.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p e2e/tsconfig.json"
   },
   "dependencies": {
     "@pixi-react-provisional/pixi-8": "workspace:*",
@@ -36,12 +37,12 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.50.1",
     "@types/node": "^22.13.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "eslint": "^9.16.0",
-    "playwright": "^1.45.3",
     "typescript": "^5.4.5",
     "vite": "^5.0.0"
   }

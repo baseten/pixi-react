@@ -1,0 +1,12 @@
+/*
+ * Applied by toHaveScreenshot only (playwright.config.ts, stylePath). It pins the canvas to the viewport's top left
+ * corner, so the screenshot clip is exactly the 480x320 canvas at whole pixels, whatever the page's text and fonts
+ * above it measure. Nothing else on the page is captured.
+ */
+[data-testid="example"] canvas {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    z-index: 2147483647 !important;
+}

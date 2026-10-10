@@ -7,16 +7,21 @@
  *   advances it by a fixed 1/60 s per frame, so every frame is reproducible.
  * - The route element (`[data-testid="example"]`) mirrors the readiness fields as `data-*` attributes.
  *
- * Test mode is the `?test` query parameter. Bump `HARNESS_VERSION` when the shape of the state or control changes.
+ * Test mode is the `?test` query parameter. Its backend is WebGL, the deterministic one the visual baselines use;
+ * `?test&backend=webgpu` asks for WebGPU instead, for the separate (non-required) WebGPU smoke test. Bump
+ * `HARNESS_VERSION` when the shape of the state or control changes.
  */
 import { type Application, type Container, UPDATE_PRIORITY } from 'pixi.js';
 
-export const HARNESS_VERSION = 1;
+export const HARNESS_VERSION = 2;
 
 /** One fixed ticker step in test mode, in milliseconds (deltaTime 1 at Pixi's 60 fps target). */
 export const FRAME_MS = 1000 / 60;
 
 export type ExampleMode = 'interactive' | 'test';
+
+/** The renderer a test-mode page asks Pixi for (`?backend=`). WebGL unless the URL says otherwise. */
+export type ExampleBackend = 'webgl' | 'webgpu';
 
 /**
  * - `loading`: the application is initialising or the scene has not reported ready yet;
@@ -32,6 +37,10 @@ export interface ExampleState
     /** The route id, from catalog.json. */
     route: string;
     mode: ExampleMode;
+    /** The renderer test mode asked for; null in interactive mode, which uses Pixi's default preference. */
+    backend: ExampleBackend | null;
+    /** The renderer the current application uses (`app.renderer.name`); null before init, after unmount or a failed init. */
+    renderer: string | null;
     status: ExampleStatus;
     /** True once a frame has been rendered after the scene reported ready. Reset when the application changes. */
     firstFrame: boolean;
@@ -90,11 +99,14 @@ export const TEST_APPLICATION_OPTIONS = {
     preserveDrawingBuffer: true,
 } as const;
 
+/** What the harness spreads into `<Application>`: the test-mode options, with the requested backend. */
+export type HarnessOptions = Partial<Omit<typeof TEST_APPLICATION_OPTIONS, 'preference'> & { preference: ExampleBackend }>;
+
 /** What an example sees: no-ops outside the example app (in the docs, for instance). */
 export interface HarnessApi
 {
     /** Spread into `<Application>`: the test-mode options, or nothing in interactive mode. */
-    readonly options: Partial<typeof TEST_APPLICATION_OPTIONS>;
+    readonly options: HarnessOptions;
     /** Pass as (or call from) `onInit`. */
     attach(app: Application): void;
     /** Call when the example unmounts its application. */
@@ -127,7 +139,7 @@ const message = (error: unknown) => (error instanceof Error ? error.message : St
 export class Harness implements HarnessApi
 {
     readonly state: ExampleState;
-    readonly options: Partial<typeof TEST_APPLICATION_OPTIONS>;
+    readonly options: HarnessOptions;
     private app: Application | null = null;
     /** False while the example says its scene is incomplete (a texture still loading, for example). */
     private sceneReady = true;
@@ -135,12 +147,14 @@ export class Harness implements HarnessApi
     private element: HTMLElement | null = null;
     private readonly listeners = new Set<() => void>();
 
-    constructor(route: string, mode: ExampleMode)
+    constructor(route: string, mode: ExampleMode, backend: ExampleBackend = 'webgl')
     {
         this.state = {
             harnessVersion: HARNESS_VERSION,
             route,
             mode,
+            backend: mode === 'test' ? backend : null,
+            renderer: null,
             status: 'loading',
             firstFrame: false,
             frame: 0,
@@ -148,7 +162,7 @@ export class Harness implements HarnessApi
             scene: {},
             errors: [],
         };
-        this.options = mode === 'test' ? TEST_APPLICATION_OPTIONS : {};
+        this.options = mode === 'test' ? { ...TEST_APPLICATION_OPTIONS, preference: backend } : {};
     }
 
     /** Publishes the state and control on `window`. Returns the cleanup. */
@@ -202,6 +216,7 @@ export class Harness implements HarnessApi
         this.sceneReady = true;
         this.time = 0;
         this.state.initCount += 1;
+        this.state.renderer = app.renderer.name;
         this.state.status = 'loading';
         this.state.firstFrame = false;
         this.state.frame = 0;
@@ -213,6 +228,7 @@ export class Harness implements HarnessApi
     detach = (): void =>
     {
         this.app = null;
+        this.state.renderer = null;
         this.state.status = 'unmounted';
         this.state.firstFrame = false;
         this.publish();
@@ -221,6 +237,7 @@ export class Harness implements HarnessApi
     fail = (error: unknown): void =>
     {
         this.app = null;
+        this.state.renderer = null;
         this.state.status = 'error';
         this.state.firstFrame = false;
         this.recordError(error);
