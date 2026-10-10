@@ -4,7 +4,7 @@
 // and the docs pins (docs-pins.mjs) all read these facts from here, so none of them repeats a version by hand.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { compareVersions, pixiMinors, reactVersions } from '../../design/compatibility/cells/matrix.mjs';
+import { compareVersions, defaultPixiAdapter, pixiEpochOf, pixiMinors, reactVersions, selectCells } from '../../design/compatibility/cells/matrix.mjs';
 import { loadReleaseConfig, readJson, repoRoot } from './config.mjs';
 
 /** The source of the facade's tested React constant (the runtime warning reads it). */
@@ -37,13 +37,14 @@ export function exactList(range)
 }
 
 /**
- * The pixi.js peer range the manifest's evidence supports: from `pixiEpochs.pixi8.minimum` up to (excluding) the
- * minor after `current`, with each of the adapter's `excludedVersions` cut out. A wider range needs a newer
- * `current`, which needs audited probe tuples and matrix cells for it (validate.mjs, the nightly matrix).
+ * The pixi.js peer range the manifest's evidence supports for a Pixi adapter (the default one, Pixi 8, unless named):
+ * from its epoch's `minimum` (`pixiEpochs`) up to (excluding) the minor after `current`, with each of the adapter's
+ * `excludedVersions` cut out. A wider range needs a newer `current`, which needs audited probe tuples and matrix cells
+ * for it (validate.mjs, the nightly matrix).
  */
-export function supportedPixiRange(seed, adapterKey = 'pixi8')
+export function supportedPixiRange(seed, adapterKey = defaultPixiAdapter(seed))
 {
-    const epoch = seed.pixiEpochs.find((candidate) => candidate.id === 'pixi8');
+    const epoch = pixiEpochOf(seed, adapterKey);
     const adapter = seed.adapterMatrix.pixiAdapters[adapterKey];
     const [major, minor] = parts(epoch.current);
     const upper = `<${major}.${minor + 1}.0`;
@@ -99,15 +100,20 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
     const tested = exactList(reactAdapter.declaredPeers.react);
 
     if (!tested) throw new Error(`${epochKey}: declaredPeers.react must list exact versions, found ${reactAdapter.declaredPeers.react}`);
-    const pixiAdapter = matrix.pixiAdapters.pixi8;
-    const pixiEpoch = seed.pixiEpochs.find((candidate) => candidate.id === 'pixi8');
+    const facadePixi = defaultPixiAdapter(seed);
+    const pixiAdapter = matrix.pixiAdapters[facadePixi];
+    const pixiEpoch = pixiEpochOf(seed, facadePixi);
     const prPixi = matrix.tiers.pr.pixi.versions.map((which) => (which === 'minimum' ? pixiEpoch.minimum : pixiEpoch.current));
-    const nightlyPixi = pixiMinors(seed, 'pixi8').map((minor) => minor.latest.version);
+    const nightlyPixi = pixiMinors(seed, facadePixi).map((minor) => minor.latest.version);
     const byDir = new Map(Object.entries(matrix.reactAdapters).map(([key, adapter]) => [matrix.artifacts[adapter.artifact].dir, { key, adapter }]));
+    const pixiByDir = new Map(Object.entries(matrix.pixiAdapters).map(([key, adapter]) => [matrix.artifacts[adapter.artifact].dir, { key, adapter }]));
+    const prCellsOf = (adapterKey) => selectCells(seed, 'pr').filter((cell) => cell.pixi.adapterKey === adapterKey)
+        .map((cell) => ({ react: cell.react.version, reactAdapter: cell.react.adapter.id, pixi: cell.pixi.version }));
     const packages = config.packages.map((pkg) =>
     {
         const manifest = manifestOf(pkg.dir);
         const react = byDir.get(pkg.dir);
+        const pixiRow = pixiByDir.get(pkg.dir);
         const reactPr = react ? reactVersions(seed, react.key).latest.version : null;
 
         return {
@@ -125,6 +131,14 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
             reactEpoch: react?.key ?? null,
             // The PR tier runs each React adapter at its newest audited patch against every PR-tier pixi.js version.
             prCells: react ? prPixi.map((pixi) => ({ react: reactPr, pixi })) : null,
+            // A Pixi adapter: its manifest key, its declared range and the PR-tier cells that run it.
+            pixiAdapter: pixiRow ? {
+                key: pixiRow.key,
+                isDefault: pixiRow.key === facadePixi,
+                range: pixiRow.adapter.declaredPeers['pixi.js'],
+                supportedRange: supportedPixiRange(seed, pixiRow.key),
+                prCells: prCellsOf(pixiRow.key),
+            } : null,
         };
     });
     const facade = packages.find((pkg) => pkg.facade);
@@ -178,7 +192,14 @@ export function checkReleaseRules({ root = repoRoot, config, plan, seed = loadSe
     const facts = releaseFacts({ root, config, seed });
     const { facade, pixi } = facts;
 
-    if (pixi.range !== pixi.supportedRange) fail(`seed.json pixiAdapters.pixi8.declaredPeers["pixi.js"] is "${pixi.range}", but the manifest's evidence (pixiEpochs.pixi8 minimum/current, excludedVersions) supports "${pixi.supportedRange}": widen the range only by promoting new audited tuples and matrix cells`);
+    for (const pkg of facts.packages.filter((item) => item.pixiAdapter))
+    {
+        const { key, range, supportedRange } = pkg.pixiAdapter;
+        const epoch = pixiEpochOf(seed, key).id;
+
+        if (range !== supportedRange) fail(`seed.json pixiAdapters.${key}.declaredPeers["pixi.js"] is "${range}", but the manifest's evidence (pixiEpochs.${epoch} minimum/current, excludedVersions) supports "${supportedRange}": widen the range only by promoting new audited tuples and matrix cells`);
+        if (pkg.peers['pixi.js'] !== range) fail(`${pkg.dir}/package.json's pixi.js peer is "${pkg.peers['pixi.js']}", the manifest's declared range (pixiAdapters.${key}) is "${range}"`);
+    }
     if (facade.peers['pixi.js'] !== pixi.range) fail(`the facade's pixi.js peer is "${facade.peers['pixi.js']}", the manifest's tested range is "${pixi.range}"`);
     if (facade.peers.react !== facade.expectedReactPeer) fail(`the facade's react peer is "${facade.peers.react}", expected "${facade.expectedReactPeer}" (the newest tested React of the ${facade.reactEpoch} epoch it builds in)`);
     if (facade.reactEpoch !== facts.newestReactEpoch) fail(`the facade builds in the ${facade.reactEpoch} adapter, but the newest React epoch in the manifest is ${facts.newestReactEpoch} (D1)`);

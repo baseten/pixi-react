@@ -39,7 +39,7 @@ const skipInstall = args.includes('--skip-install');
  * PointerEvent adds members Pixi 8.2.6's declarations lack; design/contract/README.md); 8.22.0's declarations use
  * 5.7's generic typed arrays (`Float32Array<ArrayBuffer>`).
  */
-const TYPESCRIPT = { '8.2.6': '5.6.3', '8.22.0': '5.7.3' };
+const TYPESCRIPT = { '8.2.6': '5.6.3', '8.22.0': '5.7.3', '7.4.2': '5.6.3', '7.4.3': '5.6.3' };
 
 /**
  * Errors inside third-party declarations that a strict consumer (`skipLibCheck: false`) cannot avoid. They are
@@ -61,6 +61,8 @@ const WORKSPACE = {
     renderer: { dir: 'packages/renderer', name: '@pixi-react-provisional/renderer' },
     react193: { dir: 'packages/react-19.3', name: '@pixi-react-provisional/react-19.3' },
     pixi8: { dir: 'packages/pixi-8', name: '@pixi-react-provisional/pixi-8' },
+    pixi7: { dir: 'packages/pixi-7', name: '@pixi-react-provisional/pixi-7' },
+    react18: { dir: 'packages/react-18', name: '@pixi-react-provisional/react-18' },
     facade: { dir: 'packages/react', name: '@pixi/react' },
 };
 
@@ -86,11 +88,35 @@ const REACT = {
     },
 };
 
-/** The peer range's floor and newest certified version (pixi-8 README). */
-const PIXI = Object.keys(TYPESCRIPT);
+/** The Pixi 8 peer range's floor and newest tested version (pixi-8 README). */
+const PIXI8 = ['8.2.6', '8.22.0'];
 
-const CELLS = Object.keys(REACT).sort().reverse().flatMap((react) =>
-    PIXI.map((pixi) => ({ name: `react-${react}-pixi-${pixi}`, react, pixi })));
+/**
+ * The cells: each React type line against the Pixi 8 adapter on its floor and newest version, then the Pixi 7 adapter
+ * (issue 16) with React 19 on the newest Pixi 7 and React 18 on the Pixi 7 floor, each with its runtime React adapter.
+ */
+const CELLS = [
+    ...Object.keys(REACT).sort().reverse().flatMap((react) =>
+        PIXI8.map((pixi) => ({ name: `react-${react}-pixi-${pixi}`, react, pixi, adapter: 'pixi8', ...REACT[react] }))),
+    {
+        name: 'react-19-pixi-7.4.3',
+        react: '19',
+        pixi: '7.4.3',
+        adapter: 'pixi7',
+        registry: REACT[19].registry,
+        workspace: ['core', 'renderer', 'react193', 'pixi7'],
+        programs: ['pixi7-react-19'],
+    },
+    {
+        name: 'react-18-pixi-7.4.2',
+        react: '18',
+        pixi: '7.4.2',
+        adapter: 'pixi7',
+        registry: REACT[18].registry,
+        workspace: ['core', 'renderer', 'react18', 'pixi7'],
+        programs: ['pixi7-react-18'],
+    },
+];
 
 const RESOLUTIONS = {
     NodeNext: { module: 'NodeNext', moduleResolution: 'NodeNext' },
@@ -158,8 +184,7 @@ function programFiles(dir, pixi)
 function installCell(cell, tarballs)
 {
     const dir = join(cellsRoot, cell.name);
-    const react = REACT[cell.react];
-    const overrides = Object.fromEntries(react.workspace.map((key) => [WORKSPACE[key].name, `file:${tarballs[key]}`]));
+    const overrides = Object.fromEntries(cell.workspace.map((key) => [WORKSPACE[key].name, `file:${tarballs[key]}`]));
     const manifest = {
         name: `type-consumer-${cell.name}`,
         version: '0.0.0',
@@ -167,7 +192,7 @@ function installCell(cell, tarballs)
         type: 'module',
         dependencies: {
             ...overrides,
-            ...react.registry,
+            ...cell.registry,
             'pixi.js': cell.pixi,
             typescript: TYPESCRIPT[cell.pixi],
         },
@@ -372,7 +397,8 @@ function checkMustFail(ts, cell, cellDir)
         const caseDir = join(root, name);
         const expected = JSON.parse(readFileSync(join(caseDir, 'expect.json'), 'utf8'));
 
-        if (!expected.react.includes(cell.react))
+        // A must-fail case names its React lines and, when not the Pixi 8 adapter's, its Pixi adapters.
+        if (!expected.react.includes(cell.react) || !(expected.adapters ?? ['pixi8']).includes(cell.adapter))
         {
             continue;
         }
@@ -422,7 +448,7 @@ for (const cell of selected)
 
     const ts = createRequire(join(cellDir, 'package.json'))('typescript');
 
-    for (const program of REACT[cell.react].programs)
+    for (const program of cell.programs)
     {
         const files = stageProgram(cellDir, program, cell.pixi);
         const reference = compileVariants(ts, cell, cellDir, program, files);

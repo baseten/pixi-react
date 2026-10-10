@@ -42,6 +42,34 @@ npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react
 
 Nothing is published yet. Release tarballs carry the public names from `release.packages.json` (target scope `@pixi`, pending [issue 41](https://github.com/baseten/pixi-react/issues/41)). The [release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md) covers versions, install recipes, tested pairs and migration.
 
+### Recipe: Pixi 7
+
+The same factory composes the Pixi 7 adapter ([`pixi-7`](../pixi-7/README.md), issue 16) with any React adapter;
+only the Pixi adapter and the installed pixi.js change. The Pixi 7 adapter releases at the same version as every other
+package (8.1.0 for Release 1), although it targets pixi.js `>=7.4.2 <7.5.0`.
+
+```sh
+npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18@8.1.0 @pixi-react-provisional/pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
+```
+
+```ts
+import { createRenderer } from '@pixi-react-provisional/renderer';
+import { React18Adapter } from '@pixi-react-provisional/react-18'; // or React19Adapter from a React 19 minor's package
+import { Pixi7Adapter } from '@pixi-react-provisional/pixi-7';
+import { Container, Sprite } from 'pixi.js';
+
+export const { Application, extend, useApplication, useTick, createRoot, component } =
+    createRenderer({ react: new React18Adapter(), pixi: new Pixi7Adapter() });
+
+extend({ Container, Sprite });
+// useTick((delta) => ...) receives Pixi 7's numeric delta; useApplication().app is a Pixi 7 Application.
+```
+
+What changes from Pixi 8 is declared, not guessed: the Pixi 7 adapter provides `pixi7.filter` and
+`pixi7.particle-container` and never `pixi8.particle`, `pixi8.render-layer` or `pixi8.dom-container`, so
+`createRenderer(adapters, { requiredCapabilities: { 'pixi8.render-layer': 1 } })` with it throws `CAPABILITY_MISSING`
+before allocating anything. Use one Pixi major per application (D10).
+
 ## Tests
 
 | Path | What it proves |

@@ -51,7 +51,7 @@ const RUNTIME_FIELDS = ['dependencies', 'optionalDependencies', 'peerDependencie
 const RANK = { none: 0, patch: 1, minor: 2, major: 3 };
 
 /** Source files that declare an adapter manifest's ABI, relative to the repository root. */
-export const ADAPTER_ABI_SOURCES = ['packages/pixi-8/src/adapter.ts', 'packages/react-18/src/adapter.ts', 'packages/react-shared/src/react-19/adapter.ts'];
+export const ADAPTER_ABI_SOURCES = ['packages/pixi-8/src/adapter.ts', 'packages/pixi-7/src/adapter.ts', 'packages/react-18/src/adapter.ts', 'packages/react-shared/src/react-19/adapter.ts'];
 
 export function readCoreAbi(root = repoRoot)
 {

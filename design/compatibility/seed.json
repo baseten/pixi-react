@@ -1645,6 +1645,10 @@
       "pixi-8": {
         "dir": "packages/pixi-8",
         "package": "@pixi-react-provisional/pixi-8"
+      },
+      "pixi-7": {
+        "dir": "packages/pixi-7",
+        "package": "@pixi-react-provisional/pixi-7"
       }
     },
     "commonArtifacts": [
@@ -1652,6 +1656,7 @@
       "renderer",
       "conformance"
     ],
+    "defaultPixiAdapter": "pixi8",
     "reactAdapters": {
       "react18": {
         "id": "react-18",
@@ -1856,6 +1861,7 @@
         "className": "Pixi8Adapter",
         "hashScope": "package",
         "adapterId": "pixi-8",
+        "epoch": "pixi8",
         "abi": {
           "major": 1,
           "minor": 0
@@ -1884,11 +1890,78 @@
           }
         },
         "probeSource": "packages/pixi-8/test/browser/pixiProbe.ts",
+        "probeFactory": "createPixi8Probe",
+        "conformanceAppOptions": {
+          "autoStart": false,
+          "sharedTicker": false,
+          "width": 64,
+          "height": 64,
+          "resolution": 1,
+          "antialias": false,
+          "backgroundAlpha": 0,
+          "preference": "webgl"
+        },
+        "conformanceCapabilities": [
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "typeConsumer": "consumer.pixi8.tsx",
         "typeProbes": [
           "pixi8"
         ],
         "sameClassAcrossFormats": false,
         "sameClassNote": "Each entry binds the pixi.js module its own loader resolves, so ESM and CJS legitimately differ in Node (pixi-8 README, D6)."
+      },
+      "pixi7": {
+        "id": "pixi-7",
+        "artifact": "pixi-7",
+        "entry": ".",
+        "className": "Pixi7Adapter",
+        "hashScope": "package",
+        "adapterId": "pixi-7",
+        "epoch": "pixi7",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "requires": {},
+        "declaredPeers": {
+          "pixi.js": ">=7.4.2 <7.5.0",
+          "@types/react": "^18.3.0 || ^19.0.0"
+        },
+        "excludedVersions": [],
+        "capabilities": {
+          "always": [
+            "pixi.mutation",
+            "pixi.visibility",
+            "pixi.application",
+            "pixi.ticker",
+            "pixi.globals",
+            "pixi7.filter",
+            "pixi7.particle-container"
+          ],
+          "fromBoundary": {}
+        },
+        "probeSource": "packages/pixi-7/test/browser/pixiProbe.ts",
+        "probeFactory": "createPixi7Probe",
+        "conformanceAppOptions": {
+          "autoStart": false,
+          "sharedTicker": false,
+          "width": 64,
+          "height": 64,
+          "resolution": 1,
+          "antialias": false,
+          "backgroundAlpha": 0,
+          "hello": false
+        },
+        "conformanceCapabilities": [],
+        "conformanceNote": "Pixi 7 lacks the Pixi 8 scene capabilities pixi.graphics-context (no GraphicsContext) and pixi.renderer-destroy-options (Application.destroy takes removeView, a boolean): the runner skips those two scenarios and names the capability.",
+        "typeConsumer": "consumer.pixi7.tsx",
+        "typeProbes": [
+          "pixi7"
+        ],
+        "sameClassAcrossFormats": false,
+        "sameClassNote": "Each entry binds the pixi.js module its own loader resolves, so ESM and CJS legitimately differ in Node (pixi-7 README, D6)."
       }
     },
     "formats": [
@@ -1897,7 +1970,7 @@
     ],
     "tiers": {
       "pr": {
-        "description": "Required check: each React epoch at its latest patch against the minimum and the current Pixi 8, plus fast probes at every named Pixi 8 boundary.",
+        "description": "Required check: each React epoch at its latest patch against the minimum and the current Pixi 8, two Pixi 7 cells (React 18 at the Pixi 7 minimum, React 19.3 at the current Pixi 7), plus fast probes at every named Pixi 8 boundary.",
         "react": {
           "epochs": "all",
           "patch": "latest"
@@ -1938,10 +2011,24 @@
             "boundary": "8.22 current"
           }
         ],
-        "negative": "all"
+        "negative": "all",
+        "pixiAdapters": {
+          "pixi7": {
+            "pairs": [
+              {
+                "react": "react18",
+                "pixi": "minimum"
+              },
+              {
+                "react": "react193",
+                "pixi": "current"
+              }
+            ]
+          }
+        }
       },
       "nightly": {
-        "description": "Full cross-product: every React epoch at its latest patch against every Pixi 8 minor at its latest audited patch, plus every audited probe tuple.",
+        "description": "Full cross-product: every React epoch at its latest patch against every Pixi 8 minor at its latest audited patch and against both audited Pixi 7 releases, plus every audited probe tuple.",
         "react": {
           "epochs": "all",
           "patch": "latest"
@@ -1950,7 +2037,21 @@
           "versions": "all-minors"
         },
         "boundaryProbes": "all",
-        "negative": "all"
+        "negative": "all",
+        "pixiAdapters": {
+          "pixi7": {
+            "react": {
+              "epochs": "all",
+              "patch": "latest"
+            },
+            "pixi": {
+              "versions": [
+                "minimum",
+                "current"
+              ]
+            }
+          }
+        }
       }
     },
     "negative": [
@@ -2049,6 +2150,56 @@
           "signatures": [
             "UNSUPPORTED_TUPLE",
             "8.5.0"
+          ]
+        }
+      },
+      {
+        "id": "pixi-7-adapter-beside-pixi-8",
+        "description": "The Pixi 7 adapter installed beside pixi.js 8.22.0: the strict peer check must refuse the install.",
+        "react": {
+          "epoch": "react193",
+          "version": "19.3.0"
+        },
+        "pixi": {
+          "adapter": "pixi7",
+          "version": "8.22.0"
+        },
+        "commands": [
+          "install",
+          "modules"
+        ],
+        "expect": {
+          "failingCommand": "install",
+          "signatures": [
+            "ERESOLVE",
+            "peer pixi.js"
+          ]
+        }
+      },
+      {
+        "id": "pixi-7-adapter-rejects-pixi-8-when-peers-ignored",
+        "description": "The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the Pixi 7 adapter's own environment check must still reject pixi.js 8 and name the Pixi 8 adapter.",
+        "react": {
+          "epoch": "react193",
+          "version": "19.3.0"
+        },
+        "pixi": {
+          "adapter": "pixi7",
+          "version": "8.22.0"
+        },
+        "install": {
+          "legacyPeerDeps": true
+        },
+        "commands": [
+          "install",
+          "modules"
+        ],
+        "expect": {
+          "failingCommand": "modules",
+          "signatures": [
+            "UNSUPPORTED_TUPLE",
+            "pixi.js 8.22.0 is Pixi 8",
+            "Compose the Pixi 8 adapter"
           ]
         }
       }

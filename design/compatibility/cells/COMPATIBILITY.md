@@ -4,18 +4,20 @@
 
 This is the list of compatibility cells CI runs (issue 13), not a support certificate: `advertisedRanges` stays empty until the owner promotes a range. Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js. Results are published by the Compatibility workflows (job summary and the `compatibility-table` artifact).
 
-Required PR check: **Compatibility (required)**. Nightly: **Compatibility (nightly)**, 105 cells (168 with minimum and latest React patches).
+Required PR check: **Compatibility (required)**. Nightly: **Compatibility (nightly)**, 115 cells (184 with minimum and latest React patches).
 
-## PR tier (10 cells)
+Pixi adapters: `pixi-8` for the pixi.js 8.2.6 … 8.22.0 columns (10 PR-tier cells); `pixi-7` for the pixi.js 7.4.2 … 7.4.3 columns (2 PR-tier cells). A column's pixi.js major selects the adapter.
+
+## PR tier (12 cells)
 
 
-| React adapter @ React | pixi.js 8.2.6 | pixi.js 8.22.0 |
-| --- | --- | --- |
-| react-18 @ 18.3.1 | cell | cell |
-| react-19.0 @ 19.0.8 | cell | cell |
-| react-19.1 @ 19.1.9 | cell | cell |
-| react-19.2 @ 19.2.8 | cell | cell |
-| react-19.3 @ 19.3.0 | cell | cell |
+| React adapter @ React | pixi.js 7.4.2 | pixi.js 7.4.3 | pixi.js 8.2.6 | pixi.js 8.22.0 |
+| --- | --- | --- | --- | --- |
+| react-18 @ 18.3.1 | cell | - | cell | cell |
+| react-19.0 @ 19.0.8 | - | - | cell | cell |
+| react-19.1 @ 19.1.9 | - | - | cell | cell |
+| react-19.2 @ 19.2.8 | - | - | cell | cell |
+| react-19.3 @ 19.3.0 | - | cell | cell | cell |
 
 
 ### PR tier boundary probes
@@ -30,19 +32,19 @@ Required PR check: **Compatibility (required)**. Nightly: **Compatibility (night
 | pixi-8.10.0 | 8.10 removeParticles end-index semantics |
 | pixi-8.22.0 | 8.22 current |
 
-## Nightly tier (105 cells)
+## Nightly tier (115 cells)
 
 
-| React adapter @ React | pixi.js 8.2.6 | pixi.js 8.3.4 | pixi.js 8.4.1 | pixi.js 8.5.2 | pixi.js 8.6.6 | pixi.js 8.7.3 | pixi.js 8.8.1 | pixi.js 8.9.2 | pixi.js 8.10.2 | pixi.js 8.11.0 | pixi.js 8.12.0 | pixi.js 8.13.2 | pixi.js 8.14.3 | pixi.js 8.15.0 | pixi.js 8.16.0 | pixi.js 8.17.1 | pixi.js 8.18.1 | pixi.js 8.19.0 | pixi.js 8.20.1 | pixi.js 8.21.0 | pixi.js 8.22.0 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| react-18 @ 18.3.1 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
-| react-19.0 @ 19.0.8 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
-| react-19.1 @ 19.1.9 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
-| react-19.2 @ 19.2.8 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
-| react-19.3 @ 19.3.0 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| React adapter @ React | pixi.js 7.4.2 | pixi.js 7.4.3 | pixi.js 8.2.6 | pixi.js 8.3.4 | pixi.js 8.4.1 | pixi.js 8.5.2 | pixi.js 8.6.6 | pixi.js 8.7.3 | pixi.js 8.8.1 | pixi.js 8.9.2 | pixi.js 8.10.2 | pixi.js 8.11.0 | pixi.js 8.12.0 | pixi.js 8.13.2 | pixi.js 8.14.3 | pixi.js 8.15.0 | pixi.js 8.16.0 | pixi.js 8.17.1 | pixi.js 8.18.1 | pixi.js 8.19.0 | pixi.js 8.20.1 | pixi.js 8.21.0 | pixi.js 8.22.0 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| react-18 @ 18.3.1 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-19.0 @ 19.0.8 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-19.1 @ 19.1.9 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-19.2 @ 19.2.8 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-19.3 @ 19.3.0 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
 
 
-Nightly also re-runs all 42 audited tuples as boundary probes.
+Nightly also re-runs all 44 audited tuples as boundary probes.
 
 ## Deliberately incompatible pairs
 
@@ -52,6 +54,8 @@ Nightly also re-runs all 42 audited tuples as boundary probes.
 | react-18-adapter-beside-react-19: The React 18 adapter installed beside React 19.3.0: the strict peer check must refuse the install. | install | `ERESOLVE`, `react@"18.3.1"` |
 | pixi-peer-range-excludes-8.5.0: The Pixi 8 adapter beside the excluded pixi.js 8.5.0: the strict peer check refuses the install. | install | `ERESOLVE`, `peer pixi.js` |
 | pixi-adapter-rejects-8.5.0-when-peers-ignored: The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the adapter's own environment check must still reject pixi.js 8.5.0. | modules | `UNSUPPORTED_TUPLE`, `8.5.0` |
+| pixi-7-adapter-beside-pixi-8: The Pixi 7 adapter installed beside pixi.js 8.22.0: the strict peer check must refuse the install. | install | `ERESOLVE`, `peer pixi.js` |
+| pixi-7-adapter-rejects-pixi-8-when-peers-ignored: The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the Pixi 7 adapter's own environment check must still reject pixi.js 8 and name the Pixi 8 adapter. | modules | `UNSUPPORTED_TUPLE`, `pixi.js 8.22.0 is Pixi 8`, `Compose the Pixi 8 adapter` |
 
 ## Commands each cell runs
 

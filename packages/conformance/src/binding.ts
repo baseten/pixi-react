@@ -11,6 +11,10 @@ import type { PixiJournal } from './journal';
  * - `parity.upstream`: the composition promises upstream `@pixi/react` behaviour (decision D4). Scenarios
  *   that need it record current upstream semantics for parity; they are not desired-behaviour claims for
  *   modular compositions, which may change them in a documented future major.
+ * - `pixi.graphics-context`: the scene has Pixi 8's `GraphicsContext`, a resource passed as Graphics `context`
+ *   (`probe.createGraphicsContext`). Pixi 7 has none.
+ * - `pixi.renderer-destroy-options`: the app's destroy takes Pixi 8's renderer destroy options object as its first
+ *   argument, forwarded unchanged. Pixi 7's `Application.destroy` takes `removeView`, a boolean.
  */
 export type Capability =
     | 'react.19'
@@ -18,10 +22,18 @@ export type Capability =
     | 'pixi.globals'
     | 'dom.resize'
     | 'parity.upstream'
+    | 'pixi.graphics-context'
+    | 'pixi.renderer-destroy-options'
     | `${string}.${string}`;
 
 /** The scene node kinds every binding exposes as element types. */
 export type NodeKind = 'container' | 'sprite' | 'graphics' | 'text';
+
+/**
+ * The scene capabilities of the Pixi 8 bindings (and of the fake backend, which models Pixi 8), which the Pixi 7
+ * binding lacks. A Pixi 8 binding lists these next to its React and DOM capabilities.
+ */
+export const PIXI8_SCENE_CAPABILITIES: readonly Capability[] = Object.freeze(['pixi.graphics-context', 'pixi.renderer-destroy-options']);
 
 export type Constructor = new (...args: any[]) => object;
 

@@ -184,6 +184,22 @@ export const { Application, extend, useApplication, useTick, useExtend, createRo
     createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
 ```
 
+On PixiJS 7 (7.4.2 or 7.4.3), compose the PixiJS 7 adapter the same way. `@pixi/react` itself stays on PixiJS 8; the
+PixiJS 7 adapter is a modular package only, released at the same version as every other package although it targets
+PixiJS 7, and it exposes this API, not the 7.x `Stage` API
+([pixi-7 README](https://github.com/baseten/pixi-react/blob/main/packages/pixi-7/README.md)):
+
+```sh
+npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18@8.1.0 @pixi-react-provisional/pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
+```
+
+```ts
+import { Pixi7Adapter } from '@pixi-react-provisional/pixi-7';
+
+export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
+    createRenderer({ react: new React18Adapter(), pixi: new Pixi7Adapter() });
+```
+
 Package names are shown as in this repository; the published packages carry the public names of the release (see the
 [release policy](https://github.com/baseten/pixi-react/blob/main/design/release.md#installing)). Each adapter package
 accepts only the React versions it is tested with and rejects another minor with a `CompatibilityError` that names the

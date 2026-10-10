@@ -27,6 +27,8 @@ test('the target namespace maps every publishable package to the owner ruling of
         'packages/react-19.3': '@pixi/react-19.3',
         'packages/react-18': '@pixi/react-18',
         'packages/pixi-8': '@pixi/react-pixi-8',
+        // Issue 16: the Pixi 7 adapter follows the same `@pixi/react-<suffix>` pattern as the ruling's pixi-8.
+        'packages/pixi-7': '@pixi/react-pixi-7',
     });
     assert.equal(target.publishEnabled, false, 'publishing stays disabled');
 });

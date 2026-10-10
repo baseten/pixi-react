@@ -74,6 +74,13 @@
       "suffix": "pixi-8",
       "release1": "8.1.0",
       "versionConstant": { "file": "src/adapter.ts", "pattern": "PACKAGE_VERSION = '(?<version>[^']*)'" }
+    },
+    "packages/pixi-7": {
+      "$comment": "The Pixi 7 adapter (issue 16). It releases at the facade's version like every package here (lockstep), although it targets pixi.js 7; the facade stays on Pixi 8.",
+      "workspaceName": "@pixi-react-provisional/pixi-7",
+      "suffix": "pixi-7",
+      "release1": "8.1.0",
+      "versionConstant": { "file": "src/adapter.ts", "pattern": "PACKAGE_VERSION = '(?<version>[^']*)'" }
     }
   },
   "neverPublished": {

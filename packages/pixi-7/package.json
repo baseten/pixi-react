@@ -1,0 +1,88 @@
+{
+  "name": "@pixi-react-provisional/pixi-7",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pixi7Adapter: the Pixi 7 adapter. Owns every pixi.js 7 import, node construction (positional Pixi 7 constructors), props, destruction, the synchronous application construction, the numeric ticker and Pixi globals, with the Pixi 8-only features declared as missing capabilities. No React dependency. Releases at the facade's version (lockstep), although it targets Pixi 7.",
+  "license": "MIT",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./jsx": {
+      "types": "./dist/jsx/index.d.ts",
+      "default": "./dist/jsx/index.js"
+    },
+    "./jsx/react-19": {
+      "types": "./dist/jsx/react-19.d.ts",
+      "default": "./dist/jsx/react-19.js"
+    },
+    "./jsx/react-18": {
+      "types": "./dist/jsx/react-18.d.ts",
+      "default": "./dist/jsx/react-18.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "dualPackage": {
+    "peerBinding": {
+      "peer": "pixi.js",
+      "module": "bind.js",
+      "bind": "bindPixi",
+      "imports": "PIXI7_BINDING_EXPORTS"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/build-dual-package.mjs && tsc -p tsconfig.jsx.json",
+    "check:graph": "node ../../scripts/check-dependency-graph.mjs --allow @pixi-react-provisional/core --allow pixi.js --allow @types/react --skip jsx && node ../../scripts/check-dependency-graph.mjs --dist dist/jsx --allow @pixi-react-provisional/pixi-7 --allow @pixi-react-provisional/core --allow pixi.js --allow react --allow @types/react",
+    "lint": "eslint --max-warnings 0 .",
+    "test:conformance": "vitest run --workspace vitest.browser.workspace.mts --project 'conformance*'",
+    "test:e2e": "vitest run --workspace vitest.browser.workspace.mts",
+    "test:unit": "tsc --noEmit -p tsconfig.json && vitest run && pnpm run check:graph",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.current.json"
+  },
+  "dependencies": {
+    "@pixi-react-provisional/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "pixi.js": ">=7.4.2 <7.5.0",
+    "@types/react": "^18.3.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@pixi-react-provisional/conformance": "workspace:*",
+    "@pixi-react-provisional/renderer": "workspace:*",
+    "@types/node": "^22.13.1",
+    "@types/react": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/browser": "^2.0.4",
+    "eslint": "^9.16.0",
+    "its-fine": "^2.0.0",
+    "jsdom": "^25.0.0",
+    "pixi.js": "7.4.2",
+    "pixi.js-current": "npm:pixi.js@7.4.3",
+    "playwright": "^1.45.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-reconciler": "0.31.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.0.0",
+    "vitest": "^2.0.0"
+  }
+}

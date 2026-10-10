@@ -26,13 +26,13 @@ The root scripts run Turbo tasks, which build workspace dependencies first:
 
 | Command | Turbo task | Notes |
 | --- | --- | --- |
-| `pnpm build` | `build` (every package except docs) | `@pixi/react`: Rollup ESM/CJS output plus declarations. `core`/`renderer`/`pixi-8`: one CJS implementation plus an ESM wrapper (D6, see `packages/core/README.md`; `pixi-8` binds each entry to its own pixi.js instance, see `packages/pixi-8/README.md`) |
+| `pnpm build` | `build` (every package except docs) | `@pixi/react`: Rollup ESM/CJS output plus declarations. `core`/`renderer`/`pixi-8`/`pixi-7`: one CJS implementation plus an ESM wrapper (D6, see `packages/core/README.md`; `pixi-8` and `pixi-7` bind each entry to its own pixi.js instance, see `packages/pixi-8/README.md`) |
 | `pnpm test:types` | `typecheck` | Excludes the docs app (see below) |
 | `pnpm test:lint` | `lint` | Library and docs, shared root `eslint.config.mjs` |
-| `pnpm test:unit` | `test:unit` | jsdom/Node unit tests; for `core`/`renderer`/`pixi-8` also the D6 entry test and the built dependency-graph check |
+| `pnpm test:unit` | `test:unit` | jsdom/Node unit tests; for `core`/`renderer`/`pixi-8`/`pixi-7` also the D6 entry test and the built dependency-graph check |
 | `pnpm test:e2e` | `test:e2e` | Vitest browser mode with Playwright Chromium, including the conformance suite; never cached |
 | `pnpm test:examples` | `test:examples` | The example app (`apps/examples`): build, bundle check, then Playwright Test functional tests of every route and canvas screenshots against the reviewed Linux baselines. The required CI check "Examples E2E (required)". Never cached. Updating baselines: `apps/examples/README.md`, "Visual baselines" |
-| `pnpm test:conformance` | `test:conformance` | The conformance suite alone: against the baseline facade and the Pixi 8 adapter (pixi.js 8.2.6 and 8.22.0) in Chromium, and against core + renderer in jsdom; never cached |
+| `pnpm test:conformance` | `test:conformance` | The conformance suite alone: against the baseline facade, the Pixi 8 adapter (pixi.js 8.2.6 and 8.22.0) and the Pixi 7 adapter (pixi.js 7.4.2 and 7.4.3) in Chromium, and against core + renderer in jsdom; never cached |
 | `pnpm build:docs` | `build` (`docs`) | Builds the library, then the Docusaurus site |
 | `pnpm test:contract` | design-contract package | Type-level adapter contract under NodeNext and Bundler resolution |
 | `pnpm test:release` | none (Node script) | Offline: the release tooling tests and the release-policy check on the pending Changesets plan. `pnpm release:dry-run` runs the whole release in a disposable checkout and publishes nothing. See `design/release.md` |

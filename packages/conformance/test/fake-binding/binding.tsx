@@ -1,3 +1,4 @@
+import { PIXI8_SCENE_CAPABILITIES } from '../../src/binding';
 import { PixiJournal } from '../../src/journal';
 import { createBuiltins, createFakeProbe } from './probe';
 import { createFakeRuntime, type FakeRuntimeFaults } from './runtime';
@@ -43,7 +44,7 @@ export function createFakeBinding(faults: FakeRuntimeFaults = {}, id = 'fake ren
 {
     return {
         id,
-        capabilities: ['react.19', 'dom.resize'],
+        capabilities: ['react.19', 'dom.resize', ...PIXI8_SCENE_CAPABILITIES],
         create: () => createComposition(faults),
     };
 }

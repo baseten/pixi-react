@@ -51,6 +51,12 @@ const UNUSED_PIXI_MODULE = /\/NineSliceSprite\.m?js$/;
  */
 export const KNOWN_GAPS = {};
 
+/**
+ * pixi.js 7's dependencies: its `@pixi/*` packages and their own dependencies (the `url` polyfill chain of `@pixi/utils`
+ * among them). pixi.js 7 declares no `sideEffects`, so a bundler keeps all of it whatever the application imports.
+ */
+const PIXI7_DEPS = ['pixi.js', '@pixi/*', 'earcut', 'eventemitter3', 'ismobilejs', 'url', 'punycode', 'qs', 'side-channel', 'side-channel-*', 'object-inspect', 'get-intrinsic', 'call-bind-apply-helpers', 'call-bound', 'dunder-proto', 'es-define-property', 'es-errors', 'es-object-atoms', 'function-bind', 'get-proto', 'gopd', 'has-symbols', 'hasown', 'math-intrinsics', '@types/*'];
+
 /** pixi.js and its dependencies: the packages a Pixi bundle may contain. */
 const PIXI_DEPS = ['pixi.js', '@pixi/colord', '@xmldom/xmldom', '@webgpu/types', 'earcut', 'eventemitter3', 'gifuct-js', 'ismobilejs', 'parse-svg-path', 'tiny-lru', 'js-binary-schema-parser', '@types/*'];
 
@@ -121,7 +127,7 @@ export async function checkFixture({ dir, fixture, values, expect })
     const packages = Object.keys(byPackage).filter((name) => name !== '(fixture)').sort();
 
     // Unused adapter implementations are absent.
-    for (const name of packages) if (!expect.allowedPackages.some((allowed) => (allowed.endsWith('/*') ? name.startsWith(allowed.slice(0, -1)) : name === allowed))) problems.push(`bundles ${name}, which this fixture does not use`);
+    for (const name of packages) if (!expect.allowedPackages.some((allowed) => (allowed.endsWith('*') ? name.startsWith(allowed.slice(0, -1)) : name === allowed))) problems.push(`bundles ${name}, which this fixture does not use`);
     for (const name of expect.requiredPackages ?? []) if (!packages.includes(name)) problems.push(`does not bundle ${name}`);
     const text = output.toString('utf8');
 
@@ -198,6 +204,10 @@ export function bundlePlan(manifest)
         {
             const ours = scenario.install.map((entry) => entry.publicName);
             const reconciler = scenario.tree.exactly['react-reconciler'];
+            // The Pixi 8 bounds (unused constructors eliminated, no more Pixi than upstream 8.0.5) apply to the default
+            // Pixi adapter. pixi.js 7 is not tree shakable (no `sideEffects`), so a Pixi 7 bundle is checked for the
+            // adapter bounds only: our packages once each, one reconciler, no other adapter, registration intact.
+            const defaultPixi = scenario.pixiAdapter.isDefault;
 
             plan.push({
                 scenario: scenario.id,
@@ -206,15 +216,16 @@ export function bundlePlan(manifest)
                 values: scenario.bundleValues,
                 expect: {
                     kind: 'explicit',
-                    pixi: true,
-                    allowedPackages: [...ours, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...PIXI_DEPS],
+                    pixi: defaultPixi,
+                    allowedPackages: [...ours, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...(defaultPixi ? PIXI_DEPS : PIXI7_DEPS)],
                     requiredPackages: [...ours, 'react-reconciler', 'pixi.js'],
-                    bundledVersions: { ...atRelease(ours), 'react-reconciler': reconciler, react: scenario.registry.react },
+                    bundledVersions: { ...atRelease(ours), 'react-reconciler': reconciler, react: scenario.registry.react, 'pixi.js': scenario.registry['pixi.js'] },
                     absentMarkers: reconcilers.filter((version) => version !== reconciler).map((version) => ({ text: `"${version}"`, label: `another epoch's reconciler version "${version}"` })),
-                    result: { registered: ['pixiContainer', 'pixiSprite'], react: scenario.bundleValues.REACT_ID, pixi: 'pixi-8' },
-                    upstreamBound: true,
+                    result: { registered: ['pixiContainer', 'pixiSprite'], react: scenario.bundleValues.REACT_ID, pixi: scenario.bundleValues.PIXI_ID },
+                    upstreamBound: defaultPixi,
                 },
             });
+            if (!defaultPixi) continue;
             plan.push({
                 scenario: scenario.id,
                 dir,

@@ -48,6 +48,8 @@ Current bindings:
 | Core + renderer + the real `Pixi8Adapter`, driven by the same fake React 19 adapter, on pixi.js 8.2.6 and 8.22.0 | `packages/pixi-8/test/browser/` | Vitest browser mode, Playwright Chromium |
 | Each React 19 minor package (`@pixi-react-provisional/react-19.0` … `react-19.3`, built) with the fake Pixi adapter, once per audited React version | `packages/react-19.<minor>/fixtures/` (shared suite in `packages/react-shared/fixtures/react-19/`) | jsdom |
 | React 18: `createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() })` from the packed packages, with React 18.3.1 and the Pixi 8 adapter's probe, on pixi.js 8.2.6 and 8.22.0 | `packages/react-18/fixtures/` | Vitest browser mode, Playwright Chromium |
+| Core + renderer + the real `Pixi7Adapter`, driven by the fake React 19 adapter, on pixi.js 7.4.2 and 7.4.3 (issue 16) | `packages/pixi-7/test/browser/` | Vitest browser mode, Playwright Chromium |
+| Every React adapter (18 and 19.0–19.3) with the Pixi 8 or the Pixi 7 adapter, from packed packages in isolated projects | `design/compatibility/cells/harness` (the #13 cells) | Vitest browser mode, Playwright Chromium |
 
 The second binding shows that the interface is not shaped around the facade. The second and third bindings both
 host the committed negative controls.
@@ -91,7 +93,11 @@ failures.
 ### Capabilities, kinds and expected failures
 
 - A scenario lists the capabilities it needs (`react.18`, `pixi.globals`, `dom.resize`,
-  `parity.upstream`). The runner skips it, naming the missing capabilities, when a binding lacks one. The
+  `parity.upstream`, `pixi.graphics-context`, `pixi.renderer-destroy-options`). The runner skips it, naming the
+  missing capabilities, when a binding lacks one. The last two are Pixi 8 scene features (a `GraphicsContext` resource;
+  the renderer destroy options object forwarded unchanged): every Pixi 8 binding and the fake backend provide them
+  (`PIXI8_SCENE_CAPABILITIES`); the Pixi 7 binding does not, so those two scenarios are skipped there by capability
+  and its package tests the Pixi 7 equivalents (issue 16). The
   React 18 scenarios (ConcurrentRoot, recoverable-error routing, rejection of React 19-only root callbacks)
   run in the React 18 binding ([issue 12](https://github.com/baseten/pixi-react/issues/12)), which provides
   `react.18`, `pixi.globals` and `dom.resize`, lists no expected failures, and skips only the five

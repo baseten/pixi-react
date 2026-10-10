@@ -4,6 +4,7 @@
  * react-dom 18. The probe is the Pixi 8 adapter's own browser probe, unchanged. Each scenario gets a fresh runtime.
  */
 import { createPixi8Probe, type Pixi8Probe } from '../../../pixi-8/test/browser/pixiProbe';
+import { PIXI8_SCENE_CAPABILITIES } from '@pixi-react-provisional/conformance';
 import { Pixi8Adapter, type Pixi8Types } from '@pixi-react-provisional/pixi-8';
 import { React18Adapter, type React18Family } from '@pixi-react-provisional/react-18';
 import { createRenderer, type Renderer } from '@pixi-react-provisional/renderer';
@@ -27,7 +28,7 @@ export const appOptions = Object.freeze({
  * `parity.upstream`: only the facade promises upstream behaviour, and the facade composes React 19 (D1). React 19
  * capabilities React 18 lacks (`react.activity`, root error callbacks) are not provided either.
  */
-export const REACT18_BINDING_CAPABILITIES: readonly Capability[] = ['react.18', 'pixi.globals', 'dom.resize'];
+export const REACT18_BINDING_CAPABILITIES: readonly Capability[] = ['react.18', 'pixi.globals', 'dom.resize', ...PIXI8_SCENE_CAPABILITIES];
 
 export type React18Renderer = Renderer<React18Family, Pixi8Types>;
 

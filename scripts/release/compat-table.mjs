@@ -56,13 +56,20 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
     {
         const peers = Object.entries(pkg.peers).filter(([name]) => !name.startsWith('@types/')).map(([name, range]) => `${name} ${code(range)}`).join(', ') || '-';
         const exact = [...pkg.internal.map((name) => `${code(name)} ${pkg.version}`), pkg.reconciler && `react-reconciler ${pkg.reconciler}`, pkg.itsFine && `its-fine ${pkg.itsFine}`].filter(Boolean).join(', ') || '-';
-        let cells = pkg.dir === 'packages/pixi-8' ? 'with every React adapter row above' : 'in every cell';
+        let cells = 'in every cell';
 
         if (pkg.prCells) cells = `React ${pkg.prCells[0].react} with pixi.js ${pkg.prCells.map((cell) => cell.pixi).join(' and ')}`;
+        else if (pkg.pixiAdapter?.isDefault) cells = 'with every React adapter row above';
+        else if (pkg.pixiAdapter) cells = `${pkg.pixiAdapter.prCells.map((cell) => `React ${cell.react} with pixi.js ${cell.pixi}`).join(', ')}; every React adapter nightly`;
 
         lines.push(`| ${code(pkg.publicName)} | ${versionLabel(pkg)} | ${peers} | ${exact} | ${cells} |`);
     }
-    lines.push('', `Every package releases at the facade's version (${facade.version}), and a dependency between our packages names exactly that version: install all \`${config.names.modulePrefix}*\` packages at the same version (see [release.md](release.md#lockstep-versions)).`, '');
+    lines.push('', `Every package releases at the facade's version (${facade.version}), and a dependency between our packages names exactly that version: install all \`${config.names.modulePrefix}*\` packages at the same version (see [release.md](release.md#lockstep-versions)).`);
+    for (const pkg of facts.packages.filter((item) => item.pixiAdapter && !item.pixiAdapter.isDefault))
+    {
+        lines.push('', `${code(pkg.publicName)} targets pixi.js ${code(pkg.peers['pixi.js'])} but releases at the facade's version like every package; the facade itself composes the default Pixi adapter and stays on its Pixi major.`);
+    }
+    lines.push('');
 
     return lines.join('\n');
 }

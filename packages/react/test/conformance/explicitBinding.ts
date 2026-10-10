@@ -1,5 +1,6 @@
 import { appOptions } from './facadeBinding';
 import { createPixi8Probe } from './pixiProbe';
+import { PIXI8_SCENE_CAPABILITIES } from '@pixi-react-provisional/conformance';
 import { Pixi8Adapter } from '@pixi-react-provisional/pixi-8';
 import { React19Adapter } from '@pixi-react-provisional/react-19.3';
 import { createRenderer } from '@pixi-react-provisional/renderer';
@@ -13,7 +14,7 @@ import type { Composition, ConformanceBinding, PixiElement, ReactBindingApi } fr
  */
 export const explicitBinding: ConformanceBinding = {
     id: 'createRenderer: React19Adapter (19.3) + Pixi8Adapter',
-    capabilities: ['react.19', 'pixi.globals', 'dom.resize'],
+    capabilities: ['react.19', 'pixi.globals', 'dom.resize', ...PIXI8_SCENE_CAPABILITIES],
     expectedFailures: {},
     create(): Composition
     {
