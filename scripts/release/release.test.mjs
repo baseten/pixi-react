@@ -664,7 +664,7 @@ test('bundles keep no more Pixi code than upstream 8.0.5, and no Pixi tree-shaki
 
 test('our own code has a budget in every bundled fixture kind, and production bundles carry no development-only text (issue 58)', () =>
 {
-    assert.deepEqual(Object.keys(OWN_CODE_BUDGETS).sort(), ['explicit:react-18', 'explicit:react-19.3', 'facade', 'renderer']);
+    assert.deepEqual(Object.keys(OWN_CODE_BUDGETS).sort(), ['explicit:react-18', 'explicit:react-19.3', 'explicit:react-19.3+pixi-7', 'facade', 'renderer']);
     for (const [kind, budget] of Object.entries(OWN_CODE_BUDGETS)) assert.ok(Number.isInteger(budget) && budget > 0, `${kind} has a budget`);
     assert.ok(DEVELOPMENT_ONLY_TEXT.length > 0);
     assert.deepEqual(compareWithBudget(1000, 1000), [], 'equal is within the budget');

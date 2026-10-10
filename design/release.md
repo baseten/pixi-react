@@ -409,12 +409,12 @@ bundled into `@pixi/react` (64.4 KiB) are larger than upstream's single package 
 
 Issue 58 reduced the code our packages contribute to a production bundle, without changing behaviour:
 
-- Diagnostic text (error messages, the Pixi 8 adapter's warnings) is built behind `process.env.NODE_ENV !== 'production'`,
+- Diagnostic text (error messages, the Pixi adapters' warnings) is built behind `process.env.NODE_ENV !== 'production'`,
   which every published build leaves as written (the React adapters' esbuild bundles with `platform: 'neutral'`, the
   esbuild bundles of `build-dual-package.mjs`, and the facade's `lib/`), so the application's bundler drops it. Every
   check still runs in every build; see [release-1-notes.md](release-1-notes.md#production-error-messages).
-- core, renderer and pixi-8 ship each runtime entry as one esbuild bundle of their sources instead of tsc's file per
-  module (pixi-8's `index.js` requires `bind.js`, so the implementation is still one module, D6); the facade bundles
+- core, renderer, pixi-8 and pixi-7 ship each runtime entry as one esbuild bundle of their sources instead of tsc's file
+  per module (each Pixi adapter's `index.js` requires `bind.js`, so the implementation is still one module, D6); the facade bundles
   its adapters from their sources into `lib/adapters.js` and lowers each `lib/` chunk to ES2020 once.
 - Test-only data (the React adapters' host-key audit tables) is written as pure expressions, so the bundles drop it.
 
@@ -425,6 +425,7 @@ Measured with the same fixtures (minified, `NODE_ENV=production`), the bytes our
 | Facade (`@pixi/react`) | 85,911 | 65,977 | 66,600 |
 | Explicit React 19.3 + pixi-8 (core, renderer, react-19.3, pixi-8) | 72,196 | 56,463 | 57,000 |
 | Explicit React 18 + pixi-8 (core, renderer, react-18, pixi-8) | 65,962 | 54,719 | 55,300 |
+| Explicit React 19.3 + pixi-7 (core, renderer, react-19.3, pixi-7; issue 16) | - | 55,668 | 56,300 |
 | Renderer only (core, renderer) | 29,577 | 23,175 | 23,500 |
 
 `bundles.mjs` fails a fixture whose own code exceeds its budget (`OWN_CODE_BUDGETS`), or whose production bundle still

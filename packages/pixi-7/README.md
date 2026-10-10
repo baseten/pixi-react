@@ -164,7 +164,15 @@ identical), over Pixi 7's `extensions` and `TextStyle.defaultStyle`.
 
 The package uses core's D6 build like the Pixi 8 adapter: one CJS implementation, and an ESM wrapper that binds the
 `pixi.js` module `import` loads (pixi.js 7 also ships separate ESM and CJS builds). Both entries bind only
-`PIXI7_BINDING_EXPORTS`, imported by name; `bindPixi` caches per Pixi instance.
+`PIXI7_BINDING_EXPORTS`, imported by name; `bindPixi` caches per Pixi instance. Each runtime entry is one esbuild
+bundle of the sources (`index.js` requires `bind.js`, so the implementation is still one module).
+
+Only text is development-only ([issue 58](https://github.com/baseten/pixi-react/issues/58)), as in the Pixi 8 adapter:
+in a production build (the application's bundler replaces `process.env.NODE_ENV` with `'production'`) the adapter's
+errors carry core's short message built from their code and details, and its console warnings (a Pixi-named event
+prop, a Pixi 8 property name such as `label`, a changed constructor-only argument, `draw` on a node that is not a
+Graphics, a dashed prop naming a missing field, a removed prop with no default to restore, extra `removeView` options)
+are not emitted. Every check runs in every build, and the behaviour the warnings describe is the same.
 
 Every public prop type is derived from the installed pixi.js 7 declarations; none is shared with the Pixi 8 adapter.
 

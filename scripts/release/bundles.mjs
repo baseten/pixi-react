@@ -77,16 +77,18 @@ export const OWN_CODE_BUDGETS = Object.freeze({
     'explicit:react-19.3': 57000,
     // core + renderer + react-18 + pixi-8: 65962 before, 54719 after.
     'explicit:react-18': 55300,
+    // core + renderer + react-19.3 + pixi-7 (issue 16, built and stripped like pixi-8): 55668.
+    'explicit:react-19.3+pixi-7': 56300,
     // core + renderer: 29577 before, 23175 after.
     renderer: 23500,
 });
 
 /**
- * Text that only development builds contain (issue 58): core's malformed-manifest diagnostic and the Pixi 8 adapter's
- * event-prop warning. The sources guard it with `process.env.NODE_ENV !== 'production'`, so a production bundle that
+ * Text that only development builds contain (issue 58): core's malformed-manifest diagnostic, the Pixi adapters'
+ * event-prop warning, and the Pixi 7 adapter's warning for a Pixi 8 property name. The sources guard it with `process.env.NODE_ENV !== 'production'`, so a production bundle that
  * still contains it means a build resolved or dropped that check.
  */
-export const DEVELOPMENT_ONLY_TEXT = Object.freeze(['has a malformed manifest', 'Event props use PascalCase']);
+export const DEVELOPMENT_ONLY_TEXT = Object.freeze(['has a malformed manifest', 'Event props use PascalCase', 'is a Pixi 8 property']);
 
 /** Problems of `ownBytes` against `budget`. */
 export function compareWithBudget(ownBytes, budget)
