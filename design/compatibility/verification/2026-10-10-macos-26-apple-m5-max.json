@@ -13,7 +13,7 @@
     "note": "Real GPU: real GPU: ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version); apple / metal-3, isFallbackAdapter false. The render check confirmed no backend ran on a software renderer or a fallback adapter."
   },
   "scope": "full",
-  "commit": "3985b7f4e41fed7439613ac88837c5b3f1c73db3",
+  "commit": "b0eea97919ffbb46247b4519d9cb3713b260ef7e",
   "environment": {
     "os": "Darwin Kernel Version 25.6.0: Tue Aug 18 17:51:47 PDT 2026; root:xnu-12377.161.15.700.19~2/RELEASE_ARM64_T6050 (Darwin 25.6.0)",
     "kernel": "25.6.0",
