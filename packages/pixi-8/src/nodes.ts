@@ -89,6 +89,8 @@ interface NodeState
     particleParent?: ParticleContainerLike | null;
     /** The renderer's children of this node in JSX order, every kind together (filters and particles are not Pixi children). */
     jsxChildren?: object[];
+    /** The parent whose `jsxChildren` holds this node, so a direct reparent can leave the old order. */
+    jsxParent?: object | null;
     destroyed: boolean;
 }
 
@@ -860,13 +862,7 @@ export class PixiNodes
     /** Detaches only; destruction comes later, through `destroyNode`. */
     remove(parent: object, child: object): void
     {
-        const order = this.stateOf(parent).jsxChildren ?? [];
-        const index = order.indexOf(child);
-
-        if (index !== -1)
-        {
-            order.splice(index, 1);
-        }
+        this.leaveOrder(child);
 
         switch (this.kindOf(child))
         {
@@ -881,19 +877,32 @@ export class PixiNodes
         }
     }
 
+    /** Removes `child` from the JSX order of the parent that holds it, whichever parent that is. */
+    private leaveOrder(child: object): void
+    {
+        const state = this.stateOf(child);
+        const order = state.jsxParent ? this.stateOf(state.jsxParent).jsxChildren : undefined;
+        const index = order ? order.indexOf(child) : -1;
+
+        if (order && index !== -1)
+        {
+            order.splice(index, 1);
+        }
+
+        state.jsxParent = null;
+    }
+
     /**
      * Records `child` before `before` (or last) in the parent's JSX order, and returns the sibling of the child's kind
      * that now follows it, or null.
      */
     private placeInOrder(parent: object, child: object, before: object | null): object | null
     {
-        const order = (this.stateOf(parent).jsxChildren ??= []);
-        const existing = order.indexOf(child);
+        this.leaveOrder(child);
 
-        if (existing !== -1)
-        {
-            order.splice(existing, 1);
-        }
+        const order = (this.stateOf(parent).jsxChildren ??= []);
+
+        this.stateOf(child).jsxParent = parent;
 
         const index = before ? order.indexOf(before) : -1;
 

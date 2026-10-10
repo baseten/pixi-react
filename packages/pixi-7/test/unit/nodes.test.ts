@@ -287,6 +287,21 @@ describe.each(cells)('positional construction on pixi.js $version', ({ pixi }) =
         expect(container.children).toEqual([b, c, a]);
     });
 
+    it('a node moved straight to another parent leaves the old parent\'s JSX order', () =>
+    {
+        const [from, to] = [make(nodes, pixi.Container), make(nodes, pixi.Container)];
+        const [a, b] = ['a', 'b'].map((name) => make(nodes, pixi.Container, { name }));
+        const f = Object.create(pixi.Filter.prototype) as object;
+
+        nodes.append(from, f);
+        nodes.append(from, a);
+        // Core reparents without removing from the old parent first.
+        nodes.append(to, a);
+        nodes.insertBefore(from, b, f);
+        expect(from.children).toEqual([b]);
+        expect(to.children).toEqual([a]);
+    });
+
     it('React visibility layers over the committed `visible`', () =>
     {
         const node = make(nodes, pixi.Container, { visible: false });

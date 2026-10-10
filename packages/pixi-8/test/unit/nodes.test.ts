@@ -471,6 +471,21 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect(nodes.isDestroyed(container)).toBe(true);
     });
 
+    it('a node moved straight to another parent leaves the old parent\'s JSX order', () =>
+    {
+        const [from, to] = [make(nodes, pixi.Container), make(nodes, pixi.Container)];
+        const [a, b] = ['a', 'b'].map((label) => make(nodes, pixi.Container, { label }));
+        const f = Object.create(pixi.Filter.prototype) as object;
+
+        nodes.append(from, f);
+        nodes.append(from, a);
+        // Core reparents without removing from the old parent first.
+        nodes.append(to, a);
+        nodes.insertBefore(from, b, f);
+        expect(from.children).toEqual([b]);
+        expect(to.children).toEqual([a]);
+    });
+
     it('standalone applyProps works on an instance the scene never created', () =>
     {
         const node = new pixi.Container() as unknown as Any;
