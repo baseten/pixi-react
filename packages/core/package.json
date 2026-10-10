@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.1",
+    "esbuild": "0.21.5",
     "eslint": "^9.16.0",
     "jsdom": "^25.0.0",
     "typescript": "^5.4.5",

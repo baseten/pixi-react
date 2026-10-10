@@ -9,6 +9,9 @@ import {
     type Runtime,
 } from '@pixi-react-provisional/core';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 export type { Adapters, RendererOptions } from '@pixi-react-provisional/core';
 
 /** What `createRenderer` returns: the React adapter's own bindings for the composed Pixi adapter, plus its runtime. */
@@ -90,8 +93,10 @@ export function createRenderer<S extends PixiTypes, F extends ReactBindingFamily
         if (!isBindable(bindings))
         {
             throw new CompatibilityError(
-                `React adapter "${reactId}" returned ${bindings === null ? 'null' : typeof bindings} from bind(); `
-                + 'it must return its bindings object.',
+                process.env.NODE_ENV !== 'production'
+                    ? (`React adapter "${reactId}" returned ${bindings === null ? 'null' : typeof bindings} from bind(); `
+                    + 'it must return its bindings object.')
+                    : '',
                 { code: 'ABI_MISMATCH', adapterIds: [reactId] },
             );
         }
@@ -99,7 +104,7 @@ export function createRenderer<S extends PixiTypes, F extends ReactBindingFamily
         if (Object.prototype.hasOwnProperty.call(bindings, 'runtime'))
         {
             throw new CompatibilityError(
-                `React adapter "${reactId}" returned bindings with a "runtime" key, which createRenderer reserves.`,
+                process.env.NODE_ENV !== 'production' ? `React adapter "${reactId}" returned bindings with a "runtime" key, which createRenderer reserves.` : '',
                 { code: 'ABI_MISMATCH', adapterIds: [reactId] },
             );
         }

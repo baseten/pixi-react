@@ -1,3 +1,5 @@
+import { transform } from 'esbuild';
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import esbuild from 'rollup-plugin-esbuild';
@@ -30,27 +32,51 @@ const require = createRequire(import.meta.url);
  * production or development build. The `dist/` bundles stay self-contained, as upstream's were: they bundle the
  * reconciler, its scheduler and its-fine too.
  *
+ * The adapter packages are bundled from their TypeScript sources, not from their built CommonJS (issue 58): rollup then
+ * hoists them into one scope and drops what the facade never reaches, instead of wrapping every CommonJS module of
+ * every package. The result is the same code in the same single module (`lib/adapters.js`, D6); only the module
+ * boilerplate and the unreachable exports are gone.
+ *
  * `@pixi-react-provisional/pixi-8` resolves to its `bind` module, not its entry: the entry requires pixi.js and binds
  * to it at load, while the facade's single implementation must not import pixi.js itself (D6). The facade's entries
  * pass the pixi.js exports it needs (`PIXI8_BINDING_EXPORTS`, imported by name) to the bundled `bindPixi` instead.
  */
 const PROVISIONAL_SCOPE = '@pixi-react-provisional/';
 const REACT_ADAPTER_NAME = `${PROVISIONAL_SCOPE}react-19.3`;
+const packageDir = (name) => path.dirname(require.resolve(`${name}/package.json`));
 const bundledEntries = {
-    '@pixi-react-provisional/pixi-8': path.join(path.dirname(require.resolve('@pixi-react-provisional/pixi-8/package.json')), 'dist', 'cjs', 'bind.js'),
+    '@pixi-react-provisional/core': path.join(packageDir('@pixi-react-provisional/core'), 'src', 'index.ts'),
+    '@pixi-react-provisional/renderer': path.join(packageDir('@pixi-react-provisional/renderer'), 'src', 'index.ts'),
+    '@pixi-react-provisional/pixi-8': path.join(packageDir('@pixi-react-provisional/pixi-8'), 'src', 'bind.ts'),
+    [REACT_ADAPTER_NAME]: path.join(packageDir(REACT_ADAPTER_NAME), 'src', 'index.ts'),
 };
+/** The React adapter's `imports` aliases (`#reconciler` → `react-reconciler`), which its sources use. */
+const reactAdapterImports = JSON.parse(readFileSync(path.join(packageDir(REACT_ADAPTER_NAME), 'package.json'), 'utf8')).imports;
 
 /**
  * @param {object} [options]
  * @param {boolean} [options.adaptersChunk] - Resolve the facade's runtime imports of the adapter packages to the
  * separately built `lib/adapters.js` (see the `lib-adapters` target) instead of bundling them into this build.
  */
-function bundleAdapters({ adaptersChunk = false } = {})
+function bundleAdapters({ adaptersChunk = false, library = false } = {})
 {
     return {
         name: 'bundle-adapters',
-        resolveId(source, importer)
+        async resolveId(source, importer)
         {
+            if (source.startsWith('#') && importer?.startsWith(path.dirname(bundledEntries[REACT_ADAPTER_NAME])))
+            {
+                const target = reactAdapterImports?.[source];
+
+                if (typeof target !== 'string')
+                {
+                    this.error(`${source} is not an import alias of ${REACT_ADAPTER_NAME}.`);
+                }
+
+                // A dependency: `lib/` requires it, the `dist/` bundles include it.
+                return library ? { id: target, external: true } : this.resolve(target, importer, { skipSelf: true });
+            }
+
             if (adaptersChunk && source.startsWith(PROVISIONAL_SCOPE) && importer?.startsWith(paths.source))
             {
                 // An absolute external id is rendered relative to the importing source module, so the id is placed
@@ -113,11 +139,31 @@ function noThirdPartySource()
     };
 }
 
+/**
+ * Lowers each emitted `lib/` chunk to the module target once (issue 58). The bundled adapter packages are already
+ * built JavaScript (ES2022 class fields and private members); transforming each of their modules separately put a
+ * copy of esbuild's class-field helpers into every module of `lib/adapters.js`. Lowering the chunk emits one copy.
+ */
+function lowerChunks()
+{
+    return {
+        name: 'lower-chunks',
+        async renderChunk(code)
+        {
+            const result = await transform(code, { loader: 'js', target: moduleTarget, sourcemap: true });
+
+            return { code: result.code, map: result.map };
+        },
+    };
+}
+
 const plugins = ({ env, esmExternals = false, adaptersChunk = false, library = false } = {}) => [
-    bundleAdapters({ adaptersChunk }),
-    ...(library ? [noThirdPartySource()] : []),
+    bundleAdapters({ adaptersChunk, library }),
+    ...(library ? [noThirdPartySource(), lowerChunks()] : []),
     json(),
-    esbuild({ target: moduleTarget, minify: env === 'production' }),
+    // `lib/` compiles the TypeScript sources (this package's and the bundled adapters') without lowering them;
+    // `lowerChunks` lowers each chunk once. The `dist/` bundles transform (and, for production, minify) every module.
+    esbuild(library ? { target: 'esnext', include: /\.tsx?$/ } : { target: moduleTarget, minify: env === 'production' }),
     sourcemaps(),
     commonjs({ esmExternals }),
     ...(env ? [injectProcessEnv({

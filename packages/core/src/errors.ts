@@ -1,3 +1,6 @@
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /** ABI-owned codes. Adapters may add codes in their own dotted namespace (`community.shader.UNSUPPORTED_FORMAT`). */
 export type BuiltinCompatibilityErrorCode =
     | 'ABI_MISMATCH'
@@ -58,6 +61,21 @@ export function isCompatibilityErrorCode(code: unknown): code is CompatibilityEr
     return typeof code === 'string' && (BUILTIN_CODES.has(code) || NAMESPACED_CODE.test(code));
 }
 
+/**
+ * The message of a `CompatibilityError` constructed with an empty one. Production builds of the adapter packages pass
+ * an empty message instead of their full text (the full text is only built when `process.env.NODE_ENV` is not
+ * `'production'`, so bundlers drop it), and get this one: the code and the details, which are the same in every
+ * build, and where to find the full message.
+ */
+function detailsMessage({ code, adapterIds, capability, expected, actual }: CompatibilityErrorDetails): string
+{
+    const json = (label: string, values?: CompatibilityErrorValues) => values && `${label} ${JSON.stringify(values)}`;
+    const parts = [adapterIds.join(', '), capability, json('expected', expected), json('actual', actual)].filter(Boolean);
+
+    return `${String(code)}${parts.length ? ` (${parts.join('; ')})` : ''}. A development build (NODE_ENV !== 'production') `
+        + 'gives the full message.';
+}
+
 function freezeValues(values: CompatibilityErrorValues | undefined): CompatibilityErrorValues | undefined
 {
     return values === undefined ? undefined : Object.freeze({ ...values });
@@ -77,15 +95,21 @@ export class CompatibilityError extends Error implements CompatibilityErrorDetai
     readonly actual?: CompatibilityErrorValues;
     declare readonly cause?: unknown;
 
+    /**
+     * @param message - The human-readable message. When it is empty, the message is built from `details` (the
+     * production builds of the adapter packages pass an empty message; see `detailsMessage`).
+     */
     constructor(message: string, details: CompatibilityErrorDetails)
     {
-        super(message, 'cause' in details ? { cause: details.cause } : undefined);
+        super(message || detailsMessage(details), 'cause' in details ? { cause: details.cause } : undefined);
 
         if (!isCompatibilityErrorCode(details.code))
         {
             throw new TypeError(
-                `Invalid CompatibilityError code "${String(details.code)}": use a built-in code or a dotted `
-                + 'namespaced code such as "community.shader.UNSUPPORTED_FORMAT".',
+                process.env.NODE_ENV !== 'production'
+                    ? (`Invalid CompatibilityError code "${String(details.code)}": use a built-in code or a dotted `
+                    + 'namespaced code such as "community.shader.UNSUPPORTED_FORMAT".')
+                    : `Invalid CompatibilityError code "${String(details.code)}".`,
             );
         }
 

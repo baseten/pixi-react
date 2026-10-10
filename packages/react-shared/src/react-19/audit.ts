@@ -11,7 +11,7 @@ function group(reason: string, keys: readonly string[]): UnreachableKeys
     return Object.fromEntries(keys.map((key) => [key, reason]));
 }
 
-export const HYDRATION = group('supportsHydration is false', [
+export const HYDRATION = /* @__PURE__ */ group('supportsHydration is false', [
     'canHydrateFormStateMarker',
     'canHydrateInstance',
     'canHydrateSuspenseInstance',
@@ -42,13 +42,13 @@ export const HYDRATION = group('supportsHydration is false', [
 ]);
 
 /** Hydration keys added by 0.32 (singleton hydration). */
-export const HYDRATION_0_32 = group('supportsHydration is false', [
+export const HYDRATION_0_32 = /* @__PURE__ */ group('supportsHydration is false', [
     'getFirstHydratableChildWithinSingleton',
     'getNextHydratableSiblingAfterSingleton',
 ]);
 
 /** Hydration keys added by 0.33 (Activity and dehydrated boundaries). */
-export const HYDRATION_0_33 = group('supportsHydration is false', [
+export const HYDRATION_0_33 = /* @__PURE__ */ group('supportsHydration is false', [
     'canHydrateActivityInstance',
     'clearActivityBoundary',
     'clearActivityBoundaryFromContainer',
@@ -63,7 +63,7 @@ export const HYDRATION_0_33 = group('supportsHydration is false', [
     'unhideDehydratedBoundary',
 ]);
 
-export const PERSISTENCE = group('supportsPersistence is false', [
+export const PERSISTENCE = /* @__PURE__ */ group('supportsPersistence is false', [
     'appendChildToContainerChildSet',
     'cloneHiddenInstance',
     'cloneHiddenTextInstance',
@@ -73,7 +73,7 @@ export const PERSISTENCE = group('supportsPersistence is false', [
     'replaceContainerChildren',
 ]);
 
-export const RESOURCES = group('supportsResources is not set (no hoistables or resources)', [
+export const RESOURCES = /* @__PURE__ */ group('supportsResources is not set (no hoistables or resources)', [
     'acquireResource',
     'createHoistableInstance',
     'getHoistableRoot',
@@ -90,7 +90,7 @@ export const RESOURCES = group('supportsResources is not set (no hoistables or r
     'unmountHoistable',
 ]);
 
-export const SINGLETONS = group('supportsSingletons is not set', [
+export const SINGLETONS = /* @__PURE__ */ group('supportsSingletons is not set', [
     'acquireSingletonInstance',
     'isHostSingletonType',
     'releaseSingletonInstance',
@@ -98,7 +98,7 @@ export const SINGLETONS = group('supportsSingletons is not set', [
     'supportsSingletons',
 ]);
 
-export const TEST_SELECTORS = group('supportsTestSelectors is not set', [
+export const TEST_SELECTORS = /* @__PURE__ */ group('supportsTestSelectors is not set', [
     'findFiberRoot',
     'getBoundingRect',
     'getInstanceFromNode',
@@ -110,24 +110,24 @@ export const TEST_SELECTORS = group('supportsTestSelectors is not set', [
     'supportsTestSelectors',
 ]);
 
-export const MICROTASKS = group('supportsMicrotasks is not set; the scheduler drives sync work, as in the baseline', [
+export const MICROTASKS = /* @__PURE__ */ group('supportsMicrotasks is not set; the scheduler drives sync work, as in the baseline', [
     'scheduleMicrotask',
     'supportsMicrotasks',
 ]);
 
-export const TEXT = group('createTextInstance always throws, so no text instance exists', [
+export const TEXT = /* @__PURE__ */ group('createTextInstance always throws, so no text instance exists', [
     'commitTextUpdate',
     'hideTextInstance',
     'resetTextContent',
     'unhideTextInstance',
 ]);
 
-export const GATED_STABLE = group('feature-gated off in the stable bundle (scope API)', [
+export const GATED_STABLE = /* @__PURE__ */ group('feature-gated off in the stable bundle (scope API)', [
     'getInstanceFromScope',
     'prepareScopeUpdate',
 ]);
 
-export const MISC = group('not reachable from a scene renderer', [
+export const MISC = /* @__PURE__ */ group('not reachable from a scene renderer', [
     // finalizeInitialChildren always returns false.
     'commitMount',
     // Only form host instances are reset; the scene has none.

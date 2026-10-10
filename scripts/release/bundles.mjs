@@ -23,7 +23,9 @@
  * - our packages are bundled once each, at the release version (lockstep, issue 62);
  * - the Pixi code kept is no more than upstream's (issue 57): the facade fixture is also bundled against upstream
  *   `@pixi/react` 8.0.5 from the registry, in its own clean project with the same React, pixi.js and esbuild, and the
- *   facade and explicit fixtures may keep no more pixi.js modules and no more pixi.js bytes than that baseline.
+ *   facade and explicit fixtures may keep no more pixi.js modules and no more pixi.js bytes than that baseline;
+ * - our own code stays within its budget (issue 58): the bytes our packages contribute (`OWN_CODE_BUDGETS`), and no
+ *   development-only diagnostic text (`DEVELOPMENT_ONLY_TEXT`) reaches a production bundle.
  *
  * Bundles are measured for a fixed fixture with pinned versions. They say nothing about resolving peer-version
  * conflicts: tree shaking never makes two React or Pixi versions coexist.
@@ -56,6 +58,35 @@ const PIXI_DEPS = ['pixi.js', '@pixi/colord', '@xmldom/xmldom', '@webgpu/types',
 
 /** A development build file of a React package (`react-reconciler.development.js`, `scheduler.development.js`, ...). */
 export const DEVELOPMENT_BUILD = /node_modules\/(?:react|react-dom|react-reconciler|scheduler|its-fine)\/.*\.development\.js$/;
+
+/**
+ * Budgets for our own code (issue 58): the minified bytes our packages contribute to a production bundle of each
+ * fixture, keyed by fixture kind (explicit fixtures by React adapter ID). Each is set just above the size issue 58
+ * reduced it to, so growth fails the dry run; raise a budget only deliberately, in the change that needs it.
+ */
+export const OWN_CODE_BUDGETS = Object.freeze({
+    // 85911 bytes before issue 58; 65977 after.
+    facade: 66600,
+    // core + renderer + react-19.3 + pixi-8: 72196 before, 56463 after.
+    'explicit:react-19.3': 57000,
+    // core + renderer + react-18 + pixi-8: 65962 before, 54719 after.
+    'explicit:react-18': 55300,
+    // core + renderer: 29577 before, 23175 after.
+    renderer: 23500,
+});
+
+/**
+ * Text that only development builds contain (issue 58): core's malformed-manifest diagnostic and the Pixi 8 adapter's
+ * event-prop warning. The sources guard it with `process.env.NODE_ENV !== 'production'`, so a production bundle that
+ * still contains it means a build resolved or dropped that check.
+ */
+export const DEVELOPMENT_ONLY_TEXT = Object.freeze(['has a malformed manifest', 'Event props use PascalCase']);
+
+/** Problems of `ownBytes` against `budget`. */
+export function compareWithBudget(ownBytes, budget)
+{
+    return ownBytes > budget ? [`our packages contribute ${ownBytes} bytes, over the budget of ${budget} (OWN_CODE_BUDGETS, issue 58)`] : [];
+}
 
 /** Upstream's last release, bundled on the facade fixture as the bound for the Pixi code our bundles keep. */
 export const UPSTREAM_BASELINE = Object.freeze({ name: '@pixi/react', version: '8.0.5' });
@@ -126,6 +157,10 @@ export async function checkFixture({ dir, fixture, values, expect })
     const text = output.toString('utf8');
 
     for (const marker of expect.absentMarkers ?? []) if (text.includes(marker.text)) problems.push(`output contains ${marker.label}`);
+    for (const marker of expect.ownPackages && expect.kind !== 'upstream' ? DEVELOPMENT_ONLY_TEXT : []) if (text.includes(marker)) problems.push(`the production bundle contains development-only text "${marker}"`);
+    const ownBytes = (expect.ownPackages ?? []).reduce((sum, name) => sum + (byPackage[name] ?? 0), 0);
+
+    if (expect.ownCodeBudget !== undefined) problems.push(...compareWithBudget(ownBytes, expect.ownCodeBudget));
     // The browser bundle is a production build: no development build of React's packages may contribute code
     // (react-reconciler and scheduler choose their build by NODE_ENV; issue 40 checks nothing ships both).
     for (const input of inputs.filter((item) => DEVELOPMENT_BUILD.test(item))) problems.push(`the production bundle contains the development build ${input}`);
@@ -174,6 +209,7 @@ export async function checkFixture({ dir, fixture, values, expect })
         inputModules: inputs.length,
         pixiModules: inputs.filter((input) => packageOfInput(input) === 'pixi.js').length,
         pixiBytes: byPackage['pixi.js'] ?? 0,
+        ownBytes,
         bytesByPackage: Object.fromEntries(Object.entries(byPackage).sort(([, a], [, b]) => b - a)),
         executed,
         problems,
@@ -213,6 +249,8 @@ export function bundlePlan(manifest)
                     absentMarkers: reconcilers.filter((version) => version !== reconciler).map((version) => ({ text: `"${version}"`, label: `another epoch's reconciler version "${version}"` })),
                     result: { registered: ['pixiContainer', 'pixiSprite'], react: scenario.bundleValues.REACT_ID, pixi: 'pixi-8' },
                     upstreamBound: true,
+                    ownPackages: ours,
+                    ownCodeBudget: OWN_CODE_BUDGETS[`explicit:${scenario.bundleValues.REACT_ID}`],
                 },
             });
             plan.push({
@@ -241,6 +279,8 @@ export function bundlePlan(manifest)
                     absentMarkers: reconcilers.filter((version) => version !== '0.34.0').map((version) => ({ text: `"${version}"`, label: `a non-default epoch's reconciler version "${version}"` })),
                     result: { application: 'object', extend: 'function' },
                     upstreamBound: true,
+                    ownPackages: [facade],
+                    ownCodeBudget: OWN_CODE_BUDGETS.facade,
                 },
             });
         }
@@ -253,7 +293,7 @@ export function bundlePlan(manifest)
                 dir,
                 fixture: 'renderer.mjs',
                 values: scenario.bundleValues,
-                expect: { kind: 'renderer', pixi: false, allowedPackages: ours, requiredPackages: ours, bundledVersions: atRelease(ours), result: { createRenderer: 'function' } },
+                expect: { kind: 'renderer', pixi: false, allowedPackages: ours, requiredPackages: ours, bundledVersions: atRelease(ours), result: { createRenderer: 'function' }, ownPackages: ours, ownCodeBudget: OWN_CODE_BUDGETS.renderer },
             });
         }
     }
@@ -282,6 +322,7 @@ export function upstreamPlan(manifest)
             allowedPackages: [UPSTREAM_BASELINE.name, 'react', 'react-reconciler', 'scheduler', 'its-fine', ...PIXI_DEPS],
             requiredPackages: [UPSTREAM_BASELINE.name, 'react-reconciler', 'pixi.js'],
             bundledVersions: { [UPSTREAM_BASELINE.name]: UPSTREAM_BASELINE.version, react, 'pixi.js': pixi },
+            ownPackages: [UPSTREAM_BASELINE.name],
             result: { application: 'object', extend: 'function' },
         },
     };
@@ -309,7 +350,7 @@ export function compareWithUpstream(result, upstream)
 export function renderBundleTable(results)
 {
     const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KiB`;
-    const lines = ['| Scenario | Fixture | Minified | Gzip | Modules (pixi.js) | pixi.js bytes | Largest inputs | Result |', '| --- | --- | --- | --- | --- | --- | --- | --- |'];
+    const lines = ['| Scenario | Fixture | Minified | Gzip | Modules (pixi.js) | pixi.js bytes | Our code | Largest inputs | Result |', '| --- | --- | --- | --- | --- | --- | --- | --- | --- |'];
 
     for (const item of results)
     {
@@ -318,7 +359,7 @@ export function renderBundleTable(results)
 
         if (item.problems.length) verdict = 'FAIL';
 
-        lines.push(`| ${item.scenario} | ${item.fixture} | ${kb(item.bytes)} | ${kb(item.gzipBytes)} | ${item.inputModules} (${item.pixiModules}) | ${kb(item.pixiBytes)} | ${largest} | ${verdict} |`);
+        lines.push(`| ${item.scenario} | ${item.fixture} | ${kb(item.bytes)} | ${kb(item.gzipBytes)} | ${item.inputModules} (${item.pixiModules}) | ${kb(item.pixiBytes)} | ${item.ownBytes ? kb(item.ownBytes) : '-'} | ${largest} | ${verdict} |`);
     }
 
     return lines.join('\n');

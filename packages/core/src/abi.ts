@@ -2,6 +2,13 @@ import { CompatibilityError } from './errors.js';
 
 import type { AdapterManifest, CapabilityMap } from './types.js';
 
+/**
+ * Read as written (`process.env.NODE_ENV`), never through a variable, so a consumer's bundler replaces it and drops the
+ * development-only message text from production builds (issue 58). Every check runs in every build; production
+ * errors carry an empty message, which `CompatibilityError` replaces with one built from the code and details.
+ */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /** The ABI this core implements. An adapter may implement any minor up to this one. */
 export const CORE_ABI = Object.freeze({ major: 1, minor: 0 } as const);
 
@@ -25,7 +32,8 @@ export const ADAPTER_ROLES: readonly AdapterRole[] = Object.freeze(Object.keys(R
 const ROLE_LABELS: Readonly<Record<AdapterRole, string>> = { react: 'React', pixi: 'Pixi' };
 const OTHER_ROLE_LABELS: Readonly<Record<AdapterRole, string>> = { react: 'Pixi', pixi: 'React' };
 
-function isRecord(value: unknown): value is Record<string, unknown>
+/** Whether `value` is a non-null object. Shared by core's modules; not exported from the package. */
+export function isRecord(value: unknown): value is Record<string, unknown>
 {
     return typeof value === 'object' && value !== null;
 }
@@ -35,15 +43,16 @@ function isProtocolVersion(value: unknown): value is number
     return typeof value === 'number' && Number.isInteger(value) && value >= 0;
 }
 
+/** `message` is empty in production builds. */
 function malformed(role: AdapterRole, id: string | undefined, message: string, extra: Partial<{
     capability: string;
     expected: Record<string, string | number | boolean | null>;
     actual: Record<string, string | number | boolean | null>;
 }> = {}): CompatibilityError
 {
-    const label = id ? `${ROLE_LABELS[role]} adapter "${id}"` : `The ${ROLE_LABELS[role]} adapter`;
-
-    return new CompatibilityError(`${label} has a malformed manifest: ${message}`, {
+    return new CompatibilityError(process.env.NODE_ENV !== 'production'
+        ? `${id ? `${ROLE_LABELS[role]} adapter "${id}"` : `The ${ROLE_LABELS[role]} adapter`} has a malformed manifest: ${message}`
+        : '', {
         code: 'ABI_MISMATCH',
         adapterIds: id ? [id] : [],
         ...extra,
@@ -54,19 +63,21 @@ function validateCapabilities(role: AdapterRole, id: string, field: 'provides' |
 {
     if (!isRecord(map) || Array.isArray(map))
     {
-        throw malformed(role, id, `"${field}" must be an object mapping capability IDs to protocol versions.`);
+        throw malformed(role, id, process.env.NODE_ENV !== 'production'
+            ? `"${field}" must be an object mapping capability IDs to protocol versions.` : '');
     }
 
     for (const [capability, version] of Object.entries(map))
     {
         if (!capability)
         {
-            throw malformed(role, id, `"${field}" contains an empty capability ID.`);
+            throw malformed(role, id, process.env.NODE_ENV !== 'production' ? `"${field}" contains an empty capability ID.` : '');
         }
 
         if (!isProtocolVersion(version))
         {
-            throw malformed(role, id, `"${field}.${capability}" must be a non-negative integer protocol version.`, {
+            throw malformed(role, id, process.env.NODE_ENV !== 'production'
+                ? `"${field}.${capability}" must be a non-negative integer protocol version.` : '', {
                 capability,
                 expected: { [capability]: 'integer >= 0' },
                 actual: { [capability]: typeof version === 'number' ? version : String(version) },
@@ -85,28 +96,30 @@ export function validateManifest(manifest: unknown, role: AdapterRole): AdapterM
 {
     if (!isRecord(manifest))
     {
-        throw malformed(role, undefined, 'the adapter has no manifest object.');
+        throw malformed(role, undefined, process.env.NODE_ENV !== 'production' ? 'the adapter has no manifest object.' : '');
     }
 
     const id = manifest.id;
 
     if (typeof id !== 'string' || !id.trim())
     {
-        throw malformed(role, undefined, '"id" must be a non-empty string.');
+        throw malformed(role, undefined, process.env.NODE_ENV !== 'production' ? '"id" must be a non-empty string.' : '');
     }
 
     const abi = manifest.abi;
 
     if (!isRecord(abi) || !isProtocolVersion(abi.major) || !isProtocolVersion(abi.minor))
     {
-        throw malformed(role, id, '"abi" must be { major, minor } with integer versions.');
+        throw malformed(role, id, process.env.NODE_ENV !== 'production' ? '"abi" must be { major, minor } with integer versions.' : '');
     }
 
     if (abi.major !== CORE_ABI.major)
     {
         throw new CompatibilityError(
-            `The ${ROLE_LABELS[role]} adapter "${id}" implements ABI ${abi.major}.${abi.minor}, but this core implements ABI `
-            + `${CORE_ABI.major}.${CORE_ABI.minor}. Install a "${id}" release built for ABI ${CORE_ABI.major}.`,
+            process.env.NODE_ENV !== 'production'
+                ? `The ${ROLE_LABELS[role]} adapter "${id}" implements ABI ${abi.major}.${abi.minor}, but this core implements `
+                    + `ABI ${CORE_ABI.major}.${CORE_ABI.minor}. Install a "${id}" release built for ABI ${CORE_ABI.major}.`
+                : '',
             {
                 code: 'ABI_MISMATCH',
                 adapterIds: [id],
@@ -119,8 +132,10 @@ export function validateManifest(manifest: unknown, role: AdapterRole): AdapterM
     if (abi.minor > CORE_ABI.minor)
     {
         throw new CompatibilityError(
-            `The ${ROLE_LABELS[role]} adapter "${id}" needs ABI ${abi.major}.${abi.minor}, but this core only implements ABI `
-            + `${CORE_ABI.major}.${CORE_ABI.minor}. Upgrade the core package, or install an older "${id}".`,
+            process.env.NODE_ENV !== 'production'
+                ? `The ${ROLE_LABELS[role]} adapter "${id}" needs ABI ${abi.major}.${abi.minor}, but this core only implements `
+                    + `ABI ${CORE_ABI.major}.${CORE_ABI.minor}. Upgrade the core package, or install an older "${id}".`
+                : '',
             {
                 code: 'ABI_MISMATCH',
                 adapterIds: [id],
@@ -134,7 +149,7 @@ export function validateManifest(manifest: unknown, role: AdapterRole): AdapterM
     {
         if (typeof manifest[field] !== 'string')
         {
-            throw malformed(role, id, `"${field}" must be a string.`);
+            throw malformed(role, id, process.env.NODE_ENV !== 'production' ? `"${field}" must be a string.` : '');
         }
     }
 
@@ -156,7 +171,8 @@ export function validateAdapterShape(adapter: unknown, role: AdapterRole): Adapt
 {
     if (!isRecord(adapter))
     {
-        throw new CompatibilityError(`Expected a ${ROLE_LABELS[role]} adapter instance, got ${adapter === null ? 'null' : typeof adapter}.`, {
+        throw new CompatibilityError(process.env.NODE_ENV !== 'production'
+            ? `Expected a ${ROLE_LABELS[role]} adapter instance, got ${adapter === null ? 'null' : typeof adapter}.` : '', {
             code: 'ABI_MISMATCH',
             adapterIds: [],
         });
@@ -169,8 +185,10 @@ export function validateAdapterShape(adapter: unknown, role: AdapterRole): Adapt
         if (typeof adapter[method] !== 'function')
         {
             throw new CompatibilityError(
-                `The ${ROLE_LABELS[role]} adapter "${manifest.id}" does not implement ${method}(), required by ABI `
-                + `${CORE_ABI.major}.${manifest.abi.minor}. Was a ${OTHER_ROLE_LABELS[role]} adapter passed as \`${role}\`?`,
+                process.env.NODE_ENV !== 'production'
+                    ? `The ${ROLE_LABELS[role]} adapter "${manifest.id}" does not implement ${method}(), required by ABI `
+                        + `${CORE_ABI.major}.${manifest.abi.minor}. Was a ${OTHER_ROLE_LABELS[role]} adapter passed as \`${role}\`?`
+                    : '',
                 {
                     code: 'ABI_MISMATCH',
                     adapterIds: [manifest.id],
@@ -211,13 +229,13 @@ function requireCapabilities(
             continue;
         }
 
-        const found = available === undefined
-            ? 'it is not provided'
-            : `version ${available} is provided`;
-
         throw new CompatibilityError(
-            `${requirer} capability "${capability}" at protocol version ${version}, but ${found} by ${provider}. `
-            + `Compose with ${provider === 'the composed adapters' ? 'adapters' : 'an adapter'} that provides "${capability}" version ${version}.`,
+            process.env.NODE_ENV !== 'production'
+                ? `${requirer} capability "${capability}" at protocol version ${version}, but `
+                    + `${available === undefined ? 'it is not provided' : `version ${available} is provided`} by ${provider}. `
+                    + `Compose with ${provider === 'the composed adapters' ? 'adapters' : 'an adapter'} that provides `
+                    + `"${capability}" version ${version}.`
+                : '',
             {
                 code: 'CAPABILITY_MISSING',
                 adapterIds: [...requirerIds, ...providerIds],
@@ -258,8 +276,10 @@ export function negotiate(
         if (capabilities[capability] !== undefined && capabilities[capability] !== version)
         {
             throw new CompatibilityError(
-                `React adapter "${react.id}" provides "${capability}" version ${capabilities[capability]} but `
-                + `Pixi adapter "${pixi.id}" provides version ${version}; one capability ID has one protocol owner.`,
+                process.env.NODE_ENV !== 'production'
+                    ? `React adapter "${react.id}" provides "${capability}" version ${capabilities[capability]} but `
+                        + `Pixi adapter "${pixi.id}" provides version ${version}; one capability ID has one protocol owner.`
+                    : '',
                 {
                     code: 'UNSUPPORTED_TUPLE',
                     adapterIds: [react.id, pixi.id],
@@ -285,14 +305,17 @@ function validateCapabilitiesInput(map: unknown): CapabilityMap
 {
     if (!isRecord(map) || Array.isArray(map))
     {
-        throw new TypeError('requiredCapabilities must be an object mapping capability IDs to protocol versions.');
+        throw new TypeError(process.env.NODE_ENV !== 'production'
+            ? 'requiredCapabilities must be an object mapping capability IDs to protocol versions.' : 'Invalid requiredCapabilities.');
     }
 
     for (const [capability, version] of Object.entries(map))
     {
         if (!isProtocolVersion(version))
         {
-            throw new TypeError(`requiredCapabilities["${capability}"] must be a non-negative integer protocol version.`);
+            throw new TypeError(process.env.NODE_ENV !== 'production'
+                ? `requiredCapabilities["${capability}"] must be a non-negative integer protocol version.`
+                : `Invalid requiredCapabilities["${capability}"].`);
         }
     }
 

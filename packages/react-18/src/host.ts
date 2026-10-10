@@ -8,6 +8,9 @@ import { CompatibilityError, type PixiTypes } from '@pixi-react-provisional/core
 import type { ReactNode } from 'react';
 import type { HostContainer } from '@pixi-react-provisional/react-shared/common';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 export type { HostContainer };
 export { rawTextError } from '@pixi-react-provisional/react-shared/common';
 
@@ -61,8 +64,10 @@ export function unsupportedOptionError(adapterId: string, option: string): Compa
     const capability: UnsupportedCapability = 'react.root-error-callbacks';
 
     return new CompatibilityError(
-        `The ${option} option is not supported by the ${adapterId} adapter: ${UNSUPPORTED_CAPABILITIES[capability]} `
-        + 'Catch render errors with an error boundary, or use onRecoverableError for recovered concurrent errors.',
+        process.env.NODE_ENV !== 'production'
+            ? (`The ${option} option is not supported by the ${adapterId} adapter: ${UNSUPPORTED_CAPABILITIES[capability]} `
+            + 'Catch render errors with an error boundary, or use onRecoverableError for recovered concurrent errors.')
+            : '',
         {
             code: 'CAPABILITY_MISSING',
             adapterIds: [adapterId],

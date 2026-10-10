@@ -358,6 +358,31 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect(warn.mock.calls.flat().join(' ')).toMatch(/onPointerDown/);
     });
 
+    it('production builds ignore Pixi-named event props and draw on a non-Graphics node the same way, without warning', () =>
+    {
+        const env = process.env.NODE_ENV;
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const handler = () => undefined;
+        const draw = vi.fn();
+
+        // The warnings are development-only (issue 58): the source reads NODE_ENV as written, for bundlers to replace.
+        process.env.NODE_ENV = 'production';
+
+        try
+        {
+            const node = make(nodes, pixi.Container, { onpointerdown: handler, draw });
+
+            expect(node.onpointerdown ?? null).toBeNull();
+            expect(draw).not.toHaveBeenCalled();
+            nodes.applyChanges(node, { onpointerdown: handler, draw }, { 'missing-field': 1 });
+            expect(warn).not.toHaveBeenCalled();
+        }
+        finally
+        {
+            process.env.NODE_ENV = env;
+        }
+    });
+
     it('draw runs on mount and on identity change, only for Graphics', () =>
     {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);

@@ -14,6 +14,9 @@ import type {
 import type { RuntimeRegistry } from './registry.js';
 import type { ApplicationState, CapabilityMap, NodeDefinition, PixiTypes, TickOptions } from './types.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 /** Per-node ownership metadata. Lives in the runtime's WeakMap side table, never on the node. */
 export interface NodeMeta<S extends PixiTypes>
 {
@@ -96,17 +99,17 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
 
         if (!meta)
         {
-            throw this.unsupported(`The ${role} is not a node owned by this runtime.`);
+            throw this.unsupported(process.env.NODE_ENV !== 'production' ? `The ${role} is not a node owned by this runtime.` : '');
         }
 
         if (meta.root !== this.root)
         {
-            throw this.unsupported(`The ${role} belongs to root ${meta.root.id}, not root ${this.root.id}.`);
+            throw this.unsupported(process.env.NODE_ENV !== 'production' ? `The ${role} belongs to root ${meta.root.id}, not root ${this.root.id}.` : '');
         }
 
         if (meta.destroyed)
         {
-            throw this.unsupported(`The ${role} "${meta.definition.name}" was already destroyed.`);
+            throw this.unsupported(process.env.NODE_ENV !== 'production' ? `The ${role} "${meta.definition.name}" was already destroyed.` : '');
         }
 
         return meta;
@@ -125,7 +128,7 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
 
         if (typeof type !== 'string' && (!isObject(type) || registry.resolve(type.name) !== type))
         {
-            throw new CompatibilityError('Node definitions must come from this runtime\'s registry.', {
+            throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? 'Node definitions must come from this runtime\'s registry.' : '', {
                 code: 'UNKNOWN_ELEMENT',
                 adapterIds: this.root.internals.adapterIds,
             });
@@ -138,8 +141,10 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
                 if (capabilities[capability] !== version)
                 {
                     throw this.unsupported(
-                        `"${definition.name}" needs Pixi capability "${capability}" version ${version}, which the `
-                        + 'composed adapters do not provide.',
+                        process.env.NODE_ENV !== 'production'
+                            ? (`"${definition.name}" needs Pixi capability "${capability}" version ${version}, which the `
+                            + 'composed adapters do not provide.')
+                            : '',
                         { capability, expected: { [capability]: version }, actual: { [capability]: capabilities[capability] ?? null } },
                     );
                 }
@@ -161,12 +166,12 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
 
         if (!isObject(node))
         {
-            throw this.unsupported(`The Pixi session returned a non-object for "${definition.name}".`);
+            throw this.unsupported(process.env.NODE_ENV !== 'production' ? `The Pixi session returned a non-object for "${definition.name}".` : '');
         }
 
         if (this.nodes.has(node))
         {
-            throw this.unsupported(`The Pixi session returned a node that is already owned, for "${definition.name}".`);
+            throw this.unsupported(process.env.NODE_ENV !== 'production' ? `The Pixi session returned a node that is already owned, for "${definition.name}".` : '');
         }
 
         this.nodes.set(node, {
@@ -196,10 +201,8 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
 
         if (rule && !rule.accepts.includes(role))
         {
-            const parentName = parentMeta ? `"${parentMeta.definition.name}"` : 'the root container';
-
             throw this.unsupported(
-                `${parentName} does not accept "${childMeta.definition.name}" (role "${role}") as a child.`,
+                process.env.NODE_ENV !== 'production' ? `${parentMeta ? `"${parentMeta.definition.name}"` : 'the root container'} does not accept "${childMeta.definition.name}" (role "${role}") as a child.` : '',
                 { expected: { roles: rule.accepts.join(',') }, actual: { role } },
             );
         }
@@ -209,7 +212,7 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
         {
             if (current === child)
             {
-                throw this.unsupported(`"${childMeta.definition.name}" cannot be inserted below itself.`);
+                throw this.unsupported(process.env.NODE_ENV !== 'production' ? `"${childMeta.definition.name}" cannot be inserted below itself.` : '');
             }
         }
     }
@@ -255,7 +258,7 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
 
         if (beforeMeta.parent !== parent)
         {
-            throw this.unsupported(`The reference node "${beforeMeta.definition.name}" is not a child of this parent.`);
+            throw this.unsupported(process.env.NODE_ENV !== 'production' ? `The reference node "${beforeMeta.definition.name}" is not a child of this parent.` : '');
         }
 
         this.checkAttach(parent, parentMeta, child, childMeta);
@@ -272,7 +275,7 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
 
         if (childMeta.parent !== parent)
         {
-            throw this.unsupported(`"${childMeta.definition.name}" is not a child of this parent.`);
+            throw this.unsupported(process.env.NODE_ENV !== 'production' ? `"${childMeta.definition.name}" is not a child of this parent.` : '');
         }
 
         this.session.remove(parent, child);
@@ -305,7 +308,7 @@ class RootPixiBridge<S extends PixiTypes> implements PixiBridge<S>
 
         if (meta.parent !== null)
         {
-            throw this.unsupported(`"${meta.definition.name}" is still attached; remove it before destroying it.`);
+            throw this.unsupported(process.env.NODE_ENV !== 'production' ? `"${meta.definition.name}" is still attached; remove it before destroying it.` : '');
         }
 
         const errors: unknown[] = [];
@@ -726,7 +729,7 @@ export class Root<S extends PixiTypes> implements RootRecord<S>
         }
 
         throw this.blockedError() ?? new CompatibilityError(
-            `Cannot ${operation}: the root's application is not initialized yet (status "${this._status}").`,
+            process.env.NODE_ENV !== 'production' ? `Cannot ${operation}: the root's application is not initialized yet (status "${this._status}").` : '',
             { code: CoreErrorCodes.ROOT_NOT_READY, adapterIds: this.internals.adapterIds, actual: { status: this._status } },
         );
     }
@@ -769,10 +772,9 @@ export class Root<S extends PixiTypes> implements RootRecord<S>
     private initFailedError(): CompatibilityError
     {
         const cause = this._failure;
-        const detail = cause instanceof Error ? cause.message : String(cause);
 
         return new CompatibilityError(
-            `Root ${this.id} failed to initialize (${detail}). It is not retried: unmount it and create a new root.`,
+            process.env.NODE_ENV !== 'production' ? `Root ${this.id} failed to initialize (${cause instanceof Error ? cause.message : String(cause)}). It is not retried: unmount it and create a new root.` : '',
             { code: 'INIT_FAILED', adapterIds: this.internals.adapterIds, cause },
         );
     }
