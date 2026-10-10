@@ -1902,6 +1902,7 @@
           "preference": "webgl"
         },
         "conformanceCapabilities": [
+          "pixi.filter-children",
           "pixi.graphics-context",
           "pixi.renderer-destroy-options"
         ],
@@ -1954,7 +1955,9 @@
           "backgroundAlpha": 0,
           "hello": false
         },
-        "conformanceCapabilities": [],
+        "conformanceCapabilities": [
+          "pixi.filter-children"
+        ],
         "conformanceNote": "Pixi 7 lacks the Pixi 8 scene capabilities pixi.graphics-context (no GraphicsContext) and pixi.renderer-destroy-options (Application.destroy takes removeView, a boolean): the runner skips those two scenarios and names the capability.",
         "typeConsumer": "consumer.pixi7.tsx",
         "typeProbes": [

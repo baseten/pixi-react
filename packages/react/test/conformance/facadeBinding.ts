@@ -62,7 +62,7 @@ async function releaseRoots(existing: ReadonlySet<RootRecord<any>>)
  */
 export const facadeBinding: ConformanceBinding = {
     id: '@pixi/react facade (React 19.3, Pixi 8)',
-    capabilities: ['react.19', 'pixi.globals', 'dom.resize', 'parity.upstream', ...PIXI8_SCENE_CAPABILITIES],
+    capabilities: ['react.19', 'pixi.globals', 'dom.resize', 'parity.upstream', 'pixi.filter-children', ...PIXI8_SCENE_CAPABILITIES],
     expectedFailures,
     create(): Composition
     {

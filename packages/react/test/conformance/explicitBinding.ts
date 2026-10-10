@@ -14,7 +14,7 @@ import type { Composition, ConformanceBinding, PixiElement, ReactBindingApi } fr
  */
 export const explicitBinding: ConformanceBinding = {
     id: 'createRenderer: React19Adapter (19.3) + Pixi8Adapter',
-    capabilities: ['react.19', 'pixi.globals', 'dom.resize', ...PIXI8_SCENE_CAPABILITIES],
+    capabilities: ['react.19', 'pixi.globals', 'dom.resize', 'pixi.filter-children', ...PIXI8_SCENE_CAPABILITIES],
     expectedFailures: {},
     create(): Composition
     {

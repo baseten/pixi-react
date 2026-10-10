@@ -19,6 +19,8 @@ Feature `elements`.
 | `elements.update` | contract | Changed props are applied to the same node; no node is constructed or destroyed. | pass |
 | `elements.reorder` | contract | Scene order follows the new key order; every node keeps its identity and is not destroyed. | pass |
 | `elements.insert` | contract | The new node is constructed once and placed at its JSX position. | pass |
+| `elements.insert-before-filter` | contract | A display node inserted before a filter element lands before the next display sibling that follows the filter in JSX, or last when none does; the filters keep their order. | pass |
+| `elements.insert-filter-before-display` | contract | A filter inserted before a display element lands before the next filter that follows it in JSX, or last when none does; the display children are untouched. | pass |
 | `elements.remove` | contract | The removed node is detached and destroyed exactly once; its siblings are untouched. | pass |
 | `elements.type-change` | contract | The old node is destroyed once; a node of the new kind takes its place. | pass |
 | `elements.top-level-fragment` | contract | Application children are the scene root's own children: a top-level unkeyed fragment around them keeps every keyed node, as React keeps DOM children of a host root. | pass |
@@ -303,4 +305,4 @@ Feature `root.errors`.
 
 ## Summary
 
-89 scenarios: 86 pass, 0 expected failures, 3 not run against the baseline.
+91 scenarios: 88 pass, 0 expected failures, 3 not run against the baseline.

@@ -1,7 +1,7 @@
 import { createRef, Suspense } from 'react';
 import { expect } from 'vitest';
 import { defineScenario } from '../scenario';
-import { childLabels, createSuspender, getByLabel, reportedErrors } from './helpers';
+import { childLabels, createSuspender, filterElement, filterPaddings, getByLabel, reportedErrors } from './helpers';
 
 export const treeScenarios = [
     defineScenario({
@@ -93,6 +93,67 @@ export const treeScenarios = [
 
             expect(childLabels(probe, getByLabel(probe, mounted.stage, 'list')), 'order').toEqual(['a', 'b', 'c']);
             expect(journal.constructed('container').length, 'constructed containers').toBe(4);
+        },
+    }),
+    defineScenario({
+        id: 'elements.insert-before-filter',
+        feature: 'elements',
+        requires: ['pixi.filter-children'],
+        title: 'inserts a display child before a filter sibling at its JSX position',
+        expected: 'A display node inserted before a filter element lands before the next display sibling that follows the filter in JSX, or last when none does; the filters keep their order.',
+        async run({ api, composition, elements: { container: Container }, mountApp, probe, journal })
+        {
+            const Filter = filterElement(api, composition, probe);
+            const list = (keys: string[]) => (
+                <Container label="list">
+                    {keys.map((key) => (key.startsWith('f')
+                        ? <Filter key={key} padding={Number(key.slice(1))} />
+                        : <Container key={key} label={key} />))}
+                </Container>
+            );
+            const mounted = await mountApp(list(['f1']));
+            const parent = getByLabel(probe, mounted.stage, 'list');
+
+            // No display sibling follows the filter: the new node is the last child.
+            await mounted.rerender(list(['a', 'f1']));
+            expect(childLabels(probe, parent), 'children after inserting before the only filter').toEqual(['a']);
+
+            await mounted.rerender(list(['a', 'f1', 'c']));
+            // A display sibling follows the filter: the new node goes before it.
+            await mounted.rerender(list(['a', 'b', 'f1', 'c']));
+            expect(childLabels(probe, parent), 'children after inserting before a filter with a display sibling after it')
+                .toEqual(['a', 'b', 'c']);
+            expect(filterPaddings(probe, parent), 'filters').toEqual([1]);
+            expect(journal.constructed('container').length, 'constructed containers').toBe(4);
+            expect(journal.of('destroy').length, 'destroyed nodes').toBe(0);
+        },
+    }),
+    defineScenario({
+        id: 'elements.insert-filter-before-display',
+        feature: 'elements',
+        requires: ['pixi.filter-children'],
+        title: 'inserts a filter before a display sibling at its JSX position',
+        expected: 'A filter inserted before a display element lands before the next filter that follows it in JSX, or last when none does; the display children are untouched.',
+        async run({ api, composition, elements: { container: Container }, mountApp, probe, journal })
+        {
+            const Filter = filterElement(api, composition, probe);
+            const list = (keys: string[]) => (
+                <Container label="list">
+                    {keys.map((key) => (key.startsWith('f')
+                        ? <Filter key={key} padding={Number(key.slice(1))} />
+                        : <Container key={key} label={key} />))}
+                </Container>
+            );
+            const mounted = await mountApp(list(['f1', 'a', 'f3']));
+            const parent = getByLabel(probe, mounted.stage, 'list');
+
+            await mounted.rerender(list(['f1', 'f2', 'a', 'f3']));
+            expect(filterPaddings(probe, parent), 'filters after inserting before a display node').toEqual([1, 2, 3]);
+
+            await mounted.rerender(list(['f1', 'f2', 'f4', 'a', 'f3', 'b']));
+            expect(filterPaddings(probe, parent), 'filters after a second insertion').toEqual([1, 2, 4, 3]);
+            expect(childLabels(probe, parent), 'children').toEqual(['a', 'b']);
+            expect(journal.of('destroy').length, 'destroyed nodes').toBe(0);
         },
     }),
     defineScenario({

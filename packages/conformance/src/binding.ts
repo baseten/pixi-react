@@ -15,6 +15,8 @@ import type { PixiJournal } from './journal';
  *   (`probe.createGraphicsContext`). Pixi 7 has none.
  * - `pixi.renderer-destroy-options`: the app's destroy takes Pixi 8's renderer destroy options object as its first
  *   argument, forwarded unchanged. Pixi 7's `Application.destroy` takes `removeView`, a boolean.
+ * - `pixi.filter-children`: a filter element nested in JSX joins its parent's `filters` instead of its children, in JSX
+ *   order, interleaved with display children (`probe.filterClass`). The fake backend has no filters.
  */
 export type Capability =
     | 'react.19'
@@ -24,6 +26,7 @@ export type Capability =
     | 'parity.upstream'
     | 'pixi.graphics-context'
     | 'pixi.renderer-destroy-options'
+    | 'pixi.filter-children'
     | `${string}.${string}`;
 
 /** The scene node kinds every binding exposes as element types. */
@@ -152,6 +155,12 @@ export interface PixiProbe
      * `kind: 'custom'`. With `requiredArgument`, constructing it without an argument throws.
      */
     customClass(options?: { requiredArgument?: boolean }): Constructor;
+
+    /**
+     * A fresh filter subclass, constructible without arguments, for bindings that provide `pixi.filter-children`.
+     * Scenarios tell its instances apart by their `padding` prop and read a node's filters with `get(node, 'filters')`.
+     */
+    filterClass?(): Constructor;
 
     /** Makes the next application initialization reject with `error`. */
     failNextInit(error: Error): InitAttempt;
