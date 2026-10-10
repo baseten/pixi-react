@@ -272,7 +272,8 @@ const sameVersions = (a, b) => JSON.stringify(Object.entries(a).sort()) === JSON
  * parent had other package versions than the current ones. A merge whose first parent lacks the versions but whose
  * second parent has them (the merge commit CI checks out for a pull request, or a merge-queue commit) is followed into
  * its second parent; any other merge after the version commit is reported. `changed` lists the published inputs
- * changed from the version commit to the branch tip, plus uncommitted and untracked ones when the tip is HEAD.
+ * changed from the version commit to HEAD (including what a synthetic merge brought in from main), plus staged,
+ * unstaged and untracked ones.
  * Versions that are only in the working tree (release:version ran, not yet committed) count as the versioning itself.
  */
 export function versionCommitHistory(root, { base, config, currentVersions })
@@ -301,9 +302,14 @@ export function versionCommitHistory(root, { base, config, currentVersions })
                 descend = second;
                 break;
             }
-            const changed = git(root, ['diff', '--name-only', commit, tip === 'HEAD' ? 'HEAD' : tip]).split('\n');
-
-            if (tip === 'HEAD') changed.push(...git(root, ['diff', '--name-only', 'HEAD']).split('\n'), ...git(root, ['ls-files', '--others', '--exclude-standard']).split('\n'));
+            // Always compare the version commit with the real HEAD, never only the branch it was found on: in the merge
+            // commit CI checks out for a pull request, main's side can carry published inputs the versioning never saw.
+            // `git diff HEAD` covers staged and unstaged edits alike; untracked files are listed separately.
+            const changed = [
+                ...git(root, ['diff', '--name-only', commit, 'HEAD']).split('\n'),
+                ...git(root, ['diff', '--name-only', 'HEAD']).split('\n'),
+                ...git(root, ['ls-files', '--others', '--exclude-standard']).split('\n'),
+            ];
 
             return { commit, merges, changed: [...new Set(changed.filter((path) => path && shipped(path)))].sort() };
         }

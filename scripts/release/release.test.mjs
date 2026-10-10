@@ -376,6 +376,23 @@ test('releaseState reads the versions on main from git and accepts only the vers
         gitIn('merge', '-q', '--no-ff', '--no-edit', 'release');
         assert.equal(state().versioned, true, 'a pull request merge commit');
         assert.equal(state().versionCommit, versionCommit);
+        // ...but not when main's side of that merge changed a published input the versioning never saw.
+        gitIn('checkout', '-q', 'main');
+        write('scripts/build-react-adapter.mjs', '// changed on main after the release branch was versioned\n');
+        gitIn('add', '-A');
+        gitIn('commit', '-q', '-m', 'main changes a published input');
+        gitIn('checkout', '-q', '--detach', 'main');
+        gitIn('merge', '-q', '--no-ff', '--no-edit', 'release');
+        assert.match(state().blocked.join(), /published packages changed after the version commit .*scripts\/build-react-adapter\.mjs/, 'main side of a pull request merge');
+        gitIn('checkout', '-q', 'main');
+        gitIn('reset', '-q', '--hard', 'HEAD~1');
+        gitIn('checkout', '-q', '--detach', 'main');
+        gitIn('merge', '-q', '--no-ff', '--no-edit', 'release');
+        // A staged-only edit after the version commit is caught too (git diff HEAD includes the index).
+        write('packages/core/src/index.ts', 'export const staged = 1;\n');
+        gitIn('add', 'packages/core/src/index.ts');
+        assert.match(state().blocked.join(), /packages\/core\/src\/index\.ts/, 'staged only');
+        gitIn('reset', '-q', '--hard');
         // On main itself after the release merged, nothing is above main, so `changeset status` runs.
         gitIn('checkout', '-q', 'main');
         gitIn('merge', '-q', '--no-edit', 'release');
