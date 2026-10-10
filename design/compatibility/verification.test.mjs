@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { classifyExpectedBlank, validateAdapterMatrix, validateExpectedBlankRender } from './cells/matrix.mjs';
-import { checkExpectedBlankAgainstRecords, checkRenderedRecords, currentRecords, deriveVerifiedRanges, loadRecords, recordGate, refreshRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
+import { checkExpectedBlankAgainstRecords, checkRenderedRecords, currentRecords, deriveVerifiedRanges, loadRecords, recordGate, refreshRecord, renderingOf, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
 
 const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -94,6 +94,14 @@ test('a command that was never recorded is not a pass: a cell with only conforma
 
     assert.throws(() => validateRecord(seed, withCell({ ...bare, backends: { webgl: { ...pass('webgl'), conformance: { passed: 80, failed: 0, skipped: 10, total: 90 } }, webgpu: notApplicable } })), /lacks required commands/);
     assert.doesNotThrow(() => validateRecord(seed, withCell(cell('19.3.0', '8.22.0', { webgl: { status: 'fail' }, webgpu: { status: 'fail' } }, { status: 'fail', commands: { install: 'fail' } }))));
+});
+
+test('a hardware record names its real GPU once', () =>
+{
+    const environment = { gpu: 'real GPU: ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max); apple / metal-3, isFallbackAdapter false' };
+
+    assert.match(renderingOf(seed, 'hardware', environment).note, /^Real GPU: ANGLE \(Apple/);
+    assert.doesNotMatch(renderingOf(seed, 'hardware', environment).note, /real GPU: real GPU/i);
 });
 
 test('a later record of the same machine and day supersedes the earlier one by its sequence number', () =>
@@ -225,7 +233,7 @@ test('the list agrees with the records: a listed cell that renders must be prune
 
     assert.deepEqual(checkExpectedBlankAgainstRecords(seed, records), []);
     const rendered = clone(records);
-    const target = rendered[0].cells.find((candidate) => candidate.pixi === '8.9.2' && candidate.react === '19.3.0');
+    const target = rendered.find((record) => record.gpuProfile === 'software').cells.find((candidate) => candidate.pixi === '8.9.2' && candidate.react === '19.3.0');
 
     target.backends.webgpu = pass('webgpu');
     assert.match(checkExpectedBlankAgainstRecords(seed, rendered).join('\n'), /react-19\.3\.0_pixi-8\.9\.2 webgpu is pass.*prune the list/);
@@ -284,8 +292,9 @@ test('data-only results never reach verifiedRanges', () =>
     {
         for (const row of item.dataOnly?.results ?? [])
         {
-            // A data-only tuple may coincide with a verified one only if the nightly matrix verified it itself.
-            const nightly = item.cells.some((candidate) => candidate.react === row.react && candidate.pixi === row.pixi);
+            // A data-only tuple may coincide with a verified one only if a record's nightly matrix ran it as a cell (React
+            // 18.0-18.2 and pixi.js 7.2/7.3 were data-only probes in the first 2026-10-10 record and cells in 2026-10-10.2).
+            const nightly = records.some((record) => record.cells.some((candidate) => candidate.react === row.react && candidate.pixi === row.pixi));
 
             if (!nightly) assert.ok(!verified.has(`${row.react}|${row.pixi}`), `${row.id} is data only`);
         }

@@ -214,7 +214,8 @@ export function renderingOf(seed, gpuProfile, environment)
 
     return profile.expect === 'software'
         ? { profile: profile.id, kind: 'software', note: SOFTWARE_NOTE }
-        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${environment?.gpu ?? 'see the environment'}. The render check confirmed no backend ran on a software renderer or a fallback adapter.` };
+        // The collected environment already says "real GPU: ..."; say it once.
+        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${(environment?.gpu ?? 'see the environment').replace(/^real GPU:\s*/i, '')}. The render check confirmed no backend ran on a software renderer or a fallback adapter.` };
 }
 
 /** Whether a record's boundary probes and negative cases all behaved as expected: without it, the record verifies nothing. */
@@ -604,7 +605,7 @@ export function refreshRecord(seed, record)
     next.summary = summarizeRecord(seed, next);
 
     // Keep the key order of a built record.
-    const order = ['schemaVersion', 'id', 'date', 'machine', 'issue', 'statement', 'rule', 'gpuProfile', 'rendering', 'scope', 'commit', 'environment', 'run', 'artifacts', 'summary', 'cells', 'integrities', 'probes', 'negatives', 'dataOnly', 'findings'];
+    const order = ['schemaVersion', 'id', 'date', 'machine', 'sequence', 'issue', 'statement', 'rule', 'gpuProfile', 'rendering', 'scope', 'commit', 'environment', 'run', 'artifacts', 'summary', 'cells', 'integrities', 'probes', 'negatives', 'dataOnly', 'findings'];
 
     return Object.fromEntries([...order.filter((key) => key in next), ...Object.keys(next).filter((key) => !order.includes(key))].map((key) => [key, next[key]]));
 }

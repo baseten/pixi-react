@@ -1,0 +1,4033 @@
+{
+  "schemaVersion": 2,
+  "id": "2026-10-10-macos-26-apple-m5-max",
+  "date": "2026-10-10",
+  "machine": "macos-26-apple-m5-max",
+  "issue": 17,
+  "statement": "Verification is evidence, not a support guarantee.",
+  "rule": "A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on a render backend when its cell passed on that backend in this record (every command, every conformance scenario and the render check) and every boundary probe and every negative case of this record behaved as expected. A run on the expected-blank-render list (adapterMatrix.expectedBlankRender) that failed exactly as listed is not a failure, but verifies nothing. Each tuple lists every backend it is verified on; backends are never inferred from each other.",
+  "gpuProfile": "hardware",
+  "rendering": {
+    "profile": "hardware",
+    "kind": "hardware",
+    "note": "Real GPU: ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version); apple / metal-3, isFallbackAdapter false. The render check confirmed no backend ran on a software renderer or a fallback adapter."
+  },
+  "scope": "partial",
+  "commit": "d0071c19ab1fcfcffa280db3e6226d5a1d66f743",
+  "environment": {
+    "os": "Darwin Kernel Version 25.6.0: Tue Aug 18 17:51:47 PDT 2026; root:xnu-12377.161.15.700.19~2/RELEASE_ARM64_T6050 (Darwin 25.6.0)",
+    "kernel": "25.6.0",
+    "arch": "arm64",
+    "cpu": "18 x Apple M5 Max, 64 GiB RAM",
+    "node": "22.22.0",
+    "npm": "10.9.4",
+    "pnpm": "10.28.0",
+    "playwright": "1.50.1",
+    "chromium": "Chromium 133.0.0.0 headed",
+    "gpu": "real GPU: ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version); apple / metal-3, isFallbackAdapter false",
+    "backends": {
+      "webgl": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "webgpu": "apple / metal-3, isFallbackAdapter false"
+    }
+  },
+  "run": {
+    "commands": [],
+    "notes": []
+  },
+  "artifacts": {
+    "core": {
+      "package": "@pixi-react-provisional/core",
+      "version": "0.0.0",
+      "contentSha256": "da6b333103a15b98d05e8fdeedfdbb94f54a69a7b37a25c064cca2f6c5af43d1",
+      "codeSha256": "7a12cc0222a31a4426bbfad7969ec6f243183a455907cf2ee80c716d03a45af6"
+    },
+    "renderer": {
+      "package": "@pixi-react-provisional/renderer",
+      "version": "0.0.0",
+      "contentSha256": "07519dc932ca5534b6b83adf3201515ba5bca1af88a2a5a946ff4146e2c1a73e",
+      "codeSha256": "3c06aa0f7fb69cefc544056d03f802902632f4569cded8a6d0b10e5c64fe03ec"
+    },
+    "conformance": {
+      "package": "@pixi-react-provisional/conformance",
+      "version": "0.0.0",
+      "contentSha256": "8a2b6ff27e5b11e64b62bc6f5f4a7ccf0bbf0306169789bfb44649de0ba294c0",
+      "codeSha256": "1e05d6dd60ca981354891a49b93785958453472850f463cc3bc8b428e63fa7a7"
+    },
+    "react-18": {
+      "package": "@pixi-react-provisional/react-18",
+      "version": "0.0.0",
+      "contentSha256": "484f0dd455cb450c2a97ad62527686b1360eb81baab8125fa2863c5b736281e6",
+      "codeSha256": "0519f60388788e9d23d054644e2aa3f772cf267e1fcff9c83fd7ff5ad51f6316"
+    },
+    "react-19.0": {
+      "package": "@pixi-react-provisional/react-19.0",
+      "version": "0.0.0",
+      "contentSha256": "3a6ac6db1140ac970657b4be1f1605d34d4df84124d26d67ac9eeb46b4bf9196",
+      "codeSha256": "469e14d3a860a8e1a61e24e96330aa32cbb364a7a3e33413b3ba8742e3c3be12"
+    },
+    "react-19.1": {
+      "package": "@pixi-react-provisional/react-19.1",
+      "version": "0.0.0",
+      "contentSha256": "619c0a8dd87359f4de54f55ea3b10b5cb5d3a01ba341ededd3e4f8f4941a0947",
+      "codeSha256": "fd854e86420c2327f5ac461a77dcc8a1196ed029814d3ff0440b889a98e3d259"
+    },
+    "react-19.2": {
+      "package": "@pixi-react-provisional/react-19.2",
+      "version": "0.0.0",
+      "contentSha256": "04f51520ac198be080834372db0edfe3f5b55da5aaa44bc9ddc398e341c1a73f",
+      "codeSha256": "158c867d459cd6856163c0bcd48f98b1ecd49cc06c322df8372663fe237f0a36"
+    },
+    "react-19.3": {
+      "package": "@pixi-react-provisional/react-19.3",
+      "version": "0.0.0",
+      "contentSha256": "b1d3fcb0554d66979557b8e3c19651eae409abfa0ec0373f93210b9887ec76ad",
+      "codeSha256": "05673f58a0c3dfa37e73085011642cb34d14687dafc45a2d3bce7b9570c22017"
+    },
+    "pixi-8": {
+      "package": "@pixi-react-provisional/pixi-8",
+      "version": "0.0.0",
+      "contentSha256": "e308cd940b5f1bcadee4e673e6cfefcedf1449a00486cb0ea264b0c05b557b29",
+      "codeSha256": "6aa232a24dd687a73cd45c4940761e4c0398b3497d27cb6b12b5964e254cb3ea"
+    },
+    "pixi-7": {
+      "package": "@pixi-react-provisional/pixi-7",
+      "version": "0.0.0",
+      "contentSha256": "b9c98af1dc3eb7cf04cb8ef96200039293e374b971f621f87406b65be1ec88e0",
+      "codeSha256": "78499f957069bb67e5a2fe85314b9e8668140d67f8b840ae603e1fbf1c698944"
+    }
+  },
+  "summary": {
+    "cells": 20,
+    "cellsPassedEveryBackend": 20,
+    "cellsWithExpectedBlank": 0,
+    "backends": {
+      "webgl": {
+        "cells": 20,
+        "passed": 20,
+        "expectedBlank": 0,
+        "failed": 0,
+        "notRun": 0,
+        "backendCheckFailed": 0,
+        "notApplicable": 0,
+        "scenarios": {
+          "passed": 1690,
+          "failed": 0,
+          "skipped": 130
+        },
+        "verifiedTuples": 0
+      },
+      "webgpu": {
+        "cells": 20,
+        "passed": 20,
+        "expectedBlank": 0,
+        "failed": 0,
+        "notRun": 0,
+        "backendCheckFailed": 0,
+        "notApplicable": 0,
+        "scenarios": {
+          "passed": 1690,
+          "failed": 0,
+          "skipped": 130
+        },
+        "verifiedTuples": 0
+      }
+    },
+    "probes": {
+      "total": 44,
+      "passed": 0,
+      "expectedFailures": 0,
+      "failed": 0,
+      "missing": 44
+    },
+    "negatives": {
+      "total": 6,
+      "rejectedAsExpected": 0,
+      "failed": 0,
+      "missing": 6
+    }
+  },
+  "cells": [
+    {
+      "id": "react-18.3.1_pixi-8.2.6",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.2.6",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "c98348c19afe748ce4daa4aa209b8f0583694ff57a8830ee6b3d24058b8e44a4",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.2.6"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.2.6",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.2.6",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "b8844d1fe65600b8dffffd95e8687be326c4569611b62c16022bba59ca0189cf",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.2.6"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.3.4",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.3.4",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "c9a881e157d66b7d38298be4378fc3f508b93dbda0c6cadec8c565f75a9b5d86",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.3.4"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.3.4",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.3.4",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "71fa7cce7c389cda9c397b72267582c362ee38e9283c8e040b0996db54f7d62a",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.3.4"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.4.1",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.4.1",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "a299a34ca6a23ce9061423667fce799f698d69941e9918cd972bcf388f9e24f9",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.4.1"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.4.1",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.4.1",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "6f8d3293a936e5acf8e73a372713766b02b2fd9ed329a3e7b7d111dcdfee0531",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.4.1"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.5.2",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.5.2",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "bdb0a1e86eb876f12bca3c06833e01540fbc2869913b0ebdfc3a5c30b1a7bf83",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.5.2"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.5.2",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.5.2",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "dcddd70187eaa232a8ddca4fea63ee9a7566d72a64bc2eefffa44a0966c05fb0",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.5.2"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.6.6",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.6.6",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "bb06d48719f69d6b5b21886266e5904f4bc23d2c8adfa78dd78af744d52efdb4",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.6.6"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.6.6",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.6.6",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "3a52ff1db0009f6eb5bf1f55e682750aedb05fcd434672d4ee6477f2447c1b8a",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.6.6"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.7.3",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.7.3",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "f365cd3a0eb912914e5165aad7f1a06d3bd57dfb11254a33751af74ea68e1c87",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.7.3"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.7.3",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.7.3",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "b171b177285f9c5b5f69369b0d21f060bddede2dd321411a61c0921004014dff",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.7.3"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.8.1",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.8.1",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "6118564b8c96cb1a551abffb4ffffce60451bc14ae0761dac02117b2816e7aaa",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.8.1"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.8.1",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.8.1",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "b5afbfcf7a88398604b02642658ab9151cb4c5ebf5a4e9275f09f1c71913a821",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.8.1"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.9.2",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.9.2",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "9385407b48d8239b09eb770bd744382826177a5e2388590bb169cd1c16fc7a96",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.9.2"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer",
+          "pixi8.dom-container"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.9.2",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.9.2",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "c2dd6fe3669580e24c9c350b2e0902fbf20381c0871a06adb4da7d9d87ee4a2b",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.9.2"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer",
+          "pixi8.dom-container"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.10.2",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.10.2",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "84af757ab12a3e83904b8c97b0d5d36b97e18e974eb66f05e82cf8e38ee4bda7",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.10.2"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer",
+          "pixi8.dom-container"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.10.2",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.10.2",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "6ff301e99ea1d42de13e9987907e437033b58ab09e26e87e51c1d5f7b4d036cf",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.10.2"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer",
+          "pixi8.dom-container"
+        ]
+      }
+    },
+    {
+      "id": "react-18.3.1_pixi-8.22.0",
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "reconciler": "0.29.2",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.22.0",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 86,
+            "failed": 0,
+            "skipped": 5
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 87,
+            "failed": 0,
+            "skipped": 5,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "a05914b1111115e0faab2e67aef06b608215f3789816a10d855bf6f5281d4e85",
+        "resolved": {
+          "@types/react": [
+            "18.3.31"
+          ],
+          "@types/react-dom": [
+            "18.3.7"
+          ],
+          "its-fine": [
+            "1.2.5"
+          ],
+          "pixi.js": [
+            "8.22.0"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "18.3.1"
+          ],
+          "react-dom": [
+            "18.3.1"
+          ],
+          "react-reconciler": [
+            "0.29.2"
+          ],
+          "scheduler": [
+            "0.23.2"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer",
+          "pixi8.dom-container"
+        ]
+      }
+    },
+    {
+      "id": "react-19.3.0_pixi-8.22.0",
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "reconciler": "0.34.0",
+      "pixiAdapter": "pixi-8",
+      "pixi": "8.22.0",
+      "status": "pass",
+      "commands": {
+        "install": "pass",
+        "tree": "pass",
+        "modules": "pass",
+        "types": "pass",
+        "conformance": "pass"
+      },
+      "backends": {
+        "webgl": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgl",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "webglRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "software": false,
+            "matchesProfile": true
+          }
+        },
+        "webgpu": {
+          "status": "pass",
+          "scenarios": {
+            "passed": 83,
+            "failed": 0,
+            "skipped": 8
+          },
+          "backendCheck": "pass",
+          "conformance": {
+            "passed": 84,
+            "failed": 0,
+            "skipped": 8,
+            "total": 92
+          },
+          "renderer": "webgpu",
+          "readback": {
+            "screenshot": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "canvas": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "extract": [
+              255,
+              0,
+              0,
+              255
+            ],
+            "screenshotMatches": true,
+            "canvasMatches": true,
+            "extractMatches": true
+          },
+          "gpuAdapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "gpu": {
+            "profile": "hardware",
+            "expect": "hardware",
+            "identity": "apple metal-3",
+            "software": false,
+            "matchesProfile": true
+          }
+        }
+      },
+      "evidence": {
+        "lockfileSha256": "9d6f727a234f7bd88f0e710aa548b351e8cacad73c28849db1c2b958dcedd945",
+        "resolved": {
+          "@types/react": [
+            "19.3.0"
+          ],
+          "@types/react-dom": [
+            "19.3.0"
+          ],
+          "its-fine": [
+            "2.1.1"
+          ],
+          "pixi.js": [
+            "8.22.0"
+          ],
+          "playwright": [
+            "1.50.1"
+          ],
+          "react": [
+            "19.3.0"
+          ],
+          "react-dom": [
+            "19.3.0"
+          ],
+          "react-reconciler": [
+            "0.34.0"
+          ],
+          "scheduler": [
+            "0.28.0"
+          ],
+          "typescript": [
+            "5.6.3"
+          ],
+          "vitest": [
+            "2.1.9"
+          ]
+        },
+        "formats": [
+          "esm",
+          "cjs"
+        ],
+        "jsx": "automatic",
+        "conformanceCapabilities": [
+          "react.19",
+          "pixi.globals",
+          "dom.resize",
+          "pixi.filter-children",
+          "pixi.graphics-context",
+          "pixi.renderer-destroy-options"
+        ],
+        "pixiProvides": [
+          "pixi.mutation",
+          "pixi.visibility",
+          "pixi.application",
+          "pixi.ticker",
+          "pixi.globals",
+          "pixi8.filter",
+          "pixi8.particle",
+          "pixi8.render-layer",
+          "pixi8.dom-container"
+        ]
+      }
+    }
+  ],
+  "integrities": {
+    "@types/react-dom@18.3.7": "sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==",
+    "@types/react-dom@19.3.0": "sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==",
+    "@types/react@18.3.31": "sha512-vfEqpXTvwT91yhmwdfouStN2hSKwTvyRs8qpLfADyrq/kxDw0hZM7Wk9Ug1FELj8hIby+S/+kQCSRFF32nv2Qw==",
+    "@types/react@19.3.0": "sha512-N0rFCuH9YoxG9/m61l9MfpJKfmLOVU0em7ipIz6TRgSSkvReLB9vL85GB+yr8Bs5leqpvg96JSwF4ZS1s4viQg==",
+    "its-fine@1.2.5": "sha512-fXtDA0X0t0eBYAGLVM5YsgJGsJ5jEmqZEPrGbzdf5awjv0xE7nqv3TVnvtUF060Tkes15DbDAKW/I48vsb6SyA==",
+    "its-fine@2.1.1": "sha512-C5ZoVkeqSt0Aje0tzESO+iT/EQpNFNL39GkP7mCACtoZUFD6GcyerFCr6kp0ZtiII4W9HoYkY48Soy5xE/uHKw==",
+    "pixi.js@8.10.2": "sha512-utRKxzTwNsIhaxOikxIBxKPfxuOyVkPvdYipY23ZEyWSYhONosrQlcB9nymeIcbsrsuSdwExX0eTnHTDjTN3UQ==",
+    "pixi.js@8.2.6": "sha512-CNfr7CmjIEWJ06e3TBrXBKFpcTPMGUaFdtP4RlMOgNOTkDD6+Bhm728I/EkGAo2vsOVO1YwNFsuORQyD3MngZg==",
+    "pixi.js@8.22.0": "sha512-QbTANHMZ751MIjLiLSUSM8a7LNMWwMIf0KbRCqlW+SPS9hNLfSVS+cl1O2SEp9g1K/wyLzj/OJHv+1TUfiPr/w==",
+    "pixi.js@8.3.4": "sha512-b5qdoHMQy79JjTiOOAH/fDiK9dLKGAoxfBwkHIdsK5XKNxsFuII2MBbktvR9pVaAmTDobDkMPDoIBFKYYpDeOg==",
+    "pixi.js@8.4.1": "sha512-3ZbEIkLYYi602UB5wuN7kPz3VsGHoJa6nxD8ustvMLRySxHAR9Z8tCAYY8ISgNplpPbaDw03B0yTD4/k9f6cAQ==",
+    "pixi.js@8.5.2": "sha512-TOt9g8ifOj4R9DN9ST1M8t2nvnuhr5oWL5YW9ywFLbnOVgFMDcEz+Xek5Mo8Xr64D+QU3qre3IFgreBlsHxTNw==",
+    "pixi.js@8.6.6": "sha512-o5pw7G2yuIrnBx0G4npBlmFp+XGNcapI/Ufs62rRj/4XKxc1Zo74YJr/BtEXcXTraTKd+pQvYOLvnfxRjxBMvQ==",
+    "pixi.js@8.7.3": "sha512-wfWlhJYnGx1s4f2yoouevQjaeacbJ12LTkJGa+n9AIYNIjOnmJylBtZ2mARX7iFk3mr2xv0wuo//XPe2hk5OBw==",
+    "pixi.js@8.8.1": "sha512-Zmox3Vy52Kl6X/uxknKlxJWPVEFiP63nsX8soqB4butTkIOK3y7c9C204wcDfAgkwO1OlwYxscWtHv+ef4gqgA==",
+    "pixi.js@8.9.2": "sha512-oLFBkOOA/O6OpT5T8o05AxgZB9x9yWNzEQ+WTNZZFoCvfU2GdT4sFTjpVFuHQzgZPmAm/1IFhKdNiXVnlL8PRw==",
+    "playwright@1.50.1": "sha512-G8rwsOQJ63XG6BbKj2w5rHeavFjy5zynBA9zsJMMtBoe/Uf757oG12NXz6e6OirF7RCrTVAKFXbLmn1RbL7Qaw==",
+    "react-dom@18.3.1": "sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==",
+    "react-dom@19.3.0": "sha512-JDk8dgif51OjFoDE70+OT9ICyYr+69HlmihNwp1+Nsfbna3t5sIiCa9ZJktDmQ4/1b/rn26hIAR2uYXDMr5r0Q==",
+    "react-reconciler@0.29.2": "sha512-zZQqIiYgDCTP/f1N/mAR10nJGrPD2ZR+jDSEsKWJHYC7Cm2wodlwbR3upZRdC3cjIjSlTLNVyO7Iu0Yy7t2AYg==",
+    "react-reconciler@0.34.0": "sha512-eVibvB1fc9j5Qf1KRkiM3GzRPBdjg2P6G6QV2f3P6Eb3OGMxRBhdg2rrUwjbV5JrQaJj8nOa8uajmmJA5tJWjQ==",
+    "react@18.3.1": "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==",
+    "react@19.3.0": "sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog==",
+    "scheduler@0.23.2": "sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==",
+    "scheduler@0.28.0": "sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw==",
+    "typescript@5.6.3": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==",
+    "vitest@2.1.9": "sha512-MSmPM9REYqDGBI8439mA4mWhV5sKmDlBKWIYbA3lRb2PTHACE0mgKwA8yQ2xq9vxDTuk4iPrECBAEW2aoFXY0Q=="
+  },
+  "probes": [
+    {
+      "id": "react-18.3.1",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "react-19.0.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "react-19.0.8",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "react-19.1.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "react-19.1.9",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "react-19.2.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "react-19.2.8",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "react-19.3.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-7.4.2",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-7.4.3",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.2.6",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.3.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.3.4",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.4.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.4.1",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.5.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.5.2",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.6.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.6.6",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.7.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.7.3",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.8.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.8.1",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.9.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.9.2",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.10.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.10.2",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.11.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.12.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.13.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.13.2",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.14.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.14.3",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.15.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.16.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.17.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.17.1",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.18.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.18.1",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.19.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.20.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.20.1",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.21.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    },
+    {
+      "id": "pixi-8.22.0",
+      "boundary": "audited tuple",
+      "status": "missing"
+    }
+  ],
+  "negatives": [
+    {
+      "id": "negative-react-adapter-beside-wrong-minor",
+      "failingCommand": "modules",
+      "status": "missing",
+      "message": ""
+    },
+    {
+      "id": "negative-react-18-adapter-beside-react-19",
+      "failingCommand": "install",
+      "status": "missing",
+      "message": ""
+    },
+    {
+      "id": "negative-pixi-peer-range-excludes-8.5.0",
+      "failingCommand": "install",
+      "status": "missing",
+      "message": ""
+    },
+    {
+      "id": "negative-pixi-adapter-rejects-8.5.0-when-peers-ignored",
+      "failingCommand": "modules",
+      "status": "missing",
+      "message": ""
+    },
+    {
+      "id": "negative-pixi-7-adapter-beside-pixi-8",
+      "failingCommand": "install",
+      "status": "missing",
+      "message": ""
+    },
+    {
+      "id": "negative-pixi-7-adapter-rejects-pixi-8-when-peers-ignored",
+      "failingCommand": "modules",
+      "status": "missing",
+      "message": ""
+    }
+  ],
+  "dataOnly": {
+    "statement": "Data only, not verified: these results are never verification, never enter verifiedRanges and never change a peer range.",
+    "description": "Data-only probes (issue 17). Each probe installs the packed adapters beside a React or pixi.js the adapter does not declare, ignoring peers, and records what every cell command does. The adapters' environment checks are bypassed in the conformance run only (cell.json dataOnly.bypassEnvironmentCheck), so the suite shows what would happen past them. Results are data, never verification: nothing here enters verifiedRanges or changes a peer range.",
+    "groups": [
+      {
+        "id": "pixi7-earlier-releases",
+        "description": "The Pixi 7 adapter on pixi.js releases below its 7.4.2 floor: the highest patch of 7.0 to 7.3, and 7.4.0 (7.4.1 was never published to npm).",
+        "unpublished": [
+          {
+            "package": "pixi.js",
+            "version": "7.4.1",
+            "note": "absent from the npm registry's version list and time map: there is nothing to install"
+          }
+        ]
+      },
+      {
+        "id": "react18-earlier-minors",
+        "description": "The React 18 adapter on React 18.0, 18.1 and 18.2, each with the react-reconciler released with it (npm peers: 0.27.0 react ^18.0.0, 0.28.0 react ^18.1.0, 0.29.0 react ^18.2.0; 0.29.2, which the adapter depends on, declares react ^18.3.1). The reconciler is swapped with an npm override in the cell project only; the shipped adapter is unchanged. @types/react stays at the adapter's audited 18.3 declarations.",
+        "unpublished": []
+      }
+    ],
+    "results": []
+  }
+}
