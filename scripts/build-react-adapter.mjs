@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console -- command-line script: its output is the report. */
 /**
- * Builds one React adapter package (`react-18`, `react-19.0` … `react-19.3`), the per-minor layout of issue 49 with
+ * Builds one React adapter package (`react-18.0` … `react-18.3`, `react-19.0` … `react-19.3`), the per-minor layout of issue 49 with
  * the single-runtime packaging of decision D6:
  *
  *   dist/index.js     ONE CommonJS implementation, bundled by esbuild. It contains ONLY our own code: the package's
@@ -28,6 +28,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 const packageDir = process.cwd();
 const require = createRequire(join(packageDir, 'package.json'));
 const esbuild = require('esbuild');
+
 const manifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
 
 const dist = join(packageDir, 'dist');

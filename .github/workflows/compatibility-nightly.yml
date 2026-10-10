@@ -1,6 +1,7 @@
 name: Compatibility nightly
 
-# Nightly tier of the adapter compatibility matrix (issue 13): every React epoch at its latest patch against every
+# Nightly tier of the adapter compatibility matrix (issue 13), scheduled weekly (Mondays 02:37 UTC, owner ruling
+# 2026-10-10, to save Actions minutes; the tier keeps the name "nightly" in the manifest and the check names): every React epoch at its latest patch against every
 # Pixi 8 minor at its latest audited patch (generated from design/compatibility/seed.json), the full conformance
 # suite in each cell, and every audited type/API probe. Not a PR check. Its output is the compatibility table.
 #
@@ -12,7 +13,7 @@ name: Compatibility nightly
 
 on:
   schedule:
-    - cron: '37 2 * * *'
+    - cron: '37 2 * * 1'
   workflow_dispatch:
     inputs:
       cells:

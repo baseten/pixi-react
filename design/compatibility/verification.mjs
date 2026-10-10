@@ -21,7 +21,7 @@
  * is not a failure, but verifies nothing. Backends are never inferred from each other.
  *
  * Usage:
- *   node design/compatibility/verification.mjs build --work DIR --date YYYY-MM-DD --commit SHA [--machine SLUG]
+ *   node design/compatibility/verification.mjs build --work DIR --date YYYY-MM-DD --commit SHA [--machine SLUG] [--sequence N]
  *       [--scope full|partial] [--extra FILE]   # a record from a run's work directory (partial: only the cells it ran)
  *   node design/compatibility/verification.mjs refresh [--record ID] [--extra FILE]   # re-apply the manifest's lists and the rule
  *   node design/compatibility/verification.mjs render [--check]   # the .md files from the .json records
@@ -35,7 +35,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { arch, cpus, release, totalmem, type, version } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { boundaryProbes, classifyExpectedBlank, compareVersions, expectedBlankFor, fileSetHash, gpuProfileOf, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
+import { boundaryProbes, classifyExpectedBlank, compareVersions, expectedBlankFor, fileSetHash, gpuProfileOf, knownIssueNote, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -51,7 +51,13 @@ export const VERIFICATION_RULE = 'A tuple (React adapter, exact React, Pixi adap
 export const SOFTWARE_NOTE = 'Software rendering: no GPU took part. WebGL ran on ANGLE over SwiftShader and WebGPU on Dawn over SwiftShader\'s '
     + 'Vulkan device, a fallback adapter (isFallbackAdapter true). It counts as verification; a run on a real GPU '
     + '(run-cells.mjs --gpu hardware) can be added later as extra evidence.';
-const RECORD_FILE = /^(\d{4}-\d{2}-\d{2})(-[a-z0-9]+(?:-[a-z0-9]+)*)?\.json$/;
+const RECORD_FILE = /^(\d{4}-\d{2}-\d{2})(-[a-z0-9]+(?:-[a-z0-9]+)*)?(\.[2-9]|\.[1-9]\d+)?\.json$/;
+
+/**
+ * A record's id: the date, the machine slug for another machine's record, and `.N` for the Nth record of that machine
+ * and date (`--sequence N`, N >= 2), so a later run on the same day supersedes an earlier one without replacing its file.
+ */
+export const recordIdOf = ({ date, machine, sequence }) => `${date}${machine ? `-${machine}` : ''}${sequence > 1 ? `.${sequence}` : ''}`;
 
 const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 const backendNames = (seed) => Object.keys(seed.adapterMatrix.renderers);
@@ -208,7 +214,8 @@ export function renderingOf(seed, gpuProfile, environment)
 
     return profile.expect === 'software'
         ? { profile: profile.id, kind: 'software', note: SOFTWARE_NOTE }
-        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${environment?.gpu ?? 'see the environment'}. The render check confirmed no backend ran on a software renderer or a fallback adapter.` };
+        // The collected environment already says "real GPU: ..."; say it once.
+        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${(environment?.gpu ?? 'see the environment').replace(/^real GPU:\s*/i, '')}. The render check confirmed no backend ran on a software renderer or a fallback adapter.` };
 }
 
 /** Whether a record's boundary probes and negative cases all behaved as expected: without it, the record verifies nothing. */
@@ -221,14 +228,21 @@ export function recordGate(record)
 /** Whether a backend entry's conformance suite itself ran: at least one scenario passed and none failed. */
 export const scenariosRan = (entry) => Boolean(entry?.scenarios) && entry.scenarios.passed >= 1 && entry.scenarios.failed === 0;
 
+/** The commands every matrix cell of a record runs (`adapterMatrix.commands.order`): each must be recorded. */
+export const requiredCommands = (seed = loadSeed()) => seed.adapterMatrix.commands.order;
+
+/** The required commands a cell's record lacks (a command that never ran is not a pass). */
+export const missingCommands = (cell, required) => required.filter((name) => !Object.hasOwn(cell.commands ?? {}, name));
+
 /** The verification rule for one tuple of a record on one backend. */
-export function tupleVerified(record, cell, backend, gate = recordGate(record))
+export function tupleVerified(record, cell, backend, gate = recordGate(record), required = requiredCommands())
 {
     const entry = cell.backends[backend];
 
-    // The backend passed with its suite and render check counted separately, and every command but the per-backend
-    // conformance run (whose result is the backend entry) passed.
+    // The backend passed with its suite and render check counted separately, every command the manifest requires was
+    // recorded, and every one but the per-backend conformance run (whose result is the backend entry) passed.
     return gate && entry?.status === 'pass' && scenariosRan(entry) && entry.backendCheck === 'pass'
+        && missingCommands(cell, required).length === 0
         && Object.entries(cell.commands).every(([name, status]) => name === 'conformance' || status === 'pass');
 }
 
@@ -256,7 +270,7 @@ export function summarizeRecord(seed, record)
 
                 return scenarios ? { passed: total.passed + scenarios.passed, failed: total.failed + scenarios.failed, skipped: total.skipped + scenarios.skipped } : total;
             }, { passed: 0, failed: 0, skipped: 0 }),
-            verifiedTuples: applicable.filter((cell) => tupleVerified(record, cell, name, gate)).length,
+            verifiedTuples: applicable.filter((cell) => tupleVerified(record, cell, name, gate, requiredCommands(seed))).length,
         };
     }
     const { probes, negatives } = record;
@@ -276,7 +290,7 @@ export function summarizeRecord(seed, record)
  * cases; `data-results/` of the data-only probes). `scope: 'partial'` records only the cells that have a result (a
  * targeted run); a full record lists every nightly cell and counts a missing one as missing.
  */
-export function buildRecord(seed, { work, date, commit, environment, run, dataSpec, machine, scope = 'full' })
+export function buildRecord(seed, { work, date, commit, environment, run, dataSpec, machine, sequence = 1, scope = 'full' })
 {
     const backends = backendNames(seed);
     const { rows, probes } = (() =>
@@ -294,6 +308,7 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
     const env = environment && Object.keys(environment).length ? environment : collectEnvironment(seed, rows, gpuProfile);
 
     assert.ok(['full', 'partial'].includes(scope), `scope ${scope}`);
+    assert.ok(Number.isInteger(sequence) && sequence >= 1, `sequence ${sequence}`);
     assert.ok(gpuProfileOf(seed, gpuProfile).expect !== 'hardware' || machine, 'a hardware record needs --machine (a slug naming the machine, OS and GPU)');
     // npm integrity of every resolved package version any cell installed (cells list the versions they resolved).
     const integrities = {};
@@ -349,9 +364,10 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
     }));
     const record = {
         schemaVersion: SCHEMA_VERSION,
-        id: machine ? `${date}-${machine}` : date,
+        id: recordIdOf({ date, machine, sequence }),
         date,
         ...(machine ? { machine } : {}),
+        ...(sequence > 1 ? { sequence } : {}),
         issue: 17,
         statement: STATEMENT,
         rule: VERIFICATION_RULE,
@@ -389,9 +405,10 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
  * (`currentRecords`: the newest per machine and GPU profile); their verified tuples add up across machines and profiles.
  * Only exact tuples: no interval.
  */
-export function deriveVerifiedRanges(records)
+export function deriveVerifiedRanges(records, seed = loadSeed())
 {
     const entries = new Map();
+    const required = requiredCommands(seed);
 
     for (const record of currentRecords(records))
     {
@@ -401,7 +418,7 @@ export function deriveVerifiedRanges(records)
         {
             for (const backend of Object.keys(cell.backends))
             {
-                if (!tupleVerified(record, cell, backend, gate)) continue;
+                if (!tupleVerified(record, cell, backend, gate, required)) continue;
                 const key = `${cell.reactAdapter}|${cell.react}|${cell.pixiAdapter}`;
                 const entry = entries.get(key) ?? { reactAdapter: cell.reactAdapter, react: cell.react, pixiAdapter: cell.pixiAdapter, records: [], backends: {} };
 
@@ -435,7 +452,10 @@ export function currentRecords(records)
         const line = recordLine(record);
         const held = newest.get(line);
 
-        if (!held || record.date > held.date || (record.date === held.date && recordId(record) > recordId(held))) newest.set(line, record);
+        const later = record.date > held?.date || (record.date === held?.date && ((record.sequence ?? 1) > (held.sequence ?? 1)
+            || ((record.sequence ?? 1) === (held.sequence ?? 1) && recordId(record) > recordId(held))));
+
+        if (!held || later) newest.set(line, record);
     }
 
     return [...newest.values()].sort((a, b) => recordId(a).localeCompare(recordId(b)));
@@ -457,7 +477,8 @@ export function validateRecord(seed, record, name = recordId(record))
 {
     assert.equal(record.schemaVersion, SCHEMA_VERSION, `${name}: schemaVersion`);
     assert.match(record.date, /^\d{4}-\d{2}-\d{2}$/, `${name}: date`);
-    assert.equal(record.id, record.machine ? `${record.date}-${record.machine}` : record.date, `${name}: id is the date, or the date and the machine slug`);
+    assert.ok(record.sequence === undefined || (Number.isInteger(record.sequence) && record.sequence >= 2), `${name}: sequence`);
+    assert.equal(record.id, recordIdOf(record), `${name}: id is the date, the machine slug if any, and .N for the Nth record of a day`);
     assert.match(record.commit, /^[0-9a-f]{40}$/, `${name}: commit`);
     assert.equal(record.statement, STATEMENT, `${name}: statement`);
     assert.equal(record.rule, VERIFICATION_RULE, `${name}: rule`);
@@ -472,8 +493,15 @@ export function validateRecord(seed, record, name = recordId(record))
     const ids = record.cells.map((cell) => cell.id);
 
     assert.equal(new Set(ids).size, ids.length, `${name}: duplicate cell`);
+    const required = requiredCommands(seed);
+
     for (const cell of record.cells)
     {
+        // A cell that claims any pass must have recorded every command the manifest requires: a command that never ran
+        // is not a pass. Only a failed or missing cell may stop early (the runner stops at its first failing command).
+        const claimsPass = cell.status === 'pass' || Object.values(cell.backends).some((entry) => ['pass', 'expected-fail'].includes(entry.status));
+
+        if (claimsPass) assert.deepEqual(missingCommands(cell, required), [], `${name}: ${cell.id} claims a pass but lacks required commands`);
         for (const [backend, entry] of Object.entries(cell.backends))
         {
             assert.ok(backendNames(seed).includes(backend), `${name}: ${cell.id}: unknown backend ${backend}`);
@@ -543,7 +571,7 @@ export function checkExpectedBlankAgainstRecords(seed, records)
  */
 export function refreshRecord(seed, record)
 {
-    const next = { ...record, schemaVersion: SCHEMA_VERSION, id: record.id ?? (record.machine ? `${record.date}-${record.machine}` : record.date), statement: STATEMENT, rule: VERIFICATION_RULE };
+    const next = { ...record, schemaVersion: SCHEMA_VERSION, id: record.id ?? recordIdOf(record), statement: STATEMENT, rule: VERIFICATION_RULE };
 
     next.gpuProfile ??= seed.adapterMatrix.defaultGpuProfile;
     next.rendering = renderingOf(seed, next.gpuProfile, next.environment);
@@ -577,13 +605,13 @@ export function refreshRecord(seed, record)
     next.summary = summarizeRecord(seed, next);
 
     // Keep the key order of a built record.
-    const order = ['schemaVersion', 'id', 'date', 'machine', 'issue', 'statement', 'rule', 'gpuProfile', 'rendering', 'scope', 'commit', 'environment', 'run', 'artifacts', 'summary', 'cells', 'integrities', 'probes', 'negatives', 'dataOnly', 'findings'];
+    const order = ['schemaVersion', 'id', 'date', 'machine', 'sequence', 'issue', 'statement', 'rule', 'gpuProfile', 'rendering', 'scope', 'commit', 'environment', 'run', 'artifacts', 'summary', 'cells', 'integrities', 'probes', 'negatives', 'dataOnly', 'findings'];
 
     return Object.fromEntries([...order.filter((key) => key in next), ...Object.keys(next).filter((key) => !order.includes(key))].map((key) => [key, next[key]]));
 }
 
 /** The Markdown rendering of a record. */
-export function renderRecord(record)
+export function renderRecord(record, seed = loadSeed())
 {
     const label = { webgl: 'WebGL', webgpu: 'WebGPU' };
     const backends = Object.keys(record.summary.backends);
@@ -659,6 +687,40 @@ export function renderRecord(record)
         '',
     ];
 
+    // Known upstream issues (adapterMatrix.knownIssues) covering tuples this record verified: shown beside them.
+    const issues = new Map();
+
+    if (seed)
+    {
+        const gate = recordGate(record);
+
+        for (const cell of record.cells)
+        {
+            for (const backend of Object.keys(cell.backends))
+            {
+                if (!tupleVerified(record, cell, backend, gate, requiredCommands(seed))) continue;
+                for (const issue of knownIssuesFor(seed, { pixiAdapter: cell.pixiAdapter, renderer: backend, pixi: cell.pixi }))
+                {
+                    const item = issues.get(issue.id) ?? { issue, cells: 0, pixi: new Set() };
+
+                    item.cells += 1;
+                    item.pixi.add(cell.pixi);
+                    issues.set(issue.id, item);
+                }
+            }
+        }
+    }
+    if (issues.size)
+    {
+        lines.push(
+            '## Known issues beside verified tuples',
+            '',
+            'Tuples this record verified that a known upstream issue covers (`adapterMatrix.knownIssues`). They stay verified (owner ruling, 2026-10-10); the issue can still show on other devices.',
+            '',
+            ...[...issues.values()].map(({ issue, cells, pixi }) => `- ${label[issue.renderer] ?? issue.renderer}, ${cells} verified ${cells === 1 ? 'tuple' : 'tuples'} on pixi.js ${[...pixi].sort(compareVersions).join(', ')}: ${knownIssueNote(seed, issue)}`),
+            '',
+        );
+    }
     if (blanks.size)
     {
         lines.push(
@@ -776,6 +838,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
                 date,
                 commit: option('commit'),
                 machine: option('machine'),
+                sequence: option('sequence') ? Number(option('sequence')) : 1,
                 scope: option('scope') ?? 'full',
                 environment: extra.environment ?? {},
                 run: extra.run ?? { commands: [], notes: [] },

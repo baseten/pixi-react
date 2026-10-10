@@ -62,7 +62,8 @@ const WORKSPACE = {
     react193: { dir: 'packages/react-19.3', name: '@pixi-react-provisional/react-19.3' },
     pixi8: { dir: 'packages/pixi-8', name: '@pixi-react-provisional/pixi-8' },
     pixi7: { dir: 'packages/pixi-7', name: '@pixi-react-provisional/pixi-7' },
-    react18: { dir: 'packages/react-18', name: '@pixi-react-provisional/react-18' },
+    react183: { dir: 'packages/react-18.3', name: '@pixi-react-provisional/react-18.3' },
+    react180: { dir: 'packages/react-18.0', name: '@pixi-react-provisional/react-18.0' },
     facade: { dir: 'packages/react', name: '@pixi/react' },
 };
 
@@ -93,7 +94,8 @@ const PIXI8 = ['8.2.6', '8.22.0'];
 
 /**
  * The cells: each React type line against the Pixi 8 adapter on its floor and newest version, then the Pixi 7 adapter
- * (issue 16) with React 19 on the newest Pixi 7 and React 18 on the Pixi 7 floor, each with its runtime React adapter.
+ * (issue 16) with React 19 on the newest Pixi 7 and React 18.3 on Pixi 7.4.2, each with its runtime React adapter, and the
+ * React 18.0 package with React 18.0.0 on the Pixi 8 floor.
  */
 const CELLS = [
     ...Object.keys(REACT).sort().reverse().flatMap((react) =>
@@ -113,8 +115,18 @@ const CELLS = [
         pixi: '7.4.2',
         adapter: 'pixi7',
         registry: REACT[18].registry,
-        workspace: ['core', 'renderer', 'react18', 'pixi7'],
+        workspace: ['core', 'renderer', 'react183', 'pixi7'],
         programs: ['pixi7-react-18'],
+    },
+    // The lowest React 18 minor package, with its exact peer React 18.0.0 (the other minors share its declarations).
+    {
+        name: 'react-18.0-pixi-8.2.6',
+        react: '18',
+        pixi: '8.2.6',
+        adapter: 'pixi8',
+        registry: { ...REACT[18].registry, react: '18.0.0', 'react-dom': '18.0.0' },
+        workspace: ['core', 'renderer', 'react180', 'pixi8'],
+        programs: ['react-18.0'],
     },
 ];
 

@@ -47,8 +47,8 @@ Current bindings:
 | Core + renderer: `createRenderer({ react, pixi })` with a fake React 19 adapter and the fake Pixi adapter | `test/core-binding/` | jsdom |
 | Core + renderer + the real `Pixi8Adapter`, driven by the same fake React 19 adapter, on pixi.js 8.2.6 and 8.22.0 | `packages/pixi-8/test/browser/` | Vitest browser mode, Playwright Chromium |
 | Each React 19 minor package (`@pixi-react-provisional/react-19.0` … `react-19.3`, built) with the fake Pixi adapter, once per audited React version | `packages/react-19.<minor>/fixtures/` (shared suite in `packages/react-shared/fixtures/react-19/`) | jsdom |
-| React 18: `createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() })` from the packed packages, with React 18.3.1 and the Pixi 8 adapter's probe, on pixi.js 8.2.6 and 8.22.0 | `packages/react-18/fixtures/` | Vitest browser mode, Playwright Chromium |
-| Core + renderer + the real `Pixi7Adapter`, driven by the fake React 19 adapter, on pixi.js 7.4.2 and 7.4.3 (issue 16) | `packages/pixi-7/test/browser/` | Vitest browser mode, Playwright Chromium |
+| React 18: `createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() })` from the packed per-minor packages, with React 18.0.0, 18.1.0, 18.2.0 and 18.3.1 (React before 18.3 is lent `react-dom/test-utils` act) and the Pixi 8 adapter's probe, on pixi.js 8.2.6 and 8.22.0 | `packages/react-18.*/fixtures/` | Vitest browser mode, Playwright Chromium |
+| Core + renderer + the real `Pixi7Adapter`, driven by the fake React 19 adapter, on pixi.js 7.2.0, 7.4.2 and 7.4.3 (issue 16; the compatibility cells add 7.2.4, 7.3.0 and 7.3.3) | `packages/pixi-7/test/browser/` | Vitest browser mode, Playwright Chromium |
 | Every React adapter (18 and 19.0–19.3) with the Pixi 8 or the Pixi 7 adapter, from packed packages in isolated projects | `design/compatibility/cells/harness` (the #13 cells) | Vitest browser mode, Playwright Chromium |
 
 The second binding shows that the interface is not shaped around the facade. The second and third bindings both

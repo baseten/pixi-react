@@ -7,7 +7,7 @@
  * asynchronous `init(options)`. Core's session contract follows Pixi 8: the application object exists when the root is
  * created, and `init` settles later. This session therefore creates the application object, with its stage, when the
  * root is created, and runs Pixi 7's construction steps on it in `init`, exactly as Pixi 7's constructor does (the
- * Application of pixi.js 7.4.2 and 7.4.3 is identical; `test/browser/pixi/application.test.tsx` compares the result
+ * Application of pixi.js 7.2.0 to 7.4.3 is identical; `test/browser/pixi/application.test.tsx` compares the result
  * with `new Application(options)`). That keeps one application identity for the whole root, and it gives the session a
  * reference to a partially constructed application when a plugin throws, so the renderer and the plugins that did
  * initialize are destroyed instead of leaking a WebGL context.

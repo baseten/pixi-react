@@ -17,7 +17,9 @@ const nonemptyObject = (value) => value !== null && typeof value === 'object' &&
 const strings = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string');
 
 assert.equal(seed.schemaVersion, 1);
-assert.deepEqual(seed.floors, { react: '18.3.1', 'pixi.js': '7.4.2', pixi8: '8.2.6' });
+// Floors: React 18.0.0 (the per-minor React 18 packages) and pixi.js 7.2.0 (the Pixi 7 adapter) since the React 18
+// minors and Pixi 7.2/7.3 became cells; Pixi 8 stays at 8.2.6.
+assert.deepEqual(seed.floors, historical ? { react: '18.3.1', 'pixi.js': '7.4.2', pixi8: '8.2.6' } : { react: '18.0.0', 'pixi.js': '7.2.0', pixi8: '8.2.6' });
 assert.ok(!('advertisedRanges' in seed), 'advertisedRanges was renamed verifiedRanges (issue 17)');
 if (historical) assert.deepEqual(seed.verifiedRanges, [], 'the historical audit verifies nothing');
 else
@@ -115,7 +117,9 @@ for (const tuple of seed.probes)
 
         if (tuple.kind === 'react')
         {
-            assert.equal(observation.react, tuple.packages.react, `${row.id}: observation.react`);
+            // React 18.0.0's published build reports `React.version` as `18.0.0-fc46dba67-20220329` (the release
+            // commit and date): the installed package is 18.0.0 (resolvedPackages), only its version string differs.
+            assert.equal(observation.react.replace(/-[0-9a-f]{9}-\d{8}$/, ''), tuple.packages.react, `${row.id}: observation.react`);
             assert.equal(observation.reconciler, tuple.packages['react-reconciler'], `${row.id}: observation.reconciler`);
             for (const field of ['hostKeys', 'exports']) assert.ok(strings(observation[field]) && observation[field].length > 0, `${row.id}: observation.${field}`);
             assert.ok(nonemptyObject(observation.features), `${row.id}: observation.features`);

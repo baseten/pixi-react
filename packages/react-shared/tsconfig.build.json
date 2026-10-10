@@ -17,5 +17,7 @@
     "rootDir": "./src",
     "outDir": "./dist"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "//exclude": "The React 18 sources compile against React 18 types: tsconfig.react-18.build.json.",
+  "exclude": ["src/react-18/**/*"]
 }

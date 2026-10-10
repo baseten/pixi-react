@@ -252,7 +252,7 @@ test('retained evidence includes the extension declaration for every Pixi tuple'
     const evidence = JSON.parse(readFileSync(new URL('evidence.json', import.meta.url)));
     const rows = evidence.results.filter((row) => row.packages['pixi.js']);
 
-    assert.equal(rows.length, 36);
+    assert.equal(rows.length, 40);
     for (const row of rows)
     {
         const path = row.packages['pixi.js'].startsWith('7.') ? '@pixi/extensions/lib/index.d.ts' : 'pixi.js/lib/extensions/Extensions.d.ts';

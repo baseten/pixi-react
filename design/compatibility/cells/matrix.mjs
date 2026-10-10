@@ -86,6 +86,39 @@ export function pixiMinors(seed, adapterKey)
         .sort((a, b) => compareVersions(`${a.minor}.0`, `${b.minor}.0`));
 }
 
+/**
+ * The version-dependent type assertions of a Pixi adapter's declaration consumer at one pixi.js version: each
+ * `typeAssertions` entry (marked `compat:begin <id>` … `compat:end <id>` in the consumer) is kept from its `from`
+ * version on and omitted below it, with the reason recorded in the cell configuration. Never silently.
+ */
+export function typeAssertionsFor(seed, adapterKey, version)
+{
+    const entries = Object.entries(seed.adapterMatrix.pixiAdapters[adapterKey].typeAssertions ?? {});
+
+    return {
+        kept: entries.filter(([, assertion]) => compareVersions(version, assertion.from) >= 0).map(([id]) => id),
+        omitted: entries.filter(([, assertion]) => compareVersions(version, assertion.from) < 0).map(([id, assertion]) => ({ id, from: assertion.from, reason: assertion.reason })),
+    };
+}
+
+/**
+ * Removes the `compat:begin <id>` … `compat:end <id>` blocks of the type assertions this cell omits from a consumer
+ * file, leaving a comment that names the assertion and why; keeps (and unmarks) the others. A marker of an assertion
+ * the manifest does not declare fails the cell.
+ */
+export function applyTypeAssertions(text, { kept, omitted })
+{
+    const known = new Set([...kept, ...omitted.map(({ id }) => id)]);
+
+    return text.replace(/^([ \t]*)\{?\/\*\s*compat:begin ([a-z0-9-]+)\s*\*\/\}?\n([\s\S]*?)^[ \t]*\{?\/\*\s*compat:end \2\s*\*\/\}?\n/gm, (_match, indent, id, body) =>
+    {
+        assert.ok(known.has(id), `consumer marker compat:begin ${id} is not an adapterMatrix typeAssertions entry`);
+        const skipped = omitted.find((entry) => entry.id === id);
+
+        return skipped ? `${indent}{/* type assertion ${id} omitted below pixi.js ${skipped.from}: ${skipped.reason.replaceAll('*/', '* /')} */}\n` : body;
+    });
+}
+
 /** Capability IDs the Pixi adapter must provide at `version`, from the seed's capability boundaries. */
 export function expectedPixiProvides(seed, adapterKey, version)
 {
@@ -221,9 +254,20 @@ function pixiRoles(seed, adapterKey)
     return { minimum: epoch.minimum, current: epoch.current };
 }
 
+/**
+ * Every audited pixi.js version of an adapter's epoch between its minimum and current that the adapter does not exclude,
+ * oldest first (`versions: "all-audited"`; the Pixi 7 adapter's nightly columns: the lowest and highest audited patch
+ * of each minor).
+ */
+export function pixiAudited(seed, adapterKey)
+{
+    return pixiMinors(seed, adapterKey).flatMap(({ minimum, latest }) => [...new Set([minimum.version, latest.version])]);
+}
+
 function pixiSelections(seed, adapterKey, selection)
 {
     if (selection.versions === 'all-minors') return pixiMinors(seed, adapterKey).map(({ latest }) => ({ adapter: adapterKey, version: latest.version, roles: [] }));
+    if (selection.versions === 'all-audited') return pixiAudited(seed, adapterKey).map((version) => ({ adapter: adapterKey, version, roles: [] }));
     const roles = pixiRoles(seed, adapterKey);
 
     return selection.versions.map((name) => ({ adapter: adapterKey, version: roles[name], roles: [name] }));
@@ -231,31 +275,31 @@ function pixiSelections(seed, adapterKey, selection)
 
 /**
  * The (React, Pixi) selections of a tier. The tier's top-level `react` and `pixi` form a cross product with the default
- * Pixi adapter. Each entry of `pixiAdapters` adds cells for another Pixi adapter: either a cross product of its own
- * `react` and `pixi` selections, or explicit `pairs` of a React epoch (at its latest patch) and a Pixi role.
+ * Pixi adapter, and its optional `pairs` add explicit cells with it. Each entry of `pixiAdapters` adds cells for another
+ * Pixi adapter: either a cross product of its own `react` and `pixi` selections, or explicit `pairs`. A pair is a React
+ * epoch (at its latest patch) and a Pixi role (`minimum` or `current`).
  */
 function tierSelections(seed, tier, patches)
 {
     const config = seed.adapterMatrix.tiers[tier];
     const product = (adapterKey, selection) => pixiSelections(seed, adapterKey, selection.pixi)
         .flatMap((pixi) => reactCells(seed, selection.react, patches).map((react) => ({ react, pixi })));
-    const selections = product(defaultPixiAdapter(seed), config);
-
-    for (const [adapterKey, extra] of Object.entries(config.pixiAdapters ?? {}))
+    const paired = (adapterKey, pairs) =>
     {
-        if (!extra.pairs)
-        {
-            selections.push(...product(adapterKey, extra));
-            continue;
-        }
         const roles = pixiRoles(seed, adapterKey);
 
-        for (const pair of extra.pairs)
+        return pairs.map((pair) =>
         {
             const { latest } = reactVersions(seed, pair.react);
 
-            selections.push({ react: { epoch: pair.react, version: latest.version, patch: 'latest' }, pixi: { adapter: adapterKey, version: roles[pair.pixi], roles: [pair.pixi] } });
-        }
+            return { react: { epoch: pair.react, version: latest.version, patch: 'latest' }, pixi: { adapter: adapterKey, version: roles[pair.pixi], roles: [pair.pixi] } };
+        });
+    };
+    const selections = [...product(defaultPixiAdapter(seed), config), ...paired(defaultPixiAdapter(seed), config.pairs ?? [])];
+
+    for (const [adapterKey, extra] of Object.entries(config.pixiAdapters ?? {}))
+    {
+        selections.push(...(extra.pairs ? paired(adapterKey, extra.pairs) : product(adapterKey, extra)));
     }
 
     return selections;
@@ -379,6 +423,14 @@ export function validateAdapterMatrix(seed)
         assert.ok(adapter.renderers?.webgl, `${key}: renderers.webgl`);
         for (const [name, backend] of Object.entries(adapter.renderers)) assert.ok(backends.includes(name) && backend.appOptions && typeof backend.appOptions === 'object', `${key}: renderers.${name}`);
         assert.match(adapter.typeConsumer, /^consumer\.[\w-]+\.tsx$/, `${key}: typeConsumer (a harness/typecheck file; cells.test.mjs checks it exists)`);
+        // A type assertion that holds only from some pixi.js version on names that version and why (typeAssertionsFor).
+        for (const [id, assertion] of Object.entries(adapter.typeAssertions ?? {}))
+        {
+            assert.match(id, /^[a-z0-9-]+$/, `${key}: typeAssertions id ${id}`);
+            assert.match(assertion.from ?? '', /^\d+\.\d+\.\d+$/, `${key}: typeAssertions.${id}.from`);
+            assert.ok(typeof assertion.reason === 'string' && assertion.reason.length >= 20, `${key}: typeAssertions.${id}.reason`);
+        }
+        for (const version of adapter.excludedVersions) assert.match(version, /^\d+\.\d+\.\d+$/, `${key}: excludedVersions`);
     }
 
     const probeIds = new Set(seed.probes.map((tuple) => tuple.id));
@@ -387,6 +439,11 @@ export function validateAdapterMatrix(seed)
     {
         const { boundaryProbes: selection } = matrix.tiers[tier];
 
+        for (const pair of matrix.tiers[tier].pairs ?? [])
+        {
+            assert.ok(matrix.reactAdapters[pair.react], `${tier}: pairs: unknown React epoch ${pair.react}`);
+            assert.ok(['minimum', 'current'].includes(pair.pixi), `${tier}: pairs: pixi must be minimum or current`);
+        }
         for (const [key, extra] of Object.entries(matrix.tiers[tier].pixiAdapters ?? {}))
         {
             assert.ok(matrix.pixiAdapters[key] && key !== matrix.defaultPixiAdapter, `${tier}: pixiAdapters.${key} must be another Pixi adapter`);
@@ -426,6 +483,7 @@ export function validateAdapterMatrix(seed)
         assert.ok(negative.expect.signatures.length > 0 && matrix.commands.order.includes(negative.expect.failingCommand), `negative ${negative.id}`);
     }
     validateExpectedBlankRender(seed);
+    validateKnownIssues(seed);
 }
 
 /**
@@ -469,6 +527,57 @@ export function validateExpectedBlankRender(seed)
         {
             assert.ok(typeof entry.evidence?.[field] === 'string' && entry.evidence[field].length > 0, `${where}: evidence.${field}`);
         }
+    }
+}
+
+/**
+ * Known upstream issues (`adapterMatrix.knownIssues`): a pixi.js version range (`from` inclusive, `before` exclusive) on
+ * one backend of one Pixi adapter, with a summary, advice and links. They change no verdict: a tuple a record verified
+ * stays verified (owner ruling, 2026-10-10), and every generated table shows the note beside a verified range it
+ * covers. `pixiAdapter` is the adapter key (`pixi8`) or its id (`pixi-8`).
+ */
+export function knownIssuesFor(seed, { pixiAdapter, renderer, pixi })
+{
+    const matrix = seed.adapterMatrix;
+    const key = matrix.pixiAdapters[pixiAdapter] ? pixiAdapter : Object.keys(matrix.pixiAdapters).find((candidate) => matrix.pixiAdapters[candidate].id === pixiAdapter);
+
+    return (matrix.knownIssues ?? []).filter((issue) => issue.pixiAdapter === key && (!renderer || issue.renderer === renderer)
+        && (!pixi || (compareVersions(pixi, issue.pixi.from) >= 0 && compareVersions(pixi, issue.pixi.before) < 0)));
+}
+
+/** A known issue as one Markdown sentence fragment, with its range, links and advice. */
+export function knownIssueNote(seed, issue)
+{
+    const backend = seed.adapterMatrix.renderers[issue.renderer]?.label ?? issue.renderer;
+    const [first, ...rest] = issue.links;
+
+    return `**Known issue** (pixi.js before ${issue.pixi.before} on ${backend}): ${issue.summary} ([${first.label}](${first.url})${rest.map((link) => `, [${link.label}](${link.url})`).join('')}; fixed in ${issue.fixedIn}); ${issue.advice}.`;
+}
+
+/** Structural checks of `adapterMatrix.knownIssues`: a range, a backend the adapter has, a summary, advice and links. */
+export function validateKnownIssues(seed)
+{
+    const matrix = seed.adapterMatrix;
+    const ids = new Set();
+
+    assert.ok(Array.isArray(matrix.knownIssues ?? []), 'knownIssues must be a list');
+    for (const issue of matrix.knownIssues ?? [])
+    {
+        const where = `knownIssues ${issue.id ?? '(no id)'}`;
+
+        assert.match(issue.id ?? '', /^[a-z0-9.-]+$/, `${where}: id`);
+        assert.ok(!ids.has(issue.id), `${where}: duplicate id`);
+        ids.add(issue.id);
+        const adapter = matrix.pixiAdapters[issue.pixiAdapter];
+
+        assert.ok(adapter, `${where}: unknown Pixi adapter ${issue.pixiAdapter}`);
+        assert.ok(adapter.renderers[issue.renderer], `${where}: ${adapter.id} has no ${issue.renderer} renderer`);
+        for (const field of ['from', 'before']) assert.match(issue.pixi?.[field] ?? '', /^\d+\.\d+\.\d+$/, `${where}: pixi.${field} (an exact version)`);
+        assert.ok(compareVersions(issue.pixi.from, issue.pixi.before) < 0, `${where}: pixi.from must be below pixi.before`);
+        assert.match(issue.fixedIn ?? '', /^\d+\.\d+\.\d+$/, `${where}: fixedIn`);
+        for (const field of ['summary', 'advice']) assert.ok(typeof issue[field] === 'string' && issue[field].length >= 10, `${where}: ${field}`);
+        assert.ok(Array.isArray(issue.links) && issue.links.length > 0, `${where}: links`);
+        for (const link of issue.links) assert.ok(typeof link.label === 'string' && link.label && (/^https:\/\//).test(link.url ?? ''), `${where}: each link needs a label and an https url`);
     }
 }
 
@@ -680,9 +789,9 @@ export function renderCompatibilityDoc(seed)
         '',
         '<!-- Generated by `node design/compatibility/cells/run-cells.mjs doc`; do not edit. Source: `adapterMatrix` in seed.json. -->',
         '',
-        'This is the list of compatibility cells CI runs (issue 13). The PR-tier cells make a version **tested**; a tuple is **verified** on a render backend when its nightly cell passed on that backend in a dated [verification record](../verification/) whose boundary probes and incompatible pairs all behaved as expected (`verifiedRanges` in seed.json, derived from the records). The records so far ran on software rendering (SwiftShader WebGL, the WebGPU fallback adapter; no GPU); a real-GPU run can be added as extra evidence. Verification is evidence, not a support guarantee. Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js. Results are published by the Compatibility workflows (job summary and the `compatibility-table` artifact).',
+        'This is the list of compatibility cells CI runs (issue 13). The PR-tier cells make a version **tested**; a tuple is **verified** on a render backend when its nightly cell passed on that backend in a dated [verification record](../verification/) whose boundary probes and incompatible pairs all behaved as expected (`verifiedRanges` in seed.json, derived from the records). Records name their GPU profile: software rendering (SwiftShader WebGL, the WebGPU fallback adapter; no GPU), or a real GPU (hardware records, extra evidence). Verification is evidence, not a support guarantee. Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js. Results are published by the Compatibility workflows (job summary and the `compatibility-table` artifact).',
         '',
-        `Required PR check: **Compatibility (required)**. Nightly: **Compatibility (nightly)**, ${selectCells(seed, 'nightly').length} cells (${selectCells(seed, 'nightly', { patches: 'all' }).length} with minimum and latest React patches).`,
+        `Required PR check: **Compatibility (required)**. Nightly tier (scheduled weekly on GitHub, Mondays 02:37 UTC; it keeps the name "nightly"): **Compatibility (nightly)**, ${selectCells(seed, 'nightly').length} cells (${selectCells(seed, 'nightly', { patches: 'all' }).length} with minimum and latest React patches).`,
         '',
         `Render backends, each checked separately: PR tier ${tierRenderers(seed, 'pr').join(', ')}; nightly ${tierRenderers(seed, 'nightly').join(', ')}. ${Object.entries(matrix.pixiAdapters).map(([, adapter]) => `\`${adapter.id}\`: ${Object.keys(adapter.renderers).join(', ')}`).join('; ')}.`,
         '',
@@ -712,6 +821,12 @@ export function renderCompatibilityDoc(seed)
         '| Entry | Pixi adapter | Backend | GPU profile | pixi.js | Reason |',
         '| --- | --- | --- | --- | --- | --- |',
         ...(matrix.expectedBlankRender ?? []).map((entry) => `| ${entry.id} | ${matrix.pixiAdapters[entry.pixiAdapter].id} | ${entry.renderer} | ${entry.gpuProfile} | ${entry.pixi.join(', ')} | ${entry.reason} ${entry.evidence.narrowed} ${entry.evidence.realGpu} |`),
+        '',
+        '## Known issues',
+        '',
+        'Upstream issues of a pixi.js range on one backend (`adapterMatrix.knownIssues`). They change no verdict: a tuple a record verified stays verified, and the release table and the records show the note beside every verified range it covers.',
+        '',
+        ...(matrix.knownIssues ?? []).map((issue) => `- \`${matrix.pixiAdapters[issue.pixiAdapter].id}\`, pixi.js ${issue.pixi.from} to before ${issue.pixi.before}: ${knownIssueNote(seed, issue)}`),
         '',
         '## Deliberately incompatible pairs',
         '',

@@ -32,12 +32,12 @@ function validate(t, mutate)
     return spawnSync(process.execPath, [join(root, 'validate.mjs')], { encoding: 'utf8' });
 }
 
-test('accepts the retained evidence for all 44 exact tuples', (t) =>
+test('accepts the retained evidence for all 51 exact tuples', (t) =>
 {
     const result = validate(t);
 
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /Validated 44 exact tuples/);
+    assert.match(result.stdout, /Validated 51 exact tuples/);
 });
 
 const cases = [
@@ -198,7 +198,7 @@ for (const value of [undefined, null, ''])
 for (const [id, field] of [
     ['react-18.3.1', 'hostDelta'],
     ['react-19.0.0', 'hostDelta'],
-    ['pixi-7.4.2', 'declarationDelta'],
+    ['pixi-7.2.0', 'declarationDelta'],
     ['pixi-8.2.6', 'declarationDelta'],
     ['pixi-8.5.0', 'declarationDelta'],
 ])

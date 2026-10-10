@@ -63,11 +63,29 @@
       "release1": "8.1.0",
       "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
     },
-    "packages/react-18": {
-      "workspaceName": "@pixi-react-provisional/react-18",
-      "suffix": "18",
+    "packages/react-18.0": {
+      "workspaceName": "@pixi-react-provisional/react-18.0",
+      "suffix": "18.0",
       "release1": "8.1.0",
-      "versionConstant": { "file": "src/version.ts", "pattern": "PACKAGE_VERSION = '(?<version>[^']*)'" }
+      "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
+    },
+    "packages/react-18.1": {
+      "workspaceName": "@pixi-react-provisional/react-18.1",
+      "suffix": "18.1",
+      "release1": "8.1.0",
+      "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
+    },
+    "packages/react-18.2": {
+      "workspaceName": "@pixi-react-provisional/react-18.2",
+      "suffix": "18.2",
+      "release1": "8.1.0",
+      "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
+    },
+    "packages/react-18.3": {
+      "workspaceName": "@pixi-react-provisional/react-18.3",
+      "suffix": "18.3",
+      "release1": "8.1.0",
+      "versionConstant": { "file": "src/package.ts", "pattern": "version: '(?<version>[^']*)'" }
     },
     "packages/pixi-8": {
       "workspaceName": "@pixi-react-provisional/pixi-8",
@@ -99,8 +117,7 @@
     ]
   },
   "textRewrites": {
-    "$comment": "Provisional tokens in packed files that are not package names. `react-${` is the template literal the React 18 adapter uses to name a per-minor package; react-shared is private, so its mentions become the bare workspace name.",
-    "@pixi-react-provisional/react-${": "{modulePrefix}${",
+    "$comment": "Provisional tokens in packed files that are not package names. react-shared is private, so its mentions become the bare workspace name.",
     "@pixi-react-provisional/react-19.x": "{modulePrefix}19.x",
     "@pixi-react-provisional/react-shared": "react-shared"
   }

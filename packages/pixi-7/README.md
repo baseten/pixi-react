@@ -9,9 +9,9 @@ every React 19 minor) compose with either, and nothing outside this package chan
 
 ```ts
 import { createRenderer } from '@pixi-react-provisional/renderer';
-import { React18Adapter } from '@pixi-react-provisional/react-18'; // or a React 19 minor's package
+import { React18Adapter } from '@pixi-react-provisional/react-18.3'; // the package of your React minor
 import { Pixi7Adapter } from '@pixi-react-provisional/pixi-7';
-import { Container, Sprite } from 'pixi.js'; // pixi.js 7.4.x
+import { Container, Sprite } from 'pixi.js'; // pixi.js 7.2, 7.3 or 7.4 (not 7.4.0)
 
 export const { Application, extend, useApplication, useTick, createRoot, component } =
     createRenderer({ react: new React18Adapter(), pixi: new Pixi7Adapter() });
@@ -29,7 +29,7 @@ stays on Pixi 8: it composes the Pixi 8 adapter, and its major tracks the Pixi 8
 through the explicit `createRenderer` composition.
 
 ```sh
-npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18@8.1.0 @pixi-react-provisional/pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
+npm install @pixi-react-provisional/renderer@8.1.0 @pixi-react-provisional/react-18.3@8.1.0 @pixi-react-provisional/pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
 ```
 
 Nothing is published yet. Release tarballs carry the public names from `release.packages.json` (target
@@ -39,12 +39,22 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 
 | | |
 | --- | --- |
-| Peer range | `>=7.4.2 <7.5.0` |
-| Tested exactly | 7.4.2 (floor) and 7.4.3 (the newest 7.x release, npm's `latest-7.x`): every release in the range |
-| Evidence | The #3 audit's probe tuples `pixi-7.4.2` and `pixi-7.4.3` (`design/compatibility/seed.json`, `pixiEpochs.pixi7`: line 7.4, minimum 7.4.2, current 7.4.3). Both install, run and typecheck cleanly, and record `asyncInit: false`, `particleContainer: true`, `particle`, `renderLayer`, `domContainer` and `cacheAsTexture` false. 7.4.2 is the first-party floor of the audit (`floors["pixi.js"]`); earlier Pixi 7 minors are out of scope (issue 20: community packages) |
-| Status | **Tested** (7.4.2 with React 18.3.1 and 7.4.3 with React 19.3.0 on every pull request) and **verified on WebGL**: the [2026-10-10 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.md) passed 7.4.2 and 7.4.3 with every React adapter at both audited patches. Pixi 7 has no WebGPU renderer. The record ran on software rendering (SwiftShader, no GPU); a run on a real GPU can be added as extra evidence. Verification is evidence, not a support guarantee ([tested and verified](https://github.com/baseten/pixi-react/blob/main/design/release.md#tested-and-verified)) |
+| Peer range | `>=7.2.0 <7.4.0 \|\| >=7.4.2 <7.5.0` |
+| Tested exactly | 7.2.0 (floor), 7.2.4, 7.3.0, 7.3.3 (the lowest and highest patch of 7.2 and 7.3), 7.4.2 and 7.4.3 (the newest 7.x release, npm's `latest-7.x`). The patches between them (7.2.1–7.2.3, 7.3.1–7.3.2) are inside the range but not run, as for Pixi 8's minors |
+| Excluded | **7.4.0**: its module scope reads the browser global `Worker`, so the adapter's entry fails to import in Node ('Worker is not defined'; a data-only probe, which also found it passes the conformance suite in Chromium). **7.4.1** was never published to npm. Below 7.2 the adapter cannot load: 7.1 has no `HTMLText` export and 7.0 lacks the filters it imports by name (data-only probes) |
+| Evidence | The #3 audit's probe tuples `pixi-7.2.0`, `pixi-7.2.4`, `pixi-7.3.0`, `pixi-7.3.3`, `pixi-7.4.2` and `pixi-7.4.3` (`design/compatibility/seed.json`, `pixiEpochs.pixi7`: minimum 7.2.0, current 7.4.3, `excludedVersions` 7.4.0 and 7.4.1). Each installs, runs and typechecks cleanly and records the same capabilities: `asyncInit: false`, `particleContainer: true`, `particle`, `renderLayer`, `domContainer` and `cacheAsTexture` false; their selected declarations are identical. 7.2.0 is the floor (`floors["pixi.js"]`; 7.2 introduced `eventMode`) |
+| Status | **Tested** (7.2.0 with React 18.0.0 and 7.4.3 with React 19.3.0 on every pull request; this package's own tests run 7.2.0, 7.4.2 and 7.4.3) and **verified on WebGL**: the [2026-10-10.2 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.2.md) passed all six versions with every React adapter at every audited patch. Pixi 7 has no WebGPU renderer. The record ran on software rendering (SwiftShader, no GPU); a run on a real GPU can be added as extra evidence. Verification is evidence, not a support guarantee ([tested and verified](https://github.com/baseten/pixi-react/blob/main/design/release.md#tested-and-verified)) |
 
-`checkEnvironment()` rejects any other installed `pixi.js`, including Pixi 8 (the message names the Pixi 8 adapter) and
+**Capabilities across 7.2–7.4.** The adapter's capability probes and the audit find no runtime difference: the same
+classes are exported, `eventMode` exists from 7.2.0, and the adapter provides the same capabilities (`pixi7.filter`,
+`pixi7.particle-container`) on every version in range. The one difference is in pixi.js 7.2's **declarations**: they
+import `colord/types`, which does not resolve (TS2307 in `@pixi/color`, hidden under `skipLibCheck`), so `ColorSource`
+and every display object's `tint` are `any`, and an `any` instance member turns the element prop types into an open
+record. On 7.2, element props therefore accept unknown names (Pixi 8's `label` or `context`, for example) instead of
+rejecting them; 7.3.0 fixed the import. The compatibility cells' Pixi 7 type consumer keeps its two assertions that
+pin that rejection from 7.3.0 on and records their omission on 7.2 (`typeAssertions` in the manifest).
+
+`checkEnvironment()` rejects any other installed `pixi.js`, including 7.4.0, Pixi 8 (the message names the Pixi 8 adapter) and
 pre-releases, with `CompatibilityError` `UNSUPPORTED_TUPLE`, before anything is allocated. `adapter.manifest.pixi`
 records the range, bounds, tested versions, the installed version and the Pixi 8 capabilities it never provides.
 
@@ -204,9 +214,9 @@ props, options and callback signatures.
 | Command | What runs |
 | --- | --- |
 | `pnpm --filter @pixi-react-provisional/pixi-7 build` | The CJS build, the bound ESM wrapper, then the types-only JSX entries |
-| `… typecheck` | The sources and tests against 7.4.2, and the sources against 7.4.3 (`tsconfig.current.json`) |
-| `… test:unit` | Node tests binding 7.4.2 and 7.4.3 side by side: version bounds, node definitions and capabilities, positional construction, the global registries, the D6 entries and the built dependency graph |
-| `… test:conformance` | The shared conformance suite in Chromium on 7.4.2 and 7.4.3 |
+| `… typecheck` | The sources and tests against 7.4.2, and the sources against 7.4.3 (`tsconfig.current.json`) and the 7.2.0 floor (`tsconfig.floor.json`) |
+| `… test:unit` | Node tests binding 7.2.0, 7.4.2 and 7.4.3 side by side: version bounds, node definitions and capabilities, positional construction, the global registries, the D6 entries and the built dependency graph |
+| `… test:conformance` | The shared conformance suite in Chromium on 7.2.0, 7.4.2 and 7.4.3 |
 | `… test:e2e` | The conformance cells plus Pixi 7 scene tests: application construction and its failure cleanup, destroy options, the numeric ticker, positional nodes, filters, attach rules and shared resources |
 
 The conformance binding (`test/browser/binding.tsx`) composes the real core, renderer and `Pixi7Adapter` with the
@@ -218,5 +228,6 @@ test title: `resources.graphics-context-borrowed` (`pixi.graphics-context`) and 
 session's `init`, because Pixi 7 has no `Application.prototype.init` to wrap.
 
 The real React 18 adapter and every React 19 minor's adapter run the same suite with this probe, from packed packages,
-in the compatibility cells ([COMPATIBILITY.md](../../design/compatibility/cells/COMPATIBILITY.md)): React 18.3.1 with
-pixi.js 7.4.2 and React 19.3.0 with 7.4.3 on every pull request, and every React adapter with both nightly.
+in the compatibility cells ([COMPATIBILITY.md](../../design/compatibility/cells/COMPATIBILITY.md)): React 18.0.0 with
+pixi.js 7.2.0 and React 19.3.0 with 7.4.3 on every pull request, and every React adapter with all six tested versions
+in the nightly tier (scheduled weekly on GitHub).

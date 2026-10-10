@@ -5,7 +5,10 @@
 "@pixi-react-provisional/react-19.1": minor
 "@pixi-react-provisional/react-19.2": minor
 "@pixi-react-provisional/react-19.3": minor
-"@pixi-react-provisional/react-18": minor
+"@pixi-react-provisional/react-18.0": minor
+"@pixi-react-provisional/react-18.1": minor
+"@pixi-react-provisional/react-18.2": minor
+"@pixi-react-provisional/react-18.3": minor
 "@pixi-react-provisional/pixi-8": minor
 ---
 

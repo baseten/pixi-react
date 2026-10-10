@@ -1,5 +1,5 @@
 /**
- * Node behaviour that needs no renderer, on pixi.js 7.4.2 and 7.4.3 side by side. Pixi 7 builds its default
+ * Node behaviour that needs no renderer, on pixi.js 7.2.0, 7.4.2 and 7.4.3 side by side. Pixi 7 builds its default
  * textures and Graphics fill styles from a DOM canvas, so classes that need one (Graphics, Text, meshes) are covered by
  * the browser cells (`test/browser/pixi`).
  */

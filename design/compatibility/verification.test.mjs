@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { classifyExpectedBlank, validateAdapterMatrix, validateExpectedBlankRender } from './cells/matrix.mjs';
-import { checkExpectedBlankAgainstRecords, checkRenderedRecords, currentRecords, deriveVerifiedRanges, loadRecords, recordGate, refreshRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
+import { checkExpectedBlankAgainstRecords, checkRenderedRecords, currentRecords, deriveVerifiedRanges, loadRecords, recordGate, refreshRecord, renderingOf, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
 
 const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -67,6 +67,53 @@ test('a failed probe, negative case, command or missing cell verifies nothing', 
     assert.deepEqual(deriveVerifiedRanges([record(cells, { probes: [], negatives: [] })]), []);
     assert.deepEqual(deriveVerifiedRanges([record([cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: pass('webgpu') }, { commands: { ...commands, types: 'fail' } })])]), []);
     assert.deepEqual(deriveVerifiedRanges([record([cell('19.3.0', '8.22.0', { webgl: { status: 'not run' }, webgpu: pass('webgpu') })])]).map((entry) => entry.backends), [{ webgpu: ['8.22.0'] }]);
+});
+
+test('a command that was never recorded is not a pass: a cell with only conformance and backend evidence verifies nothing', () =>
+{
+    const bare = cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: pass('webgpu') }, { status: 'pass', commands: { conformance: 'pass' } });
+
+    assert.deepEqual(deriveVerifiedRanges([record([bare])]), []);
+    for (const name of ['install', 'tree', 'modules', 'types'])
+    {
+        const { [name]: _omitted, ...rest } = commands;
+
+        assert.deepEqual(deriveVerifiedRanges([record([cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: notApplicable }, { commands: rest })])]), [], `without ${name}`);
+    }
+    // validateRecord rejects a cell that claims a pass without every required command; a failed cell may stop early.
+    const [checked] = loadRecords();
+    const withCell = (target) =>
+    {
+        const candidate = clone(checked);
+
+        candidate.cells = [target];
+        candidate.summary = summarizeRecord(seed, candidate);
+
+        return candidate;
+    };
+
+    assert.throws(() => validateRecord(seed, withCell({ ...bare, backends: { webgl: { ...pass('webgl'), conformance: { passed: 80, failed: 0, skipped: 10, total: 90 } }, webgpu: notApplicable } })), /lacks required commands/);
+    assert.doesNotThrow(() => validateRecord(seed, withCell(cell('19.3.0', '8.22.0', { webgl: { status: 'fail' }, webgpu: { status: 'fail' } }, { status: 'fail', commands: { install: 'fail' } }))));
+});
+
+test('a hardware record names its real GPU once', () =>
+{
+    const environment = { gpu: 'real GPU: ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max); apple / metal-3, isFallbackAdapter false' };
+
+    assert.match(renderingOf(seed, 'hardware', environment).note, /^Real GPU: ANGLE \(Apple/);
+    assert.doesNotMatch(renderingOf(seed, 'hardware', environment).note, /real GPU: real GPU/i);
+});
+
+test('a later record of the same machine and day supersedes the earlier one by its sequence number', () =>
+{
+    const first = record([cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: pass('webgpu') })]);
+    const second = record([cell('19.3.0', '8.22.0', { webgl: { status: 'fail' }, webgpu: pass('webgpu') })], { id: '2026-10-10.2', sequence: 2 });
+    const tenth = { ...second, id: '2026-10-10.10', sequence: 10, cells: [cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: { status: 'fail' } })] };
+
+    assert.deepEqual(currentRecords([second, first]).map((entry) => entry.id), ['2026-10-10.2']);
+    assert.deepEqual(deriveVerifiedRanges([first, second]).map((entry) => entry.backends), [{ webgpu: ['8.22.0'] }]);
+    // Numeric, not lexicographic: .10 is later than .2.
+    assert.deepEqual(currentRecords([first, tenth, second]).map((entry) => entry.id), ['2026-10-10.10']);
 });
 
 test('records add up: a hardware record adds tuples and names itself beside the software one', () =>
@@ -186,7 +233,7 @@ test('the list agrees with the records: a listed cell that renders must be prune
 
     assert.deepEqual(checkExpectedBlankAgainstRecords(seed, records), []);
     const rendered = clone(records);
-    const target = rendered[0].cells.find((candidate) => candidate.pixi === '8.9.2' && candidate.react === '19.3.0');
+    const target = rendered.find((record) => record.gpuProfile === 'software').cells.find((candidate) => candidate.pixi === '8.9.2' && candidate.react === '19.3.0');
 
     target.backends.webgpu = pass('webgpu');
     assert.match(checkExpectedBlankAgainstRecords(seed, rendered).join('\n'), /react-19\.3\.0_pixi-8\.9\.2 webgpu is pass.*prune the list/);
@@ -222,18 +269,48 @@ test('the checked-in records are valid, rendered, and are what seed.json verifie
     assert.throws(() => validateRecord(seed, stale), /summary is stale/);
 });
 
-test('the 2026-10-10 record: WebGL verifies every nightly tuple, WebGPU pixi.js 8.10.2 and later; 8.2 to 8.9 are expected blank', () =>
+test('the software records: WebGL verifies every nightly tuple, WebGPU pixi.js 8.10.2 and later; 8.2 to 8.9 are expected blank there', () =>
 {
-    const record2026 = loadRecords().find((item) => item.id === '2026-10-10');
+    const records = loadRecords();
+    const first = records.find((item) => item.id === '2026-10-10');
+    const second = records.find((item) => item.id === '2026-10-10.2');
+
+    assert.equal(first.rendering.kind, 'software');
+    assert.equal(first.summary.backends.webgl.verifiedTuples, 184);
+    assert.equal(first.summary.backends.webgpu.verifiedTuples, 104);
+    assert.equal(first.summary.backends.webgpu.expectedBlank, 64);
+    assert.equal(second.rendering.kind, 'software');
+    assert.equal(second.summary.backends.webgl.verifiedTuples, 297);
+    assert.equal(second.summary.backends.webgpu.verifiedTuples, 143);
+    assert.equal(second.summary.backends.webgpu.expectedBlank, 88);
+    assert.equal(second.summary.backends.webgpu.failed, 0);
+    // The second supersedes the first on this machine and profile.
+    assert.deepEqual(currentRecords([first, second]).map((item) => item.id), ['2026-10-10.2']);
+    // From the software record alone, 8.2 to 8.9 never verify on WebGPU.
+    const softwareOnly = new Set(deriveVerifiedRanges([second]).filter((entry) => entry.pixiAdapter === 'pixi-8').flatMap((entry) => entry.backends.webgpu ?? []));
+
+    for (const version of blankEntry.pixi) assert.ok(!softwareOnly.has(version), `${version} is not verified on WebGPU by a software record`);
+    assert.ok(softwareOnly.has('8.10.2') && softwareOnly.has('8.22.0'));
+});
+
+test('a full hardware record verifies what passed on it; a known issue is shown beside covered tuples, not hidden', () =>
+{
+    const records = loadRecords();
+    const mac = records.find((item) => item.id === '2026-10-10-macos-26-apple-m5-max');
     const webgpu = new Set(seed.verifiedRanges.filter((entry) => entry.pixiAdapter === 'pixi-8').flatMap((entry) => entry.backends.webgpu ?? []));
 
-    assert.equal(record2026.rendering.kind, 'software');
-    assert.equal(record2026.summary.backends.webgl.verifiedTuples, 184);
-    assert.equal(record2026.summary.backends.webgpu.verifiedTuples, 104);
-    assert.equal(record2026.summary.backends.webgpu.expectedBlank, 64);
-    assert.equal(record2026.summary.backends.webgpu.failed, 0);
-    for (const version of blankEntry.pixi) assert.ok(!webgpu.has(version), `${version} is not verified on WebGPU`);
-    assert.ok(webgpu.has('8.10.2') && webgpu.has('8.22.0'));
+    assert.equal(mac.scope, 'full');
+    assert.equal(mac.rendering.kind, 'hardware');
+    assert.ok(recordGate(mac));
+    for (const version of blankEntry.pixi) assert.ok(webgpu.has(version), `${version} is verified on WebGPU by the hardware record`);
+    assert.match(readFileSync(new URL('./verification/2026-10-10-macos-26-apple-m5-max.md', import.meta.url), 'utf8'), /## Known issues beside verified tuples[\s\S]*pixijs\/pixijs#11389/);
+    // knownIssues must name a range and links.
+    const broken = clone(seed);
+
+    broken.adapterMatrix.knownIssues[0].links = [];
+    assert.throws(() => validateAdapterMatrix(broken), /links/);
+    broken.adapterMatrix.knownIssues[0] = { ...seed.adapterMatrix.knownIssues[0], pixi: { from: '8.10.0', before: '8.2.0' } };
+    assert.throws(() => validateAdapterMatrix(broken), /from must be below/);
 });
 
 test('data-only results never reach verifiedRanges', () =>
@@ -245,8 +322,9 @@ test('data-only results never reach verifiedRanges', () =>
     {
         for (const row of item.dataOnly?.results ?? [])
         {
-            // A data-only tuple may coincide with a verified one only if the nightly matrix verified it itself.
-            const nightly = item.cells.some((candidate) => candidate.react === row.react && candidate.pixi === row.pixi);
+            // A data-only tuple may coincide with a verified one only if a record's nightly matrix ran it as a cell (React
+            // 18.0-18.2 and pixi.js 7.2/7.3 were data-only probes in the first 2026-10-10 record and cells in 2026-10-10.2).
+            const nightly = records.some((record) => record.cells.some((candidate) => candidate.react === row.react && candidate.pixi === row.pixi));
 
             if (!nightly) assert.ok(!verified.has(`${row.react}|${row.pixi}`), `${row.id} is data only`);
         }

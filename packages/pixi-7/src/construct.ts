@@ -36,7 +36,7 @@ const args = (...props: Array<string | PositionalArgument>): readonly Positional
     Object.freeze(props.map((prop) => Object.freeze(typeof prop === 'string' ? { prop } : prop)));
 const constructorOnly = (prop: string): PositionalArgument => ({ prop, update: 'constructor' });
 
-/** The positional constructors of the pixi.js 7 built-ins, keyed by export name (7.4.2 and 7.4.3 declare the same). */
+/** The positional constructors of the pixi.js 7 built-ins, keyed by export name (7.2.0 to 7.4.3 declare the same). */
 export const POSITIONAL_CONSTRUCTORS = Object.freeze({
     Sprite: { args: args('texture'), inherited: true },
     AnimatedSprite: { args: args('textures', 'autoUpdate'), inherited: true },

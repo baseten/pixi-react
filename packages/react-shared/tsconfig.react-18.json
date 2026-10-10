@@ -1,0 +1,11 @@
+{
+  "//": "Typechecks the React 18 sources and their unit suite against React 18's own types (see tsconfig.react-18.build.json).",
+  "extends": "./tsconfig.react-18.build.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": ["src/react-18/**/*", "src/common/**/*", "test-support/react-18/**/*"]
+}

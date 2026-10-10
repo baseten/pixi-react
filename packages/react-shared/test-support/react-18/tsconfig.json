@@ -1,0 +1,5 @@
+{
+  "//": "Editor and lint project for the React 18 unit suite: React 18's own types (see ../../tsconfig.react-18.json).",
+  "extends": "../../tsconfig.react-18.json",
+  "include": ["./**/*", "../../src/react-18/**/*", "../../src/common/**/*"]
+}

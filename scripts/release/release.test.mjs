@@ -25,7 +25,10 @@ test('the target namespace maps every publishable package to the owner ruling of
         'packages/react-19.1': '@pixi/react-19.1',
         'packages/react-19.2': '@pixi/react-19.2',
         'packages/react-19.3': '@pixi/react-19.3',
-        'packages/react-18': '@pixi/react-18',
+        'packages/react-18.0': '@pixi/react-18.0',
+        'packages/react-18.1': '@pixi/react-18.1',
+        'packages/react-18.2': '@pixi/react-18.2',
+        'packages/react-18.3': '@pixi/react-18.3',
         'packages/pixi-8': '@pixi/react-pixi-8',
         // Issue 16: the Pixi 7 adapter follows the same `@pixi/react-<suffix>` pattern as the ruling's pixi-8.
         'packages/pixi-7': '@pixi/react-pixi-7',
@@ -50,7 +53,7 @@ test('the rewriter replaces whole package names only', () =>
     assert.equal(rewrite('from \'@pixi-react-provisional/react-19.3\';'), 'from \'@pixi/react-19.3\';');
     assert.equal(rewrite('`@pixi-react-provisional/react-19.3`.'), '`@pixi/react-19.3`.', 'a sentence-ending period is not part of the name');
     assert.equal(rewrite('@pixi-react-provisional/pixi-8/jsx/react-18'), '@pixi/react-pixi-8/jsx/react-18');
-    assert.equal(rewrite('(for example @pixi-react-provisional/react-${minorOf(actual) ?? "19.x"})'), '(for example @pixi/react-${minorOf(actual) ?? "19.x"})');
+    assert.equal(rewrite('(for example @pixi-react-provisional/react-18.0)'), '(for example @pixi/react-18.0)');
     assert.equal(rewrite('`@pixi-react-provisional/react-shared/common`'), '`react-shared/common`');
     // Names that are not publishable stay, so the residue check in stage.mjs reports them.
     assert.equal(rewrite('@pixi-react-provisional/react-18-fixture-18.3.1'), '@pixi-react-provisional/react-18-fixture-18.3.1');
@@ -305,7 +308,7 @@ test('publishedInputs covers what ships and leaves docs, CI and changelogs edita
 {
     const shipped = publishedInputs(target);
 
-    for (const path of ['.nvmrc', 'packages/core/src/abi.ts', 'packages/react-18/README.md', 'packages/react-18/package.json', 'packages/react-shared/src/react-19/adapter.ts', 'scripts/build-react-adapter.mjs', 'scripts/release/stage.mjs', 'release.packages.json', 'pnpm-lock.yaml', 'package.json'])
+    for (const path of ['.nvmrc', 'packages/core/src/abi.ts', 'packages/react-18.3/README.md', 'packages/react-18.3/package.json', 'packages/react-shared/src/react-19/adapter.ts', 'scripts/build-react-adapter.mjs', 'scripts/release/stage.mjs', 'release.packages.json', 'pnpm-lock.yaml', 'package.json'])
     {
         assert.ok(shipped(path), path);
     }
@@ -482,10 +485,10 @@ test('policy: a package off the lockstep version fails (negative)', () =>
     const entries = Object.fromEntries(group.map((name) => [name, ['patch', '8.1.1']]));
 
     entries['@pixi-react-provisional/core'] = ['major', '9.0.0'];
-    entries['@pixi-react-provisional/react-18'] = ['none', '8.1.0'];
+    entries['@pixi-react-provisional/react-18.3'] = ['none', '8.1.0'];
     const problems = checkPolicy({ config, plan: plan(entries) }).problems.join('\n');
 
-    assert.match(problems, /lockstep: every publishable package must release at the facade's version 8\.1\.1, but @pixi-react-provisional\/core 9\.0\.0, @pixi-react-provisional\/react-18 8\.1\.0/);
+    assert.match(problems, /lockstep: every publishable package must release at the facade's version 8\.1\.1, but @pixi-react-provisional\/core 9\.0\.0, @pixi-react-provisional\/react-18\.3 8\.1\.0/);
     // One version, but not the Pixi major of the facade's pixi.js peer.
     assert.match(checkPolicy({ config, plan: lockstepPlan('major', '9.0.0') }).problems.join('\n'), /lockstep: the packages would release 9\.0\.0, but their major must equal the Pixi major of the facade's pixi\.js peer \(8\)/);
 });
@@ -551,18 +554,18 @@ test('syncVersionConstants copies package.json versions into the source constant
     {
         const raw = JSON.parse(readFileSync(join(repoRoot, 'release.packages.json'), 'utf8'));
 
-        raw.packages = { 'packages/react-19.3': raw.packages['packages/react-19.3'], 'packages/react-18': raw.packages['packages/react-18'] };
+        raw.packages = { 'packages/react-19.3': raw.packages['packages/react-19.3'], 'packages/react-18.3': raw.packages['packages/react-18.3'] };
         writeFileSync(join(root, 'release.packages.json'), JSON.stringify(raw));
         mkdirSync(join(root, 'packages/react-19.3/src'), { recursive: true });
-        mkdirSync(join(root, 'packages/react-18/src'), { recursive: true });
+        mkdirSync(join(root, 'packages/react-18.3/src'), { recursive: true });
         writeFileSync(join(root, 'packages/react-19.3/package.json'), JSON.stringify({ version: '1.2.3' }));
-        writeFileSync(join(root, 'packages/react-18/package.json'), JSON.stringify({ version: '0.0.0' }));
+        writeFileSync(join(root, 'packages/react-18.3/package.json'), JSON.stringify({ version: '0.0.0' }));
         writeFileSync(join(root, 'packages/react-19.3/src/package.ts'), 'export const PACKAGE = Object.freeze({ name: \'x\', version: \'0.0.0\' });\n');
-        writeFileSync(join(root, 'packages/react-18/src/version.ts'), 'export const PACKAGE_VERSION = \'0.0.0\';\n');
+        writeFileSync(join(root, 'packages/react-18.3/src/package.ts'), 'export const PACKAGE = Object.freeze({ name: \'@pixi-react-provisional/react-18.3\', version: \'0.0.0\' });\n');
 
         assert.deepEqual(syncVersionConstants(root), ['packages/react-19.3/src/package.ts: 0.0.0 -> 1.2.3']);
         assert.equal(readFileSync(join(root, 'packages/react-19.3/src/package.ts'), 'utf8'), 'export const PACKAGE = Object.freeze({ name: \'x\', version: \'1.2.3\' });\n');
-        assert.equal(readFileSync(join(root, 'packages/react-18/src/version.ts'), 'utf8'), 'export const PACKAGE_VERSION = \'0.0.0\';\n');
+        assert.equal(readFileSync(join(root, 'packages/react-18.3/src/package.ts'), 'utf8'), 'export const PACKAGE = Object.freeze({ name: \'@pixi-react-provisional/react-18.3\', version: \'0.0.0\' });\n');
     }
     finally
     {
@@ -664,7 +667,7 @@ test('bundles keep no more Pixi code than upstream 8.0.5, and no Pixi tree-shaki
 
 test('our own code has a budget in every bundled fixture kind, and production bundles carry no development-only text (issue 58)', () =>
 {
-    assert.deepEqual(Object.keys(OWN_CODE_BUDGETS).sort(), ['explicit:react-18', 'explicit:react-19.3', 'explicit:react-19.3+pixi-7', 'facade', 'renderer']);
+    assert.deepEqual(Object.keys(OWN_CODE_BUDGETS).sort(), ['explicit:react-18.3', 'explicit:react-19.3', 'explicit:react-19.3+pixi-7', 'facade', 'renderer']);
     for (const [kind, budget] of Object.entries(OWN_CODE_BUDGETS)) assert.ok(Number.isInteger(budget) && budget > 0, `${kind} has a budget`);
     assert.ok(DEVELOPMENT_ONLY_TEXT.length > 0);
     assert.deepEqual(compareWithBudget(1000, 1000), [], 'equal is within the budget');

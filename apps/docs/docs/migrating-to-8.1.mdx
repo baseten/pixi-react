@@ -41,8 +41,8 @@ On a React 19 minor newer than 19.3, 8.1.0 installs (the peer is a caret range),
 # React 19.1 (use @pixi/react-19.0 with React 19.0.8, or @pixi/react-19.2 with React 19.2.8)
 npm install @pixi/react-renderer@8.1.0 @pixi/react-19.1@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@19.1.9 react-dom@19.1.9
 
-# React 18
-npm install @pixi/react-renderer@8.1.0 @pixi/react-18@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@18.3.1 react-dom@18.3.1
+# React 18.3 (use @pixi/react-18.0, -18.1 or -18.2 with React 18.0.0, 18.1.0 or 18.2.0)
+npm install @pixi/react-renderer@8.1.0 @pixi/react-18.3@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@18.3.1 react-dom@18.3.1
 ```
 
 Then create the renderer once, in a module of your own, and import from it instead of from `@pixi/react`:
@@ -50,7 +50,7 @@ Then create the renderer once, in a module of your own, and import from it inste
 ```ts
 // src/pixi-react.ts
 import { createRenderer } from '@pixi/react-renderer';
-import { React19Adapter } from '@pixi/react-19.1'; // React 18: import { React18Adapter } from '@pixi/react-18'
+import { React19Adapter } from '@pixi/react-19.1'; // React 18.3: import { React18Adapter } from '@pixi/react-18.3' (@pixi/react-18.0 … -18.2 for the other React 18 minors)
 import { Pixi8Adapter } from '@pixi/react-pixi-8';
 
 export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
@@ -63,15 +63,15 @@ Each adapter package accepts only the React versions it is tested with, and reje
 
 ### PixiJS 7: `createRenderer` with the PixiJS 7 adapter
 
-`@pixi/react` 8.x is for PixiJS 8. An application that stays on PixiJS 7 (7.4.2 or 7.4.3) composes the same renderer with the PixiJS 7 adapter, `@pixi/react-pixi-7`, and any React adapter package. It is released at the same version as every other package (8.1.0), although it targets PixiJS 7. It offers the API on this page (`Application`, `extend`, hooks), not the 7.x API (`Stage`, `PixiComponent`, `withFilters`).
+`@pixi/react` 8.x is for PixiJS 8. An application that stays on PixiJS 7 (7.2.x, 7.3.x, 7.4.2 or 7.4.3; not 7.4.0) composes the same renderer with the PixiJS 7 adapter, `@pixi/react-pixi-7`, and any React adapter package. It is released at the same version as every other package (8.1.0), although it targets PixiJS 7. It offers the API on this page (`Application`, `extend`, hooks), not the 7.x API (`Stage`, `PixiComponent`, `withFilters`).
 
 ```bash
-npm install @pixi/react-renderer@8.1.0 @pixi/react-18@8.1.0 @pixi/react-pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
+npm install @pixi/react-renderer@8.1.0 @pixi/react-18.3@8.1.0 @pixi/react-pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
 ```
 
 ```ts
 import { createRenderer } from '@pixi/react-renderer';
-import { React18Adapter } from '@pixi/react-18';
+import { React18Adapter } from '@pixi/react-18.3';
 import { Pixi7Adapter } from '@pixi/react-pixi-7';
 
 export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
@@ -81,6 +81,10 @@ export const { Application, extend, useApplication, useTick, useExtend, createRo
 PixiJS 7 differences carry through: `useTick` callbacks receive the frame delta (a number), elements are constructed with PixiJS 7's constructors (`texture` for a sprite, `text` and `style` for a text), and PixiJS 8-only features (`RenderLayer`, `DOMContainer`, `Particle`) are not available. Asking for one fails with a `CompatibilityError` that names the missing capability. Use `@pixi/react-pixi-7/jsx/react-18` (or `/jsx/react-19`) for JSX element types.
 
 The package names above are the planned public names; they depend on the npm scope agreed with the PixiJS maintainers.
+
+## Known issue: WebGPU with PixiJS 8.2–8.9
+
+On some devices PixiJS 8.2 to 8.9 draw a blank canvas with the WebGPU renderer, because they size the WebGPU texture batch from WebGL's texture-unit count ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed in 8.10.0 by [#11417](https://github.com/pixijs/pixijs/pull/11417)). This is a PixiJS bug, not a `@pixi/react` one: use PixiJS 8.10 or later for WebGPU, or the WebGL renderer.
 
 ## Bug fixes
 

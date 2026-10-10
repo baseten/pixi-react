@@ -8,7 +8,7 @@ import { createRef } from 'react';
 import { type Application, BlurFilter, Container, Graphics, Sprite, Texture, type Ticker } from 'pixi.js';
 import { CompatibilityError } from '@pixi-react-provisional/core';
 import { Pixi7Adapter, type Pixi7Types, type Pixi7Props } from '@pixi-react-provisional/pixi-7';
-import { type ApplicationRef, React18Adapter, type Root } from '@pixi-react-provisional/react-18';
+import { type ApplicationRef, React18Adapter, type Root } from '@pixi-react-provisional/react-18.3';
 import { createRenderer } from '@pixi-react-provisional/renderer';
 import { Bunny, Labelled } from './catalog.js';
 

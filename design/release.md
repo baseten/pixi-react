@@ -31,7 +31,7 @@ Owner rulings for [issue 62](https://github.com/baseten/pixi-react/issues/62) (2
 the independent versions of issue 15:
 
 - **Lockstep versions.** Every published package releases together at the facade's version: the facade, core, the
-  renderer, `react-19.0` … `react-19.3`, `react-18`, `pixi-8` and `pixi-7`. Release 1 is 8.1.0 for all of them,
+  renderer, `react-19.0` … `react-19.3`, `react-18.0` … `react-18.3`, `pixi-8` and `pixi-7`. Release 1 is 8.1.0 for all of them,
   `pixi-7` included: it targets Pixi 7, but its version is the facade's, not a Pixi version.
 - **The major still tracks the Pixi major**, so an ABI-breaking change between core and the adapters may ship in a
   minor, documented in the changelog.
@@ -48,7 +48,10 @@ the independent versions of issue 15:
 | `packages/core` | `@pixi-react-provisional/core` | `@pixi/react-core` | 8.1.0 |
 | `packages/renderer` | `@pixi-react-provisional/renderer` | `@pixi/react-renderer` | 8.1.0 |
 | `packages/react-19.0` … `react-19.3` | `@pixi-react-provisional/react-19.x` | `@pixi/react-19.0` … `@pixi/react-19.3` | 8.1.0 |
-| `packages/react-18` | `@pixi-react-provisional/react-18` | `@pixi/react-18` | 8.1.0 |
+| `packages/react-18.0` | `@pixi-react-provisional/react-18.0` | `@pixi/react-18.0` | 8.1.0 |
+| `packages/react-18.1` | `@pixi-react-provisional/react-18.1` | `@pixi/react-18.1` | 8.1.0 |
+| `packages/react-18.2` | `@pixi-react-provisional/react-18.2` | `@pixi/react-18.2` | 8.1.0 |
+| `packages/react-18.3` | `@pixi-react-provisional/react-18.3` | `@pixi/react-18.3` | 8.1.0 |
 | `packages/pixi-8` | `@pixi-react-provisional/pixi-8` | `@pixi/react-pixi-8` | 8.1.0 |
 | `packages/pixi-7` | `@pixi-react-provisional/pixi-7` | `@pixi/react-pixi-7` | 8.1.0 (targets Pixi 7; lockstep with the facade) |
 
@@ -157,7 +160,7 @@ the composition may work, but each copy has its own `CompatibilityError` class; 
 ### When an ABI changes
 
 An ABI change is a change to `CORE_ABI` or to an adapter manifest's `abi` declaration (in `packages/pixi-8/src/adapter.ts`,
-`packages/pixi-7/src/adapter.ts`, `packages/react-18/src/adapter.ts` and `packages/react-shared/src/react-19/adapter.ts`). `scripts/release/policy.mjs`
+`packages/pixi-7/src/adapter.ts`, `packages/react-shared/src/react-18/adapter.ts` and `packages/react-shared/src/react-19/adapter.ts`). `scripts/release/policy.mjs`
 enforces these rules on the pending Changesets plan:
 
 | Change | Required release | Enforced by |
@@ -177,7 +180,7 @@ The facade's peers are not edited by hand: `policy.mjs` (through `scripts/releas
 | --- | --- |
 | The facade's `pixi.js` peer equals the Pixi adapter's `declaredPeers["pixi.js"]` in the compatibility manifest | `design/compatibility/seed.json` (`adapterMatrix.pixiAdapters.pixi8`) |
 | That declared range is exactly the one the manifest's evidence supports: from `pixiEpochs.pixi8.minimum` to below the minor after `current`, minus `excludedVersions` | the same manifest; a newer `current` needs audited probe tuples and cells (`validate.mjs`) |
-| Every Pixi adapter's declared range is the one its own epoch supports (`pixiAdapters.pixi7` from `pixiEpochs.pixi7`: `>=7.4.2 <7.5.0`), and its `package.json` peer equals it | the same manifest |
+| Every Pixi adapter's declared range is the one its own epoch supports (`pixiAdapters.pixi7` from `pixiEpochs.pixi7` and its `excludedVersions`: `>=7.2.0 <7.4.0 || >=7.4.2 <7.5.0`), and its `package.json` peer equals it | the same manifest |
 | The facade's `react` peer is `^<newest tested React>` of the React epoch it builds in, and that epoch is the manifest's newest (D1) | `adapterMatrix.reactAdapters.<epoch>.declaredPeers.react`, `reactEpochs` |
 | The facade's runtime warning (`TESTED_REACT` in `packages/react/src/runtime/reactVersion.ts`) names exactly those tested versions | the same row |
 | The facade's `react-reconciler` and `its-fine` equal those of the adapter package it builds in | `packages/react-19.3/package.json` |
@@ -193,42 +196,60 @@ Owner ruling (issue 17, 2026-10-10): "verified" replaces "certified", and the ve
 two tiers. **Verification is evidence, not a support guarantee.** "Supported" is reserved and not used.
 
 - **Tested:** the exact React and pixi.js versions that the PR-tier #13 compatibility cells run. The PR tier (the
-  required check **Compatibility (required)**) runs each React adapter at its newest audited patch (React 18.3.1,
-  19.0.8, 19.1.9, 19.2.8 and 19.3.0) with pixi.js 8.2.6 and 8.22.0, the Pixi 7 adapter with React 18.3.1 on pixi.js
-  7.4.2 and React 19.3.0 on 7.4.3, plus probes at every named Pixi 8 boundary, on WebGL, on every pull request and
-  every push to `main`.
+  required check **Compatibility (required)**) runs React 18.3 and each React 19 adapter at its newest audited patch
+  (React 18.3.1, 19.0.8, 19.1.9, 19.2.8 and 19.3.0) with pixi.js 8.2.6 and 8.22.0, React 18.0.0 with 8.2.6, the Pixi 7
+  adapter with React 18.0.0 on pixi.js 7.2.0 and React 19.3.0 on 7.4.3, plus probes at every named Pixi 8 boundary, on
+  WebGL, on every pull request and every push to `main`. React 18.1.0 and 18.2.0 are tested by their packages'
+  fixtures (React 18 suite and conformance in Chromium, pixi.js 8.2.6 and 8.22.0) and in the nightly tier.
 - **Verified:** per tuple and per render backend (owner ruling, 2026-10-10: WebGPU is verified per version, not by
   the whole matrix). A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on WebGL or WebGPU
-  when its nightly cell passed on that backend (every command, every conformance scenario and the render check) in a
+  when its nightly cell (the nightly tier, which GitHub runs weekly by the owner's ruling of 2026-10-10) passed on that backend (every command, every conformance scenario and the render check) in a
   dated [verification record](compatibility/verification/) whose boundary probes all passed and whose incompatible
   pairs were all rejected. One backend is never inferred from the other. `verifiedRanges` in
   `design/compatibility/seed.json` lists exactly the tuples the records verified, per backend;
   `design/compatibility/verification.mjs` derives it from the records and `validate.mjs` fails when they disagree.
 
-The [2026-10-10 record](compatibility/verification/2026-10-10.md) (184 cells: every React adapter at both audited
-patches × every Pixi 8 minor and pixi.js 7.4.2 and 7.4.3) verifies:
+The [2026-10-10.2 record](compatibility/verification/2026-10-10.2.md) (297 cells: every React adapter, React 18.0 to
+19.3, at every audited patch × every Pixi 8 minor's newest audited patch and pixi.js 7.2.0, 7.2.4, 7.3.0, 7.3.3, 7.4.2
+and 7.4.3) supersedes the first 2026-10-10 record (184 cells) of the same machine and verifies:
 
-- **WebGL:** every nightly tuple (184 of 184 cells).
-- **WebGPU:** pixi.js 8.10.2 to 8.22.0 with every React adapter (104 of the 168 Pixi 8 cells). Pixi 7 has no WebGPU
+- **WebGL:** every nightly tuple (297 of 297 cells).
+- **WebGPU:** pixi.js 8.10.2 to 8.22.0 with every React adapter (143 of the 231 Pixi 8 cells). Pixi 7 has no WebGPU
   renderer.
 - **Expected blank render, unverified:** pixi.js 8.2.6, 8.3.4, 8.4.1, 8.5.2, 8.6.6, 8.7.3, 8.8.1 and 8.9.2 on WebGPU
-  (64 cells). Pixi creates a WebGPU renderer and every conformance scenario passes, but the canvas stays blank on the
-  software fallback adapter. The cause appears to be in pixi.js before 8.10 (it does not depend on the React adapter);
-  it is not narrowed below 8.9.2 → 8.10.2 and is untested on a real GPU. These cells are on the manifest's
+  (88 cells). Pixi creates a WebGPU renderer and every conformance scenario passes, but the canvas stays blank on the
+  software fallback adapter. The cause is an upstream pixi.js bug before 8.10
+  ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by
+  [#11417](https://github.com/pixijs/pixijs/pull/11417), first released in 8.10.0; bisected: 8.9.2 blank, 8.10.0
+  renders): Pixi sizes the WebGPU texture batch from WebGL's `MAX_TEXTURE_IMAGE_UNITS` (32 on SwiftShader) while the
+  device allows 16 sampled textures per stage, so the pipeline is invalid. It is not specific to software rendering:
+  real devices with that mismatch are affected too, while the full hardware record from an Apple M5 Max (WebGL
+  reports 16 units there) renders 8.2.6 to 8.9.2 on WebGPU. The adapters do not work around it. These cells are on the manifest's
   `adapterMatrix.expectedBlankRender` list with that reason and evidence. Like the 8.5.0 ParticleContainer
   known-failure probe, the runner counts such a run as expected only when it fails exactly as listed (scenarios pass,
   canvas blank) and fails the cell when one starts rendering, so the list gets pruned; a conformance failure there
   still fails.
 
-**Software rendering.** The record ran on software rendering: the machine has no GPU, WebGL runs on ANGLE over
-SwiftShader and WebGPU on SwiftShader's fallback adapter (`isFallbackAdapter: true`), as in CI. That counts as
-verification (owner ruling). A run on a real GPU (`run-cells.mjs --gpu hardware`, see the
-[cells README](compatibility/cells/README.md#running-on-a-real-gpu)) can be added later as an additional dated record,
-which adds evidence beside the software one.
+**Software rendering and a real GPU.** The 2026-10-10 records ran on software rendering: the machine has no GPU, WebGL
+runs on ANGLE over SwiftShader and WebGPU on SwiftShader's fallback adapter (`isFallbackAdapter: true`), as in CI. That
+counts as verification (owner ruling). A run on a real GPU (`run-cells.mjs --gpu hardware`, see the
+[cells README](compatibility/cells/README.md#running-on-a-real-gpu)) adds a dated record beside the software one: the
+full [2026-10-10-macos-26-apple-m5-max](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md) record (Apple
+M5 Max, Metal; 184 cells at main d0071c1, before the React 18 split and the Pixi 7.2 widening) passed every cell on
+both backends, so it verifies React 18.3.1 (the former `react-18` package) and every React 19 adapter with pixi.js
+8.2.6 … 8.22.0 on WebGL and WebGPU and with 7.4.2 and 7.4.3 on WebGL. WebGPU is therefore verified from 8.2.6 for
+those adapters, and from 8.10.2 for the React 18.0–18.3 packages.
+
+**Known issues** (`adapterMatrix.knownIssues`, owner ruling 2026-10-10: "verified + known issue"). A tuple a record
+verified stays verified, and the generated tables and records show the issue beside every verified range it covers.
+Today: some devices render a blank canvas on WebGPU before pixi.js 8.10
+([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by
+[#11417](https://github.com/pixijs/pixijs/pull/11417) in 8.10.0); use pixi.js 8.10 or later for WebGPU, or WebGL.
+`validate.mjs` requires each entry to name its version range, backend and links.
 
 Verification never widens a peer range (D5: never broader than the evidence). The peer ranges stay exactly the tested
-versions: the verified tuples include them and add the minimum React patches and every Pixi 8 minor's newest audited
-patch, all inside the existing ranges.
+versions: the verified tuples include them and add the minimum React patches, every Pixi 8 minor's newest audited
+patch and every audited Pixi 7 release, all inside the existing ranges.
 
 Every user-facing surface says what it can back: "tested" for the PR-tier versions, and "verified" per backend only
 where a record backs it, with the software-rendering note: the facade's runtime warning and README, the
@@ -361,7 +382,7 @@ postinstall, build step, filesystem discovery or adapter guessing is needed.
 | Scenario | Installs | Must hold |
 | --- | --- | --- |
 | `facade` | `@pixi/react`, React 19.3.0, pixi.js 8.22.0 | No modular package in the tree. One react-reconciler (0.34.0). `extend` works through `import` and `require`. Declarations are the same under both and match the runtime exports. `tsc` NodeNext `.mts` and `.cts` |
-| `explicit-<cell>` (12: each PR-tier cell of the #13 matrix, the two Pixi 7 cells included) | core, renderer, that cell's React adapter and Pixi adapter (pixi-8, or pixi-7 for React 18.3.1 + pixi.js 7.4.2 and React 19.3.0 + pixi.js 7.4.3), with the cell's exact React, types and pixi.js | `npm ls` is clean. Exactly one copy of each of our packages, all at the release version. Only that epoch's reconciler and its-fine. No facade and no other React or Pixi adapter. React 18 consumers get no React 19 package. Both formats compose with `createRenderer` and register `Container` and `Sprite`. Manifests report the package's own version and ABI. Declarations hold for each entry, including the `jsx` subpaths |
+| `explicit-<cell>` (15: each PR-tier cell of the #13 matrix, the two Pixi 7 cells included, and React 18.1.0 and 18.2.0, which no PR-tier cell installs, with pixi.js 8.22.0) | core, renderer, that cell's React adapter and Pixi adapter (pixi-8, or pixi-7 for React 18.0.0 + pixi.js 7.2.0 and React 19.3.0 + pixi.js 7.4.3), with the cell's exact React, types and pixi.js | `npm ls` is clean. Exactly one copy of each of our packages, all at the release version. Only that epoch's reconciler and its-fine. No facade and no other React or Pixi adapter. React 18 consumers get no React 19 package. Both formats compose with `createRenderer` and register `Container` and `Sprite`. Manifests report the package's own version and ABI. Declarations hold for each entry, including the `jsx` subpaths |
 | `renderer-only` | core, renderer | No React, reconciler, its-fine or pixi.js is installed: the neutral factory is consumable with only the chosen adapters |
 | `core-only` | core | Zero transitive dependencies |
 
@@ -446,7 +467,7 @@ Measured with the same fixtures (minified, `NODE_ENV=production`), the bytes our
 | --- | --- | --- | --- |
 | Facade (`@pixi/react`) | 85,911 | 65,977 | 68,000 |
 | Explicit React 19.3 + pixi-8 (core, renderer, react-19.3, pixi-8) | 72,196 | 56,463 | 58,300 |
-| Explicit React 18 + pixi-8 (core, renderer, react-18, pixi-8) | 65,962 | 54,719 | 56,600 |
+| Explicit React 18.3 + pixi-8 (core, renderer, react-18.3, pixi-8; `react-18` before the per-minor split) | 65,962 | 54,719 | 56,600 |
 | Explicit React 19.3 + pixi-7 (core, renderer, react-19.3, pixi-7; issue 16) | - | 55,668 | 57,500 |
 | Renderer only (core, renderer) | 29,577 | 23,175 | 24,000 |
 
@@ -475,7 +496,7 @@ did.
 
 [release-compatibility.md](release-compatibility.md) is generated by `node scripts/release/compat-table.mjs --write`
 from the compatibility manifest and `release.packages.json`: for the facade release, its React and pixi.js peers, the
-versions tested on every pull request and nightly, and the adapter versions it builds in; for each modular package, its
+versions tested on every pull request and in the nightly tier, and the adapter versions it builds in; for each modular package, its
 version, peers, exact dependencies and PR-tier cells. `pnpm release:version` regenerates it, and `policy.mjs` fails
 while it is stale. Earlier releases' tables stay in the history of their "Version packages" commits.
 
@@ -490,7 +511,7 @@ release is handled by hand:
    version (run the #3 audit runner for it, with its registry entry and integrity), and move `pixiEpochs.pixi8.current`
    (a new Pixi minor) or add the React epoch (below). Run `node design/compatibility/validate.mjs`,
    `node --test design/compatibility/cells/*.test.mjs` and regenerate `COMPATIBILITY.md`.
-2. **Run the nightly matrix.** Push the branch and start **Compatibility nightly** with `workflow_dispatch`, with
+2. **Run the nightly matrix.** Push the branch and start **Compatibility nightly** (scheduled weekly; start it by hand) with `workflow_dispatch`, with
    `cells` set to the new version (for example `pixi-8.23` or `react-19.4`) and `patches: all`. The PR tier runs
    on the pull request as usual.
 3. **Widen the peer range only if the matrix passes.** Then update `declaredPeers` in the manifest and the package
@@ -621,15 +642,15 @@ dependencies only if you import it, for example for `CompatibilityError`, and th
 ```sh
 # React 19.1, for example; use @pixi/react-19.0, -19.2 or -19.3 with a React version from that package's peer range
 npm install @pixi/react-renderer@8.1.0 @pixi/react-19.1@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@19.1.9 react-dom@19.1.9
-# React 18
-npm install @pixi/react-renderer@8.1.0 @pixi/react-18@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@18.3.1 react-dom@18.3.1
-# Pixi 7 (pixi.js 7.4.2 or 7.4.3), with any React adapter; the Pixi 7 adapter is also at the facade's version
-npm install @pixi/react-renderer@8.1.0 @pixi/react-18@8.1.0 @pixi/react-pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
+# React 18.3; use @pixi/react-18.0, -18.1 or -18.2 with React 18.0.0, 18.1.0 or 18.2.0
+npm install @pixi/react-renderer@8.1.0 @pixi/react-18.3@8.1.0 @pixi/react-pixi-8@8.1.0 pixi.js react@18.3.1 react-dom@18.3.1
+# Pixi 7 (pixi.js 7.2.x, 7.3.x, 7.4.2 or 7.4.3; not 7.4.0), with any React adapter; the Pixi 7 adapter is also at the facade's version
+npm install @pixi/react-renderer@8.1.0 @pixi/react-18.3@8.1.0 @pixi/react-pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
 ```
 
 ```ts
 import { createRenderer } from '@pixi/react-renderer';
-import { React19Adapter } from '@pixi/react-19.1'; // or: import { React18Adapter } from '@pixi/react-18'
+import { React19Adapter } from '@pixi/react-19.1'; // or: import { React18Adapter } from '@pixi/react-18.3'
 import { Pixi8Adapter } from '@pixi/react-pixi-8';
 import { Container, Sprite } from 'pixi.js';
 
@@ -656,14 +677,18 @@ Each React adapter's peer lists exactly the React versions its fixtures test (D5
 | `@pixi/react-19.1` | `19.1.0 \|\| 19.1.9` | 0.32.0 / 2.1.1 |
 | `@pixi/react-19.2` | `19.2.0 \|\| 19.2.8` | 0.33.0 / 2.1.1 |
 | `@pixi/react-19.3` | `19.3.0` | 0.34.0 / 2.1.1 |
-| `@pixi/react-18` | `18.3.1` | 0.29.2 / 1.2.5 |
+| `@pixi/react-18.0` | `18.0.0` | 0.27.0 / 1.2.5 |
+| `@pixi/react-18.1` | `18.1.0` | 0.28.0 / 1.2.5 |
+| `@pixi/react-18.2` | `18.2.0` | 0.29.0 / 1.2.5 |
+| `@pixi/react-18.3` | `18.3.1` | 0.29.2 / 1.2.5 |
 | `@pixi/react-pixi-8` | pixi.js `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` | — |
-| `@pixi/react-pixi-7` | pixi.js `>=7.4.2 <7.5.0` | — |
+| `@pixi/react-pixi-7` | pixi.js `>=7.2.0 <7.4.0 \|\| >=7.4.2 <7.5.0` | — |
 
-[COMPATIBILITY.md](compatibility/cells/COMPATIBILITY.md) lists the pairs CI runs: each React adapter at its newest
-patch with pixi.js 8.2.6 and 8.22.0 on every PR, and every Pixi 8 minor nightly; the Pixi 7 adapter with React 18.3.1
-on pixi.js 7.4.2 and React 19.3.0 on 7.4.3 on every PR, and with every React adapter nightly. These versions are *tested*; the
-[2026-10-10 verification record](compatibility/verification/2026-10-10.md) verifies the nightly tuples on WebGL, and on
+[COMPATIBILITY.md](compatibility/cells/COMPATIBILITY.md) lists the pairs CI runs: React 18.3 and each React 19 adapter at its newest
+patch with pixi.js 8.2.6 and 8.22.0 and React 18.0.0 with 8.2.6 on every PR, and every React adapter with every Pixi 8
+minor in the nightly tier (run weekly); the Pixi 7 adapter with React 18.0.0 on pixi.js 7.2.0 and React 19.3.0 on 7.4.3
+on every PR, and with every React adapter on every tested Pixi 7 release in the nightly tier. These versions are *tested*; the
+[2026-10-10.2 verification record](compatibility/verification/2026-10-10.2.md) verifies the nightly tuples on WebGL, and on
 WebGPU from pixi.js 8.10.2 (8.2–8.9 are an expected blank render, unverified), on software rendering
 ([Tested and verified](#tested-and-verified)). The
 generated [release compatibility table](release-compatibility.md) lists them per package and release.
@@ -687,7 +712,7 @@ generated [release compatibility table](release-compatibility.md) lists them per
 | `@pixi/react` 8.0.x with React 19.3 | Upgrade to 8.1.0. Same API and documented behaviour (D4), with failure-path repairs |
 | `@pixi/react` 8.0.x with React 19.0, 19.1 or 19.2 | 8.1.0's React peer is `^19.3.0` (upstream's was `>=19.0.0`). Either upgrade React to 19.3, or stay on your minor with the explicit composition and that minor's package |
 | `@pixi/react` with a React 19 minor newer than 19.3 | 8.1.0 installs and logs one warning naming the tested 19.3.0 and how to pin |
-| `@pixi/react` 7.x (React 17/18, Pixi 7) | Stay on Pixi 7.4.2 or 7.4.3 with the explicit composition: `@pixi/react-pixi-7` with `@pixi/react-18` (React 18.3.1) or a React 19 minor's package. It is the current API (`Application`, `extend`, hooks), not the 7.x API (`Stage`, `PixiComponent`, `withFilters`); see the [pixi-7 README](../packages/pixi-7/README.md). Or move to Pixi 8 with the facade or `@pixi/react-pixi-8` |
+| `@pixi/react` 7.x (React 17/18, Pixi 7) | Stay on Pixi 7 (7.2.x, 7.3.x, 7.4.2 or 7.4.3) with the explicit composition: `@pixi/react-pixi-7` with the package of your React minor (`@pixi/react-18.0` … `@pixi/react-18.3`, or a React 19 minor's package). It is the current API (`Application`, `extend`, hooks), not the 7.x API (`Stage`, `PixiComponent`, `withFilters`); see the [pixi-7 README](../packages/pixi-7/README.md). Or move to Pixi 8 with the facade or `@pixi/react-pixi-8` |
 | `useContextBridge`, `component(Ctor)`, root error props, `Root.status` | Only in the modular packages: compose with `createRenderer` (D4) |
 
 The explicit composition returns the same names (`Application`, `extend`, `useApplication`, `useTick`, `createRoot`,

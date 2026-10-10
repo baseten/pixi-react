@@ -1,0 +1,13 @@
+{
+  "//": "Declarations of the React 18 sources, compiled against React 18's own types: @types/react 18.3.31 and its-fine 1.2.5 (aliased devDependencies), never the React 19 types the rest of this package uses. The React 18 packages typecheck these declarations again against their own React.",
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "paths": {
+      "react": ["./node_modules/@types/react-18/index.d.ts"],
+      "react/*": ["./node_modules/@types/react-18/*"],
+      "its-fine": ["./node_modules/its-fine-1/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/react-18/**/*", "src/common/**/*"],
+  "exclude": []
+}
