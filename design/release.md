@@ -197,27 +197,43 @@ two tiers. **Verification is evidence, not a support guarantee.** "Supported" is
   19.0.8, 19.1.9, 19.2.8 and 19.3.0) with pixi.js 8.2.6 and 8.22.0, the Pixi 7 adapter with React 18.3.1 on pixi.js
   7.4.2 and React 19.3.0 on 7.4.3, plus probes at every named Pixi 8 boundary, on WebGL, on every pull request and
   every push to `main`.
-- **Verified:** the full nightly matrix passed, with WebGL and WebGPU checked separately, backed by a dated
-  [verification record](compatibility/verification/). `verifiedRanges` in `design/compatibility/seed.json` lists exactly
-  the tuples a record verified, per backend; `design/compatibility/verification.mjs` derives it from the records and
-  `validate.mjs` fails when they disagree. A backend verifies tuples only when every nightly cell that runs it passed
-  on it (conformance and the render check), every boundary probe passed and every incompatible pair was rejected; one
-  backend is never inferred from the other.
+- **Verified:** per tuple and per render backend (owner ruling, 2026-10-10: WebGPU is verified per version, not by
+  the whole matrix). A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on WebGL or WebGPU
+  when its nightly cell passed on that backend (every command, every conformance scenario and the render check) in a
+  dated [verification record](compatibility/verification/) whose boundary probes all passed and whose incompatible
+  pairs were all rejected. One backend is never inferred from the other. `verifiedRanges` in
+  `design/compatibility/seed.json` lists exactly the tuples the records verified, per backend;
+  `design/compatibility/verification.mjs` derives it from the records and `validate.mjs` fails when they disagree.
 
 The [2026-10-10 record](compatibility/verification/2026-10-10.md) (184 cells: every React adapter at both audited
-patches × every Pixi 8 minor and pixi.js 7.4.2 and 7.4.3) verifies every nightly tuple on **WebGL**. It does **not**
-verify **WebGPU**: on Chromium's software WebGPU adapter (SwiftShader, a fallback adapter; this machine has no GPU)
-pixi.js 8.2.6 to 8.9.2 leave the canvas blank, although every conformance scenario passes, so the WebGPU matrix did not
-pass as a whole. Pixi 7 has no WebGPU renderer. Rendering in both backends is software, as in CI.
+patches × every Pixi 8 minor and pixi.js 7.4.2 and 7.4.3) verifies:
+
+- **WebGL:** every nightly tuple (184 of 184 cells).
+- **WebGPU:** pixi.js 8.10.2 to 8.22.0 with every React adapter (104 of the 168 Pixi 8 cells). Pixi 7 has no WebGPU
+  renderer.
+- **Expected blank render, unverified:** pixi.js 8.2.6, 8.3.4, 8.4.1, 8.5.2, 8.6.6, 8.7.3, 8.8.1 and 8.9.2 on WebGPU
+  (64 cells). Pixi creates a WebGPU renderer and every conformance scenario passes, but the canvas stays blank on the
+  software fallback adapter. The cause appears to be in pixi.js before 8.10 (it does not depend on the React adapter);
+  it is not narrowed below 8.9.2 → 8.10.2 and is untested on a real GPU. These cells are on the manifest's
+  `adapterMatrix.expectedBlankRender` list with that reason and evidence. Like the 8.5.0 ParticleContainer
+  known-failure probe, the runner counts such a run as expected only when it fails exactly as listed (scenarios pass,
+  canvas blank) and fails the cell when one starts rendering, so the list gets pruned; a conformance failure there
+  still fails.
+
+**Software rendering.** The record ran on software rendering: the machine has no GPU, WebGL runs on ANGLE over
+SwiftShader and WebGPU on SwiftShader's fallback adapter (`isFallbackAdapter: true`), as in CI. That counts as
+verification (owner ruling). A run on a real GPU (`run-cells.mjs --gpu hardware`, see the
+[cells README](compatibility/cells/README.md#running-on-a-real-gpu)) can be added later as an additional dated record,
+which adds evidence beside the software one.
 
 Verification never widens a peer range (D5: never broader than the evidence). The peer ranges stay exactly the tested
-versions: the verified WebGL tuples include them and add the minimum React patches and every Pixi 8 minor's newest
-audited patch, all inside the existing ranges.
+versions: the verified tuples include them and add the minimum React patches and every Pixi 8 minor's newest audited
+patch, all inside the existing ranges.
 
-Every user-facing surface says what it can back: "tested" for the PR-tier versions, "verified on WebGL" only where the
-record backs it: the facade's runtime warning and README, the getting-started page, the adapter READMEs, the
-adapters' manifest `verification` pointers and the [compatibility table](release-compatibility.md), which is generated
-from `verifiedRanges`.
+Every user-facing surface says what it can back: "tested" for the PR-tier versions, and "verified" per backend only
+where a record backs it, with the software-rendering note: the facade's runtime warning and README, the
+getting-started page, the adapter READMEs, the adapters' manifest `verification` pointers and the
+[compatibility table](release-compatibility.md), which is generated from `verifiedRanges` and the records.
 
 To verify again: run the nightly tier with both React patches and both backends, the boundary probes, the incompatible
 pairs and the data-only probes from one commit with no verdict cache, write the record with
@@ -647,8 +663,9 @@ Each React adapter's peer lists exactly the React versions its fixtures test (D5
 [COMPATIBILITY.md](compatibility/cells/COMPATIBILITY.md) lists the pairs CI runs: each React adapter at its newest
 patch with pixi.js 8.2.6 and 8.22.0 on every PR, and every Pixi 8 minor nightly; the Pixi 7 adapter with React 18.3.1
 on pixi.js 7.4.2 and React 19.3.0 on 7.4.3 on every PR, and with every React adapter nightly. These versions are *tested*; the
-[2026-10-10 verification record](compatibility/verification/2026-10-10.md) verifies the nightly tuples on WebGL, not on
-WebGPU ([Tested and verified](#tested-and-verified)). The
+[2026-10-10 verification record](compatibility/verification/2026-10-10.md) verifies the nightly tuples on WebGL, and on
+WebGPU from pixi.js 8.10.2 (8.2–8.9 are an expected blank render, unverified), on software rendering
+([Tested and verified](#tested-and-verified)). The
 generated [release compatibility table](release-compatibility.md) lists them per package and release.
 
 ### Custom registration

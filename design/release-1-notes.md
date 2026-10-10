@@ -119,6 +119,8 @@ New APIs, available only through `createRenderer`: `useContextBridge`, `componen
 React 19.3.0 (and each adapter's exact React versions) with pixi.js 8.2.6 and 8.22.0 run in the required PR-tier
 compatibility cells on every change: these versions are **tested**. The [2026-10-10 verification record](compatibility/verification/2026-10-10.md)
 ran the full nightly matrix and **verifies** every React adapter at both audited patches with every Pixi 8 minor's
-newest audited patch and pixi.js 7.4.2 and 7.4.3 on **WebGL**. WebGPU is not verified: pixi.js 8.2.6 to 8.9.2 render a
-blank canvas on the software WebGPU adapter. The verified tuples are `verifiedRanges` in the compatibility manifest.
+newest audited patch and pixi.js 7.4.2 and 7.4.3 on **WebGL**, and with pixi.js 8.10.2 … 8.22.0 on **WebGPU**. On
+WebGPU, pixi.js 8.2.6 to 8.9.2 are an expected blank render, unverified: a blank canvas on the software WebGPU adapter,
+although every conformance scenario passes. The record ran on software rendering (SwiftShader, no GPU); a run on a
+real GPU can be added as extra evidence. The verified tuples are `verifiedRanges` in the compatibility manifest.
 Verification is evidence, not a support guarantee, and no peer range was widened ([release.md](release.md#tested-and-verified)).

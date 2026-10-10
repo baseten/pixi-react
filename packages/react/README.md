@@ -130,11 +130,13 @@ bundles stay self-contained, as upstream's were.
 | `pixi.js` | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` (8.5.0 is excluded: its `ParticleContainer.destroy` fails) |
 
 "Tested" means the release's compatibility cells run that combination on every change: React 19.3.0 with pixi.js
-8.2.6 and 8.22.0, plus probes at every Pixi 8 boundary. "Verified" means the full nightly matrix passed on a render backend: the
+8.2.6 and 8.22.0, plus probes at every Pixi 8 boundary. "Verified" means a tuple's nightly cell passed on that render backend in a dated record: the
 [2026-10-10 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.md) verifies
 the React 19.3 and Pixi 8 adapter packages this package builds in, with React 19.3.0 and the newest audited patch of
-every Pixi 8 minor (8.2.6 … 8.22.0), on **WebGL**; WebGPU is not verified (8.2.6 to 8.9.2 render a blank canvas on the
-software WebGPU adapter). Verification is evidence, not a support guarantee. The
+every Pixi 8 minor (8.2.6 … 8.22.0), on **WebGL**, and with 8.10.2 … 8.22.0 on **WebGPU** (on WebGPU, 8.2.6 to 8.9.2
+are an expected blank render, unverified: a blank canvas on the software WebGPU adapter). It ran on software rendering
+(SwiftShader, no GPU); a run on a real GPU can be added as extra evidence. Verification is evidence, not a support
+guarantee. The
 [release compatibility table](https://github.com/baseten/pixi-react/blob/main/design/release-compatibility.md) lists
 the tested versions of each release and of the modular packages.
 
