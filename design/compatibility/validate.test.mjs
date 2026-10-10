@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -23,6 +23,9 @@ function validate(t, mutate)
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
     copyFileSync(new URL('surface-map.mjs', import.meta.url), join(root, 'surface-map.mjs'));
+    // The verification records that seed.json's verifiedRanges derives from (issue 17).
+    copyFileSync(new URL('verification.mjs', import.meta.url), join(root, 'verification.mjs'));
+    cpSync(new URL('verification', import.meta.url), join(root, 'verification'), { recursive: true });
     writeFileSync(join(root, 'seed.json'), JSON.stringify(seed));
     writeFileSync(join(root, seed.evidence), JSON.stringify(evidence));
 

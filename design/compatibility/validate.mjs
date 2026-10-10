@@ -7,6 +7,7 @@ import { reactAbiSha256 } from './react-abi.mjs';
 import { resolvedPackagesSha256 } from './resolved-packages.mjs';
 import { surfaceMapSha256 } from './surface-map.mjs';
 import { validateHistoricalObservation } from './validate-historical.mjs';
+import { checkRenderedRecords, deriveVerifiedRanges, loadRecords, validateRecord } from './verification.mjs';
 
 const read = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url)));
 const historical = process.argv[2] === '--historical';
@@ -17,7 +18,18 @@ const strings = (value) => Array.isArray(value) && value.every((item) => typeof 
 
 assert.equal(seed.schemaVersion, 1);
 assert.deepEqual(seed.floors, { react: '18.3.1', 'pixi.js': '7.4.2', pixi8: '8.2.6' });
-assert.deepEqual(seed.advertisedRanges, []);
+assert.ok(!('advertisedRanges' in seed), 'advertisedRanges was renamed verifiedRanges (issue 17)');
+if (historical) assert.deepEqual(seed.verifiedRanges, [], 'the historical audit verifies nothing');
+else
+{
+    // verifiedRanges is derived from the dated verification records, never written by hand (issue 17): exactly the
+    // tuples whose backend's whole nightly matrix passed in a record (verification.mjs, VERIFICATION_RULE).
+    const records = loadRecords();
+
+    for (const record of records) validateRecord(seed, record);
+    assert.deepEqual(checkRenderedRecords(), [], 'verification record Markdown is current');
+    assert.deepEqual(seed.verifiedRanges, deriveVerifiedRanges(records), 'seed.json verifiedRanges must equal what the verification records derive (node design/compatibility/verification.mjs ranges --write)');
+}
 assert.equal(new Set(seed.probes.map((p) => p.id)).size, seed.probes.length);
 assert.equal(evidence.results.length, seed.probes.length);
 assert.deepEqual(evidence.results.map((row) => row.id), seed.probes.map((tuple) => tuple.id), 'evidence tuple order');
@@ -234,4 +246,4 @@ else
     for (let minor = 0; minor <= 3; minor++) assert.ok(seed.probes.some((p) => p.packages.react?.startsWith(`19.${minor}.`)));
 }
 if (!historical) validateAdapterMatrix(seed);
-process.stdout.write(`Validated ${seed.probes.length} exact tuples; known failures remain excluded from certification.\n`);
+process.stdout.write(`Validated ${seed.probes.length} exact tuples; known failures remain excluded from verification.\n`);

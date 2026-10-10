@@ -3,13 +3,358 @@
   "observedDate": "2026-10-07",
   "issue": "https://github.com/baseten/pixi-react/issues/3",
   "baseline": "30cf1f86a590a1d8bb183a36b1887fa30e908d4e",
-  "status": "audit-seed-not-support-certificate",
+  "status": "audit-seed-not-support-guarantee",
   "floors": {
     "react": "18.3.1",
     "pixi.js": "7.4.2",
     "pixi8": "8.2.6"
   },
-  "advertisedRanges": [],
+  "verifiedRanges": [
+    {
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "pixiAdapter": "pixi-7",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "pixiAdapter": "pixi-8",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.0",
+      "react": "19.0.0",
+      "pixiAdapter": "pixi-7",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.0",
+      "react": "19.0.0",
+      "pixiAdapter": "pixi-8",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.0",
+      "react": "19.0.8",
+      "pixiAdapter": "pixi-7",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.0",
+      "react": "19.0.8",
+      "pixiAdapter": "pixi-8",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.1",
+      "react": "19.1.0",
+      "pixiAdapter": "pixi-7",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.1",
+      "react": "19.1.0",
+      "pixiAdapter": "pixi-8",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.1",
+      "react": "19.1.9",
+      "pixiAdapter": "pixi-7",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.1",
+      "react": "19.1.9",
+      "pixiAdapter": "pixi-8",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.2",
+      "react": "19.2.0",
+      "pixiAdapter": "pixi-7",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.2",
+      "react": "19.2.0",
+      "pixiAdapter": "pixi-8",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.2",
+      "react": "19.2.8",
+      "pixiAdapter": "pixi-7",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.2",
+      "react": "19.2.8",
+      "pixiAdapter": "pixi-8",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "pixiAdapter": "pixi-7",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-19.3",
+      "react": "19.3.0",
+      "pixiAdapter": "pixi-8",
+      "record": "2026-10-10",
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    }
+  ],
   "excluded": [
     "React <=17",
     "Pixi <=6",
@@ -1462,7 +1807,7 @@
       "id": "react18",
       "reactMinor": "18.3",
       "reconciler": "0.29.2",
-      "status": "candidate-not-certified",
+      "status": "candidate-not-verified",
       "requiredEvidence": [
         "installed consumer types",
         "host/root ABI probe",
@@ -1475,7 +1820,7 @@
       "id": "react190",
       "reactMinor": "19.0",
       "reconciler": "0.31.0",
-      "status": "candidate-not-certified",
+      "status": "candidate-not-verified",
       "requiredEvidence": [
         "installed consumer types",
         "host/root ABI probe",
@@ -1488,7 +1833,7 @@
       "id": "react191",
       "reactMinor": "19.1",
       "reconciler": "0.32.0",
-      "status": "candidate-not-certified",
+      "status": "candidate-not-verified",
       "requiredEvidence": [
         "installed consumer types",
         "host/root ABI probe",
@@ -1501,7 +1846,7 @@
       "id": "react192",
       "reactMinor": "19.2",
       "reconciler": "0.33.0",
-      "status": "candidate-not-certified",
+      "status": "candidate-not-verified",
       "requiredEvidence": [
         "installed consumer types",
         "host/root ABI probe",
@@ -1514,7 +1859,7 @@
       "id": "react193",
       "reactMinor": "19.3",
       "reconciler": "0.34.0",
-      "status": "candidate-not-certified",
+      "status": "candidate-not-verified",
       "requiredEvidence": [
         "installed consumer types",
         "host/root ABI probe",
@@ -1530,13 +1875,13 @@
       "line": "7.4",
       "minimum": "7.4.2",
       "current": "7.4.3",
-      "status": "candidate-not-certified"
+      "status": "candidate-not-verified"
     },
     {
       "id": "pixi8",
       "minimum": "8.2.6",
       "current": "8.22.0",
-      "status": "candidate-not-certified",
+      "status": "candidate-not-verified",
       "capabilityBoundaries": {
         "particles": "8.5.0",
         "cacheAsTexture": "8.6.0",
@@ -1556,7 +1901,7 @@
       "probe": "pixi.mjs",
       "signature": "ParticleContainer.removeChildren() is not available. Please use ParticleContainer.removeParticles()",
       "classification": "regression",
-      "decision": "exclude particle destruction until workaround or later certified patch",
+      "decision": "exclude particle destruction until workaround or later verified patch",
       "laterPassingSample": "pixi-8.5.2"
     },
     {
