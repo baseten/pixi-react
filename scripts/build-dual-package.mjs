@@ -25,12 +25,18 @@
  * exports under the name `imports`: the peer's exports it uses. The wrapper imports them by name and never the
  * namespace, because a namespace object passed to a function keeps every export of the peer alive in a bundler.
  *
+ * The declarations are tsc's, one per source module. The runtime JavaScript is not (issue 58): each runtime entry
+ * (`index.js`, and the peer-binding `module`) is one esbuild bundle of the sources it reaches, so a consumer's bundler
+ * gets no per-module CommonJS boilerplate. The `index.js` of a peer-binding package requires the binding module
+ * (`./<module>`) instead of bundling it, so the implementation is still loaded once. Dependencies and peers stay
+ * external, and `process.env.NODE_ENV` is left as written, for the consumer's bundler to replace.
+ *
  * Run from the package directory: `node ../../scripts/build-dual-package.mjs`.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 
 const packageDir = process.cwd();
 const require = createRequire(join(packageDir, 'package.json'));
@@ -48,6 +54,69 @@ catch (error)
     process.exit(error.status ?? 1);
 }
 
+const manifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
+const { peerBinding } = manifest.dualPackage ?? {};
+
+await bundleRuntime();
+
+/** Replaces tsc's JavaScript in `dist/cjs` with one esbuild bundle per runtime entry; the declarations stay. */
+async function bundleRuntime()
+{
+    const esbuild = require('esbuild');
+    const external = [...Object.keys(manifest.dependencies ?? {}), ...Object.keys(manifest.peerDependencies ?? {})]
+        .flatMap((name) => [name, `${name}/*`]);
+    const bindingModule = peerBinding?.module;
+    const entries = ['index.js', ...(bindingModule ? [bindingModule] : [])];
+    const cjs = join(dist, 'cjs');
+
+    for (const file of readdirSync(cjs, { recursive: true }))
+    {
+        if ((/\.js(\.map)?$/).test(file))
+        {
+            rmSync(join(cjs, file));
+        }
+    }
+
+    for (const file of entries)
+    {
+        // The entry requires the binding module rather than bundling a second copy of the implementation.
+        const keepBindingExternal = file === 'index.js' && bindingModule
+            ? [{
+                name: 'external-binding-module',
+                setup(build)
+                {
+                    build.onResolve({ filter: /^\./ }, ({ path, importer }) =>
+                        (resolve(importer, '..', path) === join(packageDir, 'src', bindingModule) ? { path: `./${bindingModule}`, external: true } : undefined));
+                },
+            }]
+            : [];
+
+        const { metafile } = await esbuild.build({
+            entryPoints: [join(packageDir, 'src', file.replace(/\.js$/, '.ts'))],
+            outfile: join(cjs, file),
+            bundle: true,
+            format: 'cjs',
+            platform: 'neutral',
+            mainFields: ['main'],
+            target: 'es2022',
+            tsconfig: join(packageDir, 'tsconfig.build.json'),
+            external,
+            sourcemap: true,
+            sourcesContent: false,
+            logLevel: 'warning',
+            metafile: true,
+            ...(keepBindingExternal.length ? { plugins: keepBindingExternal } : {}),
+        });
+        const sources = Object.keys(metafile.inputs).map((input) => relative(packageDir, resolve(packageDir, input)));
+
+        // D6: the peer-binding entry must not carry a second copy of any implementation module.
+        if (keepBindingExternal.length && sources.some((source) => source !== join('src', 'index.ts')))
+        {
+            throw new Error(`dist/cjs/index.js must require ./${bindingModule} and bundle nothing else, but it bundles ${sources.join(', ')}.`);
+        }
+    }
+}
+
 const entry = join(dist, 'cjs', 'index.js');
 const names = Object.keys(require(entry)).filter((name) => name !== '__esModule' && name !== 'default').sort();
 
@@ -60,7 +129,6 @@ for (const name of names)
 }
 
 const destructure = (list, source) => `export const {\n${list.map((name) => `    ${name},`).join('\n')}\n} = ${source};`;
-const { peerBinding } = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8')).dualPackage ?? {};
 let wrapper;
 
 if (peerBinding)

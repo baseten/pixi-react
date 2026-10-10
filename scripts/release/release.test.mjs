@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { compareWithUpstream, KNOWN_GAPS, UPSTREAM_BASELINE } from './bundles.mjs';
+import { compareWithBudget, compareWithUpstream, DEVELOPMENT_ONLY_TEXT, KNOWN_GAPS, OWN_CODE_BUDGETS, UPSTREAM_BASELINE } from './bundles.mjs';
 import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
@@ -660,6 +660,15 @@ test('bundles keep no more Pixi code than upstream 8.0.5, and no Pixi tree-shaki
     assert.deepEqual(compareWithUpstream({ pixiModules: 146, pixiBytes: 200000 }, upstream), []);
     assert.equal(compareWithUpstream({ pixiModules: 633, pixiBytes: 513000 }, upstream).length, 1, 'more modules');
     assert.equal(compareWithUpstream({ pixiModules: 381, pixiBytes: 513001 }, upstream).length, 1, 'more bytes');
+});
+
+test('our own code has a budget in every bundled fixture kind, and production bundles carry no development-only text (issue 58)', () =>
+{
+    assert.deepEqual(Object.keys(OWN_CODE_BUDGETS).sort(), ['explicit:react-18', 'explicit:react-19.3', 'facade', 'renderer']);
+    for (const [kind, budget] of Object.entries(OWN_CODE_BUDGETS)) assert.ok(Number.isInteger(budget) && budget > 0, `${kind} has a budget`);
+    assert.ok(DEVELOPMENT_ONLY_TEXT.length > 0);
+    assert.deepEqual(compareWithBudget(1000, 1000), [], 'equal is within the budget');
+    assert.equal(compareWithBudget(1001, 1000).length, 1, 'one byte over');
 });
 
 test('mainMergeBase uses the more recent of main and origin/main, so a stale local main does not mislead', () =>

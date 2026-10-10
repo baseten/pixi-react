@@ -353,7 +353,7 @@ workspace's version) inside those consumer projects:
   release version. Exactly one
   react-reconciler is bundled: the chosen epoch's, at its exact version. No other epoch's reconciler version string
   appears in the output. The facade bundle contains no non-default adapter. The neutral factory bundles only core and
-  renderer (29.5 KiB minified, 8.9 KiB gzip).
+  renderer (23.2 KiB minified, 7.3 KiB gzip).
 - **Necessary registration side effects remain.** Each fixture is also bundled for Node and executed. The explicit
   fixture must report `pixiContainer` and `pixiSprite` registered and the expected adapter ids. The facade fixture must
   evaluate and run `extend`.
@@ -368,6 +368,9 @@ workspace's version) inside those consumer projects:
   `@pixi/react` 8.0.5 from the registry, in its own clean project with the same React, pixi.js and esbuild. The facade
   and explicit fixtures may keep no more pixi.js modules and no more pixi.js bytes than that baseline. See Pixi
   constructor elimination below.
+- **Our own code stays within its budget.** The bytes our packages contribute to each production bundle are at most
+  the fixture's budget, and no development-only diagnostic text is left in it. See
+  [Our own code in production bundles](#our-own-code-in-production-bundles) below.
 
 Bundle sizes come from fixed fixtures and pinned versions. They describe those fixtures only. Tree shaking never
 resolves a peer-version conflict: two React or Pixi versions cannot coexist because of it, and nothing here promises
@@ -391,17 +394,41 @@ React:
 | Bundle | Minified | Gzip | pixi.js modules kept | pixi.js bytes | `NineSliceSprite` |
 | --- | --- | --- | --- | --- | --- |
 | Upstream `@pixi/react` 8.0.5 (the bound) | 663.6 KiB | 196.2 KiB | 381 | 501.5 KiB | eliminated |
-| This facade (8.1.0 candidate) | 751.7 KiB | 222.9 KiB | 381 | 501.4 KiB | eliminated |
-| Explicit React 19.3 + pixi-8 | 738.3 KiB | 217.8 KiB | 381 | 501.4 KiB | eliminated |
-| Explicit React 18 + pixi-8 | 693.1 KiB | 205.0 KiB | 381 | 501.3 KiB | eliminated |
+| This facade (8.1.0 candidate) | 732.2 KiB | 217.2 KiB | 381 | 501.4 KiB | eliminated |
+| Explicit React 19.3 + pixi-8 | 723.0 KiB | 213.9 KiB | 381 | 501.4 KiB | eliminated |
+| Explicit React 18 + pixi-8 | 682.2 KiB | 201.8 KiB | 381 | 501.3 KiB | eliminated |
 | pixi.js alone (`Container`, `Sprite`) | 203.9 KiB | 60.3 KiB | 146 | 189.5 KiB | eliminated |
 | Before issue 57: this facade | 1125 KiB | 330 KiB | 633 | 807 KiB | kept |
 
 The Pixi part now matches upstream's: the same 381 pixi.js modules and no more pixi.js bytes. The rest of the facade
-bundle is larger than upstream's (+88 KiB minified, +27 KiB gzip). That is not Pixi code: react-reconciler 0.34.0
-(React 19.3) is larger than upstream's 0.31.0, and the modular core, renderer and adapters bundled into `@pixi/react`
-are larger than upstream's single package and CommonJS (D6), which bundlers do not tree shake. `bundles.mjs` asserts
-the Pixi bound only.
+bundle is larger than upstream's (+68.6 KiB minified, +21.0 KiB gzip). That is not Pixi code: react-reconciler 0.34.0
+(React 19.3, 127.0 KiB) is larger than upstream's 0.31.0 (112.3 KiB), and the modular core, renderer and adapters
+bundled into `@pixi/react` (64.4 KiB) are larger than upstream's single package (16.2 KiB).
+
+### Our own code in production bundles
+
+Issue 58 reduced the code our packages contribute to a production bundle, without changing behaviour:
+
+- Diagnostic text (error messages, the Pixi 8 adapter's warnings) is built behind `process.env.NODE_ENV !== 'production'`,
+  which every published build leaves as written (the React adapters' esbuild bundles with `platform: 'neutral'`, the
+  esbuild bundles of `build-dual-package.mjs`, and the facade's `lib/`), so the application's bundler drops it. Every
+  check still runs in every build; see [release-1-notes.md](release-1-notes.md#production-error-messages).
+- core, renderer and pixi-8 ship each runtime entry as one esbuild bundle of their sources instead of tsc's file per
+  module (pixi-8's `index.js` requires `bind.js`, so the implementation is still one module, D6); the facade bundles
+  its adapters from their sources into `lib/adapters.js` and lowers each `lib/` chunk to ES2020 once.
+- Test-only data (the React adapters' host-key audit tables) is written as pure expressions, so the bundles drop it.
+
+Measured with the same fixtures (minified, `NODE_ENV=production`), the bytes our packages contribute:
+
+| Fixture | Before | After | Budget |
+| --- | --- | --- | --- |
+| Facade (`@pixi/react`) | 85,911 | 65,977 | 66,600 |
+| Explicit React 19.3 + pixi-8 (core, renderer, react-19.3, pixi-8) | 72,196 | 56,463 | 57,000 |
+| Explicit React 18 + pixi-8 (core, renderer, react-18, pixi-8) | 65,962 | 54,719 | 55,300 |
+| Renderer only (core, renderer) | 29,577 | 23,175 | 23,500 |
+
+`bundles.mjs` fails a fixture whose own code exceeds its budget (`OWN_CODE_BUDGETS`), or whose production bundle still
+contains development-only text (`DEVELOPMENT_ONLY_TEXT`). Raise a budget only deliberately, in the change that needs it.
 
 ### Development and production reconciler builds
 

@@ -30,6 +30,9 @@ export {
     scheduleTimeout,
 } from '../common/index.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 export interface RootErrorInfoLike
 {
     componentStack?: string | null;
@@ -106,7 +109,7 @@ export const STATIC_HOST_KEYS = Object.freeze({
 export function unsupportedFeature(adapterId: string, capability: string, feature: string): CompatibilityError
 {
     return new CompatibilityError(
-        `${feature} is not supported by the ${adapterId} renderer: the Pixi adapter provides no "${capability}" capability.`,
+        process.env.NODE_ENV !== 'production' ? `${feature} is not supported by the ${adapterId} renderer: the Pixi adapter provides no "${capability}" capability.` : '',
         { code: 'CAPABILITY_MISSING', adapterIds: [adapterId], capability, expected: { [capability]: 1 }, actual: { [capability]: null } },
     );
 }

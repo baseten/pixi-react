@@ -2,7 +2,7 @@
 import type { UnreachableKeys } from './audit.js';
 
 /** Persistent-mode view-transition clones, read since 0.32: unreachable in mutation mode. */
-export const PERSISTENT_VIEW_TRANSITION: UnreachableKeys = Object.freeze({
+export const PERSISTENT_VIEW_TRANSITION: UnreachableKeys = /* @__PURE__ */ Object.freeze({
     cloneMutableInstance: 'supportsPersistence is false',
     cloneMutableTextInstance: 'supportsPersistence is false',
     cloneRootViewTransitionContainer: 'supportsPersistence is false (persistent view transitions)',
@@ -11,13 +11,13 @@ export const PERSISTENT_VIEW_TRANSITION: UnreachableKeys = Object.freeze({
 });
 
 /** Gesture transitions: gated off in every audited stable bundle. */
-export const GESTURES: UnreachableKeys = Object.freeze({
+export const GESTURES: UnreachableKeys = /* @__PURE__ */ Object.freeze({
     getCurrentGestureOffset: 'gesture transitions are gated off in the stable bundle',
     startGestureTransition: 'gesture transitions are gated off in the stable bundle',
 });
 
 /** View-transition and fragment-instance keys 0.32/0.33 read but their stable bundles never call. */
-export const GATED_VIEW_TRANSITION: UnreachableKeys = Object.freeze({
+export const GATED_VIEW_TRANSITION: UnreachableKeys = /* @__PURE__ */ Object.freeze({
     cancelRootViewTransitionName: 'ViewTransition is gated off in the stable bundle',
     cancelViewTransitionName: 'ViewTransition is gated off in the stable bundle',
     hasInstanceAffectedParent: 'ViewTransition is gated off in the stable bundle',

@@ -24,6 +24,9 @@ import {
     PIXI8_TESTED_VERSIONS,
 } from './version.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 export { PIXI8_BINDING_EXPORTS };
 
 /** Everything the package exports at runtime, bound to one Pixi module. */
@@ -57,7 +60,7 @@ export function bindPixi(binding: PixiBinding): BoundExports
 
     if (typeof key !== 'function' || typeof binding.Application !== 'function')
     {
-        throw new TypeError(`bindPixi expects the pixi.js exports ${PIXI8_BINDING_EXPORTS.join(', ')}.`);
+        throw new TypeError(process.env.NODE_ENV !== 'production' ? `bindPixi expects the pixi.js exports ${PIXI8_BINDING_EXPORTS.join(', ')}.` : 'Invalid bindPixi() exports.');
     }
 
     let exports = bound.get(key);
@@ -68,7 +71,7 @@ export function bindPixi(binding: PixiBinding): BoundExports
 
         if (missing.length)
         {
-            throw new TypeError(`bindPixi expects the pixi.js exports ${PIXI8_BINDING_EXPORTS.join(', ')}; missing ${missing.join(', ')}.`);
+            throw new TypeError(process.env.NODE_ENV !== 'production' ? `bindPixi expects the pixi.js exports ${PIXI8_BINDING_EXPORTS.join(', ')}; missing ${missing.join(', ')}.` : `bindPixi() is missing ${missing.join(', ')}.`);
         }
 
         const pixi = Object.freeze(Object.fromEntries(PIXI8_BINDING_EXPORTS.map((name) => [name, binding[name]]))) as PixiBinding;

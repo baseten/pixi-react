@@ -1,4 +1,4 @@
-import { ADAPTER_ROLES, negotiate, type NegotiatedComposition, validateAdapterShape } from './abi.js';
+import { ADAPTER_ROLES, isRecord, negotiate, type NegotiatedComposition, validateAdapterShape } from './abi.js';
 import { CompatibilityError, CoreErrorCodes, TeardownError } from './errors.js';
 import { acquireLeases, assertNotLeased, type LeaseHolder, releaseLeases } from './lease.js';
 import { RuntimeRegistry } from './registry.js';
@@ -24,6 +24,9 @@ import type {
     RendererOptions,
 } from './types.js';
 
+/** Read as written, so a consumer's bundler drops development-only message text from production builds (issue 58). */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
 const SESSION_METHODS = [
     'init',
     'updateApplication',
@@ -42,11 +45,6 @@ const SESSION_METHODS = [
 let runtimeCount = 0;
 
 const noop = () => undefined;
-
-function isRecord(value: unknown): value is Record<string, unknown>
-{
-    return typeof value === 'object' && value !== null;
-}
 
 function defaultReport(error: unknown): void
 {
@@ -128,7 +126,7 @@ class ComposedRuntime<S extends PixiTypes> implements Runtime<S>
 
         if (!isRecord(target) || typeof (target as { nodeName?: unknown }).nodeName !== 'string')
         {
-            throw new TypeError('createRoot() expects an HTMLElement or HTMLCanvasElement target.');
+            throw new TypeError(process.env.NODE_ENV !== 'production' ? 'createRoot() expects an HTMLElement or HTMLCanvasElement target.' : 'Invalid createRoot() target.');
         }
 
         const existing = this.#byTarget.get(target);
@@ -279,7 +277,7 @@ class ComposedRuntime<S extends PixiTypes> implements Runtime<S>
     {
         if (this.#status !== 'active')
         {
-            throw new CompatibilityError(`Cannot ${operation}: ${this.#holder.description} is ${this.#status}.`, {
+            throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? `Cannot ${operation}: ${this.#holder.description} is ${this.#status}.` : '', {
                 code: 'ROOT_DISPOSED',
                 adapterIds: this.#internals?.adapterIds ?? [],
             });
@@ -300,9 +298,11 @@ class ComposedRuntime<S extends PixiTypes> implements Runtime<S>
             if (owner)
             {
                 throw new CompatibilityError(
-                    `Cannot create a root for this element: it contains a canvas owned by root ${owner.id} of this `
-                    + 'runtime, which replacing the element\'s children would detach. Unmount that root first, or render '
-                    + 'into a different element.',
+                    process.env.NODE_ENV !== 'production'
+                        ? (`Cannot create a root for this element: it contains a canvas owned by root ${owner.id} of this `
+                        + 'runtime, which replacing the element\'s children would detach. Unmount that root first, or render '
+                        + 'into a different element.')
+                        : '',
                     {
                         code: CoreErrorCodes.TARGET_LEASED,
                         adapterIds: this.#internals.adapterIds,
@@ -320,7 +320,7 @@ class ComposedRuntime<S extends PixiTypes> implements Runtime<S>
 
         if (!isRecord(session))
         {
-            throw new CompatibilityError(`Pixi adapter "${id}" returned no session from createSession().`, {
+            throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? `Pixi adapter "${id}" returned no session from createSession().` : '', {
                 code: 'ABI_MISMATCH',
                 adapterIds: [id],
             });
@@ -330,7 +330,7 @@ class ComposedRuntime<S extends PixiTypes> implements Runtime<S>
         {
             if (typeof session[method] !== 'function')
             {
-                throw new CompatibilityError(`The session of Pixi adapter "${id}" does not implement ${method}().`, {
+                throw new CompatibilityError(process.env.NODE_ENV !== 'production' ? `The session of Pixi adapter "${id}" does not implement ${method}().` : '', {
                     code: 'ABI_MISMATCH',
                     adapterIds: [id],
                     expected: { [method]: 'function' },
@@ -371,8 +371,10 @@ function validateOptions(options: RendererOptions, adapterIds: readonly string[]
     if (!REGISTRY_CONFLICT_POLICIES.includes(policy))
     {
         throw new CompatibilityError(
-            `Unknown registryConflict policy ${typeof policy === 'string' ? `"${policy}"` : String(policy)}: `
-            + 'expected \'reject\' or \'replace\'.',
+            process.env.NODE_ENV !== 'production'
+                ? (`Unknown registryConflict policy ${typeof policy === 'string' ? `"${policy}"` : String(policy)}: `
+                + 'expected \'reject\' or \'replace\'.')
+                : '',
             {
                 code: CoreErrorCodes.INVALID_OPTION,
                 adapterIds,
@@ -410,7 +412,7 @@ function checkEnvironment(adapter: { checkEnvironment?: unknown }, manifest: Ada
         }
 
         throw new CompatibilityError(
-            `Adapter "${manifest.id}" rejected the installed environment: ${error instanceof Error ? error.message : String(error)}`,
+            process.env.NODE_ENV !== 'production' ? `Adapter "${manifest.id}" rejected the installed environment: ${error instanceof Error ? error.message : String(error)}` : '',
             { code: 'UNSUPPORTED_TUPLE', adapterIds: [manifest.id], cause: error },
         );
     }
