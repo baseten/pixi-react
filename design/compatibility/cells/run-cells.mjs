@@ -30,7 +30,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { boundaryProbes, cellArtifacts, cellKey, classifyExpectedBlank, expectedBlankFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, validateAdapterMatrix } from './matrix.mjs';
+import { boundaryProbes, cellArtifacts, cellKey, classifyExpectedBlank, expectedBlankFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, applyTypeAssertions, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
 import { packArtifacts, readArtifacts } from './pack.mjs';
 import { runProbe } from './probes.mjs';
 
@@ -129,6 +129,9 @@ function selectedCells()
     return chosen;
 }
 
+/** Whether a React version predates `React.act` (React 18.3.0), so the harness lends it react-dom/test-utils' act. */
+const lendsAct = (version) => (/^18\.[0-2]\./).test(version);
+
 /** Everything the in-cell checks need, as data. */
 function cellConfig(cell, artifacts)
 {
@@ -170,6 +173,11 @@ function cellConfig(cell, artifacts)
         tree: { exact: tree.exact, absent: tree.absent, reconciler: tree.reconciler },
         // Data-only probes only: run the conformance suite past the adapters' environment checks (harness/test/binding.tsx).
         ...(cell.dataOnly ? { dataOnly: cell.dataOnly } : {}),
+        // React before 18.3 has no React.act; the conformance harness calls it. harness/test/lend-act.ts lends React the
+        // act of react-dom/test-utils, where React 18.0 to 18.2 export it. The adapters are untouched.
+        ...(lendsAct(cell.react.version) ? { lendAct: true } : {}),
+        // Declaration-consumer assertions this pixi.js version omits (typeAssertionsFor), each with its reason.
+        typeAssertions: typeAssertionsFor(seed, cell.pixi.adapterKey, cell.pixi.version),
         packed,
         adapters: {
             react: {
@@ -225,7 +233,14 @@ function writeProject(cell, dir, artifacts, config)
     };
     const roots = `roots.${cell.react.adapter.typeProbes[0]}.tsx`;
 
-    for (const name of readdirSync(join(dir, 'typecheck'))) substitute(join(dir, 'typecheck', name), { '%ROOTS_PROBE%': roots, '%PIXI_CONSUMER%': cell.pixi.adapter.typeConsumer });
+    for (const name of readdirSync(join(dir, 'typecheck')))
+    {
+        const file = join(dir, 'typecheck', name);
+
+        substitute(file, { '%ROOTS_PROBE%': roots, '%PIXI_CONSUMER%': cell.pixi.adapter.typeConsumer });
+        // Only the cell's own consumer is compiled; its version-dependent assertions follow the cell's pixi.js.
+        if (name === cell.pixi.adapter.typeConsumer) writeFileSync(file, applyTypeAssertions(readFileSync(file, 'utf8'), config.typeAssertions));
+    }
     cpSync(join(dir, 'typecheck', 'adapter.ts'), join(dir, 'test', 'adapter.ts'));
     cpSync(join(root, cell.pixi.adapter.probeSource), join(dir, 'test', 'pixiProbe.ts'));
 }

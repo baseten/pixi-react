@@ -2,7 +2,9 @@
  * Compile-only declaration consumer for the Pixi 7 adapter, typechecked against the cell's own @types/react, pixi.js 7
  * and the PACKED adapters' published declarations (ESM `import` condition, Bundler resolution). Never executed. The
  * factory must infer the Pixi 7 types through the React bindings from the adapter instances alone, and Pixi 8-only
- * props, options and callback signatures must be rejected.
+ * props, options and callback signatures must be rejected. A `compat:begin <id>` … `compat:end <id>` block holds
+ * assertions that hold only from some pixi.js version on (adapterMatrix `typeAssertions`): the runner keeps it from that
+ * version on and replaces it below with a comment naming the assertion and why.
  */
 import { type Application as PixiApplication, type Container, Graphics, Sprite, Texture, type Ticker } from 'pixi.js';
 import { createRef } from 'react';
@@ -42,10 +44,12 @@ export function probe()
             <>
                 <SpriteComponent ref={spriteRef} texture={Texture.EMPTY} x={1} name="sprite" eventMode="static" />
                 <GraphicsComponent draw={(graphics) => graphics.beginFill(0xff0000).drawRect(0, 0, 1, 1).endFill()} />
+                {/* compat:begin pixi8-names-rejected */}
                 {/* @ts-expect-error `label` is Pixi 8's name for Pixi 7's `name` */}
                 <SpriteComponent label="sprite" />
                 {/* @ts-expect-error Pixi 7 Graphics take a GraphicsGeometry, not Pixi 8's GraphicsContext `context` */}
                 <GraphicsComponent context={{}} />
+                {/* compat:end pixi8-names-rejected */}
             </>
         );
     };

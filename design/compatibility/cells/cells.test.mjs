@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { cellKey, expectedBlankFor, gpuProfileOf, loadSeed, negativeCells, platformCommand, renderCompatibilityDoc, renderTable, selectCells, validateAdapterMatrix } from './matrix.mjs';
+import { applyTypeAssertions, cellKey, expectedBlankFor, gpuProfileOf, loadSeed, negativeCells, platformCommand, renderCompatibilityDoc, renderTable, selectCells, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
 import { entryClosure, extractTarball } from './pack.mjs';
 import { compareWithEvidence } from './probes.mjs';
 
@@ -17,7 +17,7 @@ const evidence = JSON.parse(readFileSync(join(here, '../evidence.json'), 'utf8')
 
 test('the adapterMatrix section validates against the rest of the seed', () => validateAdapterMatrix(seed));
 
-test('PR tier: every React epoch at its latest patch against Pixi 8.2.6 and 8.22.0, plus two Pixi 7 cells', () =>
+test('PR tier: React 18.3 and every React 19 epoch at its latest patch against Pixi 8.2.6 and 8.22.0, React 18.0 at 8.2.6, plus two Pixi 7 cells', () =>
 {
     const ids = selectCells(seed, 'pr').map((cell) => cell.id);
 
@@ -27,8 +27,10 @@ test('PR tier: every React epoch at its latest patch against Pixi 8.2.6 and 8.22
         'react-19.1.9_pixi-8.2.6', 'react-19.1.9_pixi-8.22.0',
         'react-19.2.8_pixi-8.2.6', 'react-19.2.8_pixi-8.22.0',
         'react-19.3.0_pixi-8.2.6', 'react-19.3.0_pixi-8.22.0',
-        // Pixi 7 (issue 16): React 18 at the Pixi 7 minimum and React 19.3 at the current Pixi 7; the rest is nightly.
-        'react-18.3.1_pixi-7.4.2', 'react-19.3.0_pixi-7.4.3',
+        // The lowest React 18 minor at the Pixi 8 minimum; React 18.1 and 18.2 run nightly.
+        'react-18.0.0_pixi-8.2.6',
+        // Pixi 7 (issue 16): React 18.0 at the Pixi 7 minimum (7.2.0) and React 19.3 at the current Pixi 7; the rest is nightly.
+        'react-18.0.0_pixi-7.2.0', 'react-19.3.0_pixi-7.4.3',
     ].sort());
     for (const cell of selectCells(seed, 'pr')) assert.equal(cell.pixi.adapter.id, cell.pixi.version.startsWith('7.') ? 'pixi-7' : 'pixi-8', cell.id);
 });
@@ -38,7 +40,7 @@ test('PR tier: a non-default Pixi adapter may add at most two cells', () =>
     const widened = structuredClone(seed);
 
     widened.adapterMatrix.tiers.pr.pixiAdapters.pixi7 = { react: { epochs: 'all', patch: 'latest' }, pixi: { versions: ['minimum'] } };
-    assert.throws(() => validateAdapterMatrix(widened), /pixi7 adds 5 cells; at most 2/);
+    assert.throws(() => validateAdapterMatrix(widened), /pixi7 adds 8 cells; at most 2/);
 });
 
 test('nightly tier is the full cross-product, generated from the seed', () =>
@@ -47,13 +49,14 @@ test('nightly tier is the full cross-product, generated from the seed', () =>
     const pixi = new Set(nightly.map((cell) => cell.pixi.version));
     const react = new Set(nightly.map((cell) => cell.react.version));
 
-    assert.equal(react.size, 5);
-    assert.equal(pixi.size, 21 + 2, 'Pixi 8.2 through 8.22, one latest audited patch per minor, and Pixi 7.4.2 and 7.4.3');
+    assert.equal(react.size, 8, 'React 18.0, 18.1, 18.2, 18.3 and 19.0 to 19.3');
+    assert.equal(pixi.size, 21 + 6, 'Pixi 8.2 through 8.22, one latest audited patch per minor, and every audited Pixi 7 release in range');
     assert.equal(nightly.length, react.size * pixi.size);
     assert.ok(!pixi.has('8.5.0'), 'the excluded 8.5.0 is never selected');
     assert.ok(pixi.has('8.5.2'));
-    assert.ok(pixi.has('7.4.2') && pixi.has('7.4.3'));
-    assert.equal(selectCells(seed, 'nightly', { patches: 'all' }).length, 8 * (21 + 2), 'minimum and latest React patches');
+    assert.deepEqual([...pixi].filter((version) => version.startsWith('7.')).sort(), ['7.2.0', '7.2.4', '7.3.0', '7.3.3', '7.4.2', '7.4.3']);
+    // React 18.0, 18.1, 18.2 and 19.3 have one audited patch each; 18.3 (18.3.1) too; 19.0 to 19.2 two.
+    assert.equal(selectCells(seed, 'nightly', { patches: 'all' }).length, 11 * (21 + 6), 'minimum and latest React patches');
 });
 
 test('every cell pins exact versions taken from an audited tuple', () =>
@@ -111,7 +114,10 @@ function artifactsWith(overrides = {})
         core: { hash: 'core', entries: {} },
         renderer: { hash: 'renderer', entries: {} },
         conformance: { hash: 'conformance', entries: {} },
-        'react-18': { hash: 'r18', entries: entries('.') },
+        'react-18.0': { hash: 'r180', entries: entries('.') },
+        'react-18.1': { hash: 'r181', entries: entries('.') },
+        'react-18.2': { hash: 'r182', entries: entries('.') },
+        'react-18.3': { hash: 'r183', entries: entries('.') },
         'react-19.0': { hash: 'r190', entries: entries('.') },
         'react-19.1': { hash: 'r191', entries: entries('.') },
         'react-19.2': { hash: 'r192', entries: entries('.') },
@@ -140,12 +146,13 @@ test('cache keys: shared artifacts, versions and the harness invalidate every ce
 {
     const before = keys(artifactsWith());
 
-    assert.equal(changed(before, keys(artifactsWith({ core: { hash: 'core2' } }))).length, 12);
-    assert.equal(changed(before, keys(artifactsWith({ conformance: { hash: 'c2' } }))).length, 12);
-    assert.equal(changed(before, keys(artifactsWith(), 'harness2')).length, 12);
-    assert.deepEqual(changed(before, keys(artifactsWith({ 'pixi-8': { hash: 'p8-2' } }))).length, 10);
-    assert.deepEqual(changed(before, keys(artifactsWith({ 'pixi-7': { hash: 'p7-2' } }))), ['react-18.3.1_pixi-7.4.2', 'react-19.3.0_pixi-7.4.3']);
-    assert.deepEqual(changed(before, keys(artifactsWith({ 'react-18': { hash: 'x', entries: { '.': { hash: 'entry:.:2', files: [] } } } }))), ['react-18.3.1_pixi-7.4.2', 'react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
+    assert.equal(changed(before, keys(artifactsWith({ core: { hash: 'core2' } }))).length, 13);
+    assert.equal(changed(before, keys(artifactsWith({ conformance: { hash: 'c2' } }))).length, 13);
+    assert.equal(changed(before, keys(artifactsWith(), 'harness2')).length, 13);
+    assert.deepEqual(changed(before, keys(artifactsWith({ 'pixi-8': { hash: 'p8-2' } }))).length, 11);
+    assert.deepEqual(changed(before, keys(artifactsWith({ 'pixi-7': { hash: 'p7-2' } }))), ['react-18.0.0_pixi-7.2.0', 'react-19.3.0_pixi-7.4.3']);
+    assert.deepEqual(changed(before, keys(artifactsWith({ 'react-18.3': { hash: 'x', entries: { '.': { hash: 'entry:.:2', files: [] } } } }))), ['react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
+    assert.deepEqual(changed(before, keys(artifactsWith({ 'react-18.0': { hash: 'x', entries: { '.': { hash: 'entry:.:2', files: [] } } } }))), ['react-18.0.0_pixi-7.2.0', 'react-18.0.0_pixi-8.2.6'].sort());
 });
 
 test('cache keys: a dependency version changes the key', () =>
@@ -271,11 +278,11 @@ test('cache keys: a manifest expectation change invalidates the affected cells',
 
     assert.deepEqual(changed(before, keyed((m) => { m.reactAdapters.react190.expectedConformanceFailures = []; })),
         ['react-19.0.8_pixi-8.22.0', 'react-19.0.8_pixi-8.2.6'].sort());
-    assert.deepEqual(changed(before, keyed((m) => { m.reactAdapters.react18.declaredPeers = { react: '18.3.2' }; })),
-        ['react-18.3.1_pixi-7.4.2', 'react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
-    assert.equal(changed(before, keyed((m) => { m.pixiAdapters.pixi8.declaredPeers = { 'pixi.js': '>=8.2.6' }; })).length, 10);
+    assert.deepEqual(changed(before, keyed((m) => { m.reactAdapters.react183.declaredPeers = { react: '18.3.2' }; })),
+        ['react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
+    assert.equal(changed(before, keyed((m) => { m.pixiAdapters.pixi8.declaredPeers = { 'pixi.js': '>=8.2.6' }; })).length, 11);
     assert.deepEqual(changed(before, keyed((m) => { m.pixiAdapters.pixi7.conformanceCapabilities = ['pixi.graphics-context']; })),
-        ['react-18.3.1_pixi-7.4.2', 'react-19.3.0_pixi-7.4.3']);
+        ['react-18.0.0_pixi-7.2.0', 'react-19.3.0_pixi-7.4.3']);
 });
 
 test('cache keys: the generated effective configuration is part of the key', () =>
@@ -340,4 +347,22 @@ test('tarballs extract without a tar binary, stripping the package/ prefix', (t)
     extractTarball(join(root, 'x.tgz'), join(root, 'out'));
     assert.equal(readFileSync(join(root, 'out', 'package.json'), 'utf8'), '{"name":"x"}');
     assert.equal(readFileSync(join(root, 'out', 'dist', 'deep', `${'long-name-'.repeat(12)}.js`), 'utf8'), 'export {};\n');
+});
+
+test('version-dependent type assertions: kept from their version on, omitted below it with the reason, never silently', () =>
+{
+    const consumer = readFileSync(join(here, 'harness/typecheck/consumer.pixi7.tsx'), 'utf8');
+    const at = (version) => applyTypeAssertions(consumer, typeAssertionsFor(seed, 'pixi7', version));
+
+    assert.deepEqual(typeAssertionsFor(seed, 'pixi7', '7.2.4').omitted.map(({ id }) => id), ['pixi8-names-rejected']);
+    assert.deepEqual(typeAssertionsFor(seed, 'pixi7', '7.3.0'), { kept: ['pixi8-names-rejected'], omitted: [] });
+    // 7.3+ keeps both @ts-expect-error assertions and drops only the markers.
+    assert.equal((at('7.4.3').match(/@ts-expect-error `label`|@ts-expect-error Pixi 7 Graphics/g) ?? []).length, 2);
+    assert.doesNotMatch(at('7.4.3'), /compat:(begin|end) pixi8-names-rejected/);
+    // 7.2 omits them and says so in the generated consumer.
+    assert.ok(!at('7.2.0').includes('<SpriteComponent label="sprite" />'));
+    assert.match(at('7.2.0'), /type assertion pixi8-names-rejected omitted below pixi\.js 7\.3\.0: pixi\.js 7\.2's declarations import/);
+    // Every other assertion stays.
+    assert.ok(at('7.2.0').includes('@ts-expect-error `preference` is a Pixi 8 renderer option'));
+    assert.throws(() => applyTypeAssertions('{/* compat:begin unknown */}\nx\n{/* compat:end unknown */}\n', { kept: [], omitted: [] }), /not an adapterMatrix typeAssertions entry/);
 });

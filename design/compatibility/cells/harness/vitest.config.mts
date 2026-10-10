@@ -23,12 +23,12 @@ export default defineConfig({
         esbuildOptions: { jsx: 'automatic' },
         // The packed adapters ship one CJS implementation behind an ESM wrapper (D6): pre-bundle them, with React and
         // Pixi, so the browser loads one instance of each.
-        include: [...cell.optimizeDeps, 'react', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom', 'react-dom/client', ...(cell.dataOnly ? ['react-dom/test-utils'] : [])],
+        include: [...cell.optimizeDeps, 'react', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom', 'react-dom/client', ...(cell.lendAct ? ['react-dom/test-utils'] : [])],
     },
     test: {
         include: ['test/**/*.test.tsx'],
-        // Data-only probes (never verification cells) also lend React < 18.3 the `act` the suite calls.
-        setupFiles: [...(cell.dataOnly ? ['test/data-only.ts'] : []), 'test/renderer.ts'],
+        // React before 18.3 (cell.json lendAct) is lent the `act` of react-dom/test-utils, which the suite calls.
+        setupFiles: [...(cell.lendAct ? ['test/lend-act.ts'] : []), 'test/renderer.ts'],
         testTimeout: 15_000,
         browser: { enabled: true, name: 'chromium', provider: 'playwright', headless: cell.gpuProfile?.headless ?? true, providerOptions: { launch: { args: backend.chromiumArgs } } },
     },

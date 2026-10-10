@@ -4,20 +4,21 @@
 
 This is the list of compatibility cells CI runs (issue 13). The PR-tier cells make a version **tested**; a tuple is **verified** on a render backend when its nightly cell passed on that backend in a dated [verification record](../verification/) whose boundary probes and incompatible pairs all behaved as expected (`verifiedRanges` in seed.json, derived from the records). The records so far ran on software rendering (SwiftShader WebGL, the WebGPU fallback adapter; no GPU); a real-GPU run can be added as extra evidence. Verification is evidence, not a support guarantee. Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js. Results are published by the Compatibility workflows (job summary and the `compatibility-table` artifact).
 
-Required PR check: **Compatibility (required)**. Nightly: **Compatibility (nightly)**, 115 cells (184 with minimum and latest React patches).
+Required PR check: **Compatibility (required)**. Nightly: **Compatibility (nightly)**, 216 cells (297 with minimum and latest React patches).
 
 Render backends, each checked separately: PR tier webgl; nightly webgl, webgpu. `pixi-8`: webgl, webgpu; `pixi-7`: webgl.
 
 GPU profiles (`--gpu`): **software** (default, what CI runs): Software rendering, no GPU: WebGL is ANGLE on SwiftShader, WebGPU is Dawn on SwiftShader's Vulkan device, which Chromium exposes only as a fallback adapter (isFallbackAdapter true), as in the examples WebGPU smoke test. What CI runs, and what the 2026-10-10 record ran on. **hardware**: A real GPU through the platform's default path (Metal on macOS, Direct3D on Windows): no SwiftShader or fallback flags, in a headed browser. The render check fails when a run lands on a software renderer or a fallback adapter. For contributors' machines; CI has no GPU.
 
-Pixi adapters: `pixi-8` for the pixi.js 8.2.6 … 8.22.0 columns (10 PR-tier cells); `pixi-7` for the pixi.js 7.4.2 … 7.4.3 columns (2 PR-tier cells). A column's pixi.js major selects the adapter.
+Pixi adapters: `pixi-8` for the pixi.js 8.2.6 … 8.22.0 columns (11 PR-tier cells); `pixi-7` for the pixi.js 7.2.0 … 7.4.3 columns (2 PR-tier cells). A column's pixi.js major selects the adapter.
 
-## PR tier (12 cells)
+## PR tier (13 cells)
 
 
-| React adapter @ React | pixi.js 7.4.2 | pixi.js 7.4.3 | pixi.js 8.2.6 | pixi.js 8.22.0 |
+| React adapter @ React | pixi.js 7.2.0 | pixi.js 7.4.3 | pixi.js 8.2.6 | pixi.js 8.22.0 |
 | --- | --- | --- | --- | --- |
-| react-18 @ 18.3.1 | cell | - | cell | cell |
+| react-18.0 @ 18.0.0 | cell | - | cell | - |
+| react-18.3 @ 18.3.1 | - | - | cell | cell |
 | react-19.0 @ 19.0.8 | - | - | cell | cell |
 | react-19.1 @ 19.1.9 | - | - | cell | cell |
 | react-19.2 @ 19.2.8 | - | - | cell | cell |
@@ -36,19 +37,22 @@ Pixi adapters: `pixi-8` for the pixi.js 8.2.6 … 8.22.0 columns (10 PR-tier cel
 | pixi-8.10.0 | 8.10 removeParticles end-index semantics |
 | pixi-8.22.0 | 8.22 current |
 
-## Nightly tier (115 cells)
+## Nightly tier (216 cells)
 
 
-| React adapter @ React | pixi.js 7.4.2 | pixi.js 7.4.3 | pixi.js 8.2.6 | pixi.js 8.3.4 | pixi.js 8.4.1 | pixi.js 8.5.2 | pixi.js 8.6.6 | pixi.js 8.7.3 | pixi.js 8.8.1 | pixi.js 8.9.2 | pixi.js 8.10.2 | pixi.js 8.11.0 | pixi.js 8.12.0 | pixi.js 8.13.2 | pixi.js 8.14.3 | pixi.js 8.15.0 | pixi.js 8.16.0 | pixi.js 8.17.1 | pixi.js 8.18.1 | pixi.js 8.19.0 | pixi.js 8.20.1 | pixi.js 8.21.0 | pixi.js 8.22.0 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| react-18 @ 18.3.1 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
-| react-19.0 @ 19.0.8 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
-| react-19.1 @ 19.1.9 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
-| react-19.2 @ 19.2.8 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
-| react-19.3 @ 19.3.0 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| React adapter @ React | pixi.js 7.2.0 | pixi.js 7.2.4 | pixi.js 7.3.0 | pixi.js 7.3.3 | pixi.js 7.4.2 | pixi.js 7.4.3 | pixi.js 8.2.6 | pixi.js 8.3.4 | pixi.js 8.4.1 | pixi.js 8.5.2 | pixi.js 8.6.6 | pixi.js 8.7.3 | pixi.js 8.8.1 | pixi.js 8.9.2 | pixi.js 8.10.2 | pixi.js 8.11.0 | pixi.js 8.12.0 | pixi.js 8.13.2 | pixi.js 8.14.3 | pixi.js 8.15.0 | pixi.js 8.16.0 | pixi.js 8.17.1 | pixi.js 8.18.1 | pixi.js 8.19.0 | pixi.js 8.20.1 | pixi.js 8.21.0 | pixi.js 8.22.0 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| react-18.0 @ 18.0.0 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-18.1 @ 18.1.0 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-18.2 @ 18.2.0 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-18.3 @ 18.3.1 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-19.0 @ 19.0.8 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-19.1 @ 19.1.9 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-19.2 @ 19.2.8 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
+| react-19.3 @ 19.3.0 | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell | cell |
 
 
-Nightly also re-runs all 44 audited tuples as boundary probes.
+Nightly also re-runs all 51 audited tuples as boundary probes.
 
 ## Expected blank renders (unverified)
 
@@ -63,7 +67,8 @@ Backend runs whose render check is known to show a blank canvas under one GPU pr
 | Case | Fails at | Expected message contains |
 | --- | --- | --- |
 | react-adapter-beside-wrong-minor: The React 19.3 adapter installed beside React 19.1.9 by a consumer that ignores peers (--legacy-peer-deps): its exact peer (19.3.0) would refuse the install, so this checks that the adapter's own environment check still rejects the wrong minor and names the per-minor package to install. | modules | `UNSUPPORTED_TUPLE`, `supports React 19.3.x`, `React 19.1.9 is installed`, `@pixi-react-provisional/react-19.1` |
-| react-18-adapter-beside-react-19: The React 18 adapter installed beside React 19.3.0: the strict peer check must refuse the install. | install | `ERESOLVE`, `react@"18.3.1"` |
+| react-18-adapter-beside-react-19: The React 18.3 adapter installed beside React 19.3.0: the strict peer check must refuse the install. | install | `ERESOLVE`, `react@"18.3.1"` |
+| react-18-minor-adapter-beside-another-minor: The React 18.0 adapter installed beside React 18.3.1 by a consumer that ignores peers (--legacy-peer-deps): its exact peer (18.0.0) would refuse the install, so this checks that the adapter's own environment check still rejects the other React 18 minor and names the per-minor package to install. | modules | `UNSUPPORTED_TUPLE`, `supports React 18.0.x`, `React 18.3.1 is installed`, `@pixi-react-provisional/react-18.3` |
 | pixi-peer-range-excludes-8.5.0: The Pixi 8 adapter beside the excluded pixi.js 8.5.0: the strict peer check refuses the install. | install | `ERESOLVE`, `peer pixi.js` |
 | pixi-adapter-rejects-8.5.0-when-peers-ignored: The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the adapter's own environment check must still reject pixi.js 8.5.0. | modules | `UNSUPPORTED_TUPLE`, `8.5.0` |
 | pixi-7-adapter-beside-pixi-8: The Pixi 7 adapter installed beside pixi.js 8.22.0: the strict peer check must refuse the install. | install | `ERESOLVE`, `peer pixi.js` |

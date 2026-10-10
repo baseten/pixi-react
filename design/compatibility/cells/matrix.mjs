@@ -86,6 +86,39 @@ export function pixiMinors(seed, adapterKey)
         .sort((a, b) => compareVersions(`${a.minor}.0`, `${b.minor}.0`));
 }
 
+/**
+ * The version-dependent type assertions of a Pixi adapter's declaration consumer at one pixi.js version: each
+ * `typeAssertions` entry (marked `compat:begin <id>` … `compat:end <id>` in the consumer) is kept from its `from`
+ * version on and omitted below it, with the reason recorded in the cell configuration. Never silently.
+ */
+export function typeAssertionsFor(seed, adapterKey, version)
+{
+    const entries = Object.entries(seed.adapterMatrix.pixiAdapters[adapterKey].typeAssertions ?? {});
+
+    return {
+        kept: entries.filter(([, assertion]) => compareVersions(version, assertion.from) >= 0).map(([id]) => id),
+        omitted: entries.filter(([, assertion]) => compareVersions(version, assertion.from) < 0).map(([id, assertion]) => ({ id, from: assertion.from, reason: assertion.reason })),
+    };
+}
+
+/**
+ * Removes the `compat:begin <id>` … `compat:end <id>` blocks of the type assertions this cell omits from a consumer
+ * file, leaving a comment that names the assertion and why; keeps (and unmarks) the others. A marker of an assertion
+ * the manifest does not declare fails the cell.
+ */
+export function applyTypeAssertions(text, { kept, omitted })
+{
+    const known = new Set([...kept, ...omitted.map(({ id }) => id)]);
+
+    return text.replace(/^([ \t]*)\{?\/\*\s*compat:begin ([a-z0-9-]+)\s*\*\/\}?\n([\s\S]*?)^[ \t]*\{?\/\*\s*compat:end \2\s*\*\/\}?\n/gm, (_match, indent, id, body) =>
+    {
+        assert.ok(known.has(id), `consumer marker compat:begin ${id} is not an adapterMatrix typeAssertions entry`);
+        const skipped = omitted.find((entry) => entry.id === id);
+
+        return skipped ? `${indent}{/* type assertion ${id} omitted below pixi.js ${skipped.from}: ${skipped.reason.replaceAll('*/', '* /')} */}\n` : body;
+    });
+}
+
 /** Capability IDs the Pixi adapter must provide at `version`, from the seed's capability boundaries. */
 export function expectedPixiProvides(seed, adapterKey, version)
 {
@@ -221,9 +254,20 @@ function pixiRoles(seed, adapterKey)
     return { minimum: epoch.minimum, current: epoch.current };
 }
 
+/**
+ * Every audited pixi.js version of an adapter's epoch between its minimum and current that the adapter does not exclude,
+ * oldest first (`versions: "all-audited"`; the Pixi 7 adapter's nightly columns: the lowest and highest audited patch
+ * of each minor).
+ */
+export function pixiAudited(seed, adapterKey)
+{
+    return pixiMinors(seed, adapterKey).flatMap(({ minimum, latest }) => [...new Set([minimum.version, latest.version])]);
+}
+
 function pixiSelections(seed, adapterKey, selection)
 {
     if (selection.versions === 'all-minors') return pixiMinors(seed, adapterKey).map(({ latest }) => ({ adapter: adapterKey, version: latest.version, roles: [] }));
+    if (selection.versions === 'all-audited') return pixiAudited(seed, adapterKey).map((version) => ({ adapter: adapterKey, version, roles: [] }));
     const roles = pixiRoles(seed, adapterKey);
 
     return selection.versions.map((name) => ({ adapter: adapterKey, version: roles[name], roles: [name] }));
@@ -231,31 +275,31 @@ function pixiSelections(seed, adapterKey, selection)
 
 /**
  * The (React, Pixi) selections of a tier. The tier's top-level `react` and `pixi` form a cross product with the default
- * Pixi adapter. Each entry of `pixiAdapters` adds cells for another Pixi adapter: either a cross product of its own
- * `react` and `pixi` selections, or explicit `pairs` of a React epoch (at its latest patch) and a Pixi role.
+ * Pixi adapter, and its optional `pairs` add explicit cells with it. Each entry of `pixiAdapters` adds cells for another
+ * Pixi adapter: either a cross product of its own `react` and `pixi` selections, or explicit `pairs`. A pair is a React
+ * epoch (at its latest patch) and a Pixi role (`minimum` or `current`).
  */
 function tierSelections(seed, tier, patches)
 {
     const config = seed.adapterMatrix.tiers[tier];
     const product = (adapterKey, selection) => pixiSelections(seed, adapterKey, selection.pixi)
         .flatMap((pixi) => reactCells(seed, selection.react, patches).map((react) => ({ react, pixi })));
-    const selections = product(defaultPixiAdapter(seed), config);
-
-    for (const [adapterKey, extra] of Object.entries(config.pixiAdapters ?? {}))
+    const paired = (adapterKey, pairs) =>
     {
-        if (!extra.pairs)
-        {
-            selections.push(...product(adapterKey, extra));
-            continue;
-        }
         const roles = pixiRoles(seed, adapterKey);
 
-        for (const pair of extra.pairs)
+        return pairs.map((pair) =>
         {
             const { latest } = reactVersions(seed, pair.react);
 
-            selections.push({ react: { epoch: pair.react, version: latest.version, patch: 'latest' }, pixi: { adapter: adapterKey, version: roles[pair.pixi], roles: [pair.pixi] } });
-        }
+            return { react: { epoch: pair.react, version: latest.version, patch: 'latest' }, pixi: { adapter: adapterKey, version: roles[pair.pixi], roles: [pair.pixi] } };
+        });
+    };
+    const selections = [...product(defaultPixiAdapter(seed), config), ...paired(defaultPixiAdapter(seed), config.pairs ?? [])];
+
+    for (const [adapterKey, extra] of Object.entries(config.pixiAdapters ?? {}))
+    {
+        selections.push(...(extra.pairs ? paired(adapterKey, extra.pairs) : product(adapterKey, extra)));
     }
 
     return selections;
@@ -379,6 +423,14 @@ export function validateAdapterMatrix(seed)
         assert.ok(adapter.renderers?.webgl, `${key}: renderers.webgl`);
         for (const [name, backend] of Object.entries(adapter.renderers)) assert.ok(backends.includes(name) && backend.appOptions && typeof backend.appOptions === 'object', `${key}: renderers.${name}`);
         assert.match(adapter.typeConsumer, /^consumer\.[\w-]+\.tsx$/, `${key}: typeConsumer (a harness/typecheck file; cells.test.mjs checks it exists)`);
+        // A type assertion that holds only from some pixi.js version on names that version and why (typeAssertionsFor).
+        for (const [id, assertion] of Object.entries(adapter.typeAssertions ?? {}))
+        {
+            assert.match(id, /^[a-z0-9-]+$/, `${key}: typeAssertions id ${id}`);
+            assert.match(assertion.from ?? '', /^\d+\.\d+\.\d+$/, `${key}: typeAssertions.${id}.from`);
+            assert.ok(typeof assertion.reason === 'string' && assertion.reason.length >= 20, `${key}: typeAssertions.${id}.reason`);
+        }
+        for (const version of adapter.excludedVersions) assert.match(version, /^\d+\.\d+\.\d+$/, `${key}: excludedVersions`);
     }
 
     const probeIds = new Set(seed.probes.map((tuple) => tuple.id));
@@ -387,6 +439,11 @@ export function validateAdapterMatrix(seed)
     {
         const { boundaryProbes: selection } = matrix.tiers[tier];
 
+        for (const pair of matrix.tiers[tier].pairs ?? [])
+        {
+            assert.ok(matrix.reactAdapters[pair.react], `${tier}: pairs: unknown React epoch ${pair.react}`);
+            assert.ok(['minimum', 'current'].includes(pair.pixi), `${tier}: pairs: pixi must be minimum or current`);
+        }
         for (const [key, extra] of Object.entries(matrix.tiers[tier].pixiAdapters ?? {}))
         {
             assert.ok(matrix.pixiAdapters[key] && key !== matrix.defaultPixiAdapter, `${tier}: pixiAdapters.${key} must be another Pixi adapter`);

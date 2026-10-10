@@ -5,7 +5,11 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const cell = JSON.parse(readFileSync('cell.json', 'utf8'));
 const problems = [];
-const ls = spawnSync('npm', ['ls', '--all', '--json'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+// npm is a .cmd shim on Windows, which Node runs only through a shell (the arguments need no quoting).
+const windows = process.platform === 'win32';
+const ls = spawnSync(windows ? 'npm.cmd' : 'npm', ['ls', '--all', '--json'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, shell: windows });
+
+if (ls.error) throw ls.error;
 
 writeFileSync('npm-ls.json', ls.stdout);
 const tree = JSON.parse(ls.stdout || '{}');

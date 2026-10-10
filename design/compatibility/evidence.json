@@ -11,6 +11,787 @@
   ],
   "results": [
     {
+      "id": "react-18.0.0",
+      "packages": {
+        "react": "18.0.0",
+        "react-reconciler": "0.27.0",
+        "@types/react": "18.3.31",
+        "its-fine": "1.2.5",
+        "typescript": "5.6.3"
+      },
+      "certification": "not-certified",
+      "installExit": 0,
+      "runtimeExit": 0,
+      "typeExit": 0,
+      "observation": {
+        "react": "18.0.0-fc46dba67-20220329",
+        "reconciler": "0.27.0",
+        "peers": {
+          "react": "^18.0.0"
+        },
+        "hostKeys": [
+          "afterActiveInstanceBlur",
+          "appendChild",
+          "appendChildToContainer",
+          "appendChildToContainerChildSet",
+          "appendInitialChild",
+          "beforeActiveInstanceBlur",
+          "canHydrateInstance",
+          "canHydrateSuspenseInstance",
+          "canHydrateTextInstance",
+          "cancelTimeout",
+          "clearContainer",
+          "clearSuspenseBoundary",
+          "clearSuspenseBoundaryFromContainer",
+          "cloneHiddenInstance",
+          "cloneHiddenTextInstance",
+          "cloneInstance",
+          "commitHydratedContainer",
+          "commitHydratedSuspenseInstance",
+          "commitMount",
+          "commitTextUpdate",
+          "commitUpdate",
+          "createContainerChildSet",
+          "createInstance",
+          "createTextInstance",
+          "detachDeletedInstance",
+          "didNotFindHydratableInstance",
+          "didNotFindHydratableInstanceWithinContainer",
+          "didNotFindHydratableInstanceWithinSuspenseInstance",
+          "didNotFindHydratableSuspenseInstance",
+          "didNotFindHydratableSuspenseInstanceWithinContainer",
+          "didNotFindHydratableSuspenseInstanceWithinSuspenseInstance",
+          "didNotFindHydratableTextInstance",
+          "didNotFindHydratableTextInstanceWithinContainer",
+          "didNotFindHydratableTextInstanceWithinSuspenseInstance",
+          "didNotHydrateInstance",
+          "didNotHydrateInstanceWithinContainer",
+          "didNotHydrateInstanceWithinSuspenseInstance",
+          "didNotMatchHydratedContainerTextInstance",
+          "didNotMatchHydratedTextInstance",
+          "errorHydratingContainer",
+          "finalizeContainerChildren",
+          "finalizeInitialChildren",
+          "findFiberRoot",
+          "getBoundingRect",
+          "getChildHostContext",
+          "getCurrentEventPriority",
+          "getFirstHydratableChild",
+          "getFirstHydratableChildWithinContainer",
+          "getFirstHydratableChildWithinSuspenseInstance",
+          "getInstanceFromNode",
+          "getInstanceFromScope",
+          "getNextHydratableInstanceAfterSuspenseInstance",
+          "getNextHydratableSibling",
+          "getOffscreenContainerProps",
+          "getOffscreenContainerType",
+          "getPublicInstance",
+          "getRootHostContext",
+          "getTextContent",
+          "hideInstance",
+          "hideTextInstance",
+          "hydrateInstance",
+          "hydrateSuspenseInstance",
+          "hydrateTextInstance",
+          "insertBefore",
+          "insertInContainerBefore",
+          "isHiddenSubtree",
+          "isPrimaryRenderer",
+          "isSuspenseInstanceFallback",
+          "isSuspenseInstancePending",
+          "matchAccessibilityRole",
+          "noTimeout",
+          "now",
+          "prepareForCommit",
+          "preparePortalMount",
+          "prepareUpdate",
+          "registerSuspenseInstanceRetry",
+          "removeChild",
+          "removeChildFromContainer",
+          "replaceContainerChildren",
+          "resetAfterCommit",
+          "resetTextContent",
+          "scheduleMicrotask",
+          "scheduleTimeout",
+          "setFocusIfFocusable",
+          "setupIntersectionObserver",
+          "shouldDeleteUnhydratedTailInstances",
+          "shouldSetTextContent",
+          "supportsHydration",
+          "supportsMicrotasks",
+          "supportsMutation",
+          "supportsPersistence",
+          "supportsTestSelectors",
+          "unhideInstance",
+          "unhideTextInstance",
+          "warnsIfNotActing"
+        ],
+        "exports": [
+          "attemptContinuousHydration",
+          "attemptHydrationAtCurrentPriority",
+          "attemptSynchronousHydration",
+          "batchedUpdates",
+          "createComponentSelector",
+          "createContainer",
+          "createHasPseudoClassSelector",
+          "createHydrationContainer",
+          "createPortal",
+          "createRoleSelector",
+          "createTestNameSelector",
+          "createTextSelector",
+          "deferredUpdates",
+          "discreteUpdates",
+          "findAllNodes",
+          "findBoundingRects",
+          "findHostInstance",
+          "findHostInstanceWithNoPortals",
+          "findHostInstanceWithWarning",
+          "flushControlled",
+          "flushPassiveEffects",
+          "flushSync",
+          "focusWithin",
+          "getCurrentUpdatePriority",
+          "getFindAllNodesFailureDescription",
+          "getPublicRootInstance",
+          "injectIntoDevTools",
+          "isAlreadyRendering",
+          "observeVisibleRects",
+          "registerMutableSourceForHydration",
+          "runWithPriority",
+          "shouldError",
+          "shouldSuspend",
+          "updateContainer"
+        ],
+        "features": {
+          "contextBridge": "mount-update-unmount",
+          "activity": "not-available",
+          "fragmentRef": "not-available"
+        },
+        "createContainerArity": 8
+      },
+      "resolvedPackages": {
+        "@types/prop-types": {
+          "version": "15.7.15",
+          "integrity": "sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw=="
+        },
+        "@types/react": {
+          "version": "18.3.31",
+          "integrity": "sha512-vfEqpXTvwT91yhmwdfouStN2hSKwTvyRs8qpLfADyrq/kxDw0hZM7Wk9Ug1FELj8hIby+S/+kQCSRFF32nv2Qw=="
+        },
+        "@types/react-reconciler": {
+          "version": "0.28.9",
+          "integrity": "sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg=="
+        },
+        "csstype": {
+          "version": "3.2.3",
+          "integrity": "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="
+        },
+        "its-fine": {
+          "version": "1.2.5",
+          "integrity": "sha512-fXtDA0X0t0eBYAGLVM5YsgJGsJ5jEmqZEPrGbzdf5awjv0xE7nqv3TVnvtUF060Tkes15DbDAKW/I48vsb6SyA=="
+        },
+        "js-tokens": {
+          "version": "4.0.0",
+          "integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="
+        },
+        "loose-envify": {
+          "version": "1.4.0",
+          "integrity": "sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q=="
+        },
+        "react": {
+          "version": "18.0.0",
+          "integrity": "sha512-x+VL6wbT4JRVPm7EGxXhZ8w8LTROaxPXOqhlGyVSrv0sB1jkyFGgXxJ8LVoPRLvPR6/CIZGFmfzqUa2NYeMr2A=="
+        },
+        "react-reconciler": {
+          "version": "0.27.0",
+          "integrity": "sha512-HmMDKciQjYmBRGuuhIaKA1ba/7a+UsM5FzOZsMO2JYHt9Jh8reCb7j1eDC95NOyUlKM9KRyvdx0flBuDvYSBoA=="
+        },
+        "scheduler": {
+          "version": "0.21.0",
+          "integrity": "sha512-1r87x5fz9MXqswA2ERLo0EbOAU74DpIUO090gIasYTqlVoJeMcl+Z1Rg7WHz+qtPujhS/hGIt9kxZOYBV3faRQ=="
+        },
+        "typescript": {
+          "version": "5.6.3",
+          "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
+        }
+      },
+      "surfaces": {
+        "react-reconciler/cjs/react-reconciler.development.js": {
+          "sha256": "098a895b8e4814ceed3273df7c015483e0f6535edd7179d988e5cd24024436f6"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "09ddcfcfbe77a8232d155ca1030005106b1328f6210df43629d0be750da07c16",
+          "declarations": [
+            "constructor(props: P);",
+            "constructor(props: P, context: any);"
+          ]
+        },
+        "its-fine/dist/index.js": {
+          "sha256": "1b97efedab66e84e0530dffe3bd47643de1f82d80b0e036628bfde9de53f79d5"
+        }
+      },
+      "hostDelta": {
+        "added": [
+          "afterActiveInstanceBlur",
+          "appendChild",
+          "appendChildToContainer",
+          "appendChildToContainerChildSet",
+          "appendInitialChild",
+          "beforeActiveInstanceBlur",
+          "canHydrateInstance",
+          "canHydrateSuspenseInstance",
+          "canHydrateTextInstance",
+          "cancelTimeout",
+          "clearContainer",
+          "clearSuspenseBoundary",
+          "clearSuspenseBoundaryFromContainer",
+          "cloneHiddenInstance",
+          "cloneHiddenTextInstance",
+          "cloneInstance",
+          "commitHydratedContainer",
+          "commitHydratedSuspenseInstance",
+          "commitMount",
+          "commitTextUpdate",
+          "commitUpdate",
+          "createContainerChildSet",
+          "createInstance",
+          "createTextInstance",
+          "detachDeletedInstance",
+          "didNotFindHydratableInstance",
+          "didNotFindHydratableInstanceWithinContainer",
+          "didNotFindHydratableInstanceWithinSuspenseInstance",
+          "didNotFindHydratableSuspenseInstance",
+          "didNotFindHydratableSuspenseInstanceWithinContainer",
+          "didNotFindHydratableSuspenseInstanceWithinSuspenseInstance",
+          "didNotFindHydratableTextInstance",
+          "didNotFindHydratableTextInstanceWithinContainer",
+          "didNotFindHydratableTextInstanceWithinSuspenseInstance",
+          "didNotHydrateInstance",
+          "didNotHydrateInstanceWithinContainer",
+          "didNotHydrateInstanceWithinSuspenseInstance",
+          "didNotMatchHydratedContainerTextInstance",
+          "didNotMatchHydratedTextInstance",
+          "errorHydratingContainer",
+          "finalizeContainerChildren",
+          "finalizeInitialChildren",
+          "findFiberRoot",
+          "getBoundingRect",
+          "getChildHostContext",
+          "getCurrentEventPriority",
+          "getFirstHydratableChild",
+          "getFirstHydratableChildWithinContainer",
+          "getFirstHydratableChildWithinSuspenseInstance",
+          "getInstanceFromNode",
+          "getInstanceFromScope",
+          "getNextHydratableInstanceAfterSuspenseInstance",
+          "getNextHydratableSibling",
+          "getOffscreenContainerProps",
+          "getOffscreenContainerType",
+          "getPublicInstance",
+          "getRootHostContext",
+          "getTextContent",
+          "hideInstance",
+          "hideTextInstance",
+          "hydrateInstance",
+          "hydrateSuspenseInstance",
+          "hydrateTextInstance",
+          "insertBefore",
+          "insertInContainerBefore",
+          "isHiddenSubtree",
+          "isPrimaryRenderer",
+          "isSuspenseInstanceFallback",
+          "isSuspenseInstancePending",
+          "matchAccessibilityRole",
+          "noTimeout",
+          "now",
+          "prepareForCommit",
+          "preparePortalMount",
+          "prepareUpdate",
+          "registerSuspenseInstanceRetry",
+          "removeChild",
+          "removeChildFromContainer",
+          "replaceContainerChildren",
+          "resetAfterCommit",
+          "resetTextContent",
+          "scheduleMicrotask",
+          "scheduleTimeout",
+          "setFocusIfFocusable",
+          "setupIntersectionObserver",
+          "shouldDeleteUnhydratedTailInstances",
+          "shouldSetTextContent",
+          "supportsHydration",
+          "supportsMicrotasks",
+          "supportsMutation",
+          "supportsPersistence",
+          "supportsTestSelectors",
+          "unhideInstance",
+          "unhideTextInstance",
+          "warnsIfNotActing"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "id": "react-18.1.0",
+      "packages": {
+        "react": "18.1.0",
+        "react-reconciler": "0.28.0",
+        "@types/react": "18.3.31",
+        "its-fine": "1.2.5",
+        "typescript": "5.6.3"
+      },
+      "certification": "not-certified",
+      "installExit": 0,
+      "runtimeExit": 0,
+      "typeExit": 0,
+      "observation": {
+        "react": "18.1.0",
+        "reconciler": "0.28.0",
+        "peers": {
+          "react": "^18.1.0"
+        },
+        "hostKeys": [
+          "afterActiveInstanceBlur",
+          "appendChild",
+          "appendChildToContainer",
+          "appendChildToContainerChildSet",
+          "appendInitialChild",
+          "beforeActiveInstanceBlur",
+          "canHydrateInstance",
+          "canHydrateSuspenseInstance",
+          "canHydrateTextInstance",
+          "cancelTimeout",
+          "clearContainer",
+          "clearSuspenseBoundary",
+          "clearSuspenseBoundaryFromContainer",
+          "cloneHiddenInstance",
+          "cloneHiddenTextInstance",
+          "cloneInstance",
+          "commitHydratedContainer",
+          "commitHydratedSuspenseInstance",
+          "commitMount",
+          "commitTextUpdate",
+          "commitUpdate",
+          "createContainerChildSet",
+          "createInstance",
+          "createTextInstance",
+          "detachDeletedInstance",
+          "didNotFindHydratableInstance",
+          "didNotFindHydratableInstanceWithinContainer",
+          "didNotFindHydratableInstanceWithinSuspenseInstance",
+          "didNotFindHydratableSuspenseInstance",
+          "didNotFindHydratableSuspenseInstanceWithinContainer",
+          "didNotFindHydratableSuspenseInstanceWithinSuspenseInstance",
+          "didNotFindHydratableTextInstance",
+          "didNotFindHydratableTextInstanceWithinContainer",
+          "didNotFindHydratableTextInstanceWithinSuspenseInstance",
+          "didNotHydrateInstance",
+          "didNotHydrateInstanceWithinContainer",
+          "didNotHydrateInstanceWithinSuspenseInstance",
+          "didNotMatchHydratedContainerTextInstance",
+          "didNotMatchHydratedTextInstance",
+          "errorHydratingContainer",
+          "finalizeContainerChildren",
+          "finalizeInitialChildren",
+          "findFiberRoot",
+          "getBoundingRect",
+          "getChildHostContext",
+          "getCurrentEventPriority",
+          "getFirstHydratableChild",
+          "getFirstHydratableChildWithinContainer",
+          "getFirstHydratableChildWithinSuspenseInstance",
+          "getInstanceFromNode",
+          "getInstanceFromScope",
+          "getNextHydratableInstanceAfterSuspenseInstance",
+          "getNextHydratableSibling",
+          "getOffscreenContainerProps",
+          "getOffscreenContainerType",
+          "getPublicInstance",
+          "getRootHostContext",
+          "getTextContent",
+          "hideInstance",
+          "hideTextInstance",
+          "hydrateInstance",
+          "hydrateSuspenseInstance",
+          "hydrateTextInstance",
+          "insertBefore",
+          "insertInContainerBefore",
+          "isHiddenSubtree",
+          "isPrimaryRenderer",
+          "isSuspenseInstanceFallback",
+          "isSuspenseInstancePending",
+          "matchAccessibilityRole",
+          "noTimeout",
+          "now",
+          "prepareForCommit",
+          "preparePortalMount",
+          "prepareScopeUpdate",
+          "prepareUpdate",
+          "registerSuspenseInstanceRetry",
+          "removeChild",
+          "removeChildFromContainer",
+          "replaceContainerChildren",
+          "resetAfterCommit",
+          "resetTextContent",
+          "scheduleMicrotask",
+          "scheduleTimeout",
+          "setFocusIfFocusable",
+          "setupIntersectionObserver",
+          "shouldDeleteUnhydratedTailInstances",
+          "shouldSetTextContent",
+          "supportsHydration",
+          "supportsMicrotasks",
+          "supportsMutation",
+          "supportsPersistence",
+          "supportsTestSelectors",
+          "unhideInstance",
+          "unhideTextInstance",
+          "warnsIfNotActing"
+        ],
+        "exports": [
+          "attemptContinuousHydration",
+          "attemptDiscreteHydration",
+          "attemptHydrationAtCurrentPriority",
+          "attemptSynchronousHydration",
+          "batchedUpdates",
+          "createComponentSelector",
+          "createContainer",
+          "createHasPseudoClassSelector",
+          "createHydrationContainer",
+          "createPortal",
+          "createRoleSelector",
+          "createTestNameSelector",
+          "createTextSelector",
+          "deferredUpdates",
+          "discreteUpdates",
+          "findAllNodes",
+          "findBoundingRects",
+          "findHostInstance",
+          "findHostInstanceWithNoPortals",
+          "findHostInstanceWithWarning",
+          "flushControlled",
+          "flushPassiveEffects",
+          "flushSync",
+          "focusWithin",
+          "getCurrentUpdatePriority",
+          "getFindAllNodesFailureDescription",
+          "getPublicRootInstance",
+          "injectIntoDevTools",
+          "isAlreadyRendering",
+          "observeVisibleRects",
+          "registerMutableSourceForHydration",
+          "runWithPriority",
+          "shouldError",
+          "shouldSuspend",
+          "updateContainer"
+        ],
+        "features": {
+          "contextBridge": "mount-update-unmount",
+          "activity": "not-available",
+          "fragmentRef": "not-available"
+        },
+        "createContainerArity": 8
+      },
+      "resolvedPackages": {
+        "@types/prop-types": {
+          "version": "15.7.15",
+          "integrity": "sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw=="
+        },
+        "@types/react": {
+          "version": "18.3.31",
+          "integrity": "sha512-vfEqpXTvwT91yhmwdfouStN2hSKwTvyRs8qpLfADyrq/kxDw0hZM7Wk9Ug1FELj8hIby+S/+kQCSRFF32nv2Qw=="
+        },
+        "@types/react-reconciler": {
+          "version": "0.28.9",
+          "integrity": "sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg=="
+        },
+        "csstype": {
+          "version": "3.2.3",
+          "integrity": "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="
+        },
+        "its-fine": {
+          "version": "1.2.5",
+          "integrity": "sha512-fXtDA0X0t0eBYAGLVM5YsgJGsJ5jEmqZEPrGbzdf5awjv0xE7nqv3TVnvtUF060Tkes15DbDAKW/I48vsb6SyA=="
+        },
+        "js-tokens": {
+          "version": "4.0.0",
+          "integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="
+        },
+        "loose-envify": {
+          "version": "1.4.0",
+          "integrity": "sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q=="
+        },
+        "react": {
+          "version": "18.1.0",
+          "integrity": "sha512-4oL8ivCz5ZEPyclFQXaNksK3adutVS8l2xzZU0cqEFrE9Sb7fC0EFK5uEk74wIreL1DERyjvsU915j1pcT2uEQ=="
+        },
+        "react-reconciler": {
+          "version": "0.28.0",
+          "integrity": "sha512-sGIHDOpgVjRYgsi8NgosDnbkDvvkYFFSF900ZUhUw0+lSBEA5n76TcKFaVkfYMIuYm+7W6mT8Q673DLBfuTxcQ=="
+        },
+        "scheduler": {
+          "version": "0.22.0",
+          "integrity": "sha512-6QAm1BgQI88NPYymgGQLCZgvep4FyePDWFpXVK+zNSUgHwlqpJy8VEh8Et0KxTACS4VWwMousBElAZOH9nkkoQ=="
+        },
+        "typescript": {
+          "version": "5.6.3",
+          "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
+        }
+      },
+      "surfaces": {
+        "react-reconciler/cjs/react-reconciler.development.js": {
+          "sha256": "4ac4c316c6b0f4e6e808d5acd61e207f467bf1e0fda33a6fa1416d412fac7ea6"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "09ddcfcfbe77a8232d155ca1030005106b1328f6210df43629d0be750da07c16",
+          "declarations": [
+            "constructor(props: P);",
+            "constructor(props: P, context: any);"
+          ]
+        },
+        "its-fine/dist/index.js": {
+          "sha256": "1b97efedab66e84e0530dffe3bd47643de1f82d80b0e036628bfde9de53f79d5"
+        }
+      },
+      "hostDelta": {
+        "added": [
+          "prepareScopeUpdate"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "id": "react-18.2.0",
+      "packages": {
+        "react": "18.2.0",
+        "react-reconciler": "0.29.0",
+        "@types/react": "18.3.31",
+        "its-fine": "1.2.5",
+        "typescript": "5.6.3"
+      },
+      "certification": "not-certified",
+      "installExit": 0,
+      "runtimeExit": 0,
+      "typeExit": 0,
+      "observation": {
+        "react": "18.2.0",
+        "reconciler": "0.29.0",
+        "peers": {
+          "react": "^18.2.0"
+        },
+        "hostKeys": [
+          "afterActiveInstanceBlur",
+          "appendChild",
+          "appendChildToContainer",
+          "appendChildToContainerChildSet",
+          "appendInitialChild",
+          "beforeActiveInstanceBlur",
+          "canHydrateInstance",
+          "canHydrateSuspenseInstance",
+          "canHydrateTextInstance",
+          "cancelTimeout",
+          "clearContainer",
+          "clearSuspenseBoundary",
+          "clearSuspenseBoundaryFromContainer",
+          "cloneHiddenInstance",
+          "cloneHiddenTextInstance",
+          "cloneInstance",
+          "commitHydratedContainer",
+          "commitHydratedSuspenseInstance",
+          "commitMount",
+          "commitTextUpdate",
+          "commitUpdate",
+          "createContainerChildSet",
+          "createInstance",
+          "createTextInstance",
+          "detachDeletedInstance",
+          "didNotFindHydratableInstance",
+          "didNotFindHydratableInstanceWithinContainer",
+          "didNotFindHydratableInstanceWithinSuspenseInstance",
+          "didNotFindHydratableSuspenseInstance",
+          "didNotFindHydratableSuspenseInstanceWithinContainer",
+          "didNotFindHydratableSuspenseInstanceWithinSuspenseInstance",
+          "didNotFindHydratableTextInstance",
+          "didNotFindHydratableTextInstanceWithinContainer",
+          "didNotFindHydratableTextInstanceWithinSuspenseInstance",
+          "didNotHydrateInstance",
+          "didNotHydrateInstanceWithinContainer",
+          "didNotHydrateInstanceWithinSuspenseInstance",
+          "didNotMatchHydratedContainerTextInstance",
+          "didNotMatchHydratedTextInstance",
+          "errorHydratingContainer",
+          "finalizeContainerChildren",
+          "finalizeInitialChildren",
+          "findFiberRoot",
+          "getBoundingRect",
+          "getChildHostContext",
+          "getCurrentEventPriority",
+          "getFirstHydratableChild",
+          "getFirstHydratableChildWithinContainer",
+          "getFirstHydratableChildWithinSuspenseInstance",
+          "getInstanceFromNode",
+          "getInstanceFromScope",
+          "getNextHydratableInstanceAfterSuspenseInstance",
+          "getNextHydratableSibling",
+          "getPublicInstance",
+          "getRootHostContext",
+          "getSuspenseInstanceFallbackErrorDetails",
+          "getTextContent",
+          "hideInstance",
+          "hideTextInstance",
+          "hydrateInstance",
+          "hydrateSuspenseInstance",
+          "hydrateTextInstance",
+          "insertBefore",
+          "insertInContainerBefore",
+          "isHiddenSubtree",
+          "isPrimaryRenderer",
+          "isSuspenseInstanceFallback",
+          "isSuspenseInstancePending",
+          "matchAccessibilityRole",
+          "noTimeout",
+          "prepareForCommit",
+          "preparePortalMount",
+          "prepareScopeUpdate",
+          "prepareUpdate",
+          "registerSuspenseInstanceRetry",
+          "removeChild",
+          "removeChildFromContainer",
+          "replaceContainerChildren",
+          "resetAfterCommit",
+          "resetTextContent",
+          "scheduleMicrotask",
+          "scheduleTimeout",
+          "setFocusIfFocusable",
+          "setupIntersectionObserver",
+          "shouldDeleteUnhydratedTailInstances",
+          "shouldSetTextContent",
+          "supportsHydration",
+          "supportsMicrotasks",
+          "supportsMutation",
+          "supportsPersistence",
+          "supportsTestSelectors",
+          "unhideInstance",
+          "unhideTextInstance",
+          "warnsIfNotActing"
+        ],
+        "exports": [
+          "attemptContinuousHydration",
+          "attemptDiscreteHydration",
+          "attemptHydrationAtCurrentPriority",
+          "attemptSynchronousHydration",
+          "batchedUpdates",
+          "createComponentSelector",
+          "createContainer",
+          "createHasPseudoClassSelector",
+          "createHydrationContainer",
+          "createPortal",
+          "createRoleSelector",
+          "createTestNameSelector",
+          "createTextSelector",
+          "deferredUpdates",
+          "discreteUpdates",
+          "findAllNodes",
+          "findBoundingRects",
+          "findHostInstance",
+          "findHostInstanceWithNoPortals",
+          "findHostInstanceWithWarning",
+          "flushControlled",
+          "flushPassiveEffects",
+          "flushSync",
+          "focusWithin",
+          "getCurrentUpdatePriority",
+          "getFindAllNodesFailureDescription",
+          "getPublicRootInstance",
+          "injectIntoDevTools",
+          "isAlreadyRendering",
+          "observeVisibleRects",
+          "registerMutableSourceForHydration",
+          "runWithPriority",
+          "shouldError",
+          "shouldSuspend",
+          "updateContainer"
+        ],
+        "features": {
+          "contextBridge": "mount-update-unmount",
+          "activity": "not-available",
+          "fragmentRef": "not-available"
+        },
+        "createContainerArity": 8
+      },
+      "resolvedPackages": {
+        "@types/prop-types": {
+          "version": "15.7.15",
+          "integrity": "sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw=="
+        },
+        "@types/react": {
+          "version": "18.3.31",
+          "integrity": "sha512-vfEqpXTvwT91yhmwdfouStN2hSKwTvyRs8qpLfADyrq/kxDw0hZM7Wk9Ug1FELj8hIby+S/+kQCSRFF32nv2Qw=="
+        },
+        "@types/react-reconciler": {
+          "version": "0.28.9",
+          "integrity": "sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg=="
+        },
+        "csstype": {
+          "version": "3.2.3",
+          "integrity": "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="
+        },
+        "its-fine": {
+          "version": "1.2.5",
+          "integrity": "sha512-fXtDA0X0t0eBYAGLVM5YsgJGsJ5jEmqZEPrGbzdf5awjv0xE7nqv3TVnvtUF060Tkes15DbDAKW/I48vsb6SyA=="
+        },
+        "js-tokens": {
+          "version": "4.0.0",
+          "integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="
+        },
+        "loose-envify": {
+          "version": "1.4.0",
+          "integrity": "sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q=="
+        },
+        "react": {
+          "version": "18.2.0",
+          "integrity": "sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ=="
+        },
+        "react-reconciler": {
+          "version": "0.29.0",
+          "integrity": "sha512-wa0fGj7Zht1EYMRhKWwoo1H9GApxYLBuhoAuXN0TlltESAjDssB+Apf0T/DngVqaMyPypDmabL37vw/2aRM98Q=="
+        },
+        "scheduler": {
+          "version": "0.23.2",
+          "integrity": "sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ=="
+        },
+        "typescript": {
+          "version": "5.6.3",
+          "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
+        }
+      },
+      "surfaces": {
+        "react-reconciler/cjs/react-reconciler.development.js": {
+          "sha256": "ad67d52fcefb288ef6d96e8b1c494965920ec1182b4d205f145d1b4f35e2bffe"
+        },
+        "@types/react/index.d.ts": {
+          "sha256": "09ddcfcfbe77a8232d155ca1030005106b1328f6210df43629d0be750da07c16",
+          "declarations": [
+            "constructor(props: P);",
+            "constructor(props: P, context: any);"
+          ]
+        },
+        "its-fine/dist/index.js": {
+          "sha256": "1b97efedab66e84e0530dffe3bd47643de1f82d80b0e036628bfde9de53f79d5"
+        }
+      },
+      "hostDelta": {
+        "added": [
+          "getSuspenseInstanceFallbackErrorDetails"
+        ],
+        "removed": [
+          "getOffscreenContainerProps",
+          "getOffscreenContainerType",
+          "now"
+        ]
+      }
+    },
+    {
       "id": "react-18.3.1",
       "packages": {
         "react": "18.3.1",
@@ -231,102 +1012,7 @@
         }
       },
       "hostDelta": {
-        "added": [
-          "afterActiveInstanceBlur",
-          "appendChild",
-          "appendChildToContainer",
-          "appendChildToContainerChildSet",
-          "appendInitialChild",
-          "beforeActiveInstanceBlur",
-          "canHydrateInstance",
-          "canHydrateSuspenseInstance",
-          "canHydrateTextInstance",
-          "cancelTimeout",
-          "clearContainer",
-          "clearSuspenseBoundary",
-          "clearSuspenseBoundaryFromContainer",
-          "cloneHiddenInstance",
-          "cloneHiddenTextInstance",
-          "cloneInstance",
-          "commitHydratedContainer",
-          "commitHydratedSuspenseInstance",
-          "commitMount",
-          "commitTextUpdate",
-          "commitUpdate",
-          "createContainerChildSet",
-          "createInstance",
-          "createTextInstance",
-          "detachDeletedInstance",
-          "didNotFindHydratableInstance",
-          "didNotFindHydratableInstanceWithinContainer",
-          "didNotFindHydratableInstanceWithinSuspenseInstance",
-          "didNotFindHydratableSuspenseInstance",
-          "didNotFindHydratableSuspenseInstanceWithinContainer",
-          "didNotFindHydratableSuspenseInstanceWithinSuspenseInstance",
-          "didNotFindHydratableTextInstance",
-          "didNotFindHydratableTextInstanceWithinContainer",
-          "didNotFindHydratableTextInstanceWithinSuspenseInstance",
-          "didNotHydrateInstance",
-          "didNotHydrateInstanceWithinContainer",
-          "didNotHydrateInstanceWithinSuspenseInstance",
-          "didNotMatchHydratedContainerTextInstance",
-          "didNotMatchHydratedTextInstance",
-          "errorHydratingContainer",
-          "finalizeContainerChildren",
-          "finalizeInitialChildren",
-          "findFiberRoot",
-          "getBoundingRect",
-          "getChildHostContext",
-          "getCurrentEventPriority",
-          "getFirstHydratableChild",
-          "getFirstHydratableChildWithinContainer",
-          "getFirstHydratableChildWithinSuspenseInstance",
-          "getInstanceFromNode",
-          "getInstanceFromScope",
-          "getNextHydratableInstanceAfterSuspenseInstance",
-          "getNextHydratableSibling",
-          "getPublicInstance",
-          "getRootHostContext",
-          "getSuspenseInstanceFallbackErrorDetails",
-          "getTextContent",
-          "hideInstance",
-          "hideTextInstance",
-          "hydrateInstance",
-          "hydrateSuspenseInstance",
-          "hydrateTextInstance",
-          "insertBefore",
-          "insertInContainerBefore",
-          "isHiddenSubtree",
-          "isPrimaryRenderer",
-          "isSuspenseInstanceFallback",
-          "isSuspenseInstancePending",
-          "matchAccessibilityRole",
-          "noTimeout",
-          "prepareForCommit",
-          "preparePortalMount",
-          "prepareScopeUpdate",
-          "prepareUpdate",
-          "registerSuspenseInstanceRetry",
-          "removeChild",
-          "removeChildFromContainer",
-          "replaceContainerChildren",
-          "resetAfterCommit",
-          "resetTextContent",
-          "scheduleMicrotask",
-          "scheduleTimeout",
-          "setFocusIfFocusable",
-          "setupIntersectionObserver",
-          "shouldDeleteUnhydratedTailInstances",
-          "shouldSetTextContent",
-          "supportsHydration",
-          "supportsMicrotasks",
-          "supportsMutation",
-          "supportsPersistence",
-          "supportsTestSelectors",
-          "unhideInstance",
-          "unhideTextInstance",
-          "warnsIfNotActing"
-        ],
+        "added": [],
         "removed": []
       }
     },
@@ -2324,6 +3010,1518 @@
       }
     },
     {
+      "id": "pixi-7.2.0",
+      "packages": {
+        "pixi.js": "7.2.0",
+        "typescript": "5.6.3"
+      },
+      "certification": "not-certified",
+      "installExit": 0,
+      "runtimeExit": 0,
+      "typeExit": 0,
+      "observation": {
+        "version": "7.2.0",
+        "capabilities": {
+          "asyncInit": false,
+          "particle": false,
+          "particleContainer": true,
+          "cacheAsTexture": false,
+          "renderLayer": false,
+          "domContainer": false,
+          "canvasRenderer": false
+        },
+        "observations": {
+          "visibleChanged": 0
+        }
+      },
+      "resolvedPackages": {
+        "@pixi/accessibility": {
+          "version": "7.2.0",
+          "integrity": "sha512-yi4DIpRsisw6vcZGVbJn4plpADUTHzw8zDxpU/05xS+pngWyMabfs+QLK++f66sdUCgUbsdvPrlneSyfXeqXMQ=="
+        },
+        "@pixi/app": {
+          "version": "7.2.0",
+          "integrity": "sha512-Q368vu7iIZAy1+ypF29rYwM6aiMpcYxHh06X2bjbmvtu7OGX/8/f4U4/7LELiYVqwvrkNLbuhmW6lne1XD4Dgw=="
+        },
+        "@pixi/assets": {
+          "version": "7.2.0",
+          "integrity": "sha512-EKoo60i/5NBZJHmeUZ4cMQKwno2Z1lQeyBtowvESx1aeNjDVnfMsPbdesAH8O736Y27npf4FaMOFv4Csh4MPJw=="
+        },
+        "@pixi/color": {
+          "version": "7.2.0",
+          "integrity": "sha512-MXAxosoaeqWrWdEZr4HmQ283wkg354SzlnSXmNQEONo6XcYtRwgSQkegTvVtz6GlpN+FoR0DiFi4zC/NcM2Z1Q=="
+        },
+        "@pixi/compressed-textures": {
+          "version": "7.2.0",
+          "integrity": "sha512-wVf4B5sesoKUNjWurb60++xJAqU8YkZZUjN+VAl3GDk2AmllnEkxqFQHaXBTuUHNopP/rO/HnXCiyJ0cV1DrOg=="
+        },
+        "@pixi/constants": {
+          "version": "7.2.0",
+          "integrity": "sha512-pGWfyFuPdEOUa3ezLYLdZEQNAeokGv+RV29FMR+w+ozfVn6bpnG5GdDRL9KyitAv2WQL6TPfPRObOnLRGoRdIg=="
+        },
+        "@pixi/core": {
+          "version": "7.2.0",
+          "integrity": "sha512-tVDAAl1gom8jZSefTc1m4gbkY9hG9tLKj6zGJZ5gzAMhL5xreM7T1Nhwhudza5ZebSloQ2ARkHZf9lD1Ximovw=="
+        },
+        "@pixi/display": {
+          "version": "7.2.0",
+          "integrity": "sha512-SifBxSZKCg8gUo2pL9pcU+NVwA6fCD6TA69nISGndPwiHMtznpCnlleZ8+z8H4PmhXWLRuD8xd3FGhlH/b/keA=="
+        },
+        "@pixi/events": {
+          "version": "7.2.0",
+          "integrity": "sha512-Nvf+qMhY43/fYJgkw4cUKLT4oCIlE1EgRZ2E46+f7/aWz+Z4mCphLzUIOkBp+PggNdtvZcF+t57fChi0rmfSoQ=="
+        },
+        "@pixi/extensions": {
+          "version": "7.2.0",
+          "integrity": "sha512-B27M74SqRxSzVztkmP9Gk5nORu9nAGAV8N8nq15pXABKY5IQ3F0F8XWm0Eeglf2UpbZ54tgIAfRLhRVUlG9WKQ=="
+        },
+        "@pixi/extract": {
+          "version": "7.2.0",
+          "integrity": "sha512-XJV+SlE8Sm/HrmtaXOLOVD+Up9VvC8TO0W90AuESPhn5oJDf1MBTBarQEoeAzQfJ8HK6fGs0F2hNsoAyaVRzJQ=="
+        },
+        "@pixi/filter-alpha": {
+          "version": "7.2.0",
+          "integrity": "sha512-XQX0Uy9VKYzDirUCoIEqJ0KHCXULP5ALmU2Nl/mtYD7L5trKzG6YREr4b1J7Ldcp/SKGnwA8tYDFmXsJmFAwJw=="
+        },
+        "@pixi/filter-blur": {
+          "version": "7.2.0",
+          "integrity": "sha512-nzta5P9W5GQyfmQcN7j0Ia85nmiXBzAcc4kGNPU2Lp/l1D+B7YD0SdzGVomCTX1MT0zMd7BrcCJ1NP/B5MVs3w=="
+        },
+        "@pixi/filter-color-matrix": {
+          "version": "7.2.0",
+          "integrity": "sha512-m43XllXYO5OTdxzVeilZ5eRNn+dIbwmOXCVAmPyfkZvwP6P3sjEK7LEB3+6NXHnliohSZHE6BNKG5VB0TjmaiQ=="
+        },
+        "@pixi/filter-displacement": {
+          "version": "7.2.0",
+          "integrity": "sha512-K1Kka6fU/kn60p2aPwezb6o9dnIhzjdyavvFveZO1rtkbqWg17vC8TfuuKbatqnG9w+ERjnXQq8DY6qREZb+wQ=="
+        },
+        "@pixi/filter-fxaa": {
+          "version": "7.2.0",
+          "integrity": "sha512-EO0Pu2pMmrXJX0AfiWpsd1Is7QB/p1rVmnA4h5V5VvrtajZAkxumPkTqmVLfupYVZa6pNveRSn2eK5w4VdieTA=="
+        },
+        "@pixi/filter-noise": {
+          "version": "7.2.0",
+          "integrity": "sha512-n2Do5IwEjNefqbzuuvueYuc4xpv8VyLbLTE8OvP98N1JmL0/tJXZVfq6NxyAvOfXO1Pa9WaXgJBn4nxoKc+2Dw=="
+        },
+        "@pixi/graphics": {
+          "version": "7.2.0",
+          "integrity": "sha512-XzMydjylFbc1oTWD6KoEsPv3ybNUcVwvcpXRUc+g7SSDeRfejr8/h2+pu7ir1uOVqU7epaEtXxLXmEpzIBkDbw=="
+        },
+        "@pixi/math": {
+          "version": "7.2.0",
+          "integrity": "sha512-JqbNYvbcC/I2dKrYOB27cECJKW9zjdHh8MbKqzRgtFfvOyb8uQv21XAXQg2ZyuzVs3ixsWURV/YuuhVPsTDvtQ=="
+        },
+        "@pixi/mesh": {
+          "version": "7.2.0",
+          "integrity": "sha512-BGPxrM5xOIOfpN3LO1RSN0E4oBm10BLQ5pnO9RjZ0GDhhaBuO1wNZ3WeOKfI0CvJL01ttrE8wo7ig+WwectY7g=="
+        },
+        "@pixi/mesh-extras": {
+          "version": "7.2.0",
+          "integrity": "sha512-WVitrrqvUyrXPVgJsP8n3xoPyOFDEeGzcEvuf6IAAhzrWvVWdCv20WO70hqDc9NaRxs3c4HEaPeB1IZZ5RVgdA=="
+        },
+        "@pixi/mixin-cache-as-bitmap": {
+          "version": "7.2.0",
+          "integrity": "sha512-kXOWFJZci5qSWfN8tavS/Idg+ciDw5h89BBBw8iT+lOrJw6iyPZKieTBzjI85xjTP87N0yuW5YxR3BPxA/wuSQ=="
+        },
+        "@pixi/mixin-get-child-by-name": {
+          "version": "7.2.0",
+          "integrity": "sha512-bROgKA910dPBWvzjJlVCeilyRn74kqydjeCUQ1mb9JKjKUwARf4YOwR3rh7np5tcTAbSW8/XYzi///cF89PtSw=="
+        },
+        "@pixi/mixin-get-global-position": {
+          "version": "7.2.0",
+          "integrity": "sha512-Q9vJJ9ofpcWL2blBa1m01SkiKZ0kSNX5Swq4mlyL8M/MbFzCqowmDDcg969guCJQVvA+abKGoSJHF53k8m93IA=="
+        },
+        "@pixi/particle-container": {
+          "version": "7.2.0",
+          "integrity": "sha512-cr8hoZ9eE9KcRrKXoPTcxAPsjVnqQAKvfv4bnjRcalLqtjf+N7Kecxwp+mrzvfxehNnTu/HZ47MdEo6iZY3iHA=="
+        },
+        "@pixi/prepare": {
+          "version": "7.2.0",
+          "integrity": "sha512-ean7BS7uGLMArNPNTd8DAy2eA6x4BjPV9tCLxGmDqNUsU6riZSY09k4cEilQHsyscmt+dJZwcZAqaIjn82uajw=="
+        },
+        "@pixi/runner": {
+          "version": "7.2.0",
+          "integrity": "sha512-FWEP2fM8du9MJ+f0BFdlXl1TNtllCZ8qXTm2VM2QgKKIE5gnd3ALadUUqYLWA/CMS57y16L8I67gl4TerCYcvw=="
+        },
+        "@pixi/settings": {
+          "version": "7.2.0",
+          "integrity": "sha512-XlDer+3PcckT0cuMaUF7v2cPLZW6VL00LIZq3HzsIJFmvQKFggHcXZ5s22CfI3B0SJfRjeXKcCTYos33/di+AA=="
+        },
+        "@pixi/sprite": {
+          "version": "7.2.0",
+          "integrity": "sha512-YE6eFeYx0O+ZDl46flFMZpDD8ny64dRoXFGWAK0JLwj6RCMjKyvcAF7j7BsLOs2YO7tW3lkQ39JbfbYs9AIO7w=="
+        },
+        "@pixi/sprite-animated": {
+          "version": "7.2.0",
+          "integrity": "sha512-ZKE0YIAvQ+g1lZJ6EaQHpQK09ZuqYhT6f+kSakLAr0zmkd792+m0vI7PdE5aXmQ9shkT1z+KFzRkia0JdKlP8A=="
+        },
+        "@pixi/sprite-tiling": {
+          "version": "7.2.0",
+          "integrity": "sha512-KhZmE3Rgntg4AOvwky8kFqCWKq6YcIg6pqJqzu1GrY+IiXnOJI+ivGFO2PMMKNk3PgbiZ2+JVa4ory+kj0/IwQ=="
+        },
+        "@pixi/spritesheet": {
+          "version": "7.2.0",
+          "integrity": "sha512-bJSiwInvqLaDr3VRxfI5nu4PZOjMzrAJO+fxtpVRdh2ERSKjnvgevSNe24bRVMlqRDsY4Xg2SCKC/+EGlGt2IA=="
+        },
+        "@pixi/text": {
+          "version": "7.2.0",
+          "integrity": "sha512-YVRo1M+cPQSwTH5nFVFQyuvr10qNt6jWMB9xWXyMLcLHLnNVBXiM4wvk4E7uJaF4buToftbFPD8QTvk2ubHQqA=="
+        },
+        "@pixi/text-bitmap": {
+          "version": "7.2.0",
+          "integrity": "sha512-vFvTk41Bo4IYJXkuwVBDEIThZ896atUGLy8JBwdJf45Jk4epjQIh46E9Uw5DCJPGkerG0zS5i3i0oRTmv1B/CA=="
+        },
+        "@pixi/text-html": {
+          "version": "7.2.0",
+          "integrity": "sha512-rM0o4Qxrs7tu0tgy8DvkomS4rvnCwzGA3x2UtmfG+Fpufz0yYxNO2fHQpwP8LjT/Ncb6KoXtljqy1tL0qhEsuw=="
+        },
+        "@pixi/ticker": {
+          "version": "7.2.0",
+          "integrity": "sha512-0VUCi/jQIcf8T6nTystjxJZ+Ok9OV5hJAU+vblnhSlb1qqpWZ9XPCG0jdA7nttpiswmUqJWwSvZ32ebxFp1dtA=="
+        },
+        "@pixi/utils": {
+          "version": "7.2.0",
+          "integrity": "sha512-o0VnKf9S6oRD9vdXk4Gp5PV49unmVQUcgJ2FnN7qU5EPOsZw57/mlCZQXB1Se2T6Z60zfQ99Vt1mbfnEIb38EQ=="
+        },
+        "@types/css-font-loading-module": {
+          "version": "0.0.7",
+          "integrity": "sha512-nl09VhutdjINdWyXxHWN/w9zlNCfr60JUqJbd24YXUuCwgeL0TpFSdElCwb6cxfB6ybE19Gjj4g0jsgkXxKv1Q=="
+        },
+        "@types/earcut": {
+          "version": "2.1.4",
+          "integrity": "sha512-qp3m9PPz4gULB9MhjGID7wpo3gJ4bTGXm7ltNDsmOvsPduTeHp8wSW9YckBj3mljeOh4F0m2z/0JKAALRKbmLQ=="
+        },
+        "@types/offscreencanvas": {
+          "version": "2019.7.3",
+          "integrity": "sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A=="
+        },
+        "call-bind-apply-helpers": {
+          "version": "1.0.2",
+          "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ=="
+        },
+        "call-bound": {
+          "version": "1.0.4",
+          "integrity": "sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg=="
+        },
+        "colord": {
+          "version": "2.10.0",
+          "integrity": "sha512-AidJptpBJmjTclAp9BkLwJi0T93fo5epJnbaZslpg6QVzpHjAiveF55mE9AcUJiGMqRHgMDY8soMsQtuNYMHfw=="
+        },
+        "dunder-proto": {
+          "version": "1.0.1",
+          "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A=="
+        },
+        "earcut": {
+          "version": "2.2.4",
+          "integrity": "sha512-/pjZsA1b4RPHbeWZQn66SWS8nZZWLQQ23oE3Eam7aroEFGEvwKAsJfZ9ytiEMycfzXWpca4FA9QIOehf7PocBQ=="
+        },
+        "es-define-property": {
+          "version": "1.0.1",
+          "integrity": "sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g=="
+        },
+        "es-errors": {
+          "version": "1.3.0",
+          "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw=="
+        },
+        "es-object-atoms": {
+          "version": "1.1.2",
+          "integrity": "sha512-HWcBoN6NileqtSydK2FqHbS/LoDd2pqrnQHLyJzBj4kOp/ky2MWMN694xOfkK8/SnUsW2DH7EfyVlydKCsm1Zw=="
+        },
+        "eventemitter3": {
+          "version": "4.0.7",
+          "integrity": "sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw=="
+        },
+        "function-bind": {
+          "version": "1.1.2",
+          "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
+        },
+        "get-intrinsic": {
+          "version": "1.3.0",
+          "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ=="
+        },
+        "get-proto": {
+          "version": "1.0.1",
+          "integrity": "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g=="
+        },
+        "gopd": {
+          "version": "1.2.0",
+          "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg=="
+        },
+        "has-symbols": {
+          "version": "1.1.0",
+          "integrity": "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ=="
+        },
+        "hasown": {
+          "version": "2.0.4",
+          "integrity": "sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A=="
+        },
+        "ismobilejs": {
+          "version": "1.1.1",
+          "integrity": "sha512-VaFW53yt8QO61k2WJui0dHf4SlL8lxBofUuUmwBo0ljPk0Drz2TiuDW4jo3wDcv41qy/SxrJ+VAzJ/qYqsmzRw=="
+        },
+        "math-intrinsics": {
+          "version": "1.1.0",
+          "integrity": "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="
+        },
+        "object-inspect": {
+          "version": "1.13.4",
+          "integrity": "sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew=="
+        },
+        "pixi.js": {
+          "version": "7.2.0",
+          "integrity": "sha512-w7OXZzQXWAVtc0CJChgwj9OUpPxf4lVb7ZOAqsJw7nzq69jtTYF3qJZ1+pGy/pb0YhAtnTpFx9dXXyXaCv1WYA=="
+        },
+        "punycode": {
+          "version": "1.4.1",
+          "integrity": "sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ=="
+        },
+        "qs": {
+          "version": "6.16.0",
+          "integrity": "sha512-h6fhOIaRrID2CbEY2fqs+7t+UXZo+MLAnU5gRIq85uFtdiUPCdsApMlHhXogKVM4HM2DVbIjGNTTYH2OcmP1vA=="
+        },
+        "side-channel": {
+          "version": "1.1.1",
+          "integrity": "sha512-6x6dK6zJdpTzF4sQeNYxwtvBzf6Eg4GtlesS94HOvTudUeyK2WXAaIfmDgsyslYrRBeFIlsi54AYsFGUuhmvrQ=="
+        },
+        "side-channel-list": {
+          "version": "1.0.1",
+          "integrity": "sha512-mjn/0bi/oUURjc5Xl7IaWi/OJJJumuoJFQJfDDyO46+hBWsfaVM65TBHq2eoZBhzl9EchxOijpkbRC8SVBQU0w=="
+        },
+        "side-channel-map": {
+          "version": "1.0.1",
+          "integrity": "sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA=="
+        },
+        "side-channel-weakmap": {
+          "version": "1.0.2",
+          "integrity": "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A=="
+        },
+        "typescript": {
+          "version": "5.6.3",
+          "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
+        },
+        "url": {
+          "version": "0.11.4",
+          "integrity": "sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg=="
+        }
+      },
+      "surfaces": {
+        "@pixi/app/lib/Application.d.ts": {
+          "sha256": "2d17ffa3ca7ca0b2f88a24a711260267ef2973ee4d59de3abcce78294cee44c4",
+          "declarations": [
+            "init(options: Partial<IApplicationOptions>): void;",
+            "destroy(): void;",
+            "constructor(options?: Partial<IApplicationOptions>);",
+            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/display/lib/Container.d.ts": {
+          "sha256": "f1d454c89f834d1f1d8b81c8983ec135bd8369d43d4cbf51910b725b06d4f82c",
+          "declarations": [
+            "parent: Container;",
+            "constructor();",
+            "addChild<U extends T[]>(...children: U): U[0];",
+            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/sprite/lib/Sprite.d.ts": {
+          "sha256": "6594bfa2da9cf2a2bfc8649108cf2bb1f3bbd98d8db6ed0bd9a924624a661e78",
+          "declarations": [
+            "constructor(texture?: Texture);",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/text/lib/Text.d.ts": {
+          "sha256": "71162fe219281411857b8880f4c008b218d1e16a8360704129079f2c64d550ea",
+          "declarations": [
+            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: ICanvas);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/ticker/lib/Ticker.d.ts": {
+          "sha256": "92634fdcf6947af71868e171dd6a9a01102f707863052348a626725f4e01aa10",
+          "declarations": [
+            "constructor();",
+            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
+            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
+            "destroy(): void;"
+          ]
+        },
+        "@pixi/events/lib/FederatedPointerEvent.d.ts": {
+          "sha256": "a843ff0b2656a073b63696d0d704168344494bdd32df332305731dc061a9e8ca",
+          "declarations": []
+        },
+        "@pixi/particle-container/lib/ParticleContainer.d.ts": {
+          "sha256": "ad01cf479117e5835050d808ffdc79ead95a7d5ed0cb14c38f469ab1aebb759a",
+          "declarations": [
+            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "sha256": "33f033c40bc13499ac3256403116b961f73a17979a772ff92f277b25d2d2a6b9",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
+          ]
+        }
+      },
+      "declarationDelta": {
+        "@pixi/app/lib/Application.d.ts": {
+          "before": null,
+          "after": [
+            "init(options: Partial<IApplicationOptions>): void;",
+            "destroy(): void;",
+            "constructor(options?: Partial<IApplicationOptions>);",
+            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/display/lib/Container.d.ts": {
+          "before": null,
+          "after": [
+            "parent: Container;",
+            "constructor();",
+            "addChild<U extends T[]>(...children: U): U[0];",
+            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/sprite/lib/Sprite.d.ts": {
+          "before": null,
+          "after": [
+            "constructor(texture?: Texture);",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/text/lib/Text.d.ts": {
+          "before": null,
+          "after": [
+            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: ICanvas);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/ticker/lib/Ticker.d.ts": {
+          "before": null,
+          "after": [
+            "constructor();",
+            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
+            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
+            "destroy(): void;"
+          ]
+        },
+        "@pixi/events/lib/FederatedPointerEvent.d.ts": {
+          "before": null,
+          "after": []
+        },
+        "@pixi/particle-container/lib/ParticleContainer.d.ts": {
+          "before": null,
+          "after": [
+            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "before": null,
+          "after": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pixi-7.2.4",
+      "packages": {
+        "pixi.js": "7.2.4",
+        "typescript": "5.6.3"
+      },
+      "certification": "not-certified",
+      "installExit": 0,
+      "runtimeExit": 0,
+      "typeExit": 0,
+      "observation": {
+        "version": "7.2.4",
+        "capabilities": {
+          "asyncInit": false,
+          "particle": false,
+          "particleContainer": true,
+          "cacheAsTexture": false,
+          "renderLayer": false,
+          "domContainer": false,
+          "canvasRenderer": false
+        },
+        "observations": {
+          "visibleChanged": 0
+        }
+      },
+      "resolvedPackages": {
+        "@pixi/accessibility": {
+          "version": "7.2.4",
+          "integrity": "sha512-EVjuqUqv9FeYFXCv0S0qj1hgCtbAMNBPCbOGEtiMogpM++/IySxBZvcOYg3rRgo9inwt2s4Bi7kUiqMPD8hItw=="
+        },
+        "@pixi/app": {
+          "version": "7.2.4",
+          "integrity": "sha512-eJ2jpu5P28ip07nLItw6sETXn45P4KR/leMJ6zPHRlhT1m8t5zTsWr3jK4Uj8LF2E+6KlPNzLQh5Alf/unn/aQ=="
+        },
+        "@pixi/assets": {
+          "version": "7.2.4",
+          "integrity": "sha512-7199re3wvMAlVqXLaCyAr8IkJSXqkeVAxcYyB2rBu4Id5m2hhlGX1dQsdMBiCXLwu6/LLVqDvJggSNVQBzL6ZQ=="
+        },
+        "@pixi/color": {
+          "version": "7.2.4",
+          "integrity": "sha512-B/+9JRcXe2uE8wQfsueFRPZVayF2VEMRB7XGeRAsWCryOX19nmWhv0Nt3nOU2rvzI0niz9XgugJXsB6vVmDFSg=="
+        },
+        "@pixi/compressed-textures": {
+          "version": "7.2.4",
+          "integrity": "sha512-atnWyw/ot/Wg69qhgskKiuTYCZx15IxV35sa0KyXMthyjyvDLCIvOn0nczM6wCBy9H96SjJbfgynVWhVrip6qw=="
+        },
+        "@pixi/constants": {
+          "version": "7.2.4",
+          "integrity": "sha512-hKuHBWR6N4Q0Sf5MGF3/9l+POg/G5rqhueHfzofiuelnKg7aBs3BVjjZ+6hZbd6M++vOUmxYelEX/NEFBxrheA=="
+        },
+        "@pixi/core": {
+          "version": "7.2.4",
+          "integrity": "sha512-0XtvrfxHlS2T+beBBSpo7GI8+QLyyTqMVQpNmPqB4woYxzrOEJ9JaUFBaBfCvycLeUkfVih1u6HAbtF+2d1EjQ=="
+        },
+        "@pixi/display": {
+          "version": "7.2.4",
+          "integrity": "sha512-w5tqb8cWEO5qIDaO9GEqRvxYhL0iMk0Wsngw23bbLm1gLEQmrFkB2tpJlRAqd7H82C3DrDDeWvkrrxW6+m4apg=="
+        },
+        "@pixi/events": {
+          "version": "7.2.4",
+          "integrity": "sha512-/JtmoB98fzIU8giN9xvlRvmvOi6u4MaD2DnKNOMHkQ1MBraj3pmrXM9fZ0JbNzi+324GraAAY76QidgHjIYoYQ=="
+        },
+        "@pixi/extensions": {
+          "version": "7.2.4",
+          "integrity": "sha512-Mnqv9scbL1ARD3QFKfOWs2aSVJJfP1dL8g5UiqGImYO3rZbz/9QCzXOeMVIZ5n3iaRyKMNhFFr84/zUja2H7Dw=="
+        },
+        "@pixi/extract": {
+          "version": "7.2.4",
+          "integrity": "sha512-wlXZg+J2L/1jQhRi5nZQP/cXshovhjksjss91eAKMvY5aGxNAQovCP4xotJ/XJjfTvPMpeRzHPFYzm3PrOPQ7g=="
+        },
+        "@pixi/filter-alpha": {
+          "version": "7.2.4",
+          "integrity": "sha512-UTUMSGyktUr+I9vmigqJo9iUhb0nwGyqTTME2xBWZvVGCnl5z+/wHxvIBBCe5pNZ66IM15pGXQ4cDcfqCuP2kA=="
+        },
+        "@pixi/filter-blur": {
+          "version": "7.2.4",
+          "integrity": "sha512-aLyXIoxy14bTansCPtbY8x7Sdn2OrrqkF/pcKiRXHJGGhi7wPacvB/NcmYJdnI/n2ExQ6V5Njuj/nfrsejVwcA=="
+        },
+        "@pixi/filter-color-matrix": {
+          "version": "7.2.4",
+          "integrity": "sha512-DFtayybYXoUh73eHUFRK5REbi1t3FZuVUnaQTj+euHKF9L7EaYc3Q9wctpx1WPRcwkqEX50M4SNFhxpA7Pxtaw=="
+        },
+        "@pixi/filter-displacement": {
+          "version": "7.2.4",
+          "integrity": "sha512-Simq3IBJKt7+Gvk4kK7OFkfoeYUMhNhIyATCdeT+Jkdkq5WV7pYnH5hqO0YW7eAHrgjV13yn6t4H/GC4+6LhEA=="
+        },
+        "@pixi/filter-fxaa": {
+          "version": "7.2.4",
+          "integrity": "sha512-qzKjdL+Ih18uGTJLg8tT/H+YCsTeGkw2uF7lyKnw/lxGLJQhLWIhM95M9qSNgxbXyW1vp7SbG81a9aAEz2HAhA=="
+        },
+        "@pixi/filter-noise": {
+          "version": "7.2.4",
+          "integrity": "sha512-QAU9Ybj2ZQrWM9ZEjTTC0iLnQcuyNoZNRinxSbg1G0yacpmsSb9wvV5ltIZ66+hfY+90+u2Nudt/v9g6pvOdGg=="
+        },
+        "@pixi/graphics": {
+          "version": "7.2.4",
+          "integrity": "sha512-3A2EumTjWJgXlDLOyuBrl9b6v1Za/E+/IjOGUIX843HH4NYaf1a2sfDfljx6r3oiDvy+VhuBFmgynRcV5IyA0Q=="
+        },
+        "@pixi/math": {
+          "version": "7.2.4",
+          "integrity": "sha512-LJB+mozyEPllxa0EssFZrKNfVwysfaBun4b2dJKQQInp0DafgbA0j7A+WVg0oe51KhFULTJMpDqbLn/ITFc41A=="
+        },
+        "@pixi/mesh": {
+          "version": "7.2.4",
+          "integrity": "sha512-wiALIqcRKib2BqeH9kOA5fOKWN352nqAspgbDa8gA7OyWzmNwqIedIlElixd0oLFOrIN5jOZAdzeKnoYQlt9Aw=="
+        },
+        "@pixi/mesh-extras": {
+          "version": "7.2.4",
+          "integrity": "sha512-Lxqq/1E2EmDgjZX8KzjhBy3VvITIQ00arr2ikyHYF1d0XtQTKEYpr8VKzhchqZ5/9DuyTDbDMYGhcxoNXQmZrQ=="
+        },
+        "@pixi/mixin-cache-as-bitmap": {
+          "version": "7.2.4",
+          "integrity": "sha512-95L/9nzfLHw6GoeqqRl/RjSloKvRt0xrc2inCmjMZvMsFUEtHN2F8IWd1k5vcv0S+83NCreFkJg6nJm1m5AZqg=="
+        },
+        "@pixi/mixin-get-child-by-name": {
+          "version": "7.2.4",
+          "integrity": "sha512-9g17KgSBEEhkinnKk4dqmxagzHOCPSTvGB6lOopBq4yyXmr/2WVv+QGjuzE0O+p80szQeBJjPBQxzrfBILaSRw=="
+        },
+        "@pixi/mixin-get-global-position": {
+          "version": "7.2.4",
+          "integrity": "sha512-UrAUF2BXCeWtFgR2m+er41Ky7zShT7r228cZkB6ZfYwMeThhwqG5mH68UeCyP6p68JMpT1gjI2DPfeSRY3ecnA=="
+        },
+        "@pixi/particle-container": {
+          "version": "7.2.4",
+          "integrity": "sha512-tpSzilZGFtAoi8XhzL0TecLPNRQAbY8nWV9XNGXJDw+nxXp18GCe8L6eEmnHLlAug67BRHl65DtrdvTknPX+4g=="
+        },
+        "@pixi/prepare": {
+          "version": "7.2.4",
+          "integrity": "sha512-Yff5Sh4kTLdKc5VkkM44LW9gpj7Izw8ns3P1TzWxqeGjzPZ3folr/tQujGL+Qw+8A9VESp+hX9MSIHyw+jpyrg=="
+        },
+        "@pixi/runner": {
+          "version": "7.2.4",
+          "integrity": "sha512-YtyqPk1LA+0guEFKSFx6t/YSvbEQwajFwi4Ft8iDhioa6VK2MmTir1GjWwy7JQYLcDmYSAcQjnmFtVTZohyYSw=="
+        },
+        "@pixi/settings": {
+          "version": "7.2.4",
+          "integrity": "sha512-ZPKRar9EwibijGmH8EViu4Greq1I/O7V/xQx2rNqN23XA7g09Qo6yfaeQpufu5xl8+/lZrjuHtQSnuY7OgG1CA=="
+        },
+        "@pixi/sprite": {
+          "version": "7.2.4",
+          "integrity": "sha512-DhR1B+/d0eXpxHIesJMXcVPrKFwQ+zRA1LvEIFfzewqfaRN3X6PMIuoKX8SIb6tl+Hq8Ba9Pe28zI7d2rmRzrA=="
+        },
+        "@pixi/sprite-animated": {
+          "version": "7.2.4",
+          "integrity": "sha512-9eRriPSC0QVS7U9zQlrG3uEI5+h3fi+mqofXy+yjk1sGCmXSIJME5p2wg2mzxoJk3qkSMagQA9QHtL26Fti8Iw=="
+        },
+        "@pixi/sprite-tiling": {
+          "version": "7.2.4",
+          "integrity": "sha512-nGfxQoACRx49dUN0oW1vFm3141M+7gkAbzoNJym2Pljd2dpLME9fb5E6Lyahu0yWMaPRhhGorn6z9VIGmTF3Jw=="
+        },
+        "@pixi/spritesheet": {
+          "version": "7.2.4",
+          "integrity": "sha512-LNmlavyiMQeCF0U4S+yhzxUYmPmat6EpLjLnkGukQTZV5CZkxDCVgXM9uKoRF2DvNydj4yuwZ6+JjK8QssHI8Q=="
+        },
+        "@pixi/text": {
+          "version": "7.2.4",
+          "integrity": "sha512-DGu7ktpe+zHhqR2sG9NsJt4mgvSObv5EqXTtUxD4Z0li1gmqF7uktpLyn5I6vSg1TTEL4TECClRDClVDGiykWw=="
+        },
+        "@pixi/text-bitmap": {
+          "version": "7.2.4",
+          "integrity": "sha512-3u2CP4VN+muCaq/jtj7gn0hb3DET/X2S04zTBcgc2WVGufJc62yz+UDzS9jC+ellotVdt9c8U74++vpz3zJGfw=="
+        },
+        "@pixi/text-html": {
+          "version": "7.2.4",
+          "integrity": "sha512-0NfLAE/w51ZtatxVqLvDS62iO0VLKsSdctqTAVv4Zlgdk9TKJmX1WUucHJboTvbm2SbDjNDGfZ6qXM5nAslIDQ=="
+        },
+        "@pixi/ticker": {
+          "version": "7.2.4",
+          "integrity": "sha512-hQQHIHvGeFsP4GNezZqjzuhUgNQEVgCH9+qU05UX1Mc5UHC9l6OJnY4VTVhhcHxZjA6RnyaY+1zBxCnoXuazpg=="
+        },
+        "@pixi/utils": {
+          "version": "7.2.4",
+          "integrity": "sha512-VUGQHBOINIS4ePzoqafwxaGPVRTa3oM/mEutIIHbNGI3b+QvSO+1Dnk40M0zcH6Bo+MxQZbOZK5X/wO9oU5+LQ=="
+        },
+        "@types/css-font-loading-module": {
+          "version": "0.0.7",
+          "integrity": "sha512-nl09VhutdjINdWyXxHWN/w9zlNCfr60JUqJbd24YXUuCwgeL0TpFSdElCwb6cxfB6ybE19Gjj4g0jsgkXxKv1Q=="
+        },
+        "@types/earcut": {
+          "version": "2.1.4",
+          "integrity": "sha512-qp3m9PPz4gULB9MhjGID7wpo3gJ4bTGXm7ltNDsmOvsPduTeHp8wSW9YckBj3mljeOh4F0m2z/0JKAALRKbmLQ=="
+        },
+        "@types/offscreencanvas": {
+          "version": "2019.7.3",
+          "integrity": "sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A=="
+        },
+        "call-bind-apply-helpers": {
+          "version": "1.0.2",
+          "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ=="
+        },
+        "call-bound": {
+          "version": "1.0.4",
+          "integrity": "sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg=="
+        },
+        "colord": {
+          "version": "2.10.0",
+          "integrity": "sha512-AidJptpBJmjTclAp9BkLwJi0T93fo5epJnbaZslpg6QVzpHjAiveF55mE9AcUJiGMqRHgMDY8soMsQtuNYMHfw=="
+        },
+        "dunder-proto": {
+          "version": "1.0.1",
+          "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A=="
+        },
+        "earcut": {
+          "version": "2.2.4",
+          "integrity": "sha512-/pjZsA1b4RPHbeWZQn66SWS8nZZWLQQ23oE3Eam7aroEFGEvwKAsJfZ9ytiEMycfzXWpca4FA9QIOehf7PocBQ=="
+        },
+        "es-define-property": {
+          "version": "1.0.1",
+          "integrity": "sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g=="
+        },
+        "es-errors": {
+          "version": "1.3.0",
+          "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw=="
+        },
+        "es-object-atoms": {
+          "version": "1.1.2",
+          "integrity": "sha512-HWcBoN6NileqtSydK2FqHbS/LoDd2pqrnQHLyJzBj4kOp/ky2MWMN694xOfkK8/SnUsW2DH7EfyVlydKCsm1Zw=="
+        },
+        "eventemitter3": {
+          "version": "4.0.7",
+          "integrity": "sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw=="
+        },
+        "function-bind": {
+          "version": "1.1.2",
+          "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
+        },
+        "get-intrinsic": {
+          "version": "1.3.0",
+          "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ=="
+        },
+        "get-proto": {
+          "version": "1.0.1",
+          "integrity": "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g=="
+        },
+        "gopd": {
+          "version": "1.2.0",
+          "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg=="
+        },
+        "has-symbols": {
+          "version": "1.1.0",
+          "integrity": "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ=="
+        },
+        "hasown": {
+          "version": "2.0.4",
+          "integrity": "sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A=="
+        },
+        "ismobilejs": {
+          "version": "1.1.1",
+          "integrity": "sha512-VaFW53yt8QO61k2WJui0dHf4SlL8lxBofUuUmwBo0ljPk0Drz2TiuDW4jo3wDcv41qy/SxrJ+VAzJ/qYqsmzRw=="
+        },
+        "math-intrinsics": {
+          "version": "1.1.0",
+          "integrity": "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="
+        },
+        "object-inspect": {
+          "version": "1.13.4",
+          "integrity": "sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew=="
+        },
+        "pixi.js": {
+          "version": "7.2.4",
+          "integrity": "sha512-nBH60meoLnHxoMFz17HoMxXS4uJpG5jwIdL+Gx2S11TzWgP3iKF+/WLOTrkSdyuQoQSdIBxVqpnYii0Wiox15A=="
+        },
+        "punycode": {
+          "version": "1.4.1",
+          "integrity": "sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ=="
+        },
+        "qs": {
+          "version": "6.16.0",
+          "integrity": "sha512-h6fhOIaRrID2CbEY2fqs+7t+UXZo+MLAnU5gRIq85uFtdiUPCdsApMlHhXogKVM4HM2DVbIjGNTTYH2OcmP1vA=="
+        },
+        "side-channel": {
+          "version": "1.1.1",
+          "integrity": "sha512-6x6dK6zJdpTzF4sQeNYxwtvBzf6Eg4GtlesS94HOvTudUeyK2WXAaIfmDgsyslYrRBeFIlsi54AYsFGUuhmvrQ=="
+        },
+        "side-channel-list": {
+          "version": "1.0.1",
+          "integrity": "sha512-mjn/0bi/oUURjc5Xl7IaWi/OJJJumuoJFQJfDDyO46+hBWsfaVM65TBHq2eoZBhzl9EchxOijpkbRC8SVBQU0w=="
+        },
+        "side-channel-map": {
+          "version": "1.0.1",
+          "integrity": "sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA=="
+        },
+        "side-channel-weakmap": {
+          "version": "1.0.2",
+          "integrity": "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A=="
+        },
+        "typescript": {
+          "version": "5.6.3",
+          "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
+        },
+        "url": {
+          "version": "0.11.4",
+          "integrity": "sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg=="
+        }
+      },
+      "surfaces": {
+        "@pixi/app/lib/Application.d.ts": {
+          "sha256": "2d17ffa3ca7ca0b2f88a24a711260267ef2973ee4d59de3abcce78294cee44c4",
+          "declarations": [
+            "init(options: Partial<IApplicationOptions>): void;",
+            "destroy(): void;",
+            "constructor(options?: Partial<IApplicationOptions>);",
+            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/display/lib/Container.d.ts": {
+          "sha256": "f1d454c89f834d1f1d8b81c8983ec135bd8369d43d4cbf51910b725b06d4f82c",
+          "declarations": [
+            "parent: Container;",
+            "constructor();",
+            "addChild<U extends T[]>(...children: U): U[0];",
+            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/sprite/lib/Sprite.d.ts": {
+          "sha256": "6594bfa2da9cf2a2bfc8649108cf2bb1f3bbd98d8db6ed0bd9a924624a661e78",
+          "declarations": [
+            "constructor(texture?: Texture);",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/text/lib/Text.d.ts": {
+          "sha256": "71162fe219281411857b8880f4c008b218d1e16a8360704129079f2c64d550ea",
+          "declarations": [
+            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: ICanvas);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/ticker/lib/Ticker.d.ts": {
+          "sha256": "92634fdcf6947af71868e171dd6a9a01102f707863052348a626725f4e01aa10",
+          "declarations": [
+            "constructor();",
+            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
+            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
+            "destroy(): void;"
+          ]
+        },
+        "@pixi/events/lib/FederatedPointerEvent.d.ts": {
+          "sha256": "a843ff0b2656a073b63696d0d704168344494bdd32df332305731dc061a9e8ca",
+          "declarations": []
+        },
+        "@pixi/particle-container/lib/ParticleContainer.d.ts": {
+          "sha256": "ad01cf479117e5835050d808ffdc79ead95a7d5ed0cb14c38f469ab1aebb759a",
+          "declarations": [
+            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "sha256": "33f033c40bc13499ac3256403116b961f73a17979a772ff92f277b25d2d2a6b9",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
+          ]
+        }
+      },
+      "declarationDelta": {}
+    },
+    {
+      "id": "pixi-7.3.0",
+      "packages": {
+        "pixi.js": "7.3.0",
+        "typescript": "5.6.3"
+      },
+      "certification": "not-certified",
+      "installExit": 0,
+      "runtimeExit": 0,
+      "typeExit": 0,
+      "observation": {
+        "version": "7.3.0",
+        "capabilities": {
+          "asyncInit": false,
+          "particle": false,
+          "particleContainer": true,
+          "cacheAsTexture": false,
+          "renderLayer": false,
+          "domContainer": false,
+          "canvasRenderer": false
+        },
+        "observations": {
+          "visibleChanged": 0
+        }
+      },
+      "resolvedPackages": {
+        "@pixi/accessibility": {
+          "version": "7.3.0",
+          "integrity": "sha512-NgKl84HLkUsWK0Bd06okhsERsHteVzuTANi3Jd01QDqfNCz0qAfpjn4dPviUmqwbqu4zMuc3FRwWKDHszoa9aw=="
+        },
+        "@pixi/app": {
+          "version": "7.3.0",
+          "integrity": "sha512-dBXI4o36vgjoXVYkuiDPQcIsSuI3LUHQ6ycfqnX7jXlbGX5x1310O1WZfYENN18S3njm6WCtOdNTxDoHAo9NHw=="
+        },
+        "@pixi/assets": {
+          "version": "7.3.0",
+          "integrity": "sha512-eIbvOMFwWKRUuOrFwTy9UDVrAY95o5OlwOHnxAmeYhn6VTchua/oAeeaAYJyJqjyw+ONFsLWE1cFX6uEKHM2Sw=="
+        },
+        "@pixi/color": {
+          "version": "7.3.0",
+          "integrity": "sha512-qwgsP+cQhw0QjvouvAslpJ3g7DUMwKLUrXF6Nv+G4GhgVC2Z03CsCfWgUxLxKPD3WadB6FacdRIGx6o2TywB+A=="
+        },
+        "@pixi/compressed-textures": {
+          "version": "7.3.0",
+          "integrity": "sha512-bxs8Fh/tPkC2jD+GZhnQvpW/qpuFq4PspApCFTClmwGhGfYlIRUExexwn+y0akKCIgBikNniLt0hATxBqw4ABQ=="
+        },
+        "@pixi/constants": {
+          "version": "7.3.0",
+          "integrity": "sha512-zRBX5RAxm14zs7/sse/eXSrFzbv2XPEJwj2fQga+4hI7tAsXazYgGFl3CMlDET5mW9rXUSxROE0dvnLe9DcYRQ=="
+        },
+        "@pixi/core": {
+          "version": "7.3.0",
+          "integrity": "sha512-ZgFdlqOZfijfgvWMi6ZuQey2m3U+ik8GUD7MsLn96Gtg7UQGwmcEsEB2MZ7f7TUoLkMAOlxb0aXEHzdV/+v1zg=="
+        },
+        "@pixi/display": {
+          "version": "7.3.0",
+          "integrity": "sha512-YQJZEcQo/0BIhvAaKrG68w01HYhPMwyPLj0Rvw30J4sW4uer/vf50IEAkM80rdQIUowqjUvatUYRW/r+owomXg=="
+        },
+        "@pixi/events": {
+          "version": "7.3.0",
+          "integrity": "sha512-8nBmX1I6CQovn63uf2Q/6m1lg1Jw9ygdVGgCQCxF7uF7+PDu6vNhLl2uTv+tLs9v9fooRe9ddtTsIvK0P2v4fQ=="
+        },
+        "@pixi/extensions": {
+          "version": "7.3.0",
+          "integrity": "sha512-kr0nia7yvPLIXqBeOKLUXcOoxRG5yCxIPUtXvsFSrrmJvqsXsyg4l9cH0CS/I9yTb67/ks5wjzieUdwNf8pfTg=="
+        },
+        "@pixi/extract": {
+          "version": "7.3.0",
+          "integrity": "sha512-3CpGgu7I+4EVbEp/HU91nyTHKVUql5o/nik0hM+z402tlBbrbLejNAhoJ/Foq3L49n6SkpM2G8KN6d+G4Rn+jg=="
+        },
+        "@pixi/filter-alpha": {
+          "version": "7.3.0",
+          "integrity": "sha512-J/Zzs8ajqGc94St1WMJV03f8IHNSDrPi3s0D6vTNfm64YqBxXMpmeuPzArP/AG47ObDGrKJFRUhkv9VFNix62w=="
+        },
+        "@pixi/filter-blur": {
+          "version": "7.3.0",
+          "integrity": "sha512-21YUauI05m6yqvW1bugVAzCfc1q4OSfkv353G3/s+cXGjkk/hTcA+ShSENcJnSJouZpjs0XHavXDtvvHBg30fA=="
+        },
+        "@pixi/filter-color-matrix": {
+          "version": "7.3.0",
+          "integrity": "sha512-vUcn+l5w21J57Z4tGaWW9DTys9gSqiPdj8gpcl5APnjNVyYUuD1n+NRl+OAk/6v4BTU7I2iLnr6zIgWCucDz9Q=="
+        },
+        "@pixi/filter-displacement": {
+          "version": "7.3.0",
+          "integrity": "sha512-7YQtsB/YSHmhAPlK9oFMsEzWPm6TyQ9nr539osVIfrKq/xHuPRLxHYpJafL6MvAGQWocUUPiqCy4zkad9qsjWA=="
+        },
+        "@pixi/filter-fxaa": {
+          "version": "7.3.0",
+          "integrity": "sha512-IHomJnQ4VZ8ihZ+P7E86g2FcfxzEfBGq956gQ3UPYb0DW6fTMnvxzIuI9z+ElfuihdyAl7dR69xmwuwF3mqm0Q=="
+        },
+        "@pixi/filter-noise": {
+          "version": "7.3.0",
+          "integrity": "sha512-en6LUe0tNyzidcK7ByHbHm98Hh5/LlycBiFVrTjnk++ANZSrbAg3Wd+KRGITSy2BggrOcnpcJ1Ixd8sGejZEUA=="
+        },
+        "@pixi/graphics": {
+          "version": "7.3.0",
+          "integrity": "sha512-+5yyv8z4sZDxvdyYbGn/DeR1EdSD+ieXf9N3BS2puoxmrM5blMUzZCoY4vFCeF+r59VpB0ildYl3APzwMdRCLw=="
+        },
+        "@pixi/math": {
+          "version": "7.3.0",
+          "integrity": "sha512-3gM1MffXlDM8bFNl+D1ndq4W1Gn7quRvxbAZ9RUp7Zvoqcud/0c/VcxngM2st+IXeFf8htlKxytkotMKk5gQxA=="
+        },
+        "@pixi/mesh": {
+          "version": "7.3.0",
+          "integrity": "sha512-TZqYmWiONuIIFzt+XL1+lnUFMHhiyJUyT5pNcW/mB1Kfg9vGIebgNbml+Ut6Rghe6B1ntereRyCyEpr+hLbbWg=="
+        },
+        "@pixi/mesh-extras": {
+          "version": "7.3.0",
+          "integrity": "sha512-SxTrfQ8gzFru2DPv2dlEelignSBf6gN1taSVweAKs9HKfGi6hXYDbtQYQ9b21dsecXZYnrpL04kcY+QukOUVqQ=="
+        },
+        "@pixi/mixin-cache-as-bitmap": {
+          "version": "7.3.0",
+          "integrity": "sha512-Wck2Ro+832pZ4Wu6N3vptF2J0XveQ9W3dBfGGSPHCLypSZgZ9T2hvbF6WyzZShQFKBo+oeKhnX+Nf+fb8v81Rg=="
+        },
+        "@pixi/mixin-get-child-by-name": {
+          "version": "7.3.0",
+          "integrity": "sha512-CQ+cy59Oy5nVFCC3c/hYa73bmY0qlsbpax3sMrwaF4q/33o0ymPS50dBQvfu26l5OcK3UoE5XzR3fdB3H8lcHg=="
+        },
+        "@pixi/mixin-get-global-position": {
+          "version": "7.3.0",
+          "integrity": "sha512-mM3UzWy9zFEz7o4LHlVUt3WJBAk57ZrPHwE8S5VgUrppiwHAdsLryoRwbTJkSAtW2gz+D2sLYbE6YkMdO76eVg=="
+        },
+        "@pixi/particle-container": {
+          "version": "7.3.0",
+          "integrity": "sha512-7pHVmn4FlHBRlHUuLM+L/+viv1AbZBfHH6Q7tJu1dWHBenlqd81VZINW7YdzMLdkQpcT5eRm+xLyjBxGqCZNFw=="
+        },
+        "@pixi/prepare": {
+          "version": "7.3.0",
+          "integrity": "sha512-WI/sWB+OHomJrLo9ATknmOagBLDGn5TccVRBSltW1lLre6i0X+eYTDLovQyTQq3JNmR2VsTEuwMYapDUIAVE5g=="
+        },
+        "@pixi/runner": {
+          "version": "7.3.0",
+          "integrity": "sha512-U0qQk5yhZcCYQVm444IO604aoe1TivQjKeaAYaEpxNyEbSJ2/rEIQEttrnw6JXnm6a0ycI8iBtweDthnpyatqA=="
+        },
+        "@pixi/settings": {
+          "version": "7.3.0",
+          "integrity": "sha512-x8Tms/DBnedbJBjkP4VHqyBckqXqJnoAfoayqEcFrqNDQa+1qkr1UnyPj3l4eiEPhY8cEUBz1wSZnhM7R4XcDw=="
+        },
+        "@pixi/sprite": {
+          "version": "7.3.0",
+          "integrity": "sha512-3hJveyaxJ9jmZiyOo/Wfmh0Lje7eElF0FoqPl9mfNCXz1TKHSmWqHste+1LimqnThTiUhruJqwUq8h5o1DKLuw=="
+        },
+        "@pixi/sprite-animated": {
+          "version": "7.3.0",
+          "integrity": "sha512-K8KCViX0BeYwZyN0IVcvCYtTSoKoAKtNPH5/EYhSPwRsFDq/3kqW/pVx7Mgh/+MM4fyIuweVd9IHxMCjYh7LKw=="
+        },
+        "@pixi/sprite-tiling": {
+          "version": "7.3.0",
+          "integrity": "sha512-9ktdL5LU2xq5ZORq8iRpyb5qz7josU6rmwCPggAAuuIS0HHt5HvmWRnklTjCL634FvkzbwlD3+DZnJ842qFRFA=="
+        },
+        "@pixi/spritesheet": {
+          "version": "7.3.0",
+          "integrity": "sha512-BloKplTxlM0cX1O60wW7upKPdzrVarYcRg/8+VTwlOpl2inHj/sVloyqOsNoG2eGVHgW3dl0yaeYiJQH/HzQQA=="
+        },
+        "@pixi/text": {
+          "version": "7.3.0",
+          "integrity": "sha512-oShmP5CvATLJecK54i2YqwzKAkx8VRgpPqXk3m/gWvF+cs9i9AqCMV3sO5J6xdcCnc+Zb61hjX07J39+QxDqWg=="
+        },
+        "@pixi/text-bitmap": {
+          "version": "7.3.0",
+          "integrity": "sha512-o0EnbnR4zhSceLjl2i33yjz2R5Xm/r35ieuGE6CPDUiiTKG8J5fGhccieRpZ1ucr/dJ3B1JkYQq9QTbBFr5dMg=="
+        },
+        "@pixi/text-html": {
+          "version": "7.3.0",
+          "integrity": "sha512-0RAsNz0ps/Q3yy4Tp7RZaJ9GxQJcVUox4N+I809AI0zwLhlBQClJdzSbjBfCEAzK24K8SQ+MJcDlsH3P+O8RGQ=="
+        },
+        "@pixi/ticker": {
+          "version": "7.3.0",
+          "integrity": "sha512-F77FpONHOn5JkZRMHUM8bXLLIG+Czve7zxOqb1Mk57QHLADhcHP88Kj2eYu9E7zJu4Flx51nyTdmVWQgQXW96g=="
+        },
+        "@pixi/utils": {
+          "version": "7.3.0",
+          "integrity": "sha512-syUi0UuJslUAs3PkZKycliND1Fs0cX3c+s2YyVTiRRRvuM81LvjrG/1AqKFhNaav7oYapBOQBWjgzBGv3wmM/A=="
+        },
+        "@types/css-font-loading-module": {
+          "version": "0.0.7",
+          "integrity": "sha512-nl09VhutdjINdWyXxHWN/w9zlNCfr60JUqJbd24YXUuCwgeL0TpFSdElCwb6cxfB6ybE19Gjj4g0jsgkXxKv1Q=="
+        },
+        "@types/earcut": {
+          "version": "2.1.4",
+          "integrity": "sha512-qp3m9PPz4gULB9MhjGID7wpo3gJ4bTGXm7ltNDsmOvsPduTeHp8wSW9YckBj3mljeOh4F0m2z/0JKAALRKbmLQ=="
+        },
+        "@types/offscreencanvas": {
+          "version": "2019.7.3",
+          "integrity": "sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A=="
+        },
+        "call-bind-apply-helpers": {
+          "version": "1.0.2",
+          "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ=="
+        },
+        "call-bound": {
+          "version": "1.0.4",
+          "integrity": "sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg=="
+        },
+        "colord": {
+          "version": "2.10.0",
+          "integrity": "sha512-AidJptpBJmjTclAp9BkLwJi0T93fo5epJnbaZslpg6QVzpHjAiveF55mE9AcUJiGMqRHgMDY8soMsQtuNYMHfw=="
+        },
+        "dunder-proto": {
+          "version": "1.0.1",
+          "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A=="
+        },
+        "earcut": {
+          "version": "2.2.4",
+          "integrity": "sha512-/pjZsA1b4RPHbeWZQn66SWS8nZZWLQQ23oE3Eam7aroEFGEvwKAsJfZ9ytiEMycfzXWpca4FA9QIOehf7PocBQ=="
+        },
+        "es-define-property": {
+          "version": "1.0.1",
+          "integrity": "sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g=="
+        },
+        "es-errors": {
+          "version": "1.3.0",
+          "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw=="
+        },
+        "es-object-atoms": {
+          "version": "1.1.2",
+          "integrity": "sha512-HWcBoN6NileqtSydK2FqHbS/LoDd2pqrnQHLyJzBj4kOp/ky2MWMN694xOfkK8/SnUsW2DH7EfyVlydKCsm1Zw=="
+        },
+        "eventemitter3": {
+          "version": "4.0.7",
+          "integrity": "sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw=="
+        },
+        "function-bind": {
+          "version": "1.1.2",
+          "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
+        },
+        "get-intrinsic": {
+          "version": "1.3.0",
+          "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ=="
+        },
+        "get-proto": {
+          "version": "1.0.1",
+          "integrity": "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g=="
+        },
+        "gopd": {
+          "version": "1.2.0",
+          "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg=="
+        },
+        "has-symbols": {
+          "version": "1.1.0",
+          "integrity": "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ=="
+        },
+        "hasown": {
+          "version": "2.0.4",
+          "integrity": "sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A=="
+        },
+        "ismobilejs": {
+          "version": "1.1.1",
+          "integrity": "sha512-VaFW53yt8QO61k2WJui0dHf4SlL8lxBofUuUmwBo0ljPk0Drz2TiuDW4jo3wDcv41qy/SxrJ+VAzJ/qYqsmzRw=="
+        },
+        "math-intrinsics": {
+          "version": "1.1.0",
+          "integrity": "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="
+        },
+        "object-inspect": {
+          "version": "1.13.4",
+          "integrity": "sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew=="
+        },
+        "pixi.js": {
+          "version": "7.3.0",
+          "integrity": "sha512-lygiK+RQxFyVY8fiRMSh1sTkjWvWPadbLf7zndoQBuVNtfa9wi+53q4xx7hQQ04ndAUazLA05xNi2BFdbitOeg=="
+        },
+        "punycode": {
+          "version": "1.4.1",
+          "integrity": "sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ=="
+        },
+        "qs": {
+          "version": "6.16.0",
+          "integrity": "sha512-h6fhOIaRrID2CbEY2fqs+7t+UXZo+MLAnU5gRIq85uFtdiUPCdsApMlHhXogKVM4HM2DVbIjGNTTYH2OcmP1vA=="
+        },
+        "side-channel": {
+          "version": "1.1.1",
+          "integrity": "sha512-6x6dK6zJdpTzF4sQeNYxwtvBzf6Eg4GtlesS94HOvTudUeyK2WXAaIfmDgsyslYrRBeFIlsi54AYsFGUuhmvrQ=="
+        },
+        "side-channel-list": {
+          "version": "1.0.1",
+          "integrity": "sha512-mjn/0bi/oUURjc5Xl7IaWi/OJJJumuoJFQJfDDyO46+hBWsfaVM65TBHq2eoZBhzl9EchxOijpkbRC8SVBQU0w=="
+        },
+        "side-channel-map": {
+          "version": "1.0.1",
+          "integrity": "sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA=="
+        },
+        "side-channel-weakmap": {
+          "version": "1.0.2",
+          "integrity": "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A=="
+        },
+        "typescript": {
+          "version": "5.6.3",
+          "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
+        },
+        "url": {
+          "version": "0.11.4",
+          "integrity": "sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg=="
+        }
+      },
+      "surfaces": {
+        "@pixi/app/lib/Application.d.ts": {
+          "sha256": "2d17ffa3ca7ca0b2f88a24a711260267ef2973ee4d59de3abcce78294cee44c4",
+          "declarations": [
+            "init(options: Partial<IApplicationOptions>): void;",
+            "destroy(): void;",
+            "constructor(options?: Partial<IApplicationOptions>);",
+            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/display/lib/Container.d.ts": {
+          "sha256": "e609e0e20fe8d70bba8e80aa3317c4d00a1bee7add8cc5706c61f1ece26cb287",
+          "declarations": [
+            "parent: Container;",
+            "constructor();",
+            "addChild<U extends T[]>(...children: U): U[0];",
+            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/sprite/lib/Sprite.d.ts": {
+          "sha256": "6594bfa2da9cf2a2bfc8649108cf2bb1f3bbd98d8db6ed0bd9a924624a661e78",
+          "declarations": [
+            "constructor(texture?: Texture);",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/text/lib/Text.d.ts": {
+          "sha256": "71162fe219281411857b8880f4c008b218d1e16a8360704129079f2c64d550ea",
+          "declarations": [
+            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: ICanvas);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/ticker/lib/Ticker.d.ts": {
+          "sha256": "92634fdcf6947af71868e171dd6a9a01102f707863052348a626725f4e01aa10",
+          "declarations": [
+            "constructor();",
+            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
+            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
+            "destroy(): void;"
+          ]
+        },
+        "@pixi/events/lib/FederatedPointerEvent.d.ts": {
+          "sha256": "a843ff0b2656a073b63696d0d704168344494bdd32df332305731dc061a9e8ca",
+          "declarations": []
+        },
+        "@pixi/particle-container/lib/ParticleContainer.d.ts": {
+          "sha256": "72106c4d35bf7f588cefe65f1c63eac2fef1241e5cd7b81a68401158780faa54",
+          "declarations": [
+            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "sha256": "33f033c40bc13499ac3256403116b961f73a17979a772ff92f277b25d2d2a6b9",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
+          ]
+        }
+      },
+      "declarationDelta": {}
+    },
+    {
+      "id": "pixi-7.3.3",
+      "packages": {
+        "pixi.js": "7.3.3",
+        "typescript": "5.6.3"
+      },
+      "certification": "not-certified",
+      "installExit": 0,
+      "runtimeExit": 0,
+      "typeExit": 0,
+      "observation": {
+        "version": "7.3.3",
+        "capabilities": {
+          "asyncInit": false,
+          "particle": false,
+          "particleContainer": true,
+          "cacheAsTexture": false,
+          "renderLayer": false,
+          "domContainer": false,
+          "canvasRenderer": false
+        },
+        "observations": {
+          "visibleChanged": 0
+        }
+      },
+      "resolvedPackages": {
+        "@pixi/accessibility": {
+          "version": "7.3.3",
+          "integrity": "sha512-cHiIEP54RNqvPKmi45HvvnTbiWU+/lzdTY0zK7OXx3TmcEQRn2A7GZ1I+uxx476NeXGJtGSvv3copyxFjPB6Ew=="
+        },
+        "@pixi/app": {
+          "version": "7.3.3",
+          "integrity": "sha512-MS5r/yU0CrWMPXXrgKAzgC2KC35Och8fT9z6J1XUCs7yHhdO8768rnSePJuzhj9Yaclv7PUpNQzh8rG9o/MzkQ=="
+        },
+        "@pixi/assets": {
+          "version": "7.3.3",
+          "integrity": "sha512-KcLXVehdJ2kc2bSnTfatLPLL6sLD7dwU+EZ5bWQ/PZDSsfML3kLFvq84VXd4k8LKNX4RCvfy4yeeIUW1o5tnMg=="
+        },
+        "@pixi/color": {
+          "version": "7.3.3",
+          "integrity": "sha512-IiiFhNIqXt7yULe0Wkq5Hn38ymDoEen/6EvV2y2AQIOu6TyuET5PGswAdMfG7ZjfwBaCudK6yQEUjWaXbgRUmw=="
+        },
+        "@pixi/colord": {
+          "version": "2.9.6",
+          "integrity": "sha512-nezytU2pw587fQstUu1AsJZDVEynjskwOL+kibwcdxsMBFqPsFFNA7xl0ii/gXuDi6M0xj3mfRJj8pBSc2jCfA=="
+        },
+        "@pixi/compressed-textures": {
+          "version": "7.3.3",
+          "integrity": "sha512-4h1NKePF5blN7qux29yEnKiGdk4vZif59XtLviW7Y3r9MKgKSoizDl0RqU4SKo4eC1P0jpt1qOjiG4TE+AjXGQ=="
+        },
+        "@pixi/constants": {
+          "version": "7.3.3",
+          "integrity": "sha512-ww1JdekmKBUqHyPq8A5L+86FkzpS4KidlBm9wkX1fcd+6QQzq/vbx1JOz6m3CmH5LnlmDZ+zysLezvpZlBcwwA=="
+        },
+        "@pixi/core": {
+          "version": "7.3.3",
+          "integrity": "sha512-064tuK6NoGIl/2Wf4EUlaLLlnRMZuDdLqnISsj2/A70towg2QUWgHhwZsCB4NvAssidWu/sIT+vk5IKDmh1LKA=="
+        },
+        "@pixi/display": {
+          "version": "7.3.3",
+          "integrity": "sha512-iULZ2E6Z4vhI0FypXpUbtA+CODnj/CuTt2pi9gsw00ILI12eEx76cAiazvhxnCNqcfmj1RRK2P6s9Vzr5WmEIg=="
+        },
+        "@pixi/events": {
+          "version": "7.3.3",
+          "integrity": "sha512-1oDfdFtKsy0Z9ew09MrSYGIIeGnBXr/c7866A32Od3KXql0dhd7UpFFpaFKLCXydDHRgFkjOP7t0/Pp1luTvfg=="
+        },
+        "@pixi/extensions": {
+          "version": "7.3.3",
+          "integrity": "sha512-Of44Wde0ZHYCuMoDLFl/8SOSPV2NiDBUB6QKBvYvNdhVslbO3pxrn9oQH9Fmsd8iGcGJ/YtyI5H2T/ky4Bo6AQ=="
+        },
+        "@pixi/extract": {
+          "version": "7.3.3",
+          "integrity": "sha512-quD61mNtgq3w2USIPUBOuxD9kVWIPoh8offqJugT4ZZS2XlSnh2FvLjCEC66jVmMM0tmk6HGAfc5xRFNlyw8PQ=="
+        },
+        "@pixi/filter-alpha": {
+          "version": "7.3.3",
+          "integrity": "sha512-StLLxEkCyghK3dhzLZD9jMu4lZ/ir4Bah2XXXWGhwE+XCO+//rnXreZ8v74R52WbaLUNDHzwlbq7/+BABwMu5w=="
+        },
+        "@pixi/filter-blur": {
+          "version": "7.3.3",
+          "integrity": "sha512-AZzMbcFoL+uHxiVM2nQrQM0MQdLdd5mw7Fd4F60ROB96tmMK/M5W/FTqgdqXUQYld6wCFZKtJMulonVaPKLXDA=="
+        },
+        "@pixi/filter-color-matrix": {
+          "version": "7.3.3",
+          "integrity": "sha512-Ot9lQ24lff4DPok0qy+c3IekfEuGf0Y1mx/dB3iLceys2hJHF5wK8rrhKrA1vc5IgrirbZpmjK8it9cVFzEW2g=="
+        },
+        "@pixi/filter-displacement": {
+          "version": "7.3.3",
+          "integrity": "sha512-fBnZTUmt6wwazdk/ZDW3HJEkf9s5b8uDuOwHvUAPWTJ6oYqwAjFXnrTlhEwB/Fp+0v6hUVVlHWEYk07HVgjEIg=="
+        },
+        "@pixi/filter-fxaa": {
+          "version": "7.3.3",
+          "integrity": "sha512-xq5xcpu68axMrGsVOcpxqebLAa+B4yBSLQlI2rsn7s8YtWY+pC20lsaNnKDlrv9hwJ1Ah7BtBZy0EVVaeFNYqA=="
+        },
+        "@pixi/filter-noise": {
+          "version": "7.3.3",
+          "integrity": "sha512-Hwwk1xLvA+0wTqJtKTnIGzyZmLubm5ylgqsMRHQqujDtVSIqE2SY1iVUcGA5vv31C7rFFkxGT4yhtfnYBNCvKQ=="
+        },
+        "@pixi/graphics": {
+          "version": "7.3.3",
+          "integrity": "sha512-czX/SEQTSCI3kkH5DFAcchPaPYOAF7cz1P5K2hVvClE/bbbIWN0H2sBIF6pIY1ENkZ0aguQs36yDeXUDWXyoiQ=="
+        },
+        "@pixi/math": {
+          "version": "7.3.3",
+          "integrity": "sha512-kaHN6iusINPS0wIbrhP82za+B2qNDWHPHip/QtmpQTp81ibOIfHlDMOlsnE6rSdelTFNhrNWoTWU8IvXUbvy8g=="
+        },
+        "@pixi/mesh": {
+          "version": "7.3.3",
+          "integrity": "sha512-8G3FO44wLDimNlCqXBKF+zQ3nBqJ4kMBbIjGxRaRkJmahcMYkY2zJpYsYh1YqKQztL9UmcP5V170VEIcPsmaJw=="
+        },
+        "@pixi/mesh-extras": {
+          "version": "7.3.3",
+          "integrity": "sha512-2TW1n97PpSZIZomfoEcKezGeGLPyd82ng2u8SXQoy9keCmB2yK361/RO88jvWbY4qpnJn/89LiLyYEBiJtSmWg=="
+        },
+        "@pixi/mixin-cache-as-bitmap": {
+          "version": "7.3.3",
+          "integrity": "sha512-Vv/H24CADY5w2DZaTYhXsfr8wAyKsg6gYn0DLgWDnAI3PWkRcB0fVDfowlHAEzltfxyH4tp9LVc2jtbEIKfSlQ=="
+        },
+        "@pixi/mixin-get-child-by-name": {
+          "version": "7.3.3",
+          "integrity": "sha512-75vlViVaynPyIYQIaoU08k1iP+8s9ct2YEnW91vyiHGxxE7BBimiYomWkAUYXtSnaSFoDkNPOh7iI91Icmkf+w=="
+        },
+        "@pixi/mixin-get-global-position": {
+          "version": "7.3.3",
+          "integrity": "sha512-ZEScRlx/KSr0z40+xqF9jl9N8j0aFZCNwSluoMLuFecvn4kpaCQx8i4F8j+GkkdrnCfanSYE9ySADlUCsKmzHA=="
+        },
+        "@pixi/particle-container": {
+          "version": "7.3.3",
+          "integrity": "sha512-OxigacwSbPjVogahmBYUiYMIH+NhNa+jvGAk5OYEF431gcVmjtravPbk7mmFdGKmOMICztSyVX8kOyhXxCv63A=="
+        },
+        "@pixi/prepare": {
+          "version": "7.3.3",
+          "integrity": "sha512-2SdTyHJSDZeaEMuxXqOX01FUDhIjfWUmVCufLXxzjd8gZ52RWBpohl2gDRszPJMyPox142xzUiCnb4RuNXGHDw=="
+        },
+        "@pixi/runner": {
+          "version": "7.3.3",
+          "integrity": "sha512-LUObHyxM3tK504ChbioYySZhFhyNs779uA71fuWSFV04Ry0WNlbqVvwTbKGkyR6er6blfxdqk7d51WmuQtfLCg=="
+        },
+        "@pixi/settings": {
+          "version": "7.3.3",
+          "integrity": "sha512-a1OePduDPOfnrCm1U1RL7JhuEAncA5/jNwF51urclXU6HNTHiJT41/S6KELPoV8NbLyJCKtnKwzbbPkzKwc0Yg=="
+        },
+        "@pixi/sprite": {
+          "version": "7.3.3",
+          "integrity": "sha512-P/RxnvNV0PiuyaT9HA8F1aX9krp1BgjllBQcn6KHVxyAP8tJE0TD9pfHOU1+xRuoX37swXRQiDFTF6YvWzozUQ=="
+        },
+        "@pixi/sprite-animated": {
+          "version": "7.3.3",
+          "integrity": "sha512-BYvehHk3PlNln9tRfZ/zGp2MzVwRjggFe+s4NCQd1EU/NPQewqJGCAiQFB4Gc3hFK2Y8wkW7SpGAzuk/E2WTxg=="
+        },
+        "@pixi/sprite-tiling": {
+          "version": "7.3.3",
+          "integrity": "sha512-T4ms0TcfKq7JNRaUBaQyZsaxWziPh2EY10vFQEG17J3uyCrjQmN4dDS9AMoaltL1K3vh+CTSUnWO8S8mE1dn4Q=="
+        },
+        "@pixi/spritesheet": {
+          "version": "7.3.3",
+          "integrity": "sha512-aAebizGNiKijWmJ39bnAb8FbuXbxRINuWZ2xt7ANzJQxhbo7dX+qlF4pz91yj3gHQaulzJM2oKz4a5q6cHa7dw=="
+        },
+        "@pixi/text": {
+          "version": "7.3.3",
+          "integrity": "sha512-s9BLmiURYeJppPYB040jrGbtbsWM9PcXSRtr40xrbR0a+HPlxDEWCaHka9DiUFr/lIuOpA0y/YjmZskq5o5R7g=="
+        },
+        "@pixi/text-bitmap": {
+          "version": "7.3.3",
+          "integrity": "sha512-2IOBoSHtb2e1aoxB/pfJPFW34XeY8HpDtGJKn3F9IUYpBo6nnnZ6DuJNZyFG2r/hiytjVvulqI66CzOH/eJJ4A=="
+        },
+        "@pixi/text-html": {
+          "version": "7.3.3",
+          "integrity": "sha512-z8vsgsqVJuFEVX07wh0IYAwQ5DBiel8Lhxo2Ly8594O0mIdQ1IPvtAPv+WRyG35WT0i26J7GL2BZxURouDP2WA=="
+        },
+        "@pixi/ticker": {
+          "version": "7.3.3",
+          "integrity": "sha512-AxeMKP9vTcla+yYXCABc0uKUODjIsJRXk3DCHVpoPeeqRYPaKH291RtDw92QFw7FFgGBbRgsptBjF9Q+uO5hDA=="
+        },
+        "@pixi/utils": {
+          "version": "7.3.3",
+          "integrity": "sha512-rgWD0YV6oDKOVuQJ9ra6g3VdoN8usC6Kj/t3Ba1t9P+k9qUKIM0gCr9/bxFf7CJ/EUS8A2WTVfEmJVN2TwZfxg=="
+        },
+        "@types/css-font-loading-module": {
+          "version": "0.0.12",
+          "integrity": "sha512-x2tZZYkSxXqWvTDgveSynfjq/T2HyiZHXb00j/+gy19yp70PHCizM48XFdjBCWH7eHBD0R5i/pw9yMBP/BH5uA=="
+        },
+        "@types/earcut": {
+          "version": "2.1.4",
+          "integrity": "sha512-qp3m9PPz4gULB9MhjGID7wpo3gJ4bTGXm7ltNDsmOvsPduTeHp8wSW9YckBj3mljeOh4F0m2z/0JKAALRKbmLQ=="
+        },
+        "@types/offscreencanvas": {
+          "version": "2019.7.3",
+          "integrity": "sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A=="
+        },
+        "call-bind-apply-helpers": {
+          "version": "1.0.2",
+          "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ=="
+        },
+        "call-bound": {
+          "version": "1.0.4",
+          "integrity": "sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg=="
+        },
+        "dunder-proto": {
+          "version": "1.0.1",
+          "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A=="
+        },
+        "earcut": {
+          "version": "2.2.4",
+          "integrity": "sha512-/pjZsA1b4RPHbeWZQn66SWS8nZZWLQQ23oE3Eam7aroEFGEvwKAsJfZ9ytiEMycfzXWpca4FA9QIOehf7PocBQ=="
+        },
+        "es-define-property": {
+          "version": "1.0.1",
+          "integrity": "sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g=="
+        },
+        "es-errors": {
+          "version": "1.3.0",
+          "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw=="
+        },
+        "es-object-atoms": {
+          "version": "1.1.2",
+          "integrity": "sha512-HWcBoN6NileqtSydK2FqHbS/LoDd2pqrnQHLyJzBj4kOp/ky2MWMN694xOfkK8/SnUsW2DH7EfyVlydKCsm1Zw=="
+        },
+        "eventemitter3": {
+          "version": "4.0.7",
+          "integrity": "sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw=="
+        },
+        "function-bind": {
+          "version": "1.1.2",
+          "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
+        },
+        "get-intrinsic": {
+          "version": "1.3.0",
+          "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ=="
+        },
+        "get-proto": {
+          "version": "1.0.1",
+          "integrity": "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g=="
+        },
+        "gopd": {
+          "version": "1.2.0",
+          "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg=="
+        },
+        "has-symbols": {
+          "version": "1.1.0",
+          "integrity": "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ=="
+        },
+        "hasown": {
+          "version": "2.0.4",
+          "integrity": "sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A=="
+        },
+        "ismobilejs": {
+          "version": "1.1.1",
+          "integrity": "sha512-VaFW53yt8QO61k2WJui0dHf4SlL8lxBofUuUmwBo0ljPk0Drz2TiuDW4jo3wDcv41qy/SxrJ+VAzJ/qYqsmzRw=="
+        },
+        "math-intrinsics": {
+          "version": "1.1.0",
+          "integrity": "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="
+        },
+        "object-inspect": {
+          "version": "1.13.4",
+          "integrity": "sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew=="
+        },
+        "pixi.js": {
+          "version": "7.3.3",
+          "integrity": "sha512-EuAyWZBL5lKViCgYkB6dbwkiI/MNht8O8F8956up9vwGEGf659QRHxfVQoRj8zdNGOBbe51XAxQMfLaW/l0Ekg=="
+        },
+        "punycode": {
+          "version": "1.4.1",
+          "integrity": "sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ=="
+        },
+        "qs": {
+          "version": "6.16.0",
+          "integrity": "sha512-h6fhOIaRrID2CbEY2fqs+7t+UXZo+MLAnU5gRIq85uFtdiUPCdsApMlHhXogKVM4HM2DVbIjGNTTYH2OcmP1vA=="
+        },
+        "side-channel": {
+          "version": "1.1.1",
+          "integrity": "sha512-6x6dK6zJdpTzF4sQeNYxwtvBzf6Eg4GtlesS94HOvTudUeyK2WXAaIfmDgsyslYrRBeFIlsi54AYsFGUuhmvrQ=="
+        },
+        "side-channel-list": {
+          "version": "1.0.1",
+          "integrity": "sha512-mjn/0bi/oUURjc5Xl7IaWi/OJJJumuoJFQJfDDyO46+hBWsfaVM65TBHq2eoZBhzl9EchxOijpkbRC8SVBQU0w=="
+        },
+        "side-channel-map": {
+          "version": "1.0.1",
+          "integrity": "sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA=="
+        },
+        "side-channel-weakmap": {
+          "version": "1.0.2",
+          "integrity": "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A=="
+        },
+        "typescript": {
+          "version": "5.6.3",
+          "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
+        },
+        "url": {
+          "version": "0.11.4",
+          "integrity": "sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg=="
+        }
+      },
+      "surfaces": {
+        "@pixi/app/lib/Application.d.ts": {
+          "sha256": "2d17ffa3ca7ca0b2f88a24a711260267ef2973ee4d59de3abcce78294cee44c4",
+          "declarations": [
+            "init(options: Partial<IApplicationOptions>): void;",
+            "destroy(): void;",
+            "constructor(options?: Partial<IApplicationOptions>);",
+            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/display/lib/Container.d.ts": {
+          "sha256": "e609e0e20fe8d70bba8e80aa3317c4d00a1bee7add8cc5706c61f1ece26cb287",
+          "declarations": [
+            "parent: Container;",
+            "constructor();",
+            "addChild<U extends T[]>(...children: U): U[0];",
+            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/sprite/lib/Sprite.d.ts": {
+          "sha256": "e0a92378592030c67cf7268f98c3b3a030989e7c7090f02b78a9359d67e42b5a",
+          "declarations": [
+            "constructor(texture?: Texture);",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/text/lib/Text.d.ts": {
+          "sha256": "71162fe219281411857b8880f4c008b218d1e16a8360704129079f2c64d550ea",
+          "declarations": [
+            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: ICanvas);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/ticker/lib/Ticker.d.ts": {
+          "sha256": "fbc4b121f50a0ef76f6ed463ea5f7020ce7be8708b7d2803ab4ed98107d3312d",
+          "declarations": [
+            "constructor();",
+            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
+            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
+            "destroy(): void;"
+          ]
+        },
+        "@pixi/events/lib/FederatedPointerEvent.d.ts": {
+          "sha256": "a843ff0b2656a073b63696d0d704168344494bdd32df332305731dc061a9e8ca",
+          "declarations": []
+        },
+        "@pixi/particle-container/lib/ParticleContainer.d.ts": {
+          "sha256": "72106c4d35bf7f588cefe65f1c63eac2fef1241e5cd7b81a68401158780faa54",
+          "declarations": [
+            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
+            "updateTransform(): void;",
+            "destroy(options?: IDestroyOptions | boolean): void;"
+          ]
+        },
+        "@pixi/extensions/lib/index.d.ts": {
+          "sha256": "06a8f7b71ebbdf32ef639c01b503f67186550ebf2c488a898427239a160bd2cf",
+          "declarations": [
+            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
+            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
+          ]
+        }
+      },
+      "declarationDelta": {}
+    },
+    {
       "id": "pixi-7.4.2",
       "packages": {
         "pixi.js": "7.4.2",
@@ -2679,71 +4877,7 @@
           ]
         }
       },
-      "declarationDelta": {
-        "@pixi/app/lib/Application.d.ts": {
-          "before": null,
-          "after": [
-            "init(options: Partial<IApplicationOptions>): void;",
-            "destroy(): void;",
-            "constructor(options?: Partial<IApplicationOptions>);",
-            "destroy(removeView?: boolean, stageOptions?: IDestroyOptions | boolean): void;"
-          ]
-        },
-        "@pixi/display/lib/Container.d.ts": {
-          "before": null,
-          "after": [
-            "parent: Container;",
-            "constructor();",
-            "addChild<U extends T[]>(...children: U): U[0];",
-            "removeChildren(beginIndex?: number, endIndex?: number): T[];",
-            "updateTransform(): void;",
-            "destroy(options?: IDestroyOptions | boolean): void;"
-          ]
-        },
-        "@pixi/sprite/lib/Sprite.d.ts": {
-          "before": null,
-          "after": [
-            "constructor(texture?: Texture);",
-            "destroy(options?: IDestroyOptions | boolean): void;"
-          ]
-        },
-        "@pixi/text/lib/Text.d.ts": {
-          "before": null,
-          "after": [
-            "constructor(text?: string | number, style?: Partial<ITextStyle> | TextStyle, canvas?: ICanvas);",
-            "updateTransform(): void;",
-            "destroy(options?: IDestroyOptions | boolean): void;"
-          ]
-        },
-        "@pixi/ticker/lib/Ticker.d.ts": {
-          "before": null,
-          "after": [
-            "constructor();",
-            "add<T = any>(fn: TickerCallback<T>, context?: T, priority?: UPDATE_PRIORITY): this;",
-            "remove<T = any>(fn: TickerCallback<T>, context?: T): this;",
-            "destroy(): void;"
-          ]
-        },
-        "@pixi/events/lib/FederatedPointerEvent.d.ts": {
-          "before": null,
-          "after": []
-        },
-        "@pixi/particle-container/lib/ParticleContainer.d.ts": {
-          "before": null,
-          "after": [
-            "constructor(maxSize?: number, properties?: IParticleProperties, batchSize?: number, autoResize?: boolean);",
-            "updateTransform(): void;",
-            "destroy(options?: IDestroyOptions | boolean): void;"
-          ]
-        },
-        "@pixi/extensions/lib/index.d.ts": {
-          "before": null,
-          "after": [
-            "remove(...extensions: Array<ExtensionFormatLoose | any>): any;",
-            "add(...extensions: Array<ExtensionFormatLoose | any>): any;"
-          ]
-        }
-      }
+      "declarationDelta": {}
     },
     {
       "id": "pixi-7.4.3",

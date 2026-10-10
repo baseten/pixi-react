@@ -5,8 +5,8 @@
   "baseline": "30cf1f86a590a1d8bb183a36b1887fa30e908d4e",
   "status": "audit-seed-not-support-guarantee",
   "floors": {
-    "react": "18.3.1",
-    "pixi.js": "7.4.2",
+    "react": "18.0.0",
+    "pixi.js": "7.2.0",
     "pixi8": "8.2.6"
   },
   "verifiedRanges": [
@@ -525,6 +525,33 @@
         "canary": "19.3.0-canary-d75b0697-20261006"
       },
       "selected": {
+        "18.0.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0"
+          },
+          "gitHead": null,
+          "integrity": "sha512-x+VL6wbT4JRVPm7EGxXhZ8w8LTROaxPXOqhlGyVSrv0sB1jkyFGgXxJ8LVoPRLvPR6/CIZGFmfzqUa2NYeMr2A==",
+          "publishedAt": "2022-03-29T16:00:04.223Z"
+        },
+        "18.1.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0"
+          },
+          "gitHead": null,
+          "integrity": "sha512-4oL8ivCz5ZEPyclFQXaNksK3adutVS8l2xzZU0cqEFrE9Sb7fC0EFK5uEk74wIreL1DERyjvsU915j1pcT2uEQ==",
+          "publishedAt": "2022-04-26T20:40:14.478Z"
+        },
+        "18.2.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "loose-envify": "^1.1.0"
+          },
+          "gitHead": "be229c5655074642ee664f532f2e7411dd7dccc7",
+          "integrity": "sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==",
+          "publishedAt": "2022-06-14T19:46:38.369Z"
+        },
         "18.3.1": {
           "peerDependencies": {},
           "dependencies": {
@@ -595,6 +622,42 @@
         "experimental": "0.0.0-experimental-d75b0697-20261006"
       },
       "selected": {
+        "0.27.0": {
+          "peerDependencies": {
+            "react": "^18.0.0"
+          },
+          "dependencies": {
+            "scheduler": "^0.21.0",
+            "loose-envify": "^1.1.0"
+          },
+          "gitHead": null,
+          "integrity": "sha512-HmMDKciQjYmBRGuuhIaKA1ba/7a+UsM5FzOZsMO2JYHt9Jh8reCb7j1eDC95NOyUlKM9KRyvdx0flBuDvYSBoA==",
+          "publishedAt": "2022-03-29T16:00:25.740Z"
+        },
+        "0.28.0": {
+          "peerDependencies": {
+            "react": "^18.1.0"
+          },
+          "dependencies": {
+            "scheduler": "^0.22.0",
+            "loose-envify": "^1.1.0"
+          },
+          "gitHead": null,
+          "integrity": "sha512-sGIHDOpgVjRYgsi8NgosDnbkDvvkYFFSF900ZUhUw0+lSBEA5n76TcKFaVkfYMIuYm+7W6mT8Q673DLBfuTxcQ==",
+          "publishedAt": "2022-04-26T20:40:38.246Z"
+        },
+        "0.29.0": {
+          "peerDependencies": {
+            "react": "^18.2.0"
+          },
+          "dependencies": {
+            "scheduler": "^0.23.0",
+            "loose-envify": "^1.1.0"
+          },
+          "gitHead": "be229c5655074642ee664f532f2e7411dd7dccc7",
+          "integrity": "sha512-wa0fGj7Zht1EYMRhKWwoo1H9GApxYLBuhoAuXN0TlltESAjDssB+Apf0T/DngVqaMyPypDmabL37vw/2aRM98Q==",
+          "publishedAt": "2022-06-14T19:46:58.269Z"
+        },
         "0.29.2": {
           "peerDependencies": {
             "react": "^18.3.1"
@@ -670,6 +733,158 @@
         "dev": "8.22.0-dev.3910339"
       },
       "selected": {
+        "7.2.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "7.2.0",
+            "@pixi/core": "7.2.0",
+            "@pixi/mesh": "7.2.0",
+            "@pixi/text": "7.2.0",
+            "@pixi/assets": "7.2.0",
+            "@pixi/events": "7.2.0",
+            "@pixi/sprite": "7.2.0",
+            "@pixi/display": "7.2.0",
+            "@pixi/extract": "7.2.0",
+            "@pixi/prepare": "7.2.0",
+            "@pixi/graphics": "7.2.0",
+            "@pixi/text-html": "7.2.0",
+            "@pixi/extensions": "7.2.0",
+            "@pixi/filter-blur": "7.2.0",
+            "@pixi/filter-fxaa": "7.2.0",
+            "@pixi/mesh-extras": "7.2.0",
+            "@pixi/spritesheet": "7.2.0",
+            "@pixi/text-bitmap": "7.2.0",
+            "@pixi/filter-alpha": "7.2.0",
+            "@pixi/filter-noise": "7.2.0",
+            "@pixi/accessibility": "7.2.0",
+            "@pixi/sprite-tiling": "7.2.0",
+            "@pixi/sprite-animated": "7.2.0",
+            "@pixi/particle-container": "7.2.0",
+            "@pixi/compressed-textures": "7.2.0",
+            "@pixi/filter-color-matrix": "7.2.0",
+            "@pixi/filter-displacement": "7.2.0",
+            "@pixi/mixin-cache-as-bitmap": "7.2.0",
+            "@pixi/mixin-get-child-by-name": "7.2.0",
+            "@pixi/mixin-get-global-position": "7.2.0"
+          },
+          "gitHead": "f0a8c61ebe9f9728f51234942498be9a657ca4d4",
+          "integrity": "sha512-w7OXZzQXWAVtc0CJChgwj9OUpPxf4lVb7ZOAqsJw7nzq69jtTYF3qJZ1+pGy/pb0YhAtnTpFx9dXXyXaCv1WYA==",
+          "publishedAt": "2023-03-14T19:29:02.094Z"
+        },
+        "7.2.4": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "7.2.4",
+            "@pixi/core": "7.2.4",
+            "@pixi/mesh": "7.2.4",
+            "@pixi/text": "7.2.4",
+            "@pixi/assets": "7.2.4",
+            "@pixi/events": "7.2.4",
+            "@pixi/sprite": "7.2.4",
+            "@pixi/display": "7.2.4",
+            "@pixi/extract": "7.2.4",
+            "@pixi/prepare": "7.2.4",
+            "@pixi/graphics": "7.2.4",
+            "@pixi/text-html": "7.2.4",
+            "@pixi/extensions": "7.2.4",
+            "@pixi/filter-blur": "7.2.4",
+            "@pixi/filter-fxaa": "7.2.4",
+            "@pixi/mesh-extras": "7.2.4",
+            "@pixi/spritesheet": "7.2.4",
+            "@pixi/text-bitmap": "7.2.4",
+            "@pixi/filter-alpha": "7.2.4",
+            "@pixi/filter-noise": "7.2.4",
+            "@pixi/accessibility": "7.2.4",
+            "@pixi/sprite-tiling": "7.2.4",
+            "@pixi/sprite-animated": "7.2.4",
+            "@pixi/particle-container": "7.2.4",
+            "@pixi/compressed-textures": "7.2.4",
+            "@pixi/filter-color-matrix": "7.2.4",
+            "@pixi/filter-displacement": "7.2.4",
+            "@pixi/mixin-cache-as-bitmap": "7.2.4",
+            "@pixi/mixin-get-child-by-name": "7.2.4",
+            "@pixi/mixin-get-global-position": "7.2.4"
+          },
+          "gitHead": "c692d0a44a8e7535d4f1cdb4f8be3fb3d3712e55",
+          "integrity": "sha512-nBH60meoLnHxoMFz17HoMxXS4uJpG5jwIdL+Gx2S11TzWgP3iKF+/WLOTrkSdyuQoQSdIBxVqpnYii0Wiox15A==",
+          "publishedAt": "2023-04-06T19:38:48.620Z"
+        },
+        "7.3.0": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "7.3.0",
+            "@pixi/core": "7.3.0",
+            "@pixi/mesh": "7.3.0",
+            "@pixi/text": "7.3.0",
+            "@pixi/assets": "7.3.0",
+            "@pixi/events": "7.3.0",
+            "@pixi/sprite": "7.3.0",
+            "@pixi/display": "7.3.0",
+            "@pixi/extract": "7.3.0",
+            "@pixi/prepare": "7.3.0",
+            "@pixi/graphics": "7.3.0",
+            "@pixi/text-html": "7.3.0",
+            "@pixi/extensions": "7.3.0",
+            "@pixi/filter-blur": "7.3.0",
+            "@pixi/filter-fxaa": "7.3.0",
+            "@pixi/mesh-extras": "7.3.0",
+            "@pixi/spritesheet": "7.3.0",
+            "@pixi/text-bitmap": "7.3.0",
+            "@pixi/filter-alpha": "7.3.0",
+            "@pixi/filter-noise": "7.3.0",
+            "@pixi/accessibility": "7.3.0",
+            "@pixi/sprite-tiling": "7.3.0",
+            "@pixi/sprite-animated": "7.3.0",
+            "@pixi/particle-container": "7.3.0",
+            "@pixi/compressed-textures": "7.3.0",
+            "@pixi/filter-color-matrix": "7.3.0",
+            "@pixi/filter-displacement": "7.3.0",
+            "@pixi/mixin-cache-as-bitmap": "7.3.0",
+            "@pixi/mixin-get-child-by-name": "7.3.0",
+            "@pixi/mixin-get-global-position": "7.3.0"
+          },
+          "gitHead": "10e3bea3357c04855ef0211f30de4fcc82abbb6f",
+          "integrity": "sha512-lygiK+RQxFyVY8fiRMSh1sTkjWvWPadbLf7zndoQBuVNtfa9wi+53q4xx7hQQ04ndAUazLA05xNi2BFdbitOeg==",
+          "publishedAt": "2023-09-18T15:37:08.798Z"
+        },
+        "7.3.3": {
+          "peerDependencies": {},
+          "dependencies": {
+            "@pixi/app": "7.3.3",
+            "@pixi/core": "7.3.3",
+            "@pixi/mesh": "7.3.3",
+            "@pixi/text": "7.3.3",
+            "@pixi/assets": "7.3.3",
+            "@pixi/events": "7.3.3",
+            "@pixi/sprite": "7.3.3",
+            "@pixi/display": "7.3.3",
+            "@pixi/extract": "7.3.3",
+            "@pixi/prepare": "7.3.3",
+            "@pixi/graphics": "7.3.3",
+            "@pixi/text-html": "7.3.3",
+            "@pixi/extensions": "7.3.3",
+            "@pixi/filter-blur": "7.3.3",
+            "@pixi/filter-fxaa": "7.3.3",
+            "@pixi/mesh-extras": "7.3.3",
+            "@pixi/spritesheet": "7.3.3",
+            "@pixi/text-bitmap": "7.3.3",
+            "@pixi/filter-alpha": "7.3.3",
+            "@pixi/filter-noise": "7.3.3",
+            "@pixi/accessibility": "7.3.3",
+            "@pixi/sprite-tiling": "7.3.3",
+            "@pixi/sprite-animated": "7.3.3",
+            "@pixi/particle-container": "7.3.3",
+            "@pixi/compressed-textures": "7.3.3",
+            "@pixi/filter-color-matrix": "7.3.3",
+            "@pixi/filter-displacement": "7.3.3",
+            "@pixi/mixin-cache-as-bitmap": "7.3.3",
+            "@pixi/mixin-get-child-by-name": "7.3.3",
+            "@pixi/mixin-get-global-position": "7.3.3"
+          },
+          "gitHead": "132fcb9cea07a869340d99fc8b96a47db2126aa9",
+          "integrity": "sha512-EuAyWZBL5lKViCgYkB6dbwkiI/MNht8O8F8956up9vwGEGf659QRHxfVQoRj8zdNGOBbe51XAxQMfLaW/l0Ekg==",
+          "publishedAt": "2024-01-01T14:20:04.404Z"
+        },
         "7.4.2": {
           "peerDependencies": {},
           "dependencies": {
@@ -1481,6 +1696,48 @@
   },
   "probes": [
     {
+      "id": "react-18.0.0",
+      "kind": "react",
+      "packages": {
+        "react": "18.0.0",
+        "react-reconciler": "0.27.0",
+        "@types/react": "18.3.31",
+        "its-fine": "1.2.5",
+        "typescript": "5.6.3"
+      },
+      "resolvedPackagesSha256": "b9eda949db6977365595b6161dff63a7295ba621eec0275426c795d1fa03a51c",
+      "surfacesSha256": "da0148621d28d023a757d141b51855184dfcc6c541199706af9cc6a461c48aa6",
+      "reactAbiSha256": "e396460c58e5b74c44c6c6866881b37870c300f5e9f7698e3fad6a66bee98b5b"
+    },
+    {
+      "id": "react-18.1.0",
+      "kind": "react",
+      "packages": {
+        "react": "18.1.0",
+        "react-reconciler": "0.28.0",
+        "@types/react": "18.3.31",
+        "its-fine": "1.2.5",
+        "typescript": "5.6.3"
+      },
+      "resolvedPackagesSha256": "c383252cedee36b347148a892290c0cf26fc4702b575d23cbabe4fd04db46b91",
+      "surfacesSha256": "768b3a25361f99b91de1e573f0144ff156a99ea2751576cb617fcd056dd98c0b",
+      "reactAbiSha256": "028ec84eb4a36b69d64bd70f8d6de60867c156edce0fece4ee5f675bdc53384d"
+    },
+    {
+      "id": "react-18.2.0",
+      "kind": "react",
+      "packages": {
+        "react": "18.2.0",
+        "react-reconciler": "0.29.0",
+        "@types/react": "18.3.31",
+        "its-fine": "1.2.5",
+        "typescript": "5.6.3"
+      },
+      "resolvedPackagesSha256": "0054d6d0ff5c9c0cc478adb8e94185116c095bee584e7d3bab0e6f51446096b9",
+      "surfacesSha256": "1e33bed7efd7de28b1c540063a5b06ba2b85201dfe4e9b798c1b0a9e254f9a7b",
+      "reactAbiSha256": "7d16c602cf3b4e55dfb60c5833a65df1ad362203fb6f84e0a299aa3c6a38b0aa"
+    },
+    {
       "id": "react-18.3.1",
       "resolvedPackagesSha256": "b864513c44bc4fb94ff29eaca07bdf4cc6ee331627478cac34afc90206e94d37",
       "kind": "react",
@@ -1591,6 +1848,46 @@
       },
       "surfacesSha256": "0dd5169065f46cd6bfbe3e84a95702c88086839d44a42463d6ff2eefdf98433c",
       "reactAbiSha256": "ee1c3e6bc5722e5886833dbcfb0de94dc16fa289e89290d87d4b1dd43201b43a"
+    },
+    {
+      "id": "pixi-7.2.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "7.2.0",
+        "typescript": "5.6.3"
+      },
+      "resolvedPackagesSha256": "1235ab6311bbefd96f3c4ccc302846c9f20b3dbf98cedbb979524a0d04e654fe",
+      "surfacesSha256": "fbf136340da38d2faa417dd7915160adf4d5ec5b4173971dbaa45f2dffe2723f"
+    },
+    {
+      "id": "pixi-7.2.4",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "7.2.4",
+        "typescript": "5.6.3"
+      },
+      "resolvedPackagesSha256": "f3691bf46fbbb3f6fb0951661a30c29fe5a9ff4c7e588928e3e531eac2f9c92c",
+      "surfacesSha256": "fbf136340da38d2faa417dd7915160adf4d5ec5b4173971dbaa45f2dffe2723f"
+    },
+    {
+      "id": "pixi-7.3.0",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "7.3.0",
+        "typescript": "5.6.3"
+      },
+      "resolvedPackagesSha256": "069c93d9c64654ab8cd5cd98a03aec2e7ebc8645dc69e5a30d1fb2293d80a214",
+      "surfacesSha256": "9a1092d9668afd01063dd0611d7c0bb5baaa01252181c5cb26a70a5a0b634b4c"
+    },
+    {
+      "id": "pixi-7.3.3",
+      "kind": "pixi",
+      "packages": {
+        "pixi.js": "7.3.3",
+        "typescript": "5.6.3"
+      },
+      "resolvedPackagesSha256": "3c7d1b0d06c215ca67d1ff5116e2b15480314ca3e2232549790fea6b84dbcd61",
+      "surfacesSha256": "3243547274787ed985311444db2163f10b068fc5fce76cb819c5f7fd59dcd4a2"
     },
     {
       "id": "pixi-7.4.2",
@@ -1956,7 +2253,46 @@
   ],
   "reactEpochs": [
     {
-      "id": "react18",
+      "id": "react180",
+      "reactMinor": "18.0",
+      "reconciler": "0.27.0",
+      "status": "candidate-not-verified",
+      "requiredEvidence": [
+        "installed consumer types",
+        "host/root ABI probe",
+        "real renderer browser lifecycle",
+        "context bridge from React DOM",
+        "advertised feature paths"
+      ]
+    },
+    {
+      "id": "react181",
+      "reactMinor": "18.1",
+      "reconciler": "0.28.0",
+      "status": "candidate-not-verified",
+      "requiredEvidence": [
+        "installed consumer types",
+        "host/root ABI probe",
+        "real renderer browser lifecycle",
+        "context bridge from React DOM",
+        "advertised feature paths"
+      ]
+    },
+    {
+      "id": "react182",
+      "reactMinor": "18.2",
+      "reconciler": "0.29.0",
+      "status": "candidate-not-verified",
+      "requiredEvidence": [
+        "installed consumer types",
+        "host/root ABI probe",
+        "real renderer browser lifecycle",
+        "context bridge from React DOM",
+        "advertised feature paths"
+      ]
+    },
+    {
+      "id": "react183",
       "reactMinor": "18.3",
       "reconciler": "0.29.2",
       "status": "candidate-not-verified",
@@ -2024,8 +2360,7 @@
   "pixiEpochs": [
     {
       "id": "pixi7",
-      "line": "7.4",
-      "minimum": "7.4.2",
+      "minimum": "7.2.0",
       "current": "7.4.3",
       "status": "candidate-not-verified"
     },
@@ -2169,9 +2504,21 @@
         "package": "@pixi-react-provisional/conformance",
         "role": "harness"
       },
-      "react-18": {
-        "dir": "packages/react-18",
-        "package": "@pixi-react-provisional/react-18"
+      "react-18.0": {
+        "dir": "packages/react-18.0",
+        "package": "@pixi-react-provisional/react-18.0"
+      },
+      "react-18.1": {
+        "dir": "packages/react-18.1",
+        "package": "@pixi-react-provisional/react-18.1"
+      },
+      "react-18.2": {
+        "dir": "packages/react-18.2",
+        "package": "@pixi-react-provisional/react-18.2"
+      },
+      "react-18.3": {
+        "dir": "packages/react-18.3",
+        "package": "@pixi-react-provisional/react-18.3"
       },
       "react-19.0": {
         "dir": "packages/react-19.0",
@@ -2205,13 +2552,127 @@
     ],
     "defaultPixiAdapter": "pixi8",
     "reactAdapters": {
-      "react18": {
-        "id": "react-18",
-        "artifact": "react-18",
+      "react180": {
+        "id": "react-18.0",
+        "artifact": "react-18.0",
         "entry": ".",
-        "className": "React18Adapter",
+        "className": "React180Adapter",
         "hashScope": "package",
-        "adapterId": "react-18",
+        "adapterId": "react-18.0",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "provides": {},
+        "requires": {
+          "pixi.mutation": 1,
+          "pixi.visibility": 1,
+          "pixi.application": 1,
+          "pixi.ticker": 1
+        },
+        "declaredPeers": {
+          "react": "18.0.0"
+        },
+        "reconciler": {
+          "via": "dependency",
+          "infoExport": "EPOCH",
+          "infoField": "reconciler"
+        },
+        "bundled": [],
+        "typesReactDom": "18.3.7",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize"
+        ],
+        "typeProbes": [
+          "react18"
+        ],
+        "sameClassAcrossFormats": true
+      },
+      "react181": {
+        "id": "react-18.1",
+        "artifact": "react-18.1",
+        "entry": ".",
+        "className": "React181Adapter",
+        "hashScope": "package",
+        "adapterId": "react-18.1",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "provides": {},
+        "requires": {
+          "pixi.mutation": 1,
+          "pixi.visibility": 1,
+          "pixi.application": 1,
+          "pixi.ticker": 1
+        },
+        "declaredPeers": {
+          "react": "18.1.0"
+        },
+        "reconciler": {
+          "via": "dependency",
+          "infoExport": "EPOCH",
+          "infoField": "reconciler"
+        },
+        "bundled": [],
+        "typesReactDom": "18.3.7",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize"
+        ],
+        "typeProbes": [
+          "react18"
+        ],
+        "sameClassAcrossFormats": true
+      },
+      "react182": {
+        "id": "react-18.2",
+        "artifact": "react-18.2",
+        "entry": ".",
+        "className": "React182Adapter",
+        "hashScope": "package",
+        "adapterId": "react-18.2",
+        "abi": {
+          "major": 1,
+          "minor": 0
+        },
+        "provides": {},
+        "requires": {
+          "pixi.mutation": 1,
+          "pixi.visibility": 1,
+          "pixi.application": 1,
+          "pixi.ticker": 1
+        },
+        "declaredPeers": {
+          "react": "18.2.0"
+        },
+        "reconciler": {
+          "via": "dependency",
+          "infoExport": "EPOCH",
+          "infoField": "reconciler"
+        },
+        "bundled": [],
+        "typesReactDom": "18.3.7",
+        "conformanceCapabilities": [
+          "react.18",
+          "pixi.globals",
+          "dom.resize"
+        ],
+        "typeProbes": [
+          "react18"
+        ],
+        "sameClassAcrossFormats": true
+      },
+      "react183": {
+        "id": "react-18.3",
+        "artifact": "react-18.3",
+        "entry": ".",
+        "className": "React183Adapter",
+        "hashScope": "package",
+        "adapterId": "react-18.3",
         "abi": {
           "major": 1,
           "minor": 0
@@ -2228,7 +2689,7 @@
         },
         "reconciler": {
           "via": "dependency",
-          "infoExport": "REACT18",
+          "infoExport": "EPOCH",
           "infoField": "reconciler"
         },
         "bundled": [],
@@ -2486,10 +2947,13 @@
         },
         "requires": {},
         "declaredPeers": {
-          "pixi.js": ">=7.4.2 <7.5.0",
+          "pixi.js": ">=7.2.0 <7.4.0 || >=7.4.2 <7.5.0",
           "@types/react": "^18.3.0 || ^19.0.0"
         },
-        "excludedVersions": [],
+        "excludedVersions": [
+          "7.4.0",
+          "7.4.1"
+        ],
         "capabilities": {
           "always": [
             "pixi.mutation",
@@ -2529,7 +2993,14 @@
           "pixi7"
         ],
         "sameClassAcrossFormats": false,
-        "sameClassNote": "Each entry binds the pixi.js module its own loader resolves, so ESM and CJS legitimately differ in Node (pixi-7 README, D6)."
+        "sameClassNote": "Each entry binds the pixi.js module its own loader resolves, so ESM and CJS legitimately differ in Node (pixi-7 README, D6).",
+        "excludedNote": "7.4.0: the adapter's entry fails to import in Node ('Worker is not defined', a module-scope browser global in pixi.js 7.4.0; data-only probe). 7.4.1 was never published to npm (absent from the registry's versions and time map).",
+        "typeAssertions": {
+          "pixi8-names-rejected": {
+            "from": "7.3.0",
+            "reason": "pixi.js 7.2's declarations import `colord/types`, which does not resolve (TS2307 in @pixi/color/lib/Color.d.ts, hidden by skipLibCheck), so `ColorSource`, and with it the `tint` of every display object, is `any`; an `any` instance member turns the adapter's mapped element props into an open record, so `label` (Sprite) and `context` (Graphics) are accepted. pixi.js 7.3.0 fixed the import, and these two @ts-expect-error assertions hold from 7.3.0 on; a 7.2 cell compiles the consumer without them and records that it did (cell.json typeAssertions). Runtime behaviour is unaffected."
+          }
+        }
       }
     },
     "expectedBlankRender": [
@@ -2582,9 +3053,15 @@
     ],
     "tiers": {
       "pr": {
-        "description": "Required check: each React epoch at its latest patch against the minimum and the current Pixi 8, two Pixi 7 cells (React 18 at the Pixi 7 minimum, React 19.3 at the current Pixi 7), plus fast probes at every named Pixi 8 boundary.",
+        "description": "Required check: React 18.3 and each React 19 epoch at its latest patch against the minimum and the current Pixi 8, React 18.0 (the lowest React 18 minor) against the Pixi 8 minimum, two Pixi 7 cells (React 18.0 at the Pixi 7 minimum, React 19.3 at the current Pixi 7), plus fast probes at every named Pixi 8 boundary. React 18.1 and 18.2 run nightly (and in their packages' own fixtures).",
         "react": {
-          "epochs": "all",
+          "epochs": [
+            "react183",
+            "react190",
+            "react191",
+            "react192",
+            "react193"
+          ],
           "patch": "latest"
         },
         "pixi": {
@@ -2631,7 +3108,7 @@
           "pixi7": {
             "pairs": [
               {
-                "react": "react18",
+                "react": "react180",
                 "pixi": "minimum"
               },
               {
@@ -2640,10 +3117,16 @@
               }
             ]
           }
-        }
+        },
+        "pairs": [
+          {
+            "react": "react180",
+            "pixi": "minimum"
+          }
+        ]
       },
       "nightly": {
-        "description": "Full cross-product: every React epoch at its latest patch against every Pixi 8 minor at its latest audited patch and against both audited Pixi 7 releases, plus every audited probe tuple.",
+        "description": "Full cross-product: every React epoch at its latest patch against every Pixi 8 minor at its latest audited patch and against every audited Pixi 7 release in the Pixi 7 adapter's range (the lowest and highest patch of 7.2 and 7.3, 7.4.2 and 7.4.3), plus every audited probe tuple.",
         "react": {
           "epochs": "all",
           "patch": "latest"
@@ -2664,10 +3147,7 @@
               "patch": "latest"
             },
             "pixi": {
-              "versions": [
-                "minimum",
-                "current"
-              ]
+              "versions": "all-audited"
             }
           }
         }
@@ -2703,9 +3183,9 @@
       },
       {
         "id": "react-18-adapter-beside-react-19",
-        "description": "The React 18 adapter installed beside React 19.3.0: the strict peer check must refuse the install.",
+        "description": "The React 18.3 adapter installed beside React 19.3.0: the strict peer check must refuse the install.",
         "react": {
-          "epoch": "react18",
+          "epoch": "react183",
           "version": "19.3.0",
           "typesReactDom": "19.3.0",
           "typesReact": "19.3.0"
@@ -2722,6 +3202,33 @@
           "signatures": [
             "ERESOLVE",
             "react@\"18.3.1\""
+          ]
+        }
+      },
+      {
+        "id": "react-18-minor-adapter-beside-another-minor",
+        "description": "The React 18.0 adapter installed beside React 18.3.1 by a consumer that ignores peers (--legacy-peer-deps): its exact peer (18.0.0) would refuse the install, so this checks that the adapter's own environment check still rejects the other React 18 minor and names the per-minor package to install.",
+        "react": {
+          "epoch": "react180",
+          "version": "18.3.1"
+        },
+        "pixi": {
+          "version": "8.22.0"
+        },
+        "install": {
+          "legacyPeerDeps": true
+        },
+        "commands": [
+          "install",
+          "modules"
+        ],
+        "expect": {
+          "failingCommand": "modules",
+          "signatures": [
+            "UNSUPPORTED_TUPLE",
+            "supports React 18.0.x",
+            "React 18.3.1 is installed",
+            "@pixi-react-provisional/react-18.3"
           ]
         }
       },
