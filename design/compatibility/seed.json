@@ -2178,7 +2178,7 @@
       },
       {
         "id": "pixi-7-adapter-rejects-pixi-8-when-peers-ignored",
-        "description": "The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the Pixi 7 adapter's own environment check must still reject pixi.js 8 and name the Pixi 8 adapter.",
+        "description": "The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the Pixi 7 adapter must still reject pixi.js 8 and name the Pixi 8 adapter. Through require, checkEnvironment rejects it with UNSUPPORTED_TUPLE; through import, the ESM linker already fails, because pixi.js 8 lacks named exports the adapter imports (SimpleMesh, SimpleRope, SimplePlane, FXAAFilter).",
         "react": {
           "epoch": "react193",
           "version": "19.3.0"
@@ -2199,7 +2199,8 @@
           "signatures": [
             "UNSUPPORTED_TUPLE",
             "pixi.js 8.22.0 is Pixi 8",
-            "Compose the Pixi 8 adapter"
+            "Compose the Pixi 8 adapter",
+            "does not provide an export named"
           ]
         }
       }

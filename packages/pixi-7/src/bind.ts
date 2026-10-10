@@ -57,10 +57,12 @@ export function bindPixi(binding: PixiBinding): BoundExports
     {
         const missing = PIXI7_BINDING_EXPORTS.filter((name) => binding[name] === undefined || binding[name] === null);
 
-        if (missing.length)
+        // A supported pixi.js 7 lacking an export is a broken binding. Another version (pixi.js 8 lacks `SimpleMesh`,
+        // `SimpleRope`, `SimplePlane` and `FXAAFilter`, for example) still binds, so that the adapter's
+        // `checkEnvironment` rejects it at composition with UNSUPPORTED_TUPLE naming the Pixi 8 adapter.
+        if (missing.length && checkSupportedVersion(binding.VERSION).supported)
         {
-            throw new TypeError(`bindPixi expects the pixi.js 7 exports ${PIXI7_BINDING_EXPORTS.join(', ')}; missing ${missing.join(', ')}. `
-                + 'Is this pixi.js 8? Compose the Pixi 8 adapter with it.');
+            throw new TypeError(`bindPixi expects the pixi.js 7 exports ${PIXI7_BINDING_EXPORTS.join(', ')}; missing ${missing.join(', ')}.`);
         }
 
         const pixi = Object.freeze(Object.fromEntries(PIXI7_BINDING_EXPORTS.map((name) => [name, binding[name]]))) as PixiBinding;

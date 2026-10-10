@@ -43,7 +43,8 @@ export const POSITIONAL_CONSTRUCTORS = Object.freeze({
     TilingSprite: { args: args('texture', 'width', 'height'), inherited: true },
     Text: { args: args('text', 'style', 'canvas'), inherited: true },
     HTMLText: { args: args('text', 'style'), inherited: true },
-    BitmapText: { args: args('text', 'style'), inherited: true },
+    // BitmapText has no `style` property: its style options are separate properties (`fontName`, `fontSize`, ...).
+    BitmapText: { args: args('text', constructorOnly('style')), inherited: true },
     Graphics: { args: args(constructorOnly('geometry')), inherited: true },
     Mesh: { args: args('geometry', 'shader', 'state', 'drawMode'), inherited: true },
     SimpleMesh: { args: args('texture', 'vertices', constructorOnly('uvs'), constructorOnly('indices'), 'drawMode'), inherited: true },

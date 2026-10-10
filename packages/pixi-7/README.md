@@ -48,6 +48,11 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 pre-releases, with `CompatibilityError` `UNSUPPORTED_TUPLE`, before anything is allocated. `adapter.manifest.pixi`
 records the range, bounds, tested versions, the installed version and the Pixi 8 capabilities it never provides.
 
+Beside pixi.js 8, npm's strict peer check refuses the install (`ERESOLVE`). A consumer that ignores peers gets that
+`UNSUPPORTED_TUPLE` error at composition through `require`; through `import`, the ESM linker fails first, naming a Pixi 7
+export that pixi.js 8 lacks (`SimpleMesh`, `SimpleRope`, `SimplePlane`, `FXAAFilter`), because the entry imports the
+adapter's pixi.js exports by name. The compatibility manifest's negative cells pin both.
+
 ## Capabilities and the differences from Pixi 8
 
 The adapter declares what it supports through core's capability mechanism. A composition that requires a capability
@@ -84,7 +89,7 @@ The other Pixi 7 differences, and what the adapter does with each:
 | `BitmapText` | Adds and removes its own glyph children | JSX children are rejected; filters still attach |
 | Meshes | `Mesh`, `SimpleMesh`, `SimplePlane`, `SimpleRope`, `NineSlicePlane` are ordinary Containers | They take children (Pixi 8 meshes do not) |
 | `pixi.js` vs `@pixi/*` | `pixi.js` 7 re-exports the `@pixi/*` packages | The adapter binds `pixi.js`. Classes imported from `@pixi/*` are the same classes when one copy of each `@pixi/*` package is installed (the compatibility cells check that) |
-| Tree shaking | `pixi.js` 7 declares no `sideEffects`, so bundlers keep all of it | The adapter imports the built-ins it treats specially by name and recognizes them by identity; it costs nothing extra |
+| Tree shaking | `pixi.js` 7 declares no `sideEffects`, so bundlers keep nearly all of it (esbuild 0.21.5 keeps 350 pixi.js 7 modules, 475 KiB minified, for an application that imports only `Container` and `Sprite`) | The adapter imports the built-ins it treats specially by name and recognizes them by identity. That adds 9 modules (13 KiB minified, under 4 KiB gzip) to such an application |
 
 Not in scope: the legacy `@pixi/react` 7.x API (`Stage`, `PixiComponent`, `withFilters`, `useApp`). The modular
 packages expose the current API (`Application`, `extend`, `useApplication`, `useTick`, `createRoot`) on Pixi 7.
@@ -133,7 +138,7 @@ the props without `children`, `key`, `ref`, event handlers, `draw` and dashed pr
 whose own constructor takes something else should extend `Container` instead, or translate in its constructor.
 
 Arguments that are also instance properties of the same meaning (`texture`, `text`, `style`, `width`, `alpha`, ...)
-update in place. The others (`geometry` of Graphics, `uvs`, `indices`, `points`, `maxSize`, `properties`,
+update in place. The others (`geometry` of Graphics, BitmapText's `style` (its style options are separate properties such as `fontName` and `fontSize`), `uvs`, `indices`, `points`, `maxSize`, `properties`,
 `batchSize`, `vertexSrc`, `fragmentSrc`, `uniforms`, `strength`, `kernelSize`, `sprite`, the DisplacementFilter's
 `scale`) are read once: changing or removing one warns once and keeps the node; change its `key` to recreate it.
 

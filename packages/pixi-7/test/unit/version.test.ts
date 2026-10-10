@@ -75,6 +75,25 @@ describe('installed version bounds', () =>
         });
     });
 
+    it('a Pixi 8 module, which lacks Pixi 7 exports, still binds so that checkEnvironment rejects it clearly', () =>
+    {
+        const [{ pixi }] = cells;
+        const { SimpleMesh: _mesh, SimpleRope: _rope, SimplePlane: _plane, FXAAFilter: _fxaa, ...rest } = pixi;
+        const pixi8Like = { ...rest, VERSION: '8.2.6', Container: class extends pixi.Container {} } as unknown as typeof pixi;
+        const adapter = new (bindPixi(pixi8Like).Pixi7Adapter)();
+
+        expect(() => adapter.checkEnvironment()).toThrow(/pixi\.js 8\.2\.6 is Pixi 8; .*Compose the Pixi 8 adapter/);
+    });
+
+    it('a pixi.js 7 module missing a binding export is a broken binding', () =>
+    {
+        const [{ pixi }] = cells;
+        const { SimpleRope: _rope, ...rest } = pixi;
+        const broken = { ...rest, Container: class extends pixi.Container {} } as unknown as typeof pixi;
+
+        expect(() => bindPixi(broken)).toThrow(/missing SimpleRope/);
+    });
+
     it('records the bounds, the installed version and the Pixi 8-only capabilities in the manifest', () =>
     {
         for (const { pixi, version } of cells)

@@ -4,10 +4,10 @@
  * `import { Sprite } from 'pixi.js'` and the adapter always share one Pixi instance (D6).
  *
  * Unlike the Pixi 8 adapter, this one imports the built-in classes it treats specially by name and recognizes them by
- * identity. pixi.js 7 declares no `sideEffects` field and its entry imports every `@pixi/*` package (and a `filters`
- * object that references every filter), so a bundler keeps all of pixi.js 7 whatever an application imports: naming
- * these classes costs nothing, and identity is exact where prototype signatures would be ambiguous (`FXAAFilter`
- * declares no member of its own, and `Text` extends `Sprite` in Pixi 7).
+ * identity. pixi.js 7 declares no `sideEffects` field and its entry imports every `@pixi/*` package, so a bundler keeps
+ * nearly all of pixi.js 7 whatever an application imports (esbuild 0.21.5: 350 modules for `Container` and `Sprite`
+ * alone; these names add 9 modules, 13 KiB minified). Identity is exact where prototype signatures would be ambiguous
+ * (`FXAAFilter` declares no member of its own, and `Text` extends `Sprite` in Pixi 7).
  */
 import type * as Pixi from 'pixi.js';
 

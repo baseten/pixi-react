@@ -359,7 +359,8 @@ workspace's version) inside those consumer projects:
   evaluate and run `extend`.
 - **The Pixi 7 composition** (React 19.3 + pixi-7 + pixi.js 7.4.3) is bundled and executed the same way, with the
   adapter bounds above. The two Pixi bounds below apply to Pixi 8 only: pixi.js 7 declares no `sideEffects`, so a
-  bundler keeps all of it whatever an application imports, with or without this adapter.
+  bundler keeps nearly all of it whatever an application imports, with or without this adapter (esbuild keeps 350
+  pixi.js 7 modules for `Container` and `Sprite` alone; the adapter's named imports add 9).
 - **Unused Pixi constructors can be eliminated.** `NineSliceSprite`, which no fixture imports or registers, must be
   absent from the output. A pixi.js-only control fixture shows that the bundler does eliminate it (146 of 633 pixi.js
   modules kept).

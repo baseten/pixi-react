@@ -3,18 +3,32 @@
  * ParticleContainer and BitmapText, meshes with children, and shared resources (textures, GraphicsGeometry).
  */
 import {
+    AlphaFilter,
+    AnimatedSprite,
     BitmapFont,
     BitmapText,
     BlurFilter,
+    ColorMatrixFilter,
     type Container,
+    DisplacementFilter,
+    Filter,
+    FXAAFilter,
     Graphics,
+    HTMLText,
+    Mesh,
+    MeshMaterial,
     NineSlicePlane,
     NoiseFilter,
     ParticleContainer,
+    PlaneGeometry,
+    Point,
+    SimpleMesh,
     SimplePlane,
+    SimpleRope,
     Sprite,
     Text,
     Texture,
+    TilingSprite,
     VERSION,
 } from 'pixi.js';
 import { describe, expect, it } from 'vitest';
@@ -81,14 +95,28 @@ describe(`positional construction on pixi.js ${VERSION}`, () =>
     it('every positional argument the table updates is a writable instance property of the built-in', () =>
     {
         const texture = Texture.WHITE;
-        const instances: Record<string, object> = {
+
+        BitmapFont.from('pixi-7-table-font', { fontFamily: 'Arial', fontSize: 12 }, { chars: [['a', 'z']] });
+        const instances: Record<keyof typeof POSITIONAL_CONSTRUCTORS, object> = {
             Sprite: new Sprite(texture),
+            AnimatedSprite: new AnimatedSprite([texture]),
+            TilingSprite: new TilingSprite(texture),
             Text: new Text('t'),
+            HTMLText: new HTMLText('t'),
+            BitmapText: new BitmapText('a', { fontName: 'pixi-7-table-font' }),
             Graphics: new Graphics(),
+            Mesh: new Mesh(new PlaneGeometry(), new MeshMaterial(texture)),
+            SimpleMesh: new SimpleMesh(texture),
             SimplePlane: new SimplePlane(texture, 2, 2),
+            SimpleRope: new SimpleRope(texture, [new Point(0, 0), new Point(1, 1)]),
             NineSlicePlane: new NineSlicePlane(texture),
             ParticleContainer: new ParticleContainer(),
+            Filter: new Filter(),
+            AlphaFilter: new AlphaFilter(),
             BlurFilter: new BlurFilter(),
+            ColorMatrixFilter: new ColorMatrixFilter(),
+            DisplacementFilter: new DisplacementFilter(new Sprite(texture)),
+            FXAAFilter: new FXAAFilter(),
             NoiseFilter: new NoiseFilter(),
         };
 
@@ -102,6 +130,7 @@ describe(`positional construction on pixi.js ${VERSION}`, () =>
                 }
             }
         }
+        BitmapFont.uninstall('pixi-7-table-font');
     });
 
     it('`draw` receives the Graphics node with Pixi 7\'s imperative API', async () =>

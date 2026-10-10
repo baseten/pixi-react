@@ -55,7 +55,7 @@ Nightly also re-runs all 44 audited tuples as boundary probes.
 | pixi-peer-range-excludes-8.5.0: The Pixi 8 adapter beside the excluded pixi.js 8.5.0: the strict peer check refuses the install. | install | `ERESOLVE`, `peer pixi.js` |
 | pixi-adapter-rejects-8.5.0-when-peers-ignored: The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the adapter's own environment check must still reject pixi.js 8.5.0. | modules | `UNSUPPORTED_TUPLE`, `8.5.0` |
 | pixi-7-adapter-beside-pixi-8: The Pixi 7 adapter installed beside pixi.js 8.22.0: the strict peer check must refuse the install. | install | `ERESOLVE`, `peer pixi.js` |
-| pixi-7-adapter-rejects-pixi-8-when-peers-ignored: The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the Pixi 7 adapter's own environment check must still reject pixi.js 8 and name the Pixi 8 adapter. | modules | `UNSUPPORTED_TUPLE`, `pixi.js 8.22.0 is Pixi 8`, `Compose the Pixi 8 adapter` |
+| pixi-7-adapter-rejects-pixi-8-when-peers-ignored: The same pair installed with --legacy-peer-deps (a consumer that ignores peers): the Pixi 7 adapter must still reject pixi.js 8 and name the Pixi 8 adapter. Through require, checkEnvironment rejects it with UNSUPPORTED_TUPLE; through import, the ESM linker already fails, because pixi.js 8 lacks named exports the adapter imports (SimpleMesh, SimpleRope, SimplePlane, FXAAFilter). | modules | `UNSUPPORTED_TUPLE`, `pixi.js 8.22.0 is Pixi 8`, `Compose the Pixi 8 adapter`, `does not provide an export named` |
 
 ## Commands each cell runs
 
