@@ -223,18 +223,29 @@ and 7.4.3) supersedes the first 2026-10-10 record (184 cells) of the same machin
   [#11417](https://github.com/pixijs/pixijs/pull/11417), first released in 8.10.0; bisected: 8.9.2 blank, 8.10.0
   renders): Pixi sizes the WebGPU texture batch from WebGL's `MAX_TEXTURE_IMAGE_UNITS` (32 on SwiftShader) while the
   device allows 16 sampled textures per stage, so the pipeline is invalid. It is not specific to software rendering:
-  real devices with that mismatch are affected too, while the partial hardware record from an Apple M5 Max (WebGL
+  real devices with that mismatch are affected too, while the full hardware record from an Apple M5 Max (WebGL
   reports 16 units there) renders 8.2.6 to 8.9.2 on WebGPU. The adapters do not work around it. These cells are on the manifest's
   `adapterMatrix.expectedBlankRender` list with that reason and evidence. Like the 8.5.0 ParticleContainer
   known-failure probe, the runner counts such a run as expected only when it fails exactly as listed (scenarios pass,
   canvas blank) and fails the cell when one starts rendering, so the list gets pruned; a conformance failure there
   still fails.
 
-**Software rendering.** The records ran on software rendering: the machine has no GPU, WebGL runs on ANGLE over
-SwiftShader and WebGPU on SwiftShader's fallback adapter (`isFallbackAdapter: true`), as in CI. That counts as
-verification (owner ruling). A run on a real GPU (`run-cells.mjs --gpu hardware`, see the
-[cells README](compatibility/cells/README.md#running-on-a-real-gpu)) can be added later as an additional dated record,
-which adds evidence beside the software one.
+**Software rendering and a real GPU.** The 2026-10-10 records ran on software rendering: the machine has no GPU, WebGL
+runs on ANGLE over SwiftShader and WebGPU on SwiftShader's fallback adapter (`isFallbackAdapter: true`), as in CI. That
+counts as verification (owner ruling). A run on a real GPU (`run-cells.mjs --gpu hardware`, see the
+[cells README](compatibility/cells/README.md#running-on-a-real-gpu)) adds a dated record beside the software one: the
+full [2026-10-10-macos-26-apple-m5-max](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md) record (Apple
+M5 Max, Metal; 184 cells at main d0071c1, before the React 18 split and the Pixi 7.2 widening) passed every cell on
+both backends, so it verifies React 18.3.1 (the former `react-18` package) and every React 19 adapter with pixi.js
+8.2.6 … 8.22.0 on WebGL and WebGPU and with 7.4.2 and 7.4.3 on WebGL. WebGPU is therefore verified from 8.2.6 for
+those adapters, and from 8.10.2 for the React 18.0–18.3 packages.
+
+**Known issues** (`adapterMatrix.knownIssues`, owner ruling 2026-10-10: "verified + known issue"). A tuple a record
+verified stays verified, and the generated tables and records show the issue beside every verified range it covers.
+Today: some devices render a blank canvas on WebGPU before pixi.js 8.10
+([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by
+[#11417](https://github.com/pixijs/pixijs/pull/11417) in 8.10.0); use pixi.js 8.10 or later for WebGPU, or WebGL.
+`validate.mjs` requires each entry to name its version range, backend and links.
 
 Verification never widens a peer range (D5: never broader than the evidence). The peer ranges stay exactly the tested
 versions: the verified tuples include them and add the minimum React patches, every Pixi 8 minor's newest audited

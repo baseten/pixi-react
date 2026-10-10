@@ -50,7 +50,7 @@ Then create the renderer once, in a module of your own, and import from it inste
 ```ts
 // src/pixi-react.ts
 import { createRenderer } from '@pixi/react-renderer';
-import { React19Adapter } from '@pixi/react-19.1'; // React 18.x: import { React18Adapter } from '@pixi/react-18.x'
+import { React19Adapter } from '@pixi/react-19.1'; // React 18.3: import { React18Adapter } from '@pixi/react-18.3' (@pixi/react-18.0 … -18.2 for the other React 18 minors)
 import { Pixi8Adapter } from '@pixi/react-pixi-8';
 
 export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =

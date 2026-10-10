@@ -121,7 +121,8 @@ React 19.3.0 (and each adapter's exact React versions) with pixi.js 8.2.6 and 8.
 compatibility cells on every change: these versions are **tested**. The [2026-10-10.2 verification record](compatibility/verification/2026-10-10.2.md)
 ran the full nightly matrix and **verifies** every React adapter (React 18.0 to 19.3) at every audited patch with every
 Pixi 8 minor's newest audited patch and pixi.js 7.2.0, 7.2.4, 7.3.0, 7.3.3, 7.4.2 and 7.4.3 on **WebGL**, and with pixi.js 8.10.2 … 8.22.0 on **WebGPU**. On
-WebGPU, pixi.js 8.2.6 to 8.9.2 are an expected blank render, unverified: a blank canvas on the software WebGPU adapter,
-although every conformance scenario passes. The record ran on software rendering (SwiftShader, no GPU); a run on a
-real GPU can be added as extra evidence. The verified tuples are `verifiedRanges` in the compatibility manifest.
+its software WebGPU adapter, pixi.js 8.2.6 to 8.9.2 are an expected blank render, unverified, although every
+conformance scenario passes. The full [Apple M5 Max hardware record](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md)
+(Metal) verifies the React 19 adapters with every Pixi 8 minor on both backends, so WebGPU is verified from 8.2.6 for
+them. **Known issue:** some devices render a blank canvas on WebGPU before pixi.js 8.10 ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by [#11417](https://github.com/pixijs/pixijs/pull/11417) in 8.10.0); use pixi.js 8.10 or later for WebGPU, or WebGL. The verified tuples are `verifiedRanges` in the compatibility manifest.
 Verification is evidence, not a support guarantee, and no peer range was widened ([release.md](release.md#tested-and-verified)).

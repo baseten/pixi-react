@@ -10,7 +10,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { compareVersions } from '../../design/compatibility/cells/matrix.mjs';
+import { compareVersions, knownIssueNote, knownIssuesFor } from '../../design/compatibility/cells/matrix.mjs';
 import { currentRecords, loadRecords, recordGate, recordId } from '../../design/compatibility/verification.mjs';
 import { committedConfig, loadSeedAt, releaseFacts, UPSTREAM_ROW } from './compat.mjs';
 import { repoRoot } from './config.mjs';
@@ -33,7 +33,7 @@ function versionSpan(versions)
  * the React versions that share the same set of verified pixi.js versions, with that set. Sparse evidence is never
  * widened into a cross product. `not verified` for a backend without a verified tuple.
  */
-export function verifiedLabel(verified, backends, applicable = backends)
+export function verifiedLabel(verified, backends, applicable = backends, seed = null)
 {
     const parts = backends.map((backend) =>
     {
@@ -74,7 +74,10 @@ export function verifiedLabel(verified, backends, applicable = backends)
             }
         }
 
-        return `${BACKEND_LABEL[backend] ?? backend}: ${statements.join('; ')}`;
+        // A known upstream issue (adapterMatrix.knownIssues) that covers a verified tuple is shown right beside it.
+        const issues = seed ? [...new Map(tuples.flatMap((tuple) => knownIssuesFor(seed, { pixiAdapter: tuple.pixiAdapter, renderer: backend, pixi: tuple.pixi })).map((issue) => [issue.id, issue])).values()] : [];
+
+        return `${BACKEND_LABEL[backend] ?? backend}: ${statements.join('; ')}${issues.map((issue) => ` (${knownIssueNote(seed, issue)})`).join('')}`;
     });
     const records = verified?.records ?? [];
 
@@ -116,7 +119,7 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
         '',
         `| ${code(facade.publicName)} | React peer | React tested | pixi.js peer | pixi.js tested on every PR | pixi.js in the nightly cells | Verified (the adapter packages it builds in) | Builds in |`,
         '| --- | --- | --- | --- | --- | --- | --- | --- |',
-        `| ${versionLabel(facade)} | ${code(facade.peers.react)} | ${facade.reactTested.join(', ')} | ${code(facade.peers['pixi.js'])} | ${pixi.pr.join(', ')} | ${pixi.nightly.length} versions: the newest audited patch of each minor, ${pixi.nightly[0]} … ${pixi.nightly.at(-1)} | ${verifiedLabel(facade.verified, backends)} | ${composed.map((pkg) => `${code(pkg.publicName)} ${pkg.version}`).join(', ')}; react-reconciler ${facade.reconciler}, its-fine ${facade.itsFine} |`,
+        `| ${versionLabel(facade)} | ${code(facade.peers.react)} | ${facade.reactTested.join(', ')} | ${code(facade.peers['pixi.js'])} | ${pixi.pr.join(', ')} | ${pixi.nightly.length} versions: the newest audited patch of each minor, ${pixi.nightly[0]} … ${pixi.nightly.at(-1)} | ${verifiedLabel(facade.verified, backends, backends, seed)} | ${composed.map((pkg) => `${code(pkg.publicName)} ${pkg.version}`).join(', ')}; react-reconciler ${facade.reconciler}, its-fine ${facade.itsFine} |`,
         `| ${UPSTREAM_ROW.version} (upstream, for comparison) | ${code(UPSTREAM_ROW.react)} | - | ${code(UPSTREAM_ROW.pixi)} | - | - | - | ${UPSTREAM_ROW.composes} |`,
         '',
         `On a React 19 minor other than ${facade.reactMinor} the facade installs (its peer is a caret range), runs and logs one warning; `
@@ -139,7 +142,7 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
         else if (pkg.pixiAdapter?.isDefault) cells = 'with every React adapter row above';
         else if (pkg.pixiAdapter) cells = `${pkg.pixiAdapter.prCells.map((cell) => `React ${cell.react} with pixi.js ${cell.pixi}`).join(', ')}; every React adapter nightly`;
 
-        lines.push(`| ${code(pkg.publicName)} | ${versionLabel(pkg)} | ${peers} | ${exact} | ${cells} | ${pkg.verified ? verifiedLabel(pkg.verified, backends, pkg.pixiAdapter?.renderers ?? backends) : 'in every verified tuple above'} |`);
+        lines.push(`| ${code(pkg.publicName)} | ${versionLabel(pkg)} | ${peers} | ${exact} | ${cells} | ${pkg.verified ? verifiedLabel(pkg.verified, backends, pkg.pixiAdapter?.renderers ?? backends, seed) : 'in every verified tuple above'} |`);
     }
     lines.push('', `Every package releases at the facade's version (${facade.version}), and a dependency between our packages names exactly that version: install all \`${config.names.modulePrefix}*\` packages at the same version (see [release.md](release.md#lockstep-versions)).`);
     for (const pkg of facts.packages.filter((item) => item.pixiAdapter && !item.pixiAdapter.isDefault))

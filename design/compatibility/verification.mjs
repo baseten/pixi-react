@@ -35,7 +35,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { arch, cpus, release, totalmem, type, version } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { boundaryProbes, classifyExpectedBlank, compareVersions, expectedBlankFor, fileSetHash, gpuProfileOf, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
+import { boundaryProbes, classifyExpectedBlank, compareVersions, expectedBlankFor, fileSetHash, gpuProfileOf, knownIssueNote, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -611,7 +611,7 @@ export function refreshRecord(seed, record)
 }
 
 /** The Markdown rendering of a record. */
-export function renderRecord(record)
+export function renderRecord(record, seed = loadSeed())
 {
     const label = { webgl: 'WebGL', webgpu: 'WebGPU' };
     const backends = Object.keys(record.summary.backends);
@@ -687,6 +687,40 @@ export function renderRecord(record)
         '',
     ];
 
+    // Known upstream issues (adapterMatrix.knownIssues) covering tuples this record verified: shown beside them.
+    const issues = new Map();
+
+    if (seed)
+    {
+        const gate = recordGate(record);
+
+        for (const cell of record.cells)
+        {
+            for (const backend of Object.keys(cell.backends))
+            {
+                if (!tupleVerified(record, cell, backend, gate, requiredCommands(seed))) continue;
+                for (const issue of knownIssuesFor(seed, { pixiAdapter: cell.pixiAdapter, renderer: backend, pixi: cell.pixi }))
+                {
+                    const item = issues.get(issue.id) ?? { issue, cells: 0, pixi: new Set() };
+
+                    item.cells += 1;
+                    item.pixi.add(cell.pixi);
+                    issues.set(issue.id, item);
+                }
+            }
+        }
+    }
+    if (issues.size)
+    {
+        lines.push(
+            '## Known issues beside verified tuples',
+            '',
+            'Tuples this record verified that a known upstream issue covers (`adapterMatrix.knownIssues`). They stay verified (owner ruling, 2026-10-10); the issue can still show on other devices.',
+            '',
+            ...[...issues.values()].map(({ issue, cells, pixi }) => `- ${label[issue.renderer] ?? issue.renderer}, ${cells} verified ${cells === 1 ? 'tuple' : 'tuples'} on pixi.js ${[...pixi].sort(compareVersions).join(', ')}: ${knownIssueNote(seed, issue)}`),
+            '',
+        );
+    }
     if (blanks.size)
     {
         lines.push(

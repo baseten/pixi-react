@@ -483,6 +483,7 @@ export function validateAdapterMatrix(seed)
         assert.ok(negative.expect.signatures.length > 0 && matrix.commands.order.includes(negative.expect.failingCommand), `negative ${negative.id}`);
     }
     validateExpectedBlankRender(seed);
+    validateKnownIssues(seed);
 }
 
 /**
@@ -526,6 +527,57 @@ export function validateExpectedBlankRender(seed)
         {
             assert.ok(typeof entry.evidence?.[field] === 'string' && entry.evidence[field].length > 0, `${where}: evidence.${field}`);
         }
+    }
+}
+
+/**
+ * Known upstream issues (`adapterMatrix.knownIssues`): a pixi.js version range (`from` inclusive, `before` exclusive) on
+ * one backend of one Pixi adapter, with a summary, advice and links. They change no verdict: a tuple a record verified
+ * stays verified (owner ruling, 2026-10-10), and every generated table shows the note beside a verified range it
+ * covers. `pixiAdapter` is the adapter key (`pixi8`) or its id (`pixi-8`).
+ */
+export function knownIssuesFor(seed, { pixiAdapter, renderer, pixi })
+{
+    const matrix = seed.adapterMatrix;
+    const key = matrix.pixiAdapters[pixiAdapter] ? pixiAdapter : Object.keys(matrix.pixiAdapters).find((candidate) => matrix.pixiAdapters[candidate].id === pixiAdapter);
+
+    return (matrix.knownIssues ?? []).filter((issue) => issue.pixiAdapter === key && (!renderer || issue.renderer === renderer)
+        && (!pixi || (compareVersions(pixi, issue.pixi.from) >= 0 && compareVersions(pixi, issue.pixi.before) < 0)));
+}
+
+/** A known issue as one Markdown sentence fragment, with its range, links and advice. */
+export function knownIssueNote(seed, issue)
+{
+    const backend = seed.adapterMatrix.renderers[issue.renderer]?.label ?? issue.renderer;
+    const [first, ...rest] = issue.links;
+
+    return `**Known issue** (pixi.js before ${issue.pixi.before} on ${backend}): ${issue.summary} ([${first.label}](${first.url})${rest.map((link) => `, [${link.label}](${link.url})`).join('')}; fixed in ${issue.fixedIn}); ${issue.advice}.`;
+}
+
+/** Structural checks of `adapterMatrix.knownIssues`: a range, a backend the adapter has, a summary, advice and links. */
+export function validateKnownIssues(seed)
+{
+    const matrix = seed.adapterMatrix;
+    const ids = new Set();
+
+    assert.ok(Array.isArray(matrix.knownIssues ?? []), 'knownIssues must be a list');
+    for (const issue of matrix.knownIssues ?? [])
+    {
+        const where = `knownIssues ${issue.id ?? '(no id)'}`;
+
+        assert.match(issue.id ?? '', /^[a-z0-9.-]+$/, `${where}: id`);
+        assert.ok(!ids.has(issue.id), `${where}: duplicate id`);
+        ids.add(issue.id);
+        const adapter = matrix.pixiAdapters[issue.pixiAdapter];
+
+        assert.ok(adapter, `${where}: unknown Pixi adapter ${issue.pixiAdapter}`);
+        assert.ok(adapter.renderers[issue.renderer], `${where}: ${adapter.id} has no ${issue.renderer} renderer`);
+        for (const field of ['from', 'before']) assert.match(issue.pixi?.[field] ?? '', /^\d+\.\d+\.\d+$/, `${where}: pixi.${field} (an exact version)`);
+        assert.ok(compareVersions(issue.pixi.from, issue.pixi.before) < 0, `${where}: pixi.from must be below pixi.before`);
+        assert.match(issue.fixedIn ?? '', /^\d+\.\d+\.\d+$/, `${where}: fixedIn`);
+        for (const field of ['summary', 'advice']) assert.ok(typeof issue[field] === 'string' && issue[field].length >= 10, `${where}: ${field}`);
+        assert.ok(Array.isArray(issue.links) && issue.links.length > 0, `${where}: links`);
+        for (const link of issue.links) assert.ok(typeof link.label === 'string' && link.label && (/^https:\/\//).test(link.url ?? ''), `${where}: each link needs a label and an https url`);
     }
 }
 
@@ -769,6 +821,12 @@ export function renderCompatibilityDoc(seed)
         '| Entry | Pixi adapter | Backend | GPU profile | pixi.js | Reason |',
         '| --- | --- | --- | --- | --- | --- |',
         ...(matrix.expectedBlankRender ?? []).map((entry) => `| ${entry.id} | ${matrix.pixiAdapters[entry.pixiAdapter].id} | ${entry.renderer} | ${entry.gpuProfile} | ${entry.pixi.join(', ')} | ${entry.reason} ${entry.evidence.narrowed} ${entry.evidence.realGpu} |`),
+        '',
+        '## Known issues',
+        '',
+        'Upstream issues of a pixi.js range on one backend (`adapterMatrix.knownIssues`). They change no verdict: a tuple a record verified stays verified, and the release table and the records show the note beside every verified range it covers.',
+        '',
+        ...(matrix.knownIssues ?? []).map((issue) => `- \`${matrix.pixiAdapters[issue.pixiAdapter].id}\`, pixi.js ${issue.pixi.from} to before ${issue.pixi.before}: ${knownIssueNote(seed, issue)}`),
         '',
         '## Deliberately incompatible pairs',
         '',

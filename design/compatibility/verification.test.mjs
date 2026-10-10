@@ -269,18 +269,48 @@ test('the checked-in records are valid, rendered, and are what seed.json verifie
     assert.throws(() => validateRecord(seed, stale), /summary is stale/);
 });
 
-test('the 2026-10-10 record: WebGL verifies every nightly tuple, WebGPU pixi.js 8.10.2 and later; 8.2 to 8.9 are expected blank', () =>
+test('the software records: WebGL verifies every nightly tuple, WebGPU pixi.js 8.10.2 and later; 8.2 to 8.9 are expected blank there', () =>
 {
-    const record2026 = loadRecords().find((item) => item.id === '2026-10-10');
+    const records = loadRecords();
+    const first = records.find((item) => item.id === '2026-10-10');
+    const second = records.find((item) => item.id === '2026-10-10.2');
+
+    assert.equal(first.rendering.kind, 'software');
+    assert.equal(first.summary.backends.webgl.verifiedTuples, 184);
+    assert.equal(first.summary.backends.webgpu.verifiedTuples, 104);
+    assert.equal(first.summary.backends.webgpu.expectedBlank, 64);
+    assert.equal(second.rendering.kind, 'software');
+    assert.equal(second.summary.backends.webgl.verifiedTuples, 297);
+    assert.equal(second.summary.backends.webgpu.verifiedTuples, 143);
+    assert.equal(second.summary.backends.webgpu.expectedBlank, 88);
+    assert.equal(second.summary.backends.webgpu.failed, 0);
+    // The second supersedes the first on this machine and profile.
+    assert.deepEqual(currentRecords([first, second]).map((item) => item.id), ['2026-10-10.2']);
+    // From the software record alone, 8.2 to 8.9 never verify on WebGPU.
+    const softwareOnly = new Set(deriveVerifiedRanges([second]).filter((entry) => entry.pixiAdapter === 'pixi-8').flatMap((entry) => entry.backends.webgpu ?? []));
+
+    for (const version of blankEntry.pixi) assert.ok(!softwareOnly.has(version), `${version} is not verified on WebGPU by a software record`);
+    assert.ok(softwareOnly.has('8.10.2') && softwareOnly.has('8.22.0'));
+});
+
+test('a full hardware record verifies what passed on it; a known issue is shown beside covered tuples, not hidden', () =>
+{
+    const records = loadRecords();
+    const mac = records.find((item) => item.id === '2026-10-10-macos-26-apple-m5-max');
     const webgpu = new Set(seed.verifiedRanges.filter((entry) => entry.pixiAdapter === 'pixi-8').flatMap((entry) => entry.backends.webgpu ?? []));
 
-    assert.equal(record2026.rendering.kind, 'software');
-    assert.equal(record2026.summary.backends.webgl.verifiedTuples, 184);
-    assert.equal(record2026.summary.backends.webgpu.verifiedTuples, 104);
-    assert.equal(record2026.summary.backends.webgpu.expectedBlank, 64);
-    assert.equal(record2026.summary.backends.webgpu.failed, 0);
-    for (const version of blankEntry.pixi) assert.ok(!webgpu.has(version), `${version} is not verified on WebGPU`);
-    assert.ok(webgpu.has('8.10.2') && webgpu.has('8.22.0'));
+    assert.equal(mac.scope, 'full');
+    assert.equal(mac.rendering.kind, 'hardware');
+    assert.ok(recordGate(mac));
+    for (const version of blankEntry.pixi) assert.ok(webgpu.has(version), `${version} is verified on WebGPU by the hardware record`);
+    assert.match(readFileSync(new URL('./verification/2026-10-10-macos-26-apple-m5-max.md', import.meta.url), 'utf8'), /## Known issues beside verified tuples[\s\S]*pixijs\/pixijs#11389/);
+    // knownIssues must name a range and links.
+    const broken = clone(seed);
+
+    broken.adapterMatrix.knownIssues[0].links = [];
+    assert.throws(() => validateAdapterMatrix(broken), /links/);
+    broken.adapterMatrix.knownIssues[0] = { ...seed.adapterMatrix.knownIssues[0], pixi: { from: '8.10.0', before: '8.2.0' } };
+    assert.throws(() => validateAdapterMatrix(broken), /from must be below/);
 });
 
 test('data-only results never reach verifiedRanges', () =>

@@ -76,7 +76,7 @@ Nothing is published yet. Release tarballs carry the public names from `release.
   18.3.1 is *tested*. The [2026-10-10.2 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.2.md) *verifies* React 18.3.1 on
   **WebGL** with the newest audited patch of every Pixi 8 minor (8.2.6 … 8.22.0) and with pixi.js 7.2.0, 7.2.4, 7.3.0,
   7.3.3, 7.4.2 and 7.4.3, and on **WebGPU** with pixi.js 8.10.2 … 8.22.0; on WebGPU, pixi.js 8.2.6 to 8.9.2 are an
-  expected blank render, unverified (a blank canvas on the software WebGPU adapter). The record ran on software
+  expected blank render, unverified (pixijs/pixijs#11389 on the software WebGPU adapter). The Apple M5 Max hardware record, which verifies 8.2.6 … 8.9.2 on WebGPU for the React 19 packages, ran before the React 18 split, so it covers the former `react-18` package, not this one. **Known issue:** some devices render a blank canvas on WebGPU before pixi.js 8.10 ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by [#11417](https://github.com/pixijs/pixijs/pull/11417) in 8.10.0); use pixi.js 8.10 or later for WebGPU, or WebGL. The 2026-10-10.2 record ran on software
   rendering (SwiftShader, no GPU); a run on a real GPU can be added as extra evidence. Verification is evidence, not a support guarantee, and the peer range stays as it is ([tested and verified](https://github.com/baseten/pixi-react/blob/main/design/release.md#tested-and-verified)).
 
 ## How React 18 differs from the React 19 epochs
