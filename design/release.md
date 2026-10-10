@@ -22,7 +22,8 @@ Owner rulings for [issue 40](https://github.com/baseten/pixi-react/issues/40) (2
   widened only with matrix evidence.
 - Dependency-update automation (Renovate or Dependabot) is deferred until there is agreement to move to the upstream
   repository (issue 41). New React and Pixi versions follow the [manual flow](#adding-a-react-or-pixi-version-the-manual-flow).
-- Release 1 calls its versions **tested**, not certified ([below](#what-tested-means)).
+- Release 1 calls its versions **tested**; issue 17 (2026-10-10) adds **verified** for the tuples a dated verification
+  record backs ([below](#tested-and-verified)). Verification is evidence, not a support guarantee.
 - Bundle size ([#58](https://github.com/baseten/pixi-react/issues/58)) does not block Release 1; the release notes
   state it.
 
@@ -90,7 +91,7 @@ to cause errors:
   renamed tarballs, but not the browser conformance suite.
 
 The rewrite also renames the names that the shipped code prints in messages. For example, React 18's
-`UNSUPPORTED_TUPLE` error names `@pixi/react-19.1`, and each adapter's `certification` names its own public package.
+`UNSUPPORTED_TUPLE` error names `@pixi/react-19.1`, and each adapter's `verification` pointer names its own public package.
 Consumers therefore see the names they install.
 
 ## Version policy
@@ -186,37 +187,42 @@ Each React adapter's packed `peerDependencies` must equal its manifest row's `de
 cell already checks (`tree` command). So a peer can only widen after the manifest does, and the manifest only widens
 with audited tuples and passing cells.
 
-### What "tested" means
+### Tested and verified
 
-Release 1 calls the versions it supports **tested**, not **certified**:
+Owner ruling (issue 17, 2026-10-10): "verified" replaces "certified", and the versions this repository runs fall into
+two tiers. **Verification is evidence, not a support guarantee.** "Supported" is reserved and not used.
 
-- **Tested:** the exact React and pixi.js versions that the #13 compatibility cells run. The PR tier (the required
-  check **Compatibility (required)**) runs each React adapter at its newest audited patch (React 18.3.1, 19.0.8, 19.1.9,
-  19.2.8 and 19.3.0) with pixi.js 8.2.6 and 8.22.0, the Pixi 7 adapter with React 18.3.1 on pixi.js 7.4.2 and React
-  19.3.0 on 7.4.3, plus probes at every named Pixi 8 boundary, on every pull request and every push to `main`. The
-  nightly tier covers the newest audited patch of every Pixi 8 minor, and every React adapter with pixi.js 7.4.2 and
-  7.4.3.
-- **Certified:** a range promoted into `advertisedRanges` in `design/compatibility/seed.json`. That list is empty, and
-  `validate.mjs` asserts it stays empty.
+- **Tested:** the exact React and pixi.js versions that the PR-tier #13 compatibility cells run. The PR tier (the
+  required check **Compatibility (required)**) runs each React adapter at its newest audited patch (React 18.3.1,
+  19.0.8, 19.1.9, 19.2.8 and 19.3.0) with pixi.js 8.2.6 and 8.22.0, the Pixi 7 adapter with React 18.3.1 on pixi.js
+  7.4.2 and React 19.3.0 on 7.4.3, plus probes at every named Pixi 8 boundary, on WebGL, on every pull request and
+  every push to `main`.
+- **Verified:** the full nightly matrix passed, with WebGL and WebGPU checked separately, backed by a dated
+  [verification record](compatibility/verification/). `verifiedRanges` in `design/compatibility/seed.json` lists exactly
+  the tuples a record verified, per backend; `design/compatibility/verification.mjs` derives it from the records and
+  `validate.mjs` fails when they disagree. A backend verifies tuples only when every nightly cell that runs it passed
+  on it (conformance and the render check), every boundary probe passed and every incompatible pair was rejected; one
+  backend is never inferred from the other.
 
-Why Release 1 does not promote the PR-tier cells (issue 40, option 2 of the #55 review item):
+The [2026-10-10 record](compatibility/verification/2026-10-10.md) (184 cells: every React adapter at both audited
+patches × every Pixi 8 minor and pixi.js 7.4.2 and 7.4.3) verifies every nightly tuple on **WebGL**. It does **not**
+verify **WebGPU**: on Chromium's software WebGPU adapter (SwiftShader, a fallback adapter; this machine has no GPU)
+pixi.js 8.2.6 to 8.9.2 leave the canvas blank, although every conformance scenario passes, so the WebGPU matrix did not
+pass as a whole. Pixi 7 has no WebGPU renderer. Rendering in both backends is software, as in CI.
 
-1. The promotion rules in [compatibility.md](compatibility.md#certification-policy) need more than the PR tier
-   provides: a certificate covers an advertised *interval*, so pixi.js `>=8.2.6 <8.23.0` needs the nightly cells over
-   every minor in it. The nightly workflow was added on 2026-10-09 and has not run yet (it runs at 02:37 UTC, or by
-   `workflow_dispatch`). The rules also ask for individually validated render backends (WebGL and WebGPU) and an
-   integrity-recorded certificate record, which the cells do not produce yet.
-2. The seed is the #3 audit record (`status: audit-seed-not-support-certificate`), which D7 keeps as-is, and promotion
-   needs the owner's review.
+Verification never widens a peer range (D5: never broader than the evidence). The peer ranges stay exactly the tested
+versions: the verified WebGL tuples include them and add the minimum React patches and every Pixi 8 minor's newest
+audited patch, all inside the existing ranges.
 
-The PR-tier cells did run green on every merge to `main` since #52 (for example run 37967937172 at `10d704e`), so
-"tested" is accurate. Every user-facing surface says "tested": the facade's runtime warning, the facade README, the
-getting-started page, the adapter READMEs, the adapters' manifest `certification` strings and the
-[compatibility table](release-compatibility.md).
+Every user-facing surface says what it can back: "tested" for the PR-tier versions, "verified on WebGL" only where the
+record backs it: the facade's runtime warning and README, the getting-started page, the adapter READMEs, the
+adapters' manifest `verification` pointers and the [compatibility table](release-compatibility.md), which is generated
+from `verifiedRanges`.
 
-To certify later: let the nightly tier pass over the range, record the certificate as `compatibility.md` describes,
-add the range to `advertisedRanges` (and relax the `validate.mjs` assertion with a schema for the entry), then change
-"tested" to "certified" on the surfaces above in the same pull request.
+To verify again: run the nightly tier with both React patches and both backends, the boundary probes, the incompatible
+pairs and the data-only probes from one commit with no verdict cache, write the record with
+`node design/compatibility/verification.mjs build`, then `ranges --write` and regenerate the tables
+([cells README](compatibility/cells/README.md#verification-records)).
 
 ### Other changes
 
@@ -549,8 +555,8 @@ Nothing is published until the owner approves each of these, in a reviewed chang
 3. **The CI workflows**: the [release dry run job](#the-dry-run-in-ci) is approved and added (issue 62); branch
    protection must require **Release dry run**. A release workflow that publishes the staged tarballs of a passing dry
    run still needs approval.
-4. **Tested or certified**: whether Release 1 ships as "tested" ([above](#what-tested-means)) or waits for a promoted
-   range.
+4. **Tested and verified**: ruled on 2026-10-10 (issue 17): "tested" for the PR tier, "verified" for what a dated
+   verification record backs ([above](#tested-and-verified)).
 5. **Bundle size** ([#58](https://github.com/baseten/pixi-react/issues/58)): ruled not to block Release 1; the notes
    state it.
 
@@ -637,8 +643,9 @@ Each React adapter's peer lists exactly the React versions its fixtures test (D5
 
 [COMPATIBILITY.md](compatibility/cells/COMPATIBILITY.md) lists the pairs CI runs: each React adapter at its newest
 patch with pixi.js 8.2.6 and 8.22.0 on every PR, and every Pixi 8 minor nightly; the Pixi 7 adapter with React 18.3.1
-on pixi.js 7.4.2 and React 19.3.0 on 7.4.3 on every PR, and with every React adapter nightly. These versions are *tested*; they
-stay candidate-not-certified until the owner promotes a range ([What "tested" means](#what-tested-means)). The
+on pixi.js 7.4.2 and React 19.3.0 on 7.4.3 on every PR, and with every React adapter nightly. These versions are *tested*; the
+[2026-10-10 verification record](compatibility/verification/2026-10-10.md) verifies the nightly tuples on WebGL, not on
+WebGPU ([Tested and verified](#tested-and-verified)). The
 generated [release compatibility table](release-compatibility.md) lists them per package and release.
 
 ### Custom registration

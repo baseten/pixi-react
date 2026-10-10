@@ -15,7 +15,7 @@ An optional positional substring selects tuple IDs, for example `react-19.2` or 
 
 The React probe uses a tiny in-memory mutation renderer: actual reconciler root creation, prop update, unmount, context propagation across two roots through `its-fine`, error delivery, and Activity visibility where available. It is not the production Pixi renderer or a React DOM bridge test. The Pixi probe exercises installed scene mutation, ticker argument shape, event emitter registration, destruction, and selected behavior changes without initializing a GPU. Its emitter check does not test hit testing, event capture/bubbling, rendering, or browser lifecycle.
 
-The TypeScript consumer uses `skipLibCheck: true` to isolate consumer assignability from unrelated dependency declarations; full dependency declaration correctness is not claimed. TS 5.6.3 is pinned. No TS 6/7 certificate follows from the Pixi 8.21 release notes. Installed package source/declaration fingerprints and selected signatures support boundary comparison; changed hashes alone do not mean a breaking interface.
+The TypeScript consumer uses `skipLibCheck: true` to isolate consumer assignability from unrelated dependency declarations; full dependency declaration correctness is not claimed. TS 5.6.3 is pinned. No TS 6/7 verification record follows from the Pixi 8.21 release notes. Installed package source/declaration fingerprints and selected signatures support boundary comparison; changed hashes alone do not mean a breaking interface.
 
 To refresh compact evidence after running the probes:
 

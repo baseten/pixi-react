@@ -1,6 +1,6 @@
 # Historical React 17 and Pixi 6 candidates
 
-This audit informs a later support decision. It does not implement or certify historical adapters. The production candidate floors remain React 18.3.1, Pixi 7.4.2 and Pixi 8.2.6; advertised ranges remain empty. The current upstream functionality inventory and [class architecture](adapter-architecture.md) remain the implementation baseline.
+This audit informs a later support decision. It does not implement or verify historical adapters. The production candidate floors remain React 18.3.1, Pixi 7.4.2 and Pixi 8.2.6; advertised ranges remain empty. The current upstream functionality inventory and [class architecture](adapter-architecture.md) remain the implementation baseline.
 
 ## Reproduce and interpret the evidence
 
@@ -15,7 +15,7 @@ node design/compatibility/validate.mjs --historical
 node --test design/compatibility/*.test.mjs
 ```
 
-The runner deliberately exits nonzero for the retained Pixi 6.4 native-ESM failures. Validation accepts only the recorded expected failures and does not convert them into certification. Installs disable lifecycle scripts; subprocesses have a three-minute bound. Each tuple uses its own dependencies, strict TS 5.6.3 consumer program and `skipLibCheck: true`. React 17's positive consumer uses Bundler resolution; a separate NodeNext check retains its known declaration failure. No production dependency is changed.
+The runner deliberately exits nonzero for the retained Pixi 6.4 native-ESM failures. Validation accepts only the recorded expected failures and does not convert them into verification. Installs disable lifecycle scripts; subprocesses have a three-minute bound. Each tuple uses its own dependencies, strict TS 5.6.3 consumer program and `skipLibCheck: true`. React 17's positive consumer uses Bundler resolution; a separate NodeNext check retains its known declaration failure. No production dependency is changed.
 
 The historical source/runtime programs are observability inputs to this report and future compatibility CI. They are not production selectors. Hash changes establish changed artifacts; selected declaration changes and exercised behavior identify the boundaries described below. The original 44 modern observations and their known failures remain intact.
 
@@ -45,7 +45,7 @@ The baseline samples first/latest stable patches of every published minor: 6.0.0
 | --- | --- |
 | 6.0 → 6.1 | The particle package changes from `@pixi/particles` to `@pixi/particle-container`. Public `destroyed` state/event appears; in 6.1–6.3 the event sees the flag still false. Early ownership code cannot require the later flag/event. |
 | 6.1 | Federated Events becomes an optional package. Default `pixi.js` continues to expose InteractionManager/InteractionEvent. Exact optional installations exercise explicit-target capture, target, bubble and listener removal. No hit testing or renderer EventSystem installation is exercised. |
-| 6.2 / 6.3 | Selected scene/ticker contracts remain usable. Some releases require browser globals at import; 6.2.0 additionally references CanvasRenderingContext2D. The 6.3.2 sample imports without the fixture. This is an import boundary, not a rendering certificate. |
+| 6.2 / 6.3 | Selected scene/ticker contracts remain usable. Some releases require browser globals at import; 6.2.0 additionally references CanvasRenderingContext2D. The 6.3.2 sample imports without the fixture. This is an import boundary, not a rendering verification record. |
 | 6.4.0 / 6.4.2 | Both native-ESM runs fail with `isMobileCall is not a function` on Node 22.17.1. 6.4.0 swaps its import/require exports entries. 6.4.2 fixes that map and CommonJS works, while native ESM still fails. Installed destroy source moves the flag assignment before the event; that source fact is distinguished from a passing ESM runtime. |
 | 6.4.2 → 6.5.0 | Extensions registration and generic `Container<T>` declarations appear. Optional Assets provides Promise-based asset loading alongside the legacy Loader. Spritesheet parsing adds a Promise return while retaining a deprecated callback overload; this is not wholesale removal of callback support. |
 | 6.5.0 → 6.5.1 | The published 6.5.0 ticker CJS/ESM bundles embed BaseTexture, Texture and Renderer implementations. The inspected 6.5.1/.10 bundles do not. Preserve 6.5.0 as a packaging exclusion even though the limited scene program succeeds. |
@@ -62,6 +62,6 @@ The neutral `ReactAdapter`, `PixiAdapter` and session contracts can represent th
 
 A Pixi6 adapter can translate synchronous Application construction into the existing asynchronous create/dispose lifecycle and supply numeric ticker/event/constructor types. It needs explicit ownership state across destroyed-event epochs, legacy Text constructors, Sprite particles, point setters, plugin registration and resource ownership. Legacy interaction and optional federated events must remain distinct capabilities. Optional shared Assets needs its own install/ownership policy; the default bundle cannot promise it. Internal minor branches or separate adapter epochs should be chosen by the final browser evidence, not by package major alone.
 
-A sensible first historical implementation candidate is React17.0.2/reconciler0.26.2 with Pixi6.5.10, subject to explicit authorization. Earlier sampled minors remain separate candidates; 6.4's module-path failures and 6.5.0 packaging issue prevent a broad `^6` promise. Third parties can use the same open binding/adapter contracts, but they need their own declared ranges and certification evidence.
+A sensible first historical implementation candidate is React17.0.2/reconciler0.26.2 with Pixi6.5.10, subject to explicit authorization. Earlier sampled minors remain separate candidates; 6.4's module-path failures and 6.5.0 packaging issue prevent a broad `^6` promise. Third parties can use the same open binding/adapter contracts, but they need their own declared ranges and verification evidence.
 
 Expected work is comparable to another React reconciler epoch plus a legacy Pixi adapter, followed by the existing conformance/packed-consumer/browser suites. Add dedicated tests for primary-source context updates in development and production, batching and error boundaries, refs/effects, async initialization/unmount races, renderer resize/disposal, actual pointer propagation/hit testing, asset ownership, particles and visual output. This audit reduces uncertainty about those tasks; it does not complete them or change the current implementation backlog's floors.

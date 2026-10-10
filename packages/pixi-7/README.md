@@ -42,7 +42,7 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 | Peer range | `>=7.4.2 <7.5.0` |
 | Tested exactly | 7.4.2 (floor) and 7.4.3 (the newest 7.x release, npm's `latest-7.x`): every release in the range |
 | Evidence | The #3 audit's probe tuples `pixi-7.4.2` and `pixi-7.4.3` (`design/compatibility/seed.json`, `pixiEpochs.pixi7`: line 7.4, minimum 7.4.2, current 7.4.3). Both install, run and typecheck cleanly, and record `asyncInit: false`, `particleContainer: true`, `particle`, `renderLayer`, `domContainer` and `cacheAsTexture` false. 7.4.2 is the first-party floor of the audit (`floors["pixi.js"]`); earlier Pixi 7 minors are out of scope (issue 20: community packages) |
-| Status | **Tested**, not certified, as for every Release 1 range ([what "tested" means](https://github.com/baseten/pixi-react/blob/main/design/release.md#what-tested-means)) |
+| Status | **Tested** (7.4.2 with React 18.3.1 and 7.4.3 with React 19.3.0 on every pull request) and **verified on WebGL**: the [2026-10-10 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.md) passed 7.4.2 and 7.4.3 with every React adapter at both audited patches. Pixi 7 has no WebGPU renderer. Verification is evidence, not a support guarantee ([tested and verified](https://github.com/baseten/pixi-react/blob/main/design/release.md#tested-and-verified)) |
 
 `checkEnvironment()` rejects any other installed `pixi.js`, including Pixi 8 (the message names the Pixi 8 adapter) and
 pre-releases, with `CompatibilityError` `UNSUPPORTED_TUPLE`, before anything is allocated. `adapter.manifest.pixi`
