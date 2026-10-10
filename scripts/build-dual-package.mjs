@@ -91,7 +91,7 @@ async function bundleRuntime()
             }]
             : [];
 
-        const result = await esbuild.build({
+        const { metafile } = await esbuild.build({
             entryPoints: [join(packageDir, 'src', file.replace(/\.js$/, '.ts'))],
             outfile: join(cjs, file),
             bundle: true,
@@ -104,12 +104,15 @@ async function bundleRuntime()
             sourcemap: true,
             sourcesContent: false,
             logLevel: 'warning',
+            metafile: true,
             ...(keepBindingExternal.length ? { plugins: keepBindingExternal } : {}),
         });
+        const sources = Object.keys(metafile.inputs).map((input) => relative(packageDir, resolve(packageDir, input)));
 
-        if (result.errors.length)
+        // D6: the peer-binding entry must not carry a second copy of any implementation module.
+        if (keepBindingExternal.length && sources.some((source) => source !== join('src', 'index.ts')))
         {
-            throw new Error(`esbuild failed for ${relative(packageDir, file)}`);
+            throw new Error(`dist/cjs/index.js must require ./${bindingModule} and bundle nothing else, but it bundles ${sources.join(', ')}.`);
         }
     }
 }

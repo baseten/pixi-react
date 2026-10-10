@@ -140,9 +140,9 @@ function noThirdPartySource()
 }
 
 /**
- * Lowers each emitted `lib/` chunk to the module target once (issue 58). The bundled adapter packages are already
- * built JavaScript (ES2022 class fields and private members); transforming each of their modules separately put a
- * copy of esbuild's class-field helpers into every module of `lib/adapters.js`. Lowering the chunk emits one copy.
+ * Lowers each emitted `lib/` chunk to the module target once (issue 58). The bundled adapter sources use ES2022 class
+ * fields and private members; lowering each module separately would put a copy of esbuild's class-field helpers into
+ * every module of `lib/adapters.js`. Lowering the chunk emits one copy.
  */
 function lowerChunks()
 {
