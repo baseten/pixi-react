@@ -1,10 +1,10 @@
 // Explicit composition with exactly one React adapter and the Pixi adapter, registering two constructors.
-import { Pixi8Adapter } from '__PIXI__';
+import { __PIXI_CLASS__ as PixiAdapter } from '__PIXI__';
 import { __CLASS__ as ReactAdapter } from '__REACT__';
 import { createRenderer } from '__RENDERER__';
 import { Container, Sprite } from 'pixi.js';
 
-const renderer = createRenderer({ react: new ReactAdapter(), pixi: new Pixi8Adapter() });
+const renderer = createRenderer({ react: new ReactAdapter(), pixi: new PixiAdapter() });
 
 renderer.extend({ Container, Sprite });
 

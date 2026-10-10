@@ -1,31 +1,36 @@
 /**
  * The conformance binding of one cell: `createRenderer({ react, pixi })` from the PACKED packages, rendering real Pixi
  * applications in Chromium with the cell's own React, react-dom and pixi.js. The adapter classes come from the
- * generated `./adapter` module (the manifest names the package, entry and class), so this file never names a layout.
+ * generated `./adapter` module (the manifest names the package, entry and class), and the probe, its factory and the
+ * deterministic application options come from the Pixi adapter's manifest row, so this file never names a layout.
  */
+import cell from '../cell.json';
 import { PixiAdapterClass, ReactAdapterClass } from './adapter';
-import { createPixi8Probe } from './pixiProbe';
+import * as probes from './pixiProbe';
 import { createRenderer } from '@pixi-react-provisional/renderer';
 
-import type { Capability, Composition, ConformanceBinding, PixiElement, ReactBindingApi } from '@pixi-react-provisional/conformance';
+import type { Capability, Composition, ConformanceBinding, PixiElement, PixiProbe, ReactBindingApi } from '@pixi-react-provisional/conformance';
 
-/** Deterministic application options: manual ticker, fixed size, no autostart. */
-export const appOptions = Object.freeze({
-    autoStart: false,
-    sharedTicker: false,
-    width: 64,
-    height: 64,
-    resolution: 1,
-    antialias: false,
-    backgroundAlpha: 0,
-    preference: 'webgl',
-});
+/** What a cell needs from a Pixi adapter's probe module (`probeSource`, `probeFactory` in the manifest). */
+interface CellProbe extends PixiProbe
+{
+    readonly catalog: Record<string, new (...args: any[]) => object>;
+    /** Instruments the adapter's sessions, for probes that cannot hook the Pixi application class (Pixi 7). */
+    instrumentAdapter?<A extends object>(adapter: A): A;
+    restore(): void;
+}
+
+const createProbe = (probes as unknown as Record<string, (rootCount: () => number) => CellProbe>)[cell.probeFactory];
+
+/** Deterministic application options of the cell's Pixi adapter: manual ticker, fixed size, no autostart. */
+export const appOptions = Object.freeze({ ...cell.appOptions });
 
 function createComposition(): Composition
 {
     let roots = () => 0;
-    const probe = createPixi8Probe(() => roots());
-    const renderer = createRenderer({ react: new ReactAdapterClass(), pixi: new PixiAdapterClass() });
+    const probe = createProbe(() => roots());
+    const adapter = new PixiAdapterClass();
+    const renderer = createRenderer({ react: new ReactAdapterClass(), pixi: probe.instrumentAdapter ? probe.instrumentAdapter(adapter) : adapter });
     // Intrinsic tag strings cast to components: the minimum element typing a runtime test needs.
     const element = (name: string) => `pixi${name}` as unknown as PixiElement;
 

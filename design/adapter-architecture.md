@@ -31,7 +31,7 @@ Names below use the **unpublished placeholder** `@pixi-react-provisional/`. The 
 | `react-shared`, `packages/react-shared` (private, never published) | Bundled into each React adapter at build time; nothing depends on it at runtime | Code the React adapters share: the runtime-independent host operations and node → runtime map (all five), the React 19 base class, bindings and audit groups (the four React 19 minors) |
 | `pixi-8`, `packages/pixi-8` | `core`; peer Pixi 8 within certified bounds | `Pixi8Adapter`, all scene and resource behavior; no React imports |
 | `react`, `packages/react` (published as `@pixi/react`) | Bundles our `renderer`, `core`, `react-19.3` (newest certified minor, D1) and `pixi-8` code at build time, with no runtime dependency on them (see [below](#the-default-facade-ships-its-adapters-bundled)); dependencies react-reconciler **0.34.0** and its-fine **2.1.1** (exact); peers `react` (`^19.3.0`, certified 19.3.0) and `pixi.js` | Upstream-parity API (D4) and opt-in JSX surface, one default runtime |
-| `pixi-7`, `packages/pixi-7` | Reserved, not implemented or required in wave 1 | Future legacy Pixi adapter; no speculative declarations |
+| `pixi-7`, `packages/pixi-7` | `core`; peer pixi.js `>=7.4.2 <7.5.0` | `Pixi7Adapter` ([issue 16](https://github.com/baseten/pixi-react/issues/16)): the same contract against Pixi 7, with its differences declared as capabilities ([below](#a-second-pixi-adapter-pixi-7)); no React imports. Releases at the facade's version (lockstep) although it targets Pixi 7; the facade stays on Pixi 8 |
 
 No package depends on the facade except consumers.
 
@@ -62,7 +62,7 @@ const SpriteComponent = renderer.component(Sprite);
 // renderer.useApplication().app and renderer.useTick's callback infer Pixi8 types.
 ```
 
-React18 replaces only the React import/class. Another React 19 minor replaces only the package name; installing the neutral renderer does not install the default pair. Calling `component(Ctor, name?)` registers that constructor in the runtime, returns a stable component for that constructor, and retains its exact instance/ref/options type without ambient tags. The default facade exports bindings from one module-local composition, preserving familiar calls to `extend`, `Application` and hooks. Explicit compositions each get a new runtime.
+React18 replaces only the React import/class. Another React 19 minor replaces only the package name; installing the neutral renderer does not install the default pair. Pixi 7 replaces only the Pixi import/class (`import { Pixi7Adapter } from '@pixi-react-provisional/pixi-7'` with pixi.js 7.4.x); `useApplication().app` and `useTick`'s callback then infer Pixi 7's `Application` and its numeric delta. Calling `component(Ctor, name?)` registers that constructor in the runtime, returns a stable component for that constructor, and retains its exact instance/ref/options type without ambient tags. The default facade exports bindings from one module-local composition, preserving familiar calls to `extend`, `Application` and hooks. Explicit compositions each get a new runtime.
 
 ### Pinning an older React 19 epoch
 
@@ -170,6 +170,38 @@ Issue [9](https://github.com/baseten/pixi-react/issues/9) already explicitly req
 
 ViewTransition DOM animations are **not** promised by the Pixi renderer. Epoch 19.3 must deliberately reject unsupported ViewTransition usage with a capability error, rather than claim a successful basic mount certifies it. Fragment refs are supported only with a descriptor of scene-supported operations; advertising that capability requires real multi-child membership/order/remove/ref-cleanup tests. Unsupported DOM operations must fail explicitly and be documented in the epoch README. React18 independently implements 0.29.2's recoverable-error-only root and payload-based updates in issue 12; modern root callbacks unavailable there produce an explicit unsupported-option error, never silent acceptance.
 
+## A second Pixi adapter: Pixi 7
+
+Issue [16](https://github.com/baseten/pixi-react/issues/16) validates the seams with a second Pixi implementation (the
+historical prototype's first failure was that nothing proved them). `Pixi7Adapter` implements ABI 1.0 against the
+unchanged core: no core type, method or capability changed, and every React adapter (React 18 and each React 19 minor)
+composes with it as it is. Its README has the full table; the design-level points:
+
+- **Synchronous construction, asynchronous contract.** Pixi 7 builds an application in its constructor; core's session
+  contract (after Pixi 8) has an application object from root creation and an asynchronous `init`. The Pixi 7 session
+  creates the application object and its stage when the root is created and runs Pixi 7's construction steps on it in
+  `init`, so the root keeps one application identity and a failing plugin's partial construction can be destroyed.
+  Core's init and teardown ordering (unmount during init, StrictMode, failure isolation) is unchanged and passes the
+  same conformance scenarios.
+- **Explicit capability differences.** The shared protocol capabilities (`pixi.mutation`, `pixi.visibility`,
+  `pixi.application`, `pixi.ticker`, `pixi.globals`) mean the same thing for both adapters, so every React adapter's
+  `requires` is met. Node features are per adapter: `pixi7.filter` and `pixi7.particle-container` (Pixi 7's
+  ParticleContainer of Sprites) on Pixi 7; `pixi8.filter`, `pixi8.particle`, `pixi8.render-layer`,
+  `pixi8.dom-container` on Pixi 8 only. Requiring a Pixi 8 capability from a Pixi 7 composition fails with
+  `CAPABILITY_MISSING` before allocation; an element of another pixi.js copy (a Pixi 8 class) fails with
+  `UNSUPPORTED_NODE`.
+- **Types are the adapter's own.** `Pixi7Types` has `tick: number` and Pixi 7's application and destroy options, and
+  `Pixi7Props<C>` maps positional constructor arguments plus writable instance properties, derived from the installed
+  pixi.js 7 declarations. Nothing reuses the Pixi 8 mapping or names a Pixi 8-only type (`GraphicsContext`).
+- **Conformance.** The shared scenarios run unchanged. Two need Pixi 8 scene features (`GraphicsContext` as a
+  resource; the renderer destroy options object forwarded unchanged) and require the conformance capabilities
+  `pixi.graphics-context` and `pixi.renderer-destroy-options`, which every Pixi 8 binding provides and the Pixi 7
+  binding does not: the runner skips them there and names the capability, and the Pixi 7 package tests the Pixi 7
+  equivalents.
+- **Packaging.** Lockstep like every package (it releases at the facade's version, 8.1.0 for Release 1), an exact
+  dependency on core, the same D6 entries, and types-only `./jsx` entries for the Pixi 7 catalogue. One program or
+  application uses one Pixi major (D10).
+
 ## Packaging, JSX and certification
 
 Every published entry emits JS and declarations, exports explicit `import`/`require` branches with matching API behavior and one shared runtime instance (D6), and includes no source-path alias in declarations. Issue 11/13 installs packed artifacts in NodeNext and bundler consumers for ESM and CJS; issue 5 wires build outputs and Turbo dependency order. The package manager never chooses an epoch. Changing an epoch's reconciler is an adapter release and requires its matrix again.
@@ -190,6 +222,6 @@ The neutral factory and both adapter roots have no JSX global side effects. The 
 
 One TypeScript program cannot globally declare the same tag with conflicting Pixi types; generic arguments to `createRenderer` do not select global JSX. Use separate TS programs or local `renderer.component(Ctor)` values for mixed scene versions. The local route needs only React's selected component/JSX types and the selected scene props; two incompatible React type majors still require separate programs. Components carrying children are restricted by the scene's descriptor/type catalog in issue 11; the small sketch's universal children field is not the final full catalog.
 
-All ranges begin **candidate-not-certified**. [compatibility.md](compatibility.md#certification-policy) defines bounded candidates and promotion. First delivery is React19/Pixi8, then React18/Pixi8. Pixi7 remains wave 2. An adapter accepts only certified tuples/features after implementation; under D5 its peer ranges cover exactly-certified versions only. No arbitrary versions, future React minors or new backends are promised by this design.
+All ranges begin **candidate-not-certified**. [compatibility.md](compatibility.md#certification-policy) defines bounded candidates and promotion. First delivery is React19/Pixi8, then React18/Pixi8. Pixi7 (wave 2, issue 16) is tested on pixi.js 7.4.2 and 7.4.3 with every React adapter; issue 17 certifies the React18/19 × Pixi7/8 matrix. An adapter accepts only certified tuples/features after implementation; under D5 its peer ranges cover exactly-certified versions only. No arbitrary versions, future React minors or new backends are promised by this design.
 
 Issue 13 must cover every audited React ABI epoch and every Pixi8 minor boundary with fast type/API probes, then full browser cells for incompatible epochs and minimum/current representatives. Reconciler host-key/root-argument drift and Pixi declaration/runtime capability drift block promotion even when ordinary mount still works; follow the seed's named failures rather than replacing the matrix with broad major-only peers.

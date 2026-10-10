@@ -28,6 +28,30 @@ test('the Pixi range is derived from the manifest: minimum, current and the excl
     assert.deepEqual(pixiMajors('>=8.2.6 <8.5.0 || >=8.5.1 <8.23.0'), [8]);
 });
 
+test('the Pixi 7 adapter\'s range is derived from its own epoch, and a wider range or another package peer is rejected', () =>
+{
+    assert.equal(supportedPixiRange(seed, 'pixi7'), '>=7.4.2 <7.5.0');
+    const facts = releaseFacts({ config });
+    const pixi7 = facts.packages.find((pkg) => pkg.dir === 'packages/pixi-7');
+
+    assert.deepEqual(pixi7.pixiAdapter, {
+        key: 'pixi7',
+        isDefault: false,
+        range: '>=7.4.2 <7.5.0',
+        supportedRange: '>=7.4.2 <7.5.0',
+        prCells: [{ react: '18.3.1', reactAdapter: 'react-18', pixi: '7.4.2' }, { react: '19.3.0', reactAdapter: 'react-19.3', pixi: '7.4.3' }],
+    });
+    assert.equal(pixi7.version, facts.facade.version, 'lockstep: it releases at the facade\'s version although it targets Pixi 7');
+
+    const widened = clone(seed);
+
+    widened.adapterMatrix.pixiAdapters.pixi7.declaredPeers['pixi.js'] = '>=7.3.0 <7.5.0';
+    const problems = checkReleaseRules({ config, seed: widened }).join('\n');
+
+    assert.match(problems, /pixiAdapters\.pixi7\.declaredPeers\["pixi.js"\] is ">=7\.3\.0 <7\.5\.0", but the manifest's evidence \(pixiEpochs\.pixi7 minimum\/current, excludedVersions\) supports ">=7\.4\.2 <7\.5\.0"/);
+    assert.match(problems, /packages\/pixi-7\/package\.json's pixi\.js peer is ">=7\.4\.2 <7\.5\.0", the manifest's declared range \(pixiAdapters\.pixi7\) is ">=7\.3\.0 <7\.5\.0"/);
+});
+
 test('the workspace satisfies the release rules', () =>
 {
     assert.deepEqual(checkReleaseRules({ config }), []);

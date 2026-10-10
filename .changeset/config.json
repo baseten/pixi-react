@@ -12,7 +12,8 @@
       "@pixi-react-provisional/react-19.2",
       "@pixi-react-provisional/react-19.3",
       "@pixi-react-provisional/react-18",
-      "@pixi-react-provisional/pixi-8"
+      "@pixi-react-provisional/pixi-8",
+      "@pixi-react-provisional/pixi-7"
     ]
   ],
   "linked": [],

@@ -10,5 +10,5 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": []
   },
-  "files": ["adapter.ts", "consumer.pixi8.tsx", "%ROOTS_PROBE%"]
+  "files": ["adapter.ts", "%PIXI_CONSUMER%", "%ROOTS_PROBE%"]
 }

@@ -328,6 +328,8 @@ export const hookScenarios = [
     defineScenario({
         id: 'resources.graphics-context-borrowed',
         feature: 'resources',
+        // A Pixi 8 GraphicsContext passed as Graphics `context`; Pixi 7 shares a GraphicsGeometry instead.
+        requires: ['pixi.graphics-context'],
         title: 'an externally supplied graphics context survives node removal',
         expected: 'Removing a graphics node destroys the node but not the borrowed graphics context.',
         async run({ elements: { graphics: Graphics }, mountApp, probe, journal })

@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "rootDir": ".",
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "types": ["node", "react", "vite/client"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // The JSX entries import this package by name; resolve it to the sources.
+    "paths": {
+      "@pixi-react-provisional/pixi-7": ["./src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*", "*.mts"],
+  "exclude": []
+}

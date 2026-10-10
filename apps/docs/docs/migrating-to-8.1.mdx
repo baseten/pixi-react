@@ -61,6 +61,25 @@ For JSX element types, add `import '@pixi/react-pixi-8/jsx/react-19';` (or `/jsx
 
 Each adapter package accepts only the React versions it is tested with, and rejects another minor with a `CompatibilityError` that names the package to install. The renderer you compose behaves like the modular packages, not like `@pixi/react`'s upstream-compatible defaults: `extend` rejects a name that is already registered to another class, and `extensions` and `defaultTextStyle` are reference-counted and restored on unmount. It also offers APIs `@pixi/react` does not, such as `useContextBridge`, `component(Ctor)`, root error callbacks on `Application` and `Root.status`.
 
+### PixiJS 7: `createRenderer` with the PixiJS 7 adapter
+
+`@pixi/react` 8.x is for PixiJS 8. An application that stays on PixiJS 7 (7.4.2 or 7.4.3) composes the same renderer with the PixiJS 7 adapter, `@pixi/react-pixi-7`, and any React adapter package. It is released at the same version as every other package (8.1.0), although it targets PixiJS 7. It offers the API on this page (`Application`, `extend`, hooks), not the 7.x API (`Stage`, `PixiComponent`, `withFilters`).
+
+```bash
+npm install @pixi/react-renderer@8.1.0 @pixi/react-18@8.1.0 @pixi/react-pixi-7@8.1.0 pixi.js@7.4.3 react@18.3.1 react-dom@18.3.1
+```
+
+```ts
+import { createRenderer } from '@pixi/react-renderer';
+import { React18Adapter } from '@pixi/react-18';
+import { Pixi7Adapter } from '@pixi/react-pixi-7';
+
+export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
+    createRenderer({ react: new React18Adapter(), pixi: new Pixi7Adapter() });
+```
+
+PixiJS 7 differences carry through: `useTick` callbacks receive the frame delta (a number), elements are constructed with PixiJS 7's constructors (`texture` for a sprite, `text` and `style` for a text), and PixiJS 8-only features (`RenderLayer`, `DOMContainer`, `Particle`) are not available. Asking for one fails with a `CompatibilityError` that names the missing capability. Use `@pixi/react-pixi-7/jsx/react-18` (or `/jsx/react-19`) for JSX element types.
+
 The package names above are the planned public names; they depend on the npm scope agreed with the PixiJS maintainers.
 
 ## Bug fixes

@@ -18,6 +18,7 @@ export const compareVersions = (a, b) =>
     return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
 };
 const minorOf = (version) => parts(version).slice(0, 2).join('.');
+const majorOf = (version) => parts(version)[0];
 const sha256 = (value) => createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 
 /** Audited probe tuples of one package, as `{ version, tuple }`, oldest first. */
@@ -45,20 +46,36 @@ export function reactVersions(seed, epochId)
     return { epoch, minimum: tuples[0], latest: tuples.at(-1) };
 }
 
+/** The Pixi adapter the tiers' top-level `react` and `pixi` selections apply to (`adapterMatrix.defaultPixiAdapter`). */
+export const defaultPixiAdapter = (seed) => seed.adapterMatrix.defaultPixiAdapter;
+
+/** The `pixiEpochs` row a Pixi adapter targets (its `epoch`): its minimum, current and capability boundaries. */
+export function pixiEpochOf(seed, adapterKey)
+{
+    const adapter = seed.adapterMatrix.pixiAdapters[adapterKey];
+
+    assert.ok(adapter, `unknown Pixi adapter ${adapterKey}`);
+    const epoch = seed.pixiEpochs.find((candidate) => candidate.id === adapter.epoch);
+
+    assert.ok(epoch, `${adapterKey}: epoch ${adapter.epoch} is not a pixiEpochs id`);
+
+    return epoch;
+}
+
 /**
- * Pixi 8 minors: for every audited minor between the minimum and the current certified version, the lowest and
- * highest audited patch that the adapter does not exclude.
+ * The Pixi minors of an adapter's epoch: for every audited minor of the epoch's major between its minimum and current
+ * version, the lowest and highest audited patch that the adapter does not exclude.
  */
 export function pixiMinors(seed, adapterKey)
 {
     const adapter = seed.adapterMatrix.pixiAdapters[adapterKey];
-    const epoch = seed.pixiEpochs.find((candidate) => candidate.id === 'pixi8');
+    const epoch = pixiEpochOf(seed, adapterKey);
     const excluded = new Set(adapter.excludedVersions);
     const byMinor = new Map();
 
     for (const entry of audited(seed, 'pixi.js'))
     {
-        if (!entry.version.startsWith('8.') || excluded.has(entry.version)) continue;
+        if (majorOf(entry.version) !== majorOf(epoch.minimum) || excluded.has(entry.version)) continue;
         if (compareVersions(entry.version, epoch.minimum) < 0 || compareVersions(entry.version, epoch.current) > 0) continue;
         const minor = minorOf(entry.version);
 
@@ -73,7 +90,7 @@ export function pixiMinors(seed, adapterKey)
 export function expectedPixiProvides(seed, adapterKey, version)
 {
     const { capabilities } = seed.adapterMatrix.pixiAdapters[adapterKey];
-    const boundaries = seed.pixiEpochs.find((epoch) => epoch.id === 'pixi8').capabilityBoundaries;
+    const boundaries = pixiEpochOf(seed, adapterKey).capabilityBoundaries ?? {};
     const provides = Object.fromEntries(capabilities.always.map((id) => [id, 1]));
 
     for (const [capability, boundary] of Object.entries(capabilities.fromBoundary))
@@ -101,7 +118,7 @@ export function makeCell(seed, { react, pixi, commands, negative }, options = {}
 {
     const matrix = seed.adapterMatrix;
     const reactSel = describeReact(seed, react.epoch, react.version);
-    const pixiAdapterKey = pixi.adapter ?? 'pixi8';
+    const pixiAdapterKey = pixi.adapter ?? defaultPixiAdapter(seed);
     const pixiAdapter = matrix.pixiAdapters[pixiAdapterKey];
     const epoch = seed.reactEpochs.find((candidate) => candidate.id === react.epoch);
     const types = {
@@ -161,9 +178,8 @@ export function expectedTree(cell)
     return { exact, absent, reconciler };
 }
 
-function reactCells(seed, tier, patches)
+function reactCells(seed, selection, patches)
 {
-    const selection = seed.adapterMatrix.tiers[tier].react;
     const epochs = selection.epochs === 'all' ? Object.keys(seed.adapterMatrix.reactAdapters) : selection.epochs;
     const result = [];
 
@@ -179,31 +195,62 @@ function reactCells(seed, tier, patches)
     return result;
 }
 
-function pixiSelections(seed, tier)
+/** The `minimum` and `current` versions of an adapter's epoch, by role name. */
+function pixiRoles(seed, adapterKey)
 {
-    const selection = seed.adapterMatrix.tiers[tier].pixi;
-    const minors = pixiMinors(seed, 'pixi8');
-    const epoch = seed.pixiEpochs.find((candidate) => candidate.id === 'pixi8');
+    const epoch = pixiEpochOf(seed, adapterKey);
 
-    if (selection.versions === 'all-minors') return minors.map(({ latest }) => ({ version: latest.version, roles: [] }));
-    const roles = { minimum: epoch.minimum, current: epoch.current };
+    return { minimum: epoch.minimum, current: epoch.current };
+}
 
-    return selection.versions.map((name) => ({ version: roles[name], roles: [name] }));
+function pixiSelections(seed, adapterKey, selection)
+{
+    if (selection.versions === 'all-minors') return pixiMinors(seed, adapterKey).map(({ latest }) => ({ adapter: adapterKey, version: latest.version, roles: [] }));
+    const roles = pixiRoles(seed, adapterKey);
+
+    return selection.versions.map((name) => ({ adapter: adapterKey, version: roles[name], roles: [name] }));
 }
 
 /**
- * Cells of a tier. `patches` overrides the tier's React patch selection ('latest' or 'all'); `filter` keeps cells whose
- * id or label contains any listed substring.
+ * The (React, Pixi) selections of a tier. The tier's top-level `react` and `pixi` form a cross product with the default
+ * Pixi adapter. Each entry of `pixiAdapters` adds cells for another Pixi adapter: either a cross product of its own
+ * `react` and `pixi` selections, or explicit `pairs` of a React epoch (at its latest patch) and a Pixi role.
+ */
+function tierSelections(seed, tier, patches)
+{
+    const config = seed.adapterMatrix.tiers[tier];
+    const product = (adapterKey, selection) => pixiSelections(seed, adapterKey, selection.pixi)
+        .flatMap((pixi) => reactCells(seed, selection.react, patches).map((react) => ({ react, pixi })));
+    const selections = product(defaultPixiAdapter(seed), config);
+
+    for (const [adapterKey, extra] of Object.entries(config.pixiAdapters ?? {}))
+    {
+        if (!extra.pairs)
+        {
+            selections.push(...product(adapterKey, extra));
+            continue;
+        }
+        const roles = pixiRoles(seed, adapterKey);
+
+        for (const pair of extra.pairs)
+        {
+            const { latest } = reactVersions(seed, pair.react);
+
+            selections.push({ react: { epoch: pair.react, version: latest.version, patch: 'latest' }, pixi: { adapter: adapterKey, version: roles[pair.pixi], roles: [pair.pixi] } });
+        }
+    }
+
+    return selections;
+}
+
+/**
+ * Cells of a tier. `patches` overrides the tier's React patch selection ('latest' or 'all') of its cross products;
+ * `filter` keeps cells whose id or label contains any listed substring.
  */
 export function selectCells(seed, tier, { patches, filter } = {})
 {
     assert.ok(seed.adapterMatrix.tiers[tier], `unknown tier ${tier}`);
-    const cells = [];
-
-    for (const pixi of pixiSelections(seed, tier))
-    {
-        for (const react of reactCells(seed, tier, patches)) cells.push(makeCell(seed, { react, pixi }));
-    }
+    const cells = tierSelections(seed, tier, patches).map(({ react, pixi }) => makeCell(seed, { react, pixi }));
 
     const unique = new Set(cells.map((cell) => cell.id));
 
@@ -216,7 +263,7 @@ export function negativeCells(seed)
 {
     return seed.adapterMatrix.negative.map((negative) => makeCell(seed, {
         react: { epoch: negative.react.epoch, version: negative.react.version, typesReact: negative.react.typesReact, typesReactDom: negative.react.typesReactDom },
-        pixi: { version: negative.pixi.version },
+        pixi: { adapter: negative.pixi.adapter, version: negative.pixi.version },
         commands: negative.commands,
         negative,
     }));
@@ -227,7 +274,14 @@ export function boundaryProbes(seed, tier)
 {
     const selection = seed.adapterMatrix.tiers[tier].boundaryProbes;
 
-    if (selection === 'all') return seed.probes.filter((tuple) => tuple.kind === 'react' || tuple.packages['pixi.js']?.startsWith('8.')).map((tuple) => ({ id: tuple.id, boundary: 'audited tuple' }));
+    if (selection === 'all')
+    {
+        // Every audited React tuple, and every audited Pixi tuple of a major some Pixi adapter targets.
+        const majors = new Set(Object.keys(seed.adapterMatrix.pixiAdapters).map((key) => majorOf(pixiEpochOf(seed, key).minimum)));
+
+        return seed.probes.filter((tuple) => tuple.kind === 'react' || (tuple.kind === 'pixi' && majors.has(majorOf(tuple.packages['pixi.js']))))
+            .map((tuple) => ({ id: tuple.id, boundary: 'audited tuple' }));
+    }
 
     return selection;
 }
@@ -269,13 +323,18 @@ export function validateAdapterMatrix(seed)
         }
         assert.ok(adapter.typesReactDom, `${key}: typesReactDom`);
     }
+    assert.ok(matrix.pixiAdapters[matrix.defaultPixiAdapter], 'defaultPixiAdapter must name a pixiAdapters row');
     for (const [key, adapter] of Object.entries(matrix.pixiAdapters))
     {
         assert.ok(matrix.artifacts[adapter.artifact], `${key}: artifact`);
         assert.ok(adapter.declaredPeers['pixi.js'], `${key}: declaredPeers`);
-        const boundaries = seed.pixiEpochs.find((epoch) => epoch.id === 'pixi8').capabilityBoundaries;
+        const boundaries = pixiEpochOf(seed, key).capabilityBoundaries ?? {};
 
         for (const boundary of Object.values(adapter.capabilities.fromBoundary)) assert.ok(boundaries[boundary], `${key}: boundary ${boundary}`);
+        assert.match(adapter.probeFactory, /^[A-Za-z0-9_]+$/, `${key}: probeFactory`);
+        assert.ok(adapter.conformanceAppOptions && typeof adapter.conformanceAppOptions === 'object', `${key}: conformanceAppOptions`);
+        assert.ok(Array.isArray(adapter.conformanceCapabilities), `${key}: conformanceCapabilities`);
+        assert.match(adapter.typeConsumer, /^consumer\.[\w-]+\.tsx$/, `${key}: typeConsumer (a harness/typecheck file; cells.test.mjs checks it exists)`);
     }
 
     const probeIds = new Set(seed.probes.map((tuple) => tuple.id));
@@ -284,6 +343,16 @@ export function validateAdapterMatrix(seed)
     {
         const { boundaryProbes: selection } = matrix.tiers[tier];
 
+        for (const [key, extra] of Object.entries(matrix.tiers[tier].pixiAdapters ?? {}))
+        {
+            assert.ok(matrix.pixiAdapters[key] && key !== matrix.defaultPixiAdapter, `${tier}: pixiAdapters.${key} must be another Pixi adapter`);
+            for (const pair of extra.pairs ?? [])
+            {
+                assert.ok(matrix.reactAdapters[pair.react], `${tier}: pixiAdapters.${key}: unknown React epoch ${pair.react}`);
+                assert.ok(['minimum', 'current'].includes(pair.pixi), `${tier}: pixiAdapters.${key}: pixi must be minimum or current`);
+            }
+        }
+
         if (selection !== 'all') for (const probe of selection) assert.ok(probeIds.has(probe.id), `${tier}: unknown probe ${probe.id}`);
         assert.ok(selectCells(seed, tier).length > 0, `${tier}: no cells`);
     }
@@ -291,11 +360,20 @@ export function validateAdapterMatrix(seed)
     const pr = new Set(matrix.tiers.pr.boundaryProbes.map((probe) => probe.id));
 
     for (const required of ['pixi-8.2.6', 'pixi-8.5.0', 'pixi-8.5.2', 'pixi-8.7.0', 'pixi-8.9.0', 'pixi-8.10.0', 'pixi-8.22.0']) assert.ok(pr.has(required), `PR tier must probe ${required}`);
+    // CI cost (issue 16): a Pixi adapter other than the default adds at most two cells to the required PR check; its
+    // full cross product runs nightly.
+    for (const key of Object.keys(matrix.pixiAdapters).filter((name) => name !== matrix.defaultPixiAdapter))
+    {
+        const count = selectCells(seed, 'pr').filter((cell) => cell.pixi.adapterKey === key).length;
+
+        assert.ok(count <= 2, `PR tier: ${key} adds ${count} cells; at most 2 (run the rest nightly)`);
+    }
 
     for (const cell of [...selectCells(seed, 'nightly', { patches: 'all' }), ...negativeCells(seed)])
     {
         assert.ok(cell.react.tuple, `${cell.id}: no audited React tuple`);
         assert.ok(seed.probes.some((tuple) => tuple.id === `pixi-${cell.pixi.version}`), `${cell.id}: pixi.js ${cell.pixi.version} has no audited tuple`);
+        if (cell.kind === 'cell') assert.equal(majorOf(cell.pixi.version), majorOf(pixiEpochOf(seed, cell.pixi.adapterKey).minimum), `${cell.id}: pixi.js ${cell.pixi.version} is not in the ${cell.pixi.adapterKey} epoch`);
         assert.equal(cell.deps['pixi.js'], cell.pixi.version);
         for (const [name, version] of Object.entries(cell.deps)) assert.match(version, /^\d+\.\d+\.\d+$/, `${cell.id}: ${name} must be an exact version`);
     }
@@ -411,6 +489,13 @@ export function renderCompatibilityDoc(seed)
         'This is the list of compatibility cells CI runs (issue 13), not a support certificate: `advertisedRanges` stays empty until the owner promotes a range. Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js. Results are published by the Compatibility workflows (job summary and the `compatibility-table` artifact).',
         '',
         `Required PR check: **Compatibility (required)**. Nightly: **Compatibility (nightly)**, ${selectCells(seed, 'nightly').length} cells (${selectCells(seed, 'nightly', { patches: 'all' }).length} with minimum and latest React patches).`,
+        '',
+        `Pixi adapters: ${Object.keys(matrix.pixiAdapters).map((key) =>
+        {
+            const epoch = pixiEpochOf(seed, key);
+
+            return `\`${matrix.pixiAdapters[key].id}\` for the pixi.js ${epoch.minimum} … ${epoch.current} columns (${selectCells(seed, 'pr').filter((cell) => cell.pixi.adapterKey === key).length} PR-tier cells)`;
+        }).join('; ')}. A column's pixi.js major selects the adapter.`,
         '',
         section('pr'),
         '### PR tier boundary probes',

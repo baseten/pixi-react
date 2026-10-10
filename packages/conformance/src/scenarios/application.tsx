@@ -354,6 +354,8 @@ export const applicationScenarios = [
     defineScenario({
         id: 'Application.destroyOptions.forwarded',
         feature: 'Application.destroyOptions',
+        // Pixi 8's `Application.destroy(rendererDestroyOptions, options)`; Pixi 7's takes `removeView`, a boolean.
+        requires: ['pixi.renderer-destroy-options'],
         title: 'destroy options are forwarded to the app on unmount',
         expected: 'The app is destroyed once with `rendererDestroyOptions` and `destroyOptions`, unchanged.',
         async run({ mountApp, unmount, journal })

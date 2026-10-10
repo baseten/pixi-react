@@ -16,7 +16,7 @@ const evidence = JSON.parse(readFileSync(join(here, '../evidence.json'), 'utf8')
 
 test('the adapterMatrix section validates against the rest of the seed', () => validateAdapterMatrix(seed));
 
-test('PR tier: every React epoch at its latest patch against Pixi 8.2.6 and 8.22.0', () =>
+test('PR tier: every React epoch at its latest patch against Pixi 8.2.6 and 8.22.0, plus two Pixi 7 cells', () =>
 {
     const ids = selectCells(seed, 'pr').map((cell) => cell.id);
 
@@ -26,7 +26,18 @@ test('PR tier: every React epoch at its latest patch against Pixi 8.2.6 and 8.22
         'react-19.1.9_pixi-8.2.6', 'react-19.1.9_pixi-8.22.0',
         'react-19.2.8_pixi-8.2.6', 'react-19.2.8_pixi-8.22.0',
         'react-19.3.0_pixi-8.2.6', 'react-19.3.0_pixi-8.22.0',
+        // Pixi 7 (issue 16): React 18 at the Pixi 7 minimum and React 19.3 at the current Pixi 7; the rest is nightly.
+        'react-18.3.1_pixi-7.4.2', 'react-19.3.0_pixi-7.4.3',
     ].sort());
+    for (const cell of selectCells(seed, 'pr')) assert.equal(cell.pixi.adapter.id, cell.pixi.version.startsWith('7.') ? 'pixi-7' : 'pixi-8', cell.id);
+});
+
+test('PR tier: a non-default Pixi adapter may add at most two cells', () =>
+{
+    const widened = structuredClone(seed);
+
+    widened.adapterMatrix.tiers.pr.pixiAdapters.pixi7 = { react: { epochs: 'all', patch: 'latest' }, pixi: { versions: ['minimum'] } };
+    assert.throws(() => validateAdapterMatrix(widened), /pixi7 adds 5 cells; at most 2/);
 });
 
 test('nightly tier is the full cross-product, generated from the seed', () =>
@@ -36,11 +47,12 @@ test('nightly tier is the full cross-product, generated from the seed', () =>
     const react = new Set(nightly.map((cell) => cell.react.version));
 
     assert.equal(react.size, 5);
-    assert.equal(pixi.size, 21, 'Pixi 8.2 through 8.22, one latest audited patch per minor');
+    assert.equal(pixi.size, 21 + 2, 'Pixi 8.2 through 8.22, one latest audited patch per minor, and Pixi 7.4.2 and 7.4.3');
     assert.equal(nightly.length, react.size * pixi.size);
     assert.ok(!pixi.has('8.5.0'), 'the excluded 8.5.0 is never selected');
     assert.ok(pixi.has('8.5.2'));
-    assert.equal(selectCells(seed, 'nightly', { patches: 'all' }).length, 8 * 21, 'minimum and latest React patches');
+    assert.ok(pixi.has('7.4.2') && pixi.has('7.4.3'));
+    assert.equal(selectCells(seed, 'nightly', { patches: 'all' }).length, 8 * (21 + 2), 'minimum and latest React patches');
 });
 
 test('every cell pins exact versions taken from an audited tuple', () =>
@@ -72,6 +84,15 @@ test('the runner and generator never hardcode a package layout', () =>
     }
 });
 
+test('every Pixi adapter row names a type consumer and a probe the harness has', () =>
+{
+    for (const [key, adapter] of Object.entries(seed.adapterMatrix.pixiAdapters))
+    {
+        assert.ok(readdirSync(join(here, 'harness/typecheck')).includes(adapter.typeConsumer), `${key}: ${adapter.typeConsumer} is not in harness/typecheck`);
+        assert.match(readFileSync(join(here, '../../..', adapter.probeSource), 'utf8'), new RegExp(`export function ${adapter.probeFactory}\\b`), `${key}: ${adapter.probeSource} exports ${adapter.probeFactory}`);
+    }
+});
+
 test('negative cases each name the command that must reject them', () =>
 {
     for (const cell of negativeCells(seed))
@@ -95,6 +116,7 @@ function artifactsWith(overrides = {})
         'react-19.2': { hash: 'r192', entries: entries('.') },
         'react-19.3': { hash: 'r193', entries: entries('.') },
         'pixi-8': { hash: 'p8', entries: entries('.') },
+        'pixi-7': { hash: 'p7', entries: entries('.') },
     };
 
     for (const [id, patch] of Object.entries(overrides)) artifacts[id] = { ...artifacts[id], ...patch, entries: { ...artifacts[id].entries, ...patch.entries } };
@@ -117,11 +139,12 @@ test('cache keys: shared artifacts, versions and the harness invalidate every ce
 {
     const before = keys(artifactsWith());
 
-    assert.equal(changed(before, keys(artifactsWith({ core: { hash: 'core2' } }))).length, 10);
-    assert.equal(changed(before, keys(artifactsWith({ conformance: { hash: 'c2' } }))).length, 10);
-    assert.equal(changed(before, keys(artifactsWith(), 'harness2')).length, 10);
+    assert.equal(changed(before, keys(artifactsWith({ core: { hash: 'core2' } }))).length, 12);
+    assert.equal(changed(before, keys(artifactsWith({ conformance: { hash: 'c2' } }))).length, 12);
+    assert.equal(changed(before, keys(artifactsWith(), 'harness2')).length, 12);
     assert.deepEqual(changed(before, keys(artifactsWith({ 'pixi-8': { hash: 'p8-2' } }))).length, 10);
-    assert.deepEqual(changed(before, keys(artifactsWith({ 'react-18': { hash: 'x', entries: { '.': { hash: 'entry:.:2', files: [] } } } }))), ['react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
+    assert.deepEqual(changed(before, keys(artifactsWith({ 'pixi-7': { hash: 'p7-2' } }))), ['react-18.3.1_pixi-7.4.2', 'react-19.3.0_pixi-7.4.3']);
+    assert.deepEqual(changed(before, keys(artifactsWith({ 'react-18': { hash: 'x', entries: { '.': { hash: 'entry:.:2', files: [] } } } }))), ['react-18.3.1_pixi-7.4.2', 'react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
 });
 
 test('cache keys: a dependency version changes the key', () =>
@@ -248,8 +271,10 @@ test('cache keys: a manifest expectation change invalidates the affected cells',
     assert.deepEqual(changed(before, keyed((m) => { m.reactAdapters.react190.expectedConformanceFailures = []; })),
         ['react-19.0.8_pixi-8.22.0', 'react-19.0.8_pixi-8.2.6'].sort());
     assert.deepEqual(changed(before, keyed((m) => { m.reactAdapters.react18.declaredPeers = { react: '18.3.2' }; })),
-        ['react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
+        ['react-18.3.1_pixi-7.4.2', 'react-18.3.1_pixi-8.22.0', 'react-18.3.1_pixi-8.2.6'].sort());
     assert.equal(changed(before, keyed((m) => { m.pixiAdapters.pixi8.declaredPeers = { 'pixi.js': '>=8.2.6' }; })).length, 10);
+    assert.deepEqual(changed(before, keyed((m) => { m.pixiAdapters.pixi7.conformanceCapabilities = ['pixi.graphics-context']; })),
+        ['react-18.3.1_pixi-7.4.2', 'react-19.3.0_pixi-7.4.3']);
 });
 
 test('cache keys: the generated effective configuration is part of the key', () =>

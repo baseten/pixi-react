@@ -2,6 +2,7 @@
  * Conformance bindings for core + renderer: `createRenderer({ react, pixi })` with the fake React
  * adapter and the fake Pixi adapter. Each scenario gets a fresh composition, so a fresh runtime.
  */
+import { PIXI8_SCENE_CAPABILITIES } from '../../src/binding';
 import { FakePixiAdapter } from '../../src/fake-pixi/adapter';
 import { FakeReactAdapter } from '../../src/fake-react/adapter';
 import { PixiJournal } from '../../src/journal';
@@ -54,7 +55,7 @@ function createComposition(options: RendererOptions, faults: FakeRuntimeFaults =
  * those with Pixi), `react.18` (bound by the React 18 binding, issue 12) or `parity.upstream` (the contract registry rejects
  * conflicting `extend` calls). Scenarios that need them are listed as skipped by the runner, with the reason.
  */
-export const CORE_BINDING_CAPABILITIES: readonly Capability[] = ['react.19', 'dom.resize'];
+export const CORE_BINDING_CAPABILITIES: readonly Capability[] = ['react.19', 'dom.resize', ...PIXI8_SCENE_CAPABILITIES];
 
 /** With `faults`, a deliberately faulty composition for negative controls. */
 export function createCoreBinding(faults: FakeRuntimeFaults = {}): ConformanceBinding

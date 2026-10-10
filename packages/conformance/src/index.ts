@@ -15,6 +15,7 @@ export type {
     RootLike,
     TickOptionsLike,
 } from './binding';
+export { PIXI8_SCENE_CAPABILITIES } from './binding';
 export type { Deferred, MountedApp, RenderOptions, ScenarioContext, ScenarioContextHandle } from './context';
 export { act, createScenarioContext, deferred } from './context';
 export { renderFeatureMap } from './featureMap';

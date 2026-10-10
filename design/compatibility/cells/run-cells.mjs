@@ -130,7 +130,11 @@ function cellConfig(cell, artifacts)
         id: cell.id,
         label: cell.label,
         formats: matrix.formats,
-        conformanceCapabilities: reactAdapter.conformanceCapabilities,
+        // The React adapter's capabilities (its React line, and what every cell's DOM and Pixi globals provide) plus the
+        // Pixi adapter's scene capabilities (Pixi 8's GraphicsContext and renderer destroy options, for example).
+        conformanceCapabilities: [...new Set([...reactAdapter.conformanceCapabilities, ...pixiAdapter.conformanceCapabilities])],
+        probeFactory: pixiAdapter.probeFactory,
+        appOptions: pixiAdapter.conformanceAppOptions,
         expectedConformanceFailures: reactAdapter.expectedConformanceFailures ?? {},
         optimizeDeps: [...new Set([...matrix.commonArtifacts.filter((id) => id !== 'conformance').map((id) => artifacts[id].package), spec(reactAdapter), spec(pixiAdapter), 'pixi.js'])],
         tree: { exact: tree.exact, absent: tree.absent, reconciler: tree.reconciler },
@@ -185,7 +189,7 @@ function writeProject(cell, dir, artifacts, config)
     };
     const roots = `roots.${cell.react.adapter.typeProbes[0]}.tsx`;
 
-    for (const name of ['adapter.ts', 'consumer.pixi8.tsx', 'esm.mts', 'cjs.cts', 'tsconfig.bundler.json', 'tsconfig.nodenext.json', 'roots.react18.tsx', 'roots.react19.tsx']) substitute(join(dir, 'typecheck', name), { '%ROOTS_PROBE%': roots });
+    for (const name of readdirSync(join(dir, 'typecheck'))) substitute(join(dir, 'typecheck', name), { '%ROOTS_PROBE%': roots, '%PIXI_CONSUMER%': cell.pixi.adapter.typeConsumer });
     cpSync(join(dir, 'typecheck', 'adapter.ts'), join(dir, 'test', 'adapter.ts'));
     cpSync(join(root, cell.pixi.adapter.probeSource), join(dir, 'test', 'pixiProbe.ts'));
 }

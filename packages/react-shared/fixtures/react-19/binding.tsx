@@ -2,7 +2,7 @@
  * Conformance binding for one React 19 epoch: `createRenderer({ react: new React19Adapter(), pixi })` with the
  * fake Pixi adapter, from the BUILT per-minor package. Each scenario gets a fresh composition (a fresh runtime).
  */
-import { PixiJournal } from '@pixi-react-provisional/conformance';
+import { PIXI8_SCENE_CAPABILITIES, PixiJournal } from '@pixi-react-provisional/conformance';
 import { FakePixiAdapter, type FakePixiTypes } from '@pixi-react-provisional/conformance/fake-pixi-adapter';
 import { createBuiltins, createFakeProbe } from '@pixi-react-provisional/conformance/fake-probe';
 import { createRenderer, type Renderer } from '@pixi-react-provisional/renderer';
@@ -63,7 +63,7 @@ export function createEpochBinding(epoch: EpochModule): ConformanceBinding
 {
     return {
         id: `react-${epoch.EPOCH.epoch} (react-reconciler ${epoch.EPOCH.reconciler}) + fake Pixi`,
-        capabilities: ['react.19', 'dom.resize'],
+        capabilities: ['react.19', 'dom.resize', ...PIXI8_SCENE_CAPABILITIES],
         // No expected failures: every issue-9 defect the facade still lists is fixed in the adapter.
         expectedFailures: {},
         create: () => createEpochComposition(epoch),

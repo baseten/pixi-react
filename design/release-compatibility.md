@@ -25,5 +25,8 @@ On a React 19 minor other than 19.3 the facade installs (its peer is a caret ran
 | `@pixi/react-19.3` | 8.1.0 (Release 1, not yet published) | react `19.3.0` | `@pixi/react-core` 8.1.0, react-reconciler 0.34.0, its-fine 2.1.1 | React 19.3.0 with pixi.js 8.2.6 and 8.22.0 |
 | `@pixi/react-18` | 8.1.0 (Release 1, not yet published) | react `18.3.1` | `@pixi/react-core` 8.1.0, react-reconciler 0.29.2, its-fine 1.2.5 | React 18.3.1 with pixi.js 8.2.6 and 8.22.0 |
 | `@pixi/react-pixi-8` | 8.1.0 (Release 1, not yet published) | pixi.js `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` | `@pixi/react-core` 8.1.0 | with every React adapter row above |
+| `@pixi/react-pixi-7` | 8.1.0 (Release 1, not yet published) | pixi.js `>=7.4.2 <7.5.0` | `@pixi/react-core` 8.1.0 | React 18.3.1 with pixi.js 7.4.2, React 19.3.0 with pixi.js 7.4.3; every React adapter nightly |
 
 Every package releases at the facade's version (8.1.0), and a dependency between our packages names exactly that version: install all `@pixi/react-*` packages at the same version (see [release.md](release.md#lockstep-versions)).
+
+`@pixi/react-pixi-7` targets pixi.js `>=7.4.2 <7.5.0` but releases at the facade's version like every package; the facade itself composes the default Pixi adapter and stays on its Pixi major.

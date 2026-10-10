@@ -10,8 +10,9 @@
  * - `facade`: the default `@pixi/react` with React 19.3 and the newest certified pixi.js. No modular package may be
  *   installed with it.
  * - `explicit-<cell>`: one per PR-tier compatibility cell of the #13 manifest (design/compatibility/seed.json): core,
- *   renderer, that cell's React adapter and the Pixi adapter, with the cell's exact React, types and pixi.js. Only
- *   that cell's reconciler and bridge may be installed; a React 18 consumer gets no React 19 package of any kind.
+ *   renderer, that cell's React adapter and that cell's Pixi adapter (Pixi 8, or Pixi 7 for the Pixi 7 cells), with
+ *   the cell's exact React, types and pixi.js. Only that cell's reconciler and bridge may be installed; a React 18
+ *   consumer gets no React 19 package of any kind, and no consumer gets another React or Pixi adapter.
  * - `renderer-only` and `core-only`: the neutral factory and core install no React, no reconciler and no pixi.js.
  *
  * Every scenario installs all of our packages at one version, the release's (lockstep, issue 62): the tree check
@@ -28,7 +29,7 @@ import { cpSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadSeed, selectCells } from '../../design/compatibility/cells/matrix.mjs';
+import { defaultPixiAdapter, loadSeed, pixiEpochOf, selectCells } from '../../design/compatibility/cells/matrix.mjs';
 import { loadReleaseConfig, repoRoot, resetOutputDir } from './config.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -67,12 +68,12 @@ export function scenarios(manifest, { root = repoRoot } = {})
     const core = staged('packages/core');
     const renderer = staged('packages/renderer');
     const facade = staged('packages/react');
-    const pixiAdapter = matrix.pixiAdapters.pixi8;
-    const pixi = publicOfArtifact(pixiAdapter.artifact);
     const abi = readCoreAbi(root);
     const reactAdapterPackages = Object.values(matrix.reactAdapters).map((adapter) => publicOfArtifact(adapter.artifact).publicName);
+    const pixiAdapterPackages = Object.values(matrix.pixiAdapters).map((adapter) => publicOfArtifact(adapter.artifact).publicName);
     const ours = config.packages.map((pkg) => manifest.packages.find((item) => item.dir === pkg.dir).publicName);
-    const currentPixi = seed.pixiEpochs.find((epoch) => epoch.id === 'pixi8').current;
+    // The facade composes the default Pixi adapter, so its consumer installs that adapter's newest tested pixi.js.
+    const currentPixi = pixiEpochOf(seed, defaultPixiAdapter(seed)).current;
     const list = [];
 
     list.push({
@@ -90,6 +91,8 @@ export function scenarios(manifest, { root = repoRoot } = {})
     for (const cell of selectCells(seed, 'pr'))
     {
         const adapter = cell.react.adapter;
+        const pixiAdapter = cell.pixi.adapter;
+        const pixi = publicOfArtifact(pixiAdapter.artifact);
         const reactPackage = publicOfArtifact(adapter.artifact);
         const tuple = cell.react.tuple.packages;
         const otherReconcilers = seed.reactEpochs.map((epoch) => epoch.reconciler).filter((version) => version && version !== cell.react.reconciler);
@@ -106,7 +109,8 @@ export function scenarios(manifest, { root = repoRoot } = {})
                 '@types/react-dom': adapter.typesReactDom,
                 'pixi.js': cell.pixi.version,
                 typescript: matrix.toolchain.typescript,
-                ...(cell.pixi.version === currentPixi && (isReact18 || adapter.artifact === 'react-19.3') ? { esbuild: TOOLCHAIN.esbuild } : {}),
+                // Bundles: React 18 and the facade's React epoch, each with its Pixi adapter's newest tested pixi.js.
+                ...(cell.pixi.version === pixiEpochOf(seed, cell.pixi.adapterKey).current && (isReact18 || adapter.artifact === 'react-19.3') ? { esbuild: TOOLCHAIN.esbuild } : {}),
             },
             tree: {
                 exactly: {
@@ -119,7 +123,11 @@ export function scenarios(manifest, { root = repoRoot } = {})
                     react: cell.react.version,
                     'pixi.js': cell.pixi.version,
                 },
-                absent: [facade.publicName, ...reactAdapterPackages.filter((name) => name !== reactPackage.publicName)],
+                absent: [
+                    facade.publicName,
+                    ...reactAdapterPackages.filter((name) => name !== reactPackage.publicName),
+                    ...pixiAdapterPackages.filter((name) => name !== pixi.publicName),
+                ],
                 forbiddenVersions: { 'react-reconciler': otherReconcilers, ...(isReact18 ? { react: ['^19'], 'react-dom': ['^19'] } : {}) },
             },
             modules: {
@@ -133,8 +141,17 @@ export function scenarios(manifest, { root = repoRoot } = {})
             declarations: [core.publicName, renderer.publicName, reactPackage.publicName, pixi.publicName, `${pixi.publicName}/jsx`, `${pixi.publicName}/jsx/${isReact18 ? 'react-18' : 'react-19'}`],
             runtimeEntries: [core.publicName, renderer.publicName, reactPackage.publicName, pixi.publicName],
             program: 'explicit',
-            programValues: { RENDERER: renderer.publicName, REACT: reactPackage.publicName, CLASS: adapter.className, PIXI: pixi.publicName },
-            bundleValues: { RENDERER: renderer.publicName, REACT: reactPackage.publicName, CLASS: adapter.className, PIXI: pixi.publicName, REACT_ID: adapter.adapterId },
+            programValues: { RENDERER: renderer.publicName, REACT: reactPackage.publicName, CLASS: adapter.className, PIXI: pixi.publicName, PIXI_CLASS: pixiAdapter.className },
+            bundleValues: {
+                RENDERER: renderer.publicName,
+                REACT: reactPackage.publicName,
+                CLASS: adapter.className,
+                PIXI: pixi.publicName,
+                PIXI_CLASS: pixiAdapter.className,
+                REACT_ID: adapter.adapterId,
+                PIXI_ID: pixiAdapter.adapterId,
+            },
+            pixiAdapter: { key: cell.pixi.adapterKey, isDefault: cell.pixi.adapterKey === defaultPixiAdapter(seed) },
             abiMajor: abi.major,
         });
     }

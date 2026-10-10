@@ -1,4 +1,5 @@
 import {
+    AlphaFilter,
     Application,
     CanvasSource,
     Container,
@@ -220,6 +221,8 @@ export function createPixi8Probe(rootCount: () => number): Pixi8Probe
         },
         createGraphicsContext: () => markDestroyed(new GraphicsContext().rect(0, 0, 4, 4).fill(0xff00ff)),
         isResourceDestroyed: (resource) => destroyedResources.has(resource as object),
+        // A fresh class per call, constructible without arguments (`pixi.filter-children`).
+        filterClass: () => class ConformanceFilter extends AlphaFilter {},
         customClass(options = {})
         {
             const { requiredArgument = false } = options;

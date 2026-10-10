@@ -1,0 +1,14 @@
+{
+  // Type-checks the sources (not the tests) against the newest pixi.js in the peer range, so declarations that
+  // compile against the 7.4.2 floor are also checked against 7.4.3.
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "types": [],
+    "paths": {
+      "pixi.js": ["./node_modules/pixi.js-current/lib/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*"]
+}

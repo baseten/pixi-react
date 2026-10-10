@@ -1,0 +1,5 @@
+---
+"@pixi-react-provisional/pixi-7": minor
+---
+
+Add the Pixi 7 adapter (issue 16): `Pixi7Adapter` composes with every React adapter through `createRenderer` and supports pixi.js `>=7.4.2 <7.5.0` (7.4.2 and 7.4.3, both tested). It releases at the facade's version like every package (lockstep), although it targets Pixi 7; the facade stays on Pixi 8. It builds Pixi 7 applications synchronously inside the session's `init`, constructs nodes with Pixi 7's positional constructors, passes the numeric frame delta to `useTick`, and declares its differences as capabilities: it provides `pixi7.filter` and `pixi7.particle-container` and never the Pixi 8-only `pixi8.particle`, `pixi8.render-layer`, `pixi8.dom-container` or `pixi8.filter`, so a composition that requires one fails with `CAPABILITY_MISSING` before anything is allocated. Adapter ABI 1.0, unchanged. Types-only `./jsx`, `./jsx/react-19` and `./jsx/react-18` entries type the Pixi 7 catalogue.
