@@ -8,7 +8,9 @@
  * machine under one GPU profile, with each render backend checked separately, plus the data-only probes in a separate
  * section that never verifies anything. `design/compatibility/verification/<id>.json` is the record and `<id>.md` is
  * rendered from it; `<id>` is the date, or the date and a machine slug (`2026-10-12-macos-m2`) for a record from another
- * machine. Records accumulate: a hardware (real-GPU) record adds evidence beside the software one.
+ * machine. Within one machine and GPU profile the newest record supersedes the older ones (a later failure revokes
+ * that machine's earlier verification); records of distinct machines or profiles add up, so a hardware (real-GPU)
+ * record adds evidence beside the software one.
  *
  * Verification is evidence, not a support guarantee.
  *
@@ -375,14 +377,15 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
 
 /**
  * verifiedRanges from records: one entry per (React adapter, exact React, Pixi adapter), listing for each backend the
- * exact pixi.js versions verified on it, and the records that verified any of them. Records add up: a tuple verified in
- * any record (software or hardware) is verified. Only exact tuples: no interval.
+ * exact pixi.js versions verified on it, and the records that verified any of them. Only the current records count
+ * (`currentRecords`: the newest per machine and GPU profile); their verified tuples add up across machines and profiles.
+ * Only exact tuples: no interval.
  */
 export function deriveVerifiedRanges(records)
 {
     const entries = new Map();
 
-    for (const record of [...records].sort((a, b) => recordId(a).localeCompare(recordId(b))))
+    for (const record of currentRecords(records))
     {
         const gate = recordGate(record);
 
@@ -403,6 +406,31 @@ export function deriveVerifiedRanges(records)
     for (const entry of entries.values()) entry.backends = Object.fromEntries(Object.keys(entry.backends).sort().map((name) => [name, entry.backends[name]]));
 
     return [...entries.values()].sort((a, b) => a.reactAdapter.localeCompare(b.reactAdapter, 'en', { numeric: true }) || compareVersions(a.react, b.react) || a.pixiAdapter.localeCompare(b.pixiAdapter));
+}
+
+/**
+ * The machine and GPU profile a record speaks for. A record without a machine slug is this repository's own run (the
+ * CI-equivalent software machine).
+ */
+export const recordLine = (record) => `${record.machine ?? 'default'}|${record.gpuProfile ?? 'software'}`;
+
+/**
+ * The records that count: within one machine and GPU profile only the newest (by date, then id) does, so a later run
+ * that fails a tuple revokes that machine's earlier verification of it; distinct machines and profiles all count.
+ */
+export function currentRecords(records)
+{
+    const newest = new Map();
+
+    for (const record of records)
+    {
+        const line = recordLine(record);
+        const held = newest.get(line);
+
+        if (!held || record.date > held.date || (record.date === held.date && recordId(record) > recordId(held))) newest.set(line, record);
+    }
+
+    return [...newest.values()].sort((a, b) => recordId(a).localeCompare(recordId(b)));
 }
 
 /** A record's id: its file name without `.json` (the date, or the date and a machine slug). */

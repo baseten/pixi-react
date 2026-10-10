@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { classifyExpectedBlank, validateAdapterMatrix, validateExpectedBlankRender } from './cells/matrix.mjs';
-import { checkExpectedBlankAgainstRecords, checkRenderedRecords, deriveVerifiedRanges, loadRecords, recordGate, refreshRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
+import { checkExpectedBlankAgainstRecords, checkRenderedRecords, currentRecords, deriveVerifiedRanges, loadRecords, recordGate, refreshRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
 
 const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -77,6 +77,26 @@ test('records add up: a hardware record adds tuples and names itself beside the 
     assert.deepEqual(deriveVerifiedRanges([hardware, software]), [
         { reactAdapter: 'react-x', react: '19.3.0', pixiAdapter: 'pixi-8', records: ['2026-10-10', '2026-10-12-macos-m2'], backends: { webgl: ['8.9.2'], webgpu: ['8.9.2'] } },
     ]);
+});
+
+test('within one machine and GPU profile the newest record supersedes; across them records add up', () =>
+{
+    const older = record([cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: pass('webgpu') })], { id: '2026-10-10', date: '2026-10-10' });
+    const newer = record([cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: { status: 'fail', renderer: 'webgpu' } }, { commands: { ...commands, conformance: 'fail' } })], { id: '2026-11-01', date: '2026-11-01' });
+
+    // A later failure on the same machine and profile revokes the earlier WebGPU verification.
+    assert.deepEqual(currentRecords([newer, older]).map((item) => item.id), ['2026-11-01']);
+    assert.deepEqual(deriveVerifiedRanges([older, newer]), [
+        { reactAdapter: 'react-x', react: '19.3.0', pixiAdapter: 'pixi-8', records: ['2026-11-01'], backends: { webgl: ['8.22.0'] } },
+    ]);
+    // A newer record that verifies nothing (a failed probe) also supersedes.
+    assert.deepEqual(deriveVerifiedRanges([older, { ...older, id: '2026-11-02', date: '2026-11-02', probes: [{ id: 'pixi-8.2.6', status: 'fail' }] }]), []);
+    // Another machine (or another profile on the same machine) is a separate line and adds up.
+    const hardware = { ...older, id: '2026-10-12-macos-m2', date: '2026-10-12', machine: 'macos-m2', gpuProfile: 'hardware' };
+    const sameMachineSoftware = { ...newer, id: '2026-11-01-macos-m2', machine: 'macos-m2', gpuProfile: 'software' };
+
+    assert.deepEqual(currentRecords([older, newer, hardware, sameMachineSoftware]).map((item) => item.id), ['2026-10-12-macos-m2', '2026-11-01', '2026-11-01-macos-m2']);
+    assert.deepEqual(deriveVerifiedRanges([older, newer, hardware]).map((entry) => [entry.records, entry.backends]), [[['2026-10-12-macos-m2', '2026-11-01'], { webgl: ['8.22.0'], webgpu: ['8.22.0'] }]]);
 });
 
 test('an expected blank render passes only when it fails exactly as listed', () =>
