@@ -18,7 +18,7 @@ export const manifest = (id: string, extra: Partial<AdapterManifest> = {}): Adap
     abi: { major: 1, minor: 0 },
     id,
     packageVersion: '0.0.0-test',
-    certification: 'test://renderer',
+    verification: 'test://renderer',
     provides: {},
     requires: {},
     ...extra,

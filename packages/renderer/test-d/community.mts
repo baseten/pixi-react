@@ -114,7 +114,7 @@ export class CounterReactAdapter extends ReactAdapter<CounterFamily>
         abi: { major: 1, minor: 0 },
         id: 'community.counter',
         packageVersion: '1.0.0',
-        certification: 'none',
+        verification: 'none',
         provides: {},
         requires: {},
     };

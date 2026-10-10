@@ -104,8 +104,8 @@ export interface AdapterManifest
     readonly packageVersion: string;
     readonly provides: CapabilityMap;
     readonly requires: CapabilityMap;
-    /** Pointer to the exact tested tuple/feature record this adapter is certified against. */
-    readonly certification: string;
+    /** Pointer to the exact tested tuple/feature record (the verification records) this adapter is verified against. */
+    readonly verification: string;
 }
 
 /** Registry conflict policy. `reject` is the contract; `replace` is upstream `extend` behaviour (D4). */

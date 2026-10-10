@@ -147,7 +147,7 @@ export class FakePixiAdapter extends PixiAdapter<FakePixiTypes>
         abi: { major: 1, minor: 0 },
         id: 'conformance.fake-pixi',
         packageVersion: '0.0.0',
-        certification: 'none: conformance test double',
+        verification: 'none: conformance test double',
         provides: FAKE_PIXI_CAPABILITIES,
         requires: {},
     };

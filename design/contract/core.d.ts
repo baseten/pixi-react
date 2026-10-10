@@ -24,7 +24,7 @@ export interface AdapterManifest {
     readonly packageVersion: string;
     readonly provides: Readonly<Record<string, number>>;
     readonly requires: Readonly<Record<string, number>>;
-    readonly certification: string;
+    readonly verification: string;
 }
 /** ABI-owned codes; adapters may add codes in their own dotted namespace. */
 export type BuiltinCompatibilityErrorCode =

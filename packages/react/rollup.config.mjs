@@ -87,7 +87,7 @@ function bundleAdapters({ adaptersChunk = false, library = false } = {})
             return bundledEntries[source] ?? null;
         },
         /**
-         * The bundled react-19.3 adapter names its own provisional package in diagnostics (the certification pointer,
+         * The bundled react-19.3 adapter names its own provisional package in diagnostics (the verification pointer,
          * the unsupported-React message and the DevTools renderer name). That package is not what this package's
          * users install, so the bundled copy names `@pixi/react` instead. Any other reference left in the output is
          * a build error (see `generateBundle`).

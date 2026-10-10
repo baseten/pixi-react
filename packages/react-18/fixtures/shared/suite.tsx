@@ -138,8 +138,8 @@ export function describeReact18(expected: React18Expectation): void
                 const renderer = createRenderer({ react, pixi });
 
                 expect(react.manifest.id).toBe('react-18');
-                expect(react.manifest.certification).toContain(`react ${expected.react}`);
-                expect(react.manifest.certification).toContain(`react-reconciler ${REACT18.reconciler}`);
+                expect(react.manifest.verification).toContain(`react ${expected.react}`);
+                expect(react.manifest.verification).toContain(`react-reconciler ${REACT18.reconciler}`);
                 expect(REACT18.testedReact).toContain(expected.react);
                 expect(pixi.manifest.id).toBe('pixi-8');
                 expect([renderer.runtime.manifests.react.id, renderer.runtime.manifests.pixi.id]).toEqual(['react-18', 'pixi-8']);

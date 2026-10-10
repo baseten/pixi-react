@@ -48,7 +48,7 @@ export function normalizePixiName(name: string): string
     return `${unprefixed[0].toUpperCase()}${unprefixed.slice(1)}`;
 }
 
-/** Certified bounds and detected features, recorded in the manifest next to the ABI fields. */
+/** Tested bounds and detected features, recorded in the manifest next to the ABI fields. */
 export interface Pixi8ManifestDetails
 {
     /** The installed `pixi.js` VERSION this adapter is bound to. */
@@ -68,7 +68,7 @@ export interface Pixi8AdapterOptions
 {
     /**
      * Capability IDs to withhold even when the installed Pixi supports them (for example `pixi8.particle`), so an
-     * application can certify a narrower feature set. Elements that need a withheld capability throw
+     * application can verify a narrower feature set. Elements that need a withheld capability throw
      * `UNSUPPORTED_NODE` at registration.
      */
     readonly disable?: readonly string[];
@@ -130,8 +130,8 @@ export class Pixi8AdapterBase extends PixiAdapter<Pixi8Types>
             abi: Object.freeze({ major: 1 as const, minor: 0 }),
             id: ADAPTER_ID,
             packageVersion: PACKAGE_VERSION,
-            certification: `pixi-8@${PACKAGE_VERSION}: browser conformance and Pixi cells on pixi.js `
-                + `${PIXI8_TESTED_VERSIONS.join(', ')} (packages/pixi-8/test); no issue-13 matrix certificate yet`,
+            verification: `pixi-8@${PACKAGE_VERSION}: browser conformance and Pixi cells on pixi.js `
+                + `${PIXI8_TESTED_VERSIONS.join(', ')} (packages/pixi-8/test) and the compatibility cells; verified tuples: design/compatibility/verification`,
             provides: Object.freeze(provides) as CapabilityMap,
             requires: Object.freeze({}),
             pixi: Object.freeze({

@@ -4,7 +4,7 @@
  * `install.mjs` extracts into its `.installed/node_modules`. The four package names are aliased to those installs,
  * so every import (the tests, the shared sources and the packages themselves) reaches one installed copy of each.
  *
- * Each fixture runs two Pixi cells in Chromium: the Pixi 8 floor (8.2.6) and the newest certified Pixi 8 (8.22.0),
+ * Each fixture runs two Pixi cells in Chromium: the Pixi 8 floor (8.2.6) and the newest tested Pixi 8 (8.22.0),
  * with the same unchanged Pixi8Adapter. The tests and the shared probe import the bare `pixi.js`, which a cell aliases
  * to its version-pinned install.
  */

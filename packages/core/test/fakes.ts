@@ -85,7 +85,7 @@ export interface InitControl
 export const BASE_MANIFEST = Object.freeze({
     abi: { major: 1 as const, minor: 0 },
     packageVersion: '0.0.0-test',
-    certification: 'test://fake',
+    verification: 'test://fake',
 });
 
 export const PIXI_PROVIDES = Object.freeze({

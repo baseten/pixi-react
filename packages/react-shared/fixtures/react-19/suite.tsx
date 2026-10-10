@@ -118,8 +118,8 @@ export function describeEpoch(epoch: EpochModule, expected: EpochExpectation): v
                 expect(epoch.EPOCH.epoch).toBe(expected.epoch);
                 expect(epoch.EPOCH.testedReact).toContain(expected.react);
                 expect(adapter.manifest.id).toBe(`react-${expected.epoch}`);
-                expect(adapter.manifest.certification).toContain(expected.react);
-                expect(adapter.manifest.certification).toContain(`react-reconciler ${epoch.EPOCH.reconciler}`);
+                expect(adapter.manifest.verification).toContain(expected.react);
+                expect(adapter.manifest.verification).toContain(`react-reconciler ${epoch.EPOCH.reconciler}`);
                 expect(() => adapter.checkEnvironment()).not.toThrow();
             });
 

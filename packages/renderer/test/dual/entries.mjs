@@ -12,7 +12,7 @@ const cjs = require('@pixi-react-provisional/renderer');
 const cjsCore = require('@pixi-react-provisional/core');
 
 const manifest = (id, extra) => ({
-    abi: { major: 1, minor: 0 }, id, packageVersion: '0', certification: 'test', provides: {}, requires: {}, ...extra,
+    abi: { major: 1, minor: 0 }, id, packageVersion: '0', verification: 'test', provides: {}, requires: {}, ...extra,
 });
 
 class TestPixiAdapter extends core.PixiAdapter

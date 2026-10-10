@@ -7,7 +7,7 @@ import type { FeatureId } from './features';
  *   `claude/issue-4-contract-fixes`, or upstream behaviour that the contract keeps).
  * - `parity`: recorded current upstream `@pixi/react` behaviour that decision D4 keeps in the facade but a
  *   modular composition may change in a documented future major. Parity scenarios require
- *   `parity.upstream`. They record what the facade does today; they never certify a confirmed defect.
+ *   `parity.upstream`. They record what the facade does today; they never endorse a confirmed defect.
  */
 export type ScenarioKind = 'contract' | 'parity';
 

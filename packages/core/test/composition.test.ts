@@ -75,7 +75,7 @@ describe('ABI validation', () =>
         ['a fractional capability version', { ...pixi(), provides: { 'pixi.mutation': 1.5 } }, /protocol version/],
         ['a string capability version', { ...pixi(), requires: { 'pixi.mutation': '1' } }, /protocol version/],
         ['an array capability map', { ...pixi(), provides: ['pixi.mutation'] }, /must be an object/],
-        ['a missing certification pointer', { ...pixi(), certification: undefined }, /"certification" must be a string/],
+        ['a missing verification pointer', { ...pixi(), verification: undefined }, /"verification" must be a string/],
     ])('rejects a malformed manifest with %s', (_name, value, message) =>
     {
         const error = caught(() => validateManifest(value, 'pixi'));
@@ -197,7 +197,7 @@ describe('compose', () =>
 
     it('passes an adapter CompatibilityError from the environment check through unchanged', () =>
     {
-        const original = new CompatibilityError('React 18.2 is not certified', {
+        const original = new CompatibilityError('React 18.2 is not verified', {
             code: 'UNSUPPORTED_TUPLE',
             adapterIds: ['test.react'],
             expected: { react: '18.3.1' },

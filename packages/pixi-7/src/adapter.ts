@@ -47,7 +47,7 @@ export function normalizePixiName(name: string): string
     return `${unprefixed[0].toUpperCase()}${unprefixed.slice(1)}`;
 }
 
-/** Certified bounds and the capability differences, recorded in the manifest next to the ABI fields. */
+/** Tested bounds and the capability differences, recorded in the manifest next to the ABI fields. */
 export interface Pixi7ManifestDetails
 {
     /** The installed `pixi.js` VERSION this adapter is bound to. */
@@ -67,7 +67,7 @@ export interface Pixi7Manifest extends AdapterManifest
 export interface Pixi7AdapterOptions
 {
     /**
-     * Capability IDs to withhold (`pixi7.filter`, `pixi7.particle-container`), so an application can certify a narrower
+     * Capability IDs to withhold (`pixi7.filter`, `pixi7.particle-container`), so an application can verify a narrower
      * feature set. Elements that need a withheld capability throw `UNSUPPORTED_NODE` at registration.
      */
     readonly disable?: readonly string[];
@@ -122,8 +122,8 @@ export class Pixi7AdapterBase extends PixiAdapter<Pixi7Types>
             abi: Object.freeze({ major: 1 as const, minor: 0 }),
             id: ADAPTER_ID,
             packageVersion: PACKAGE_VERSION,
-            certification: `pixi-7@${PACKAGE_VERSION}: browser conformance and Pixi cells on pixi.js `
-                + `${PIXI7_TESTED_VERSIONS.join(', ')} (packages/pixi-7/test) and the compatibility cells; tested, not certified`,
+            verification: `pixi-7@${PACKAGE_VERSION}: browser conformance and Pixi cells on pixi.js `
+                + `${PIXI7_TESTED_VERSIONS.join(', ')} (packages/pixi-7/test) and the compatibility cells; verified tuples: design/compatibility/verification`,
             provides: Object.freeze(provides) as CapabilityMap,
             requires: Object.freeze({}),
             pixi: Object.freeze({

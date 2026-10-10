@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
  * Browser cells: the same tests against each pixi.js version the adapter is tested on, in Chromium. A cell aliases
  * the bare `pixi.js` specifier (in the adapter source, the probe and the tests alike) to a version-pinned install.
  *
- * - `conformance-*`: the conformance suite on the floor (8.2.6) and the newest certified version (8.22.0).
+ * - `conformance-*`: the conformance suite on the floor (8.2.6) and the newest tested version (8.22.0).
  * - `pixi-*`: Pixi-specific tests on 8.2.6, 8.9.2 (particles before the 8.10 removeParticles change) and 8.22.0.
  */
 const cells = [

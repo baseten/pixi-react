@@ -259,13 +259,13 @@ export function describeReact19Package(pkg: React19PackageUnderTest): void
                 'pixi.ticker': 1,
             });
             expect(adapterManifest.provides).toEqual(epoch >= '19.2' ? { 'react.activity': 1 } : {});
-            expect(adapterManifest.certification).toContain(manifest.name);
-            expect(adapterManifest.certification).toContain(`react-reconciler ${hostConfig.RECONCILER_VERSION}`);
-            expect(adapterManifest.certification).toContain(`its-fine ${manifest.dependencies['its-fine']}`);
+            expect(adapterManifest.verification).toContain(manifest.name);
+            expect(adapterManifest.verification).toContain(`react-reconciler ${hostConfig.RECONCILER_VERSION}`);
+            expect(adapterManifest.verification).toContain(`its-fine ${manifest.dependencies['its-fine']}`);
 
             for (const version of entry.EPOCH.testedReact)
             {
-                expect(adapterManifest.certification).toContain(version);
+                expect(adapterManifest.verification).toContain(version);
             }
         });
 

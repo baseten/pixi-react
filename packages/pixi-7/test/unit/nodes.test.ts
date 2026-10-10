@@ -292,7 +292,7 @@ describe.each(cells)('positional construction on pixi.js $version', ({ pixi }) =
 
 describe.each(cells)('capabilities on pixi.js $version', ({ pixi }) =>
 {
-    const react = { abi: { major: 1 as const, minor: 0 }, id: 'react-test', packageVersion: '0.0.0', certification: '', provides: {}, requires: {} };
+    const react = { abi: { major: 1 as const, minor: 0 }, id: 'react-test', packageVersion: '0.0.0', verification: '', provides: {}, requires: {} };
 
     it('provides the shared protocol and its own node capabilities, never a Pixi 8 one', () =>
     {
