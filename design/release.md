@@ -314,7 +314,7 @@ published package without any pending changeset, so the check fails until one is
 
 Branch protection must require the check **Release dry run** (the job name) for it to block merging.
 
-The full dry run took about 4 minutes locally with warm caches (13 consumer projects, 7 bundle fixtures); the
+The full dry run took about 4 minutes locally with warm caches (15 consumer projects, 8 bundle fixtures); the
 45-minute timeout leaves room for cold npm caches.
 
 ### What is checked before a release
