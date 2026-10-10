@@ -2,6 +2,7 @@
 // surface, over whichever pixi.js 7 this browser cell aliases as 'pixi.js'. The compatibility cells use it too
 // (`probeSource` in design/compatibility/seed.json).
 import {
+    AlphaFilter,
     Application,
     Container,
     extensions,
@@ -296,6 +297,8 @@ export function createPixi7Probe(rootCount: () => number): Pixi7Probe
                 + '"pixi.graphics-context" capability. Pixi 7 shares GraphicsGeometry instead (packages/pixi-7 tests).');
         },
         isResourceDestroyed: (resource) => destroyedResources.has(resource as object),
+        // A fresh class per call, constructible without arguments (`pixi.filter-children`).
+        filterClass: () => class ConformanceFilter extends AlphaFilter {},
         customClass(options = {})
         {
             const { requiredArgument = false } = options;

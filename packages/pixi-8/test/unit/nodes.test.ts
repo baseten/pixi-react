@@ -471,6 +471,21 @@ describe.each(cells)('props on pixi.js $version', ({ pixi }) =>
         expect(nodes.isDestroyed(container)).toBe(true);
     });
 
+    it('a node moved straight to another parent leaves the old parent\'s JSX order', () =>
+    {
+        const [from, to] = [make(nodes, pixi.Container), make(nodes, pixi.Container)];
+        const [a, b] = ['a', 'b'].map((label) => make(nodes, pixi.Container, { label }));
+        const f = Object.create(pixi.Filter.prototype) as object;
+
+        nodes.append(from, f);
+        nodes.append(from, a);
+        // Core reparents without removing from the old parent first.
+        nodes.append(to, a);
+        nodes.insertBefore(from, b, f);
+        expect(from.children).toEqual([b]);
+        expect(to.children).toEqual([a]);
+    });
+
     it('standalone applyProps works on an instance the scene never created', () =>
     {
         const node = new pixi.Container() as unknown as Any;
@@ -508,6 +523,27 @@ describe.each(withParticles)('particles on pixi.js $version', ({ pixi, version }
         expect(container.particleChildren).toEqual([c, b]);
         nodes.append(container, c);
         expect(container.particleChildren).toEqual([b, c]);
+    });
+
+    it('insertions next to a filter sibling keep the JSX order of particles and of filters', () =>
+    {
+        const container = make(nodes, pixi.ParticleContainer!, {}) as unknown as ParticleContainerLike & { filters: unknown };
+        const [a, b, c] = ['a', 'b', 'c'].map((label) => make(nodes, pixi.Particle!, { texture: texture(), x: label.charCodeAt(0) }));
+        // Real filters need a DOM; the adapter tells filters apart by prototype, so bare instances stand in for them.
+        const [f0, f1, f2] = [0, 1, 2].map(() => Object.create(pixi.Filter.prototype) as object);
+
+        for (const child of [a, f1, c, f2]) nodes.append(container, child);
+
+        // A particle before a filter goes before the next particle in JSX order (c), not last.
+        nodes.insertBefore(container, b, f1);
+        expect(container.particleChildren).toEqual([a, b, c]);
+        // A filter before a particle goes before the next filter in JSX order (f2), not last.
+        nodes.insertBefore(container, f0, c);
+        expect(container.filters).toEqual([f1, f0, f2]);
+        // With no particle after the filter, the particle goes last.
+        nodes.remove(container, a);
+        nodes.insertBefore(container, a, f2);
+        expect(container.particleChildren).toEqual([b, c, a]);
     });
 
     it('hides a particle through alpha and restores its committed alpha', () =>

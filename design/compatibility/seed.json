@@ -2280,6 +2280,7 @@
           }
         },
         "conformanceCapabilities": [
+          "pixi.filter-children",
           "pixi.graphics-context",
           "pixi.renderer-destroy-options"
         ],
@@ -2338,7 +2339,9 @@
           }
         },
         "rendererNote": "Pixi 7 has no WebGPU renderer: its cells run on WebGL only, and WebGPU is not applicable to them.",
-        "conformanceCapabilities": [],
+        "conformanceCapabilities": [
+          "pixi.filter-children"
+        ],
         "conformanceNote": "Pixi 7 lacks the Pixi 8 scene capabilities pixi.graphics-context (no GraphicsContext) and pixi.renderer-destroy-options (Application.destroy takes removeView, a boolean): the runner skips those two scenarios and names the capability.",
         "typeConsumer": "consumer.pixi7.tsx",
         "typeProbes": [

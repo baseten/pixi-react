@@ -28,7 +28,7 @@ export const appOptions = Object.freeze({
  * `parity.upstream` is not provided: the modular adapter ships the corrected global behaviour (D4), so the parity
  * scenarios that record upstream's extension and default-style quirks do not apply.
  */
-export const PIXI8_BINDING_CAPABILITIES: readonly Capability[] = ['react.19', 'pixi.globals', 'dom.resize', ...PIXI8_SCENE_CAPABILITIES];
+export const PIXI8_BINDING_CAPABILITIES: readonly Capability[] = ['react.19', 'pixi.globals', 'dom.resize', 'pixi.filter-children', ...PIXI8_SCENE_CAPABILITIES];
 
 /** A fresh composition; Pixi-specific tests also get the renderer and the adapter. */
 export function createPixi8Composition(options: Pixi8AdapterOptions = {})

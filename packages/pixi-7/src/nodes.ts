@@ -100,6 +100,10 @@ interface NodeState
     filters?: object[];
     /** The node a renderer-attached filter belongs to. */
     filterParent?: object | null;
+    /** The renderer's children of this node in JSX order, every kind together (filters are not Pixi children). */
+    jsxChildren?: object[];
+    /** The parent whose `jsxChildren` holds this node, so a direct reparent can leave the old order. */
+    jsxParent?: object | null;
     destroyed: boolean;
 }
 
@@ -796,6 +800,8 @@ export class PixiNodes
 
     append(parent: object, child: object): void
     {
+        this.placeInOrder(parent, child, null);
+
         if (this.kindOf(child) === 'filter')
         {
             this.attachFilter(parent, child, null);
@@ -806,11 +812,17 @@ export class PixiNodes
         }
     }
 
+    /**
+     * `before` may be a sibling of another kind (a filter before a display node, or the reverse), which is not in the
+     * child's own list: the child goes before the next sibling of its own kind in JSX order, or last.
+     */
     insertBefore(parent: object, child: object, before: object): void
     {
+        const next = this.placeInOrder(parent, child, before);
+
         if (this.kindOf(child) === 'filter')
         {
-            this.attachFilter(parent, child, before);
+            this.attachFilter(parent, child, next);
 
             return;
         }
@@ -823,12 +835,21 @@ export class PixiNodes
             container.removeChild(node);
         }
 
-        container.addChildAt(node, container.getChildIndex(before as InstanceType<PixiBinding['Container']>));
+        if (next)
+        {
+            container.addChildAt(node, container.getChildIndex(next as InstanceType<PixiBinding['Container']>));
+        }
+        else
+        {
+            container.addChild(node);
+        }
     }
 
     /** Detaches only; destruction comes later, through `destroyNode`. */
     remove(parent: object, child: object): void
     {
+        this.leaveOrder(child);
+
         if (this.kindOf(child) === 'filter')
         {
             this.detachFilter(child);
@@ -837,6 +858,49 @@ export class PixiNodes
         {
             (parent as InstanceType<PixiBinding['Container']>).removeChild(child as InstanceType<PixiBinding['Container']>);
         }
+    }
+
+    /** Removes `child` from the JSX order of the parent that holds it, whichever parent that is. */
+    private leaveOrder(child: object): void
+    {
+        const state = this.stateOf(child);
+        const order = state.jsxParent ? this.stateOf(state.jsxParent).jsxChildren : undefined;
+        const index = order ? order.indexOf(child) : -1;
+
+        if (order && index !== -1)
+        {
+            order.splice(index, 1);
+        }
+
+        state.jsxParent = null;
+    }
+
+    /**
+     * Records `child` before `before` (or last) in the parent's JSX order, and returns the sibling of the child's kind
+     * that now follows it, or null.
+     */
+    private placeInOrder(parent: object, child: object, before: object | null): object | null
+    {
+        this.leaveOrder(child);
+
+        const order = (this.stateOf(parent).jsxChildren ??= []);
+
+        this.stateOf(child).jsxParent = parent;
+
+        const index = before ? order.indexOf(before) : -1;
+
+        if (index === -1)
+        {
+            order.push(child);
+
+            return null;
+        }
+
+        order.splice(index, 0, child);
+
+        const kind = this.kindOf(child);
+
+        return order.find((sibling, at) => at > index && this.kindOf(sibling) === kind) ?? null;
     }
 
     /** Filters keep their JSX order in the parent's `filters`; reordering looks up the parent's list. */

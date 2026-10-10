@@ -1,12 +1,31 @@
 import { Component, type ReactNode } from 'react';
 
-import type { PixiProbe } from '../binding';
+import type { PixiElement, PixiProbe } from '../binding';
 import type { ScenarioContext } from '../context';
 
 /** Labels of a node's direct children, in scene order. */
 export function childLabels(probe: PixiProbe, node: unknown): Array<string | undefined>
 {
     return probe.children(node).map((child) => probe.label(child));
+}
+
+/** Registers a fresh filter class (`probe.filterClass`, capability `pixi.filter-children`) and returns its element. */
+export function filterElement(api: ScenarioContext['api'], composition: ScenarioContext['composition'], probe: PixiProbe): PixiElement
+{
+    if (!probe.filterClass)
+    {
+        throw new Error('The binding provides "pixi.filter-children" but its probe has no filterClass().');
+    }
+
+    api.extend({ ConformanceFilter: probe.filterClass() });
+
+    return composition.elementFor('ConformanceFilter');
+}
+
+/** The `padding` of each filter in a node's `filters`, in order (scenarios tell filters apart by it). */
+export function filterPaddings(probe: PixiProbe, node: unknown): unknown[]
+{
+    return ((probe.get(node, 'filters') as readonly unknown[] | null | undefined) ?? []).map((filter) => probe.get(filter, 'padding'));
 }
 
 /** Depth-first search for the first descendant with `label`. */

@@ -97,7 +97,9 @@ failures.
   missing capabilities, when a binding lacks one. The last two are Pixi 8 scene features (a `GraphicsContext` resource;
   the renderer destroy options object forwarded unchanged): every Pixi 8 binding and the fake backend provide them
   (`PIXI8_SCENE_CAPABILITIES`); the Pixi 7 binding does not, so those two scenarios are skipped there by capability
-  and its package tests the Pixi 7 equivalents (issue 16). The
+  and its package tests the Pixi 7 equivalents (issue 16). `pixi.filter-children` (filter elements join the parent's
+  `filters` in JSX order, interleaved with display children; the probe's `filterClass`) is provided by every real
+  Pixi binding, Pixi 7 and Pixi 8, and not by the fake backend, which has no filters. The
   React 18 scenarios (ConcurrentRoot, recoverable-error routing, rejection of React 19-only root callbacks)
   run in the React 18 binding ([issue 12](https://github.com/baseten/pixi-react/issues/12)), which provides
   `react.18`, `pixi.globals` and `dom.resize`, lists no expected failures, and skips only the five

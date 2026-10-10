@@ -24,13 +24,14 @@ export const appOptions = Object.freeze({
 });
 
 /**
- * `pixi.globals`: the adapter leases extensions and the default text style, and the probe observes both. Not provided:
+ * `pixi.globals`: the adapter leases extensions and the default text style, and the probe observes both;
+ * `pixi.filter-children`: filter elements join their parent's `filters` in JSX order. Not provided:
  * `parity.upstream` (as for the Pixi 8 adapter, the modular adapter ships the corrected global behaviour), and the
  * Pixi 8 scene features `pixi.graphics-context` (Pixi 7 has no GraphicsContext) and `pixi.renderer-destroy-options`
  * (Pixi 7's `Application.destroy` takes `removeView`, a boolean, not Pixi 8's renderer options object). The runner
  * skips those scenarios and names the capability.
  */
-export const PIXI7_BINDING_CAPABILITIES: readonly Capability[] = ['react.19', 'pixi.globals', 'dom.resize'];
+export const PIXI7_BINDING_CAPABILITIES: readonly Capability[] = ['react.19', 'pixi.globals', 'dom.resize', 'pixi.filter-children'];
 
 /** A fresh composition; Pixi-specific tests also get the renderer and the adapter. */
 export function createPixi7Composition(options: Pixi7AdapterOptions = {})
