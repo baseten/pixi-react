@@ -277,8 +277,8 @@ test('an already-versioned release commit is recognized from the versions on mai
     const changed = classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0'), afterVersion: { ...clean, changed: ['packages/core/src/abi.ts'] } });
 
     assert.equal(changed.versioned, false);
-    assert.match(changed.blocked.join(), /published packages changed after the version commit vvvvvvvvvvvv: packages\/core\/src\/abi\.ts; add a changeset and re-run pnpm release:version, or move the change to a new branch/);
-    assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0'), afterVersion: { ...clean, merges: ['m'.repeat(40)] } }).blocked.join(), /mmmmmmmmmmmm merged another branch into the release branch after the version commit .*; re-run pnpm release:version on top of it/);
+    assert.match(changed.blocked.join(), /published packages changed after the version commit vvvvvvvvvvvv: packages\/core\/src\/abi\.ts; land the change on main with a changeset, then cut a new release branch from main and run pnpm release:version there/);
+    assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0'), afterVersion: { ...clean, merges: ['m'.repeat(40)] } }).blocked.join(), /mmmmmmmmmmmm merged another branch into the release branch after the version commit .*; cut a new release branch from main and run pnpm release:version there/);
     assert.match(classifyReleaseState({ pendingChangesets: [], currentVersions: at('8.1.1'), baseVersions: at('8.1.0') }).blocked.join(), /no commit since the merge base moved them there/);
     // A pull request that changed packages without a changeset and without versioning: not versioned, so
     // `changeset status` runs and fails it.
@@ -352,7 +352,7 @@ test('releaseState reads the versions on main from git and accepts only the vers
         assert.match(state().blocked.join(), /published packages changed after the version commit .*: packages\/core\/src\/index\.ts/, 'uncommitted');
         gitIn('commit', '-q', '-am', 'late source change');
         assert.equal(state().versioned, false);
-        assert.match(state().blocked.join(), /packages\/core\/src\/index\.ts; add a changeset and re-run pnpm release:version/);
+        assert.match(state().blocked.join(), /packages\/core\/src\/index\.ts; land the change on main with a changeset, then cut a new release branch from main/);
         assert.throws(() => currentPlan(root, { config: target }), /not the versioning result itself/);
         gitIn('reset', '-q', '--hard', 'HEAD~1');
         // Merging main into the release branch after the version commit is blocked (rule: re-version on top of it),
@@ -364,6 +364,12 @@ test('releaseState reads the versions on main from git and accepts only the vers
         gitIn('checkout', '-q', 'release');
         gitIn('merge', '-q', '--no-ff', '--no-edit', 'main');
         assert.match(state().blocked.join(), /merged another branch into the release branch after the version commit/);
+        // The documented recovery: a fresh release branch from main is an ordinary checkout (nothing blocked), ready for
+        // `pnpm release:version`.
+        gitIn('checkout', '-q', '-b', 'release-again', 'main');
+        assert.equal(state().versioned, false, 'a fresh release branch from main');
+        assert.deepEqual(state().blocked, []);
+        gitIn('checkout', '-q', 'release');
         gitIn('reset', '-q', '--hard', 'HEAD~1');
         // The merge commit CI checks out for the pull request (main first, the release branch second) is the release.
         gitIn('checkout', '-q', '--detach', 'main');

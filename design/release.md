@@ -253,8 +253,10 @@ Nothing below publishes. Publishing needs the [owner approvals](#before-publishi
    a publishable package directory (except its CHANGELOG.md), `packages/react-shared`, `scripts/`,
    `release.packages.json`, the lockfile, the workspace file or the root `package.json`. Docs, CI and changelog edits
    after the version commit are fine. Merging main (or any branch) into the release branch after the version commit
-   also fails, even when main only changed docs: re-run `pnpm release:version` on top of it, so the release is the
-   versioning of exactly what it ships.
+   also fails, even when main only changed docs. To recover (no history rewrite, no revert): land any late change on
+   main with its changeset, then cut a new release branch from main and run `pnpm release:version` there. The
+   changesets were consumed only on the old release branch, so main still has them; close the old branch. The release
+   is then the versioning of exactly what it ships.
 5. **Stage.** `pnpm build && pnpm release:stage --out .release/tarballs`, then `inspect.mjs`, `consumers.mjs` and
    `bundles.mjs` on those tarballs (or take the tarballs of a passing dry run of the same commit).
 6. **Publish (not enabled).** After the owner approvals, a reviewed release workflow publishes the staged tarballs of a

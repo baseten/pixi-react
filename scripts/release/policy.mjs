@@ -200,8 +200,12 @@ export function classifyReleaseState({ pendingChangesets, currentVersions, baseV
         const at = afterVersion?.commit ? `the version commit ${afterVersion.commit.slice(0, 12)}` : 'the versioning';
 
         if (!afterVersion) blocked.push('the versions are above main, but no commit since the merge base moved them there');
-        for (const merge of afterVersion?.merges ?? []) blocked.push(`${merge.slice(0, 12)} merged another branch into the release branch after ${at}; re-run pnpm release:version on top of it (main's changes are not in the versioned release)`);
-        if (afterVersion?.changed?.length) blocked.push(`published packages changed after ${at}: ${afterVersion.changed.join(', ')}; add a changeset and re-run pnpm release:version, or move the change to a new branch`);
+        // Recovery never rewrites history and never needs a revert: the changesets were consumed only on the release
+        // branch, so main still has them, and a fresh release branch from main can be versioned again.
+        const fresh = 'cut a new release branch from main and run pnpm release:version there (main still has the changesets)';
+
+        for (const merge of afterVersion?.merges ?? []) blocked.push(`${merge.slice(0, 12)} merged another branch into the release branch after ${at}, so the versioned release no longer matches what it ships; ${fresh}`);
+        if (afterVersion?.changed?.length) blocked.push(`published packages changed after ${at}: ${afterVersion.changed.join(', ')}; land the change on main with a changeset, then ${fresh}`);
     }
 
     return { versioned: !reasons.length && !blocked.length, version, reasons, blocked };
@@ -353,7 +357,7 @@ export function versionedProblems({ root = repoRoot, config, version })
     {
         const changes = abiChanges(config.releasedAbi, current);
 
-        if (changes.length) problems.push(`versioned release: abi.released differs from the source (${changes.join('; ')}); rerun pnpm release:version`);
+        if (changes.length) problems.push(`versioned release: abi.released differs from the source (${changes.join('; ')}); cut a new release branch from main and run pnpm release:version there`);
     }
     for (const pkg of config.packages)
     {
