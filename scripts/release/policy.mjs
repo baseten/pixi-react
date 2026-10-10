@@ -126,13 +126,17 @@ export function abiDeclarationProblems(abi)
  * failure is rethrown with Changesets' own message and what to do. Use `currentPlan`, which first recognizes an
  * already-versioned release commit (where `status` would always fail, because `version` consumed the changesets).
  */
-export function readPlan(root = repoRoot)
+export function readPlan(root = repoRoot, { since = null } = {})
 {
     const dir = mkdtempSync(join(tmpdir(), 'pixi-react-plan-'));
 
     try
     {
-        execFileSync('pnpm', ['exec', 'changeset', 'status', '--output', join(dir, 'plan.json')], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
+        // `since`: the merge base the release state was decided with, so Changesets compares against the same commit
+        // even when the local `main` it would otherwise use is stale.
+        const args = ['exec', 'changeset', 'status', '--output', join(dir, 'plan.json'), ...(since ? ['--since', since] : [])];
+
+        execFileSync('pnpm', args, { cwd: root, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
 
         return readJson(join(dir, 'plan.json'));
     }
@@ -370,7 +374,7 @@ export function currentPlan(root = repoRoot, options = {})
 
     if (state.blocked.length) throw new Error(`the versions are bumped above main, but this is not the versioning result itself:\n  - ${state.blocked.join('\n  - ')}`);
 
-    return { state, plan: state.versioned ? EMPTY_PLAN : readPlan(root) };
+    return { state, plan: state.versioned ? EMPTY_PLAN : readPlan(root, { since: state.base }) };
 }
 
 /**
