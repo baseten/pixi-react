@@ -7,6 +7,7 @@
 import cell from '../cell.json';
 import { PixiAdapterClass, ReactAdapterClass } from './adapter';
 import * as probes from './pixiProbe';
+import { rendererAppOptions } from './renderer';
 import { createRenderer } from '@pixi-react-provisional/renderer';
 
 import type { Capability, Composition, ConformanceBinding, PixiElement, PixiProbe, ReactBindingApi } from '@pixi-react-provisional/conformance';
@@ -22,15 +23,32 @@ interface CellProbe extends PixiProbe
 
 const createProbe = (probes as unknown as Record<string, (rootCount: () => number) => CellProbe>)[cell.probeFactory];
 
-/** Deterministic application options of the cell's Pixi adapter: manual ticker, fixed size, no autostart. */
-export const appOptions = Object.freeze({ ...cell.appOptions });
+/**
+ * Deterministic application options of the cell's Pixi adapter (manual ticker, fixed size, no autostart), plus the
+ * options that select this run's render backend (test/renderer.ts).
+ */
+export const appOptions = Object.freeze({ ...cell.appOptions, ...rendererAppOptions });
+
+/**
+ * Data-only probes (data-only.json) run the suite past the adapters' environment checks, to record what would happen
+ * on a React or pixi.js the adapter rejects. Never set for a verification cell.
+ */
+function bypassForData<A extends object>(adapter: A): A
+{
+    if ((cell as { dataOnly?: { bypassEnvironmentCheck?: boolean } }).dataOnly?.bypassEnvironmentCheck)
+    {
+        Object.defineProperty(adapter, 'checkEnvironment', { value: () => undefined });
+    }
+
+    return adapter;
+}
 
 function createComposition(): Composition
 {
     let roots = () => 0;
     const probe = createProbe(() => roots());
-    const adapter = new PixiAdapterClass();
-    const renderer = createRenderer({ react: new ReactAdapterClass(), pixi: probe.instrumentAdapter ? probe.instrumentAdapter(adapter) : adapter });
+    const adapter = bypassForData(new PixiAdapterClass());
+    const renderer = createRenderer({ react: bypassForData(new ReactAdapterClass()), pixi: probe.instrumentAdapter ? probe.instrumentAdapter(adapter) : adapter });
     // Intrinsic tag strings cast to components: the minimum element typing a runtime test needs.
     const element = (name: string) => `pixi${name}` as unknown as PixiElement;
 

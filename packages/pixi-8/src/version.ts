@@ -30,7 +30,7 @@ export const PIXI8_BOUNDS = Object.freeze({
 
 /**
  * The exact versions the adapter's browser test cells run against (`packages/pixi-8/test/browser`). Under D5 a
- * certificate covers exact tuples only; issue 13 owns the full matrix and its machine-readable certificate.
+ * verification record covers exact tuples only; issue 13 owns the full matrix, issue 17 its dated verification records.
  */
 export const PIXI8_TESTED_VERSIONS = Object.freeze(['8.2.6', '8.9.2', '8.22.0'] as const);
 

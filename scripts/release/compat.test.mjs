@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { DEVELOPMENT_BUILD } from './bundles.mjs';
 import { checkReleaseRules, committedConfig, exactList, loadSeedAt, pixiMajors, releaseFacts, supportedPixiRange } from './compat.mjs';
-import { checkCompatibilityTable, renderCompatibilityTable, TABLE_FILE } from './compat-table.mjs';
+import { checkCompatibilityTable, renderCompatibilityTable, TABLE_FILE, verifiedLabel } from './compat-table.mjs';
 import { readJson, repoRoot } from './config.mjs';
 import { checkDocsPins, lockstepPins, lockstepProblems, PINS_FILE, renderPins, rewriteLockstep, rewriteVersions, textProblems } from './docs-pins.mjs';
 
@@ -40,7 +40,11 @@ test('the Pixi 7 adapter\'s range is derived from its own epoch, and a wider ran
         range: '>=7.4.2 <7.5.0',
         supportedRange: '>=7.4.2 <7.5.0',
         prCells: [{ react: '18.3.1', reactAdapter: 'react-18', pixi: '7.4.2' }, { react: '19.3.0', reactAdapter: 'react-19.3', pixi: '7.4.3' }],
+        renderers: ['webgl'],
     });
+    // Verified only where a dated record backs it (issue 17), per render backend; Pixi 7 has no WebGPU renderer.
+    assert.deepEqual(Object.keys(pixi7.verified.backends), ['webgl']);
+    assert.ok(pixi7.verified.backends.webgl.every((tuple) => tuple.pixiAdapter === 'pixi-7'));
     assert.equal(pixi7.version, facts.facade.version, 'lockstep: it releases at the facade\'s version although it targets Pixi 7');
 
     const widened = clone(seed);
@@ -86,7 +90,7 @@ test('the facade\'s React peer and runtime warning follow the newest tested Reac
 
     const newer = clone(seed);
 
-    newer.reactEpochs.push({ id: 'react194', reactMinor: '19.4', reconciler: '0.35.0', status: 'candidate-not-certified', requiredEvidence: [] });
+    newer.reactEpochs.push({ id: 'react194', reactMinor: '19.4', reconciler: '0.35.0', status: 'candidate-not-verified', requiredEvidence: [] });
     assert.match(checkReleaseRules({ config, seed: newer }).join('\n'), /newest React epoch in the manifest is react194 \(D1\)/);
 });
 
@@ -109,7 +113,8 @@ test('the checked-in compatibility table is current', () =>
 
     assert.ok(table.includes(`| ${label} | \`${facade.peerDependencies.react}\` | 19.3.0 | \`${facade.peerDependencies['pixi.js'].replaceAll('|', '\\|')}\``), 'facade row');
     for (const pkg of config.packages) assert.ok(table.includes(`\`${pkg.publicName}\``), pkg.publicName);
-    assert.doesNotMatch(table, /certified/i, 'the table says "tested" until a range is promoted');
+    assert.doesNotMatch(table, /certif/i, 'the table says "tested" and "verified", never "certified" (issue 17)');
+    assert.match(table, /evidence, not a support guarantee/);
 });
 
 test('the docs pins are current, exact and used by every example', () =>
@@ -189,4 +194,18 @@ test('a production bundle may not contain a development build of React\'s packag
     assert.ok(DEVELOPMENT_BUILD.test('node_modules/@pixi/react/node_modules/scheduler/cjs/scheduler.development.js'));
     assert.ok(!DEVELOPMENT_BUILD.test('node_modules/react-reconciler/cjs/react-reconciler.production.js'));
     assert.ok(!DEVELOPMENT_BUILD.test('node_modules/pixi.js/lib/environment/development.js'));
+});
+
+test('verified labels name exact pairings, never a cross product of sparse evidence', () =>
+{
+    const tuple = (react, pixi, pixiAdapter = 'pixi-8') => ({ reactAdapter: 'react-x', react, pixiAdapter, pixi });
+    const sparse = { records: ['2026-10-10'], backends: { webgl: [tuple('18.3.1', '8.2.6'), tuple('19.3.0', '8.22.0')] } };
+    const label = verifiedLabel(sparse, ['webgl']);
+
+    assert.match(label, /React 18\.3\.1 × pixi\.js 8\.2\.6; React 19\.3\.0 × pixi\.js 8\.22\.0/);
+    assert.doesNotMatch(label, /18\.3\.1, 19\.3\.0/, 'two pairs are not four');
+    // React versions with the same pixi.js set share a statement; a different set gets its own.
+    const shared = { records: [], backends: { webgpu: [tuple('19.0.0', '8.10.2'), tuple('19.0.0', '8.22.0'), tuple('19.3.0', '8.10.2'), tuple('19.3.0', '8.22.0'), tuple('18.3.1', '8.22.0')] } };
+
+    assert.equal(verifiedLabel(shared, ['webgpu']), 'WebGPU: React 18.3.1 × pixi.js 8.22.0; React 19.0.0, 19.3.0 × pixi.js 8.10.2, 8.22.0');
 });

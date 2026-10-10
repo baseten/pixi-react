@@ -31,12 +31,12 @@ describe('React18Adapter', () =>
         // React 18 has no Activity: the capability the 19.2+ epochs provide is absent here.
         expect(adapterManifest.provides).toEqual({});
         expect(adapterManifest.provides).not.toHaveProperty('react.activity');
-        expect(adapterManifest.certification).toContain('react-reconciler 0.29.2');
-        expect(adapterManifest.certification).toContain('its-fine 1.2.5');
+        expect(adapterManifest.verification).toContain('react-reconciler 0.29.2');
+        expect(adapterManifest.verification).toContain('its-fine 1.2.5');
 
         for (const version of REACT18.testedReact)
         {
-            expect(adapterManifest.certification).toContain(version);
+            expect(adapterManifest.verification).toContain(version);
         }
     });
 

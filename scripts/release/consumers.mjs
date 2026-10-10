@@ -7,7 +7,7 @@
  * no lifecycle script runs, no workspace or alias is reachable, and a missing or conflicting peer fails the install.
  *
  * Scenarios (derived, not listed by hand):
- * - `facade`: the default `@pixi/react` with React 19.3 and the newest certified pixi.js. No modular package may be
+ * - `facade`: the default `@pixi/react` with React 19.3 and the newest tested pixi.js. No modular package may be
  *   installed with it.
  * - `explicit-<cell>`: one per PR-tier compatibility cell of the #13 manifest (design/compatibility/seed.json): core,
  *   renderer, that cell's React adapter and that cell's Pixi adapter (Pixi 8, or Pixi 7 for the Pixi 7 cells), with
@@ -37,7 +37,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 /** Exact versions of the consumer toolchain. esbuild matches the workspace's (scripts/build-react-adapter.mjs). */
 export const TOOLCHAIN = { esbuild: '0.21.5' };
 
-/** The newest certified React 19 line the facade composes (D1) and its types. */
+/** The newest React 19 line the facade composes (D1) and its types. */
 const FACADE_REACT = { react: '19.3.0', 'react-dom': '19.3.0', '@types/react': '19.3.0', '@types/react-dom': '19.3.0', '@types/react-reconciler': '0.28.9' };
 
 function readCoreAbi(root)
@@ -180,7 +180,7 @@ export function scenarios(manifest, { root = repoRoot } = {})
         programValues: { CORE: core.publicName, ABI_MAJOR: String(abi.major) },
     });
 
-    // The explicit bundle scenarios: React 19.3 and React 18 with the newest certified pixi.js.
+    // The explicit bundle scenarios: React 19.3 and React 18 with the newest tested pixi.js.
     for (const item of list)
     {
         item.tree.sameVersion = { names: ours, version: facade.version };

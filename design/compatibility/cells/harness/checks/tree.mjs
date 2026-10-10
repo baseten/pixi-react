@@ -59,7 +59,7 @@ for (const name of [...found.keys()].filter((candidate) => ['scheduler', 'pixi.j
     if (versionsOf(name).length > 1) problems.push(`${name} resolves to more than one version (${describe(name)}).`);
 }
 
-// Declared ranges: what the packed manifests promise must be what the manifest says CI certifies.
+// Declared ranges: what the packed manifests promise must be what the manifest says CI tests.
 const packed = {};
 
 for (const [name, expected] of Object.entries(cell.packed))

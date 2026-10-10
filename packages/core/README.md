@@ -22,7 +22,7 @@ Nothing is published yet. Release tarballs carry the public names from `release.
 | Export | Purpose |
 | --- | --- |
 | `PixiAdapter<P>`, `ReactAdapter<R>` | Open abstract base classes. A third party subclasses them with its own manifest ID and types. There is no closed list of adapter names. |
-| `AdapterManifest`, `CORE_ABI` | `{ abi: { major: 1, minor }, id, packageVersion, provides, requires, certification }`. |
+| `AdapterManifest`, `CORE_ABI` | `{ abi: { major: 1, minor }, id, packageVersion, provides, requires, verification }`. |
 | `validateManifest`, `validateAdapterShape`, `negotiate`, `compose` | Composition-time checks that run before any allocation, then a fresh `Runtime`. |
 | `CompatibilityError` | The one shared error class. It has the built-in codes plus dotted adapter codes. |
 | `TeardownError` | An `AggregateError` that teardown throws after it has run every step. |

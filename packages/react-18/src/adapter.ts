@@ -27,7 +27,7 @@ export interface React18Info
     readonly reconciler: string;
     /** The exact its-fine version this package depends on (the context bridge). */
     readonly bridge: string;
-    /** The exact React (and react-dom) versions the fixtures certify. The peer range lists exactly these (D5). */
+    /** The exact React (and react-dom) versions the fixtures test. The peer range lists exactly these (D5). */
     readonly testedReact: readonly string[];
     /** Capabilities this adapter provides to the composition. */
     readonly provides: CapabilityMap;
@@ -81,10 +81,10 @@ export class React18Adapter extends ReactAdapter<React18Family>
                 packageVersion: PACKAGE_VERSION,
                 provides,
                 requires: REQUIRED_PIXI_CAPABILITIES,
-                certification: `@pixi-react-provisional/react-18: react ${testedReact.join(' | ')}; `
+                verification: `@pixi-react-provisional/react-18: react ${testedReact.join(' | ')}; `
                     + `react-reconciler ${reconciler} (exact dependency); its-fine ${bridge} (exact dependency). `
                     + 'Tested in Chromium with Pixi8Adapter (packages/react-18/fixtures); '
-                    + 'candidate-not-certified until the owner promotes a range.',
+                    + 'Verified tuples: the dated verification records in design/compatibility/verification (evidence, not a support guarantee).',
             });
         }
 

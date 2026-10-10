@@ -50,10 +50,14 @@ Nothing is published yet. Release tarballs carry the public names from `release.
   react-dom 18.2.0 with this bundle. It stays outside the peer range: react-reconciler 0.29.2 declares
   `react@^18.3.1`, the reconciler line for 18.2 is 0.29.0, and the shared harness itself needs React 18.3's `act`.
   Supporting 18.2 would be a separate, owner-approved cell.
-- **Tested, not certified.** The manifest's `certification` names the tested React version, the reconciler and
-  its-fine. The [issue-13 compatibility cells](https://github.com/baseten/pixi-react/blob/main/design/compatibility/cells/COMPATIBILITY.md) run this package on every pull request with React 18.3.1
-  and pixi.js 8.2.6 and 8.22.0, so 18.3.1 is *tested*. Like every row, it stays *candidate-not-certified* until the
-  owner promotes a range in the compatibility manifest ([what "tested" means](https://github.com/baseten/pixi-react/blob/main/design/release.md#what-tested-means)).
+- **Tested and verified.** The manifest's `verification` pointer names the tested React version, the reconciler and
+  its-fine. The [issue-13 compatibility cells](https://github.com/baseten/pixi-react/blob/main/design/compatibility/cells/COMPATIBILITY.md) run this package on every pull request
+  with React 18.3.1 and pixi.js 8.2.6 and 8.22.0 (packed install, types, and the conformance suite in Chromium), so
+  18.3.1 is *tested*. The [2026-10-10 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.md) *verifies* React 18.3.1 on
+  **WebGL** with the newest audited patch of every Pixi 8 minor (8.2.6 … 8.22.0) and with pixi.js 7.4.2 and 7.4.3, and
+  on **WebGPU** with pixi.js 8.10.2 … 8.22.0; on WebGPU, pixi.js 8.2.6 to 8.9.2 are an expected blank render,
+  unverified (a blank canvas on the software WebGPU adapter). The record ran on software rendering (SwiftShader, no
+  GPU); a run on a real GPU can be added as extra evidence. Verification is evidence, not a support guarantee, and the peer range stays as it is ([tested and verified](https://github.com/baseten/pixi-react/blob/main/design/release.md#tested-and-verified)).
 
 ## How React 18 differs from the React 19 epochs
 

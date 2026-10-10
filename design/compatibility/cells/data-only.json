@@ -1,0 +1,36 @@
+{
+  "description": "Data-only probes (issue 17). Each probe installs the packed adapters beside a React or pixi.js the adapter does not declare, ignoring peers, and records what every cell command does. The adapters' environment checks are bypassed in the conformance run only (cell.json dataOnly.bypassEnvironmentCheck), so the suite shows what would happen past them. Results are data, never verification: nothing here enters verifiedRanges or changes a peer range.",
+  "groups": [
+    {
+      "id": "pixi7-earlier-releases",
+      "description": "The Pixi 7 adapter on pixi.js releases below its 7.4.2 floor: the highest patch of 7.0 to 7.3, and 7.4.0 (7.4.1 was never published to npm).",
+      "react": [
+        { "epoch": "react18", "version": "18.3.1" },
+        { "epoch": "react193", "version": "19.3.0" }
+      ],
+      "pixi": [
+        { "adapter": "pixi7", "version": "7.0.5" },
+        { "adapter": "pixi7", "version": "7.1.4" },
+        { "adapter": "pixi7", "version": "7.2.4" },
+        { "adapter": "pixi7", "version": "7.3.3" },
+        { "adapter": "pixi7", "version": "7.4.0" }
+      ],
+      "unpublished": [
+        { "package": "pixi.js", "version": "7.4.1", "note": "absent from the npm registry's version list and time map: there is nothing to install" }
+      ]
+    },
+    {
+      "id": "react18-earlier-minors",
+      "description": "The React 18 adapter on React 18.0, 18.1 and 18.2, each with the react-reconciler released with it (npm peers: 0.27.0 react ^18.0.0, 0.28.0 react ^18.1.0, 0.29.0 react ^18.2.0; 0.29.2, which the adapter depends on, declares react ^18.3.1). The reconciler is swapped with an npm override in the cell project only; the shipped adapter is unchanged. @types/react stays at the adapter's audited 18.3 declarations.",
+      "react": [
+        { "epoch": "react18", "version": "18.0.0", "reconciler": "0.27.0", "typesReact": "18.3.31" },
+        { "epoch": "react18", "version": "18.1.0", "reconciler": "0.28.0", "typesReact": "18.3.31" },
+        { "epoch": "react18", "version": "18.2.0", "reconciler": "0.29.0", "typesReact": "18.3.31" }
+      ],
+      "pixi": [
+        { "adapter": "pixi7", "version": "7.4.3" },
+        { "adapter": "pixi8", "version": "8.22.0" }
+      ]
+    }
+  ]
+}

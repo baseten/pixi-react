@@ -71,7 +71,7 @@ if (scenario.compose)
                 if (adapter.manifest.id !== expected.adapterId) fail(`${format}: manifest id ${adapter.manifest.id}, expected ${expected.adapterId}`);
                 if (adapter.manifest.packageVersion !== expected.version) fail(`${format}: ${expected.spec} reports packageVersion ${adapter.manifest.packageVersion}, but its package is ${expected.version}`);
                 if (adapter.manifest.abi.major !== scenario.abiMajor) fail(`${format}: ${expected.spec} implements ABI ${adapter.manifest.abi.major}, core is ABI ${scenario.abiMajor}`);
-                if (String(adapter.manifest.certification ?? '').includes('provisional')) fail(`${format}: ${expected.spec} certification names a provisional package: ${adapter.manifest.certification}`);
+                if (String(adapter.manifest.verification ?? '').includes('provisional')) fail(`${format}: ${expected.spec} verification pointer names a provisional package: ${adapter.manifest.verification}`);
             }
             const bound = createRenderer({ react: reactAdapter, pixi: pixiAdapter });
 

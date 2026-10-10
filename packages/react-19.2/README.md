@@ -47,11 +47,14 @@ upstream `@pixi/react` does. The sibling packages are
   `CompatibilityError` (`UNSUPPORTED_TUPLE`, `expected.react` `19.2.x`, `actual.react`). The message names the
   per-minor package to install instead (for example `@pixi-react-provisional/react-19.1`). The check never selects
   an adapter.
-- **Tested, not certified.** The manifest's `certification` names the tested React versions (19.2.0, 19.2.8), the
-  reconciler and its-fine. The [issue-13 compatibility cells](https://github.com/baseten/pixi-react/blob/main/design/compatibility/cells/COMPATIBILITY.md) run this package on every pull request
+- **Tested and verified.** The manifest's `verification` pointer names the tested React versions (19.2.0, 19.2.8), the reconciler and
+  its-fine. The [issue-13 compatibility cells](https://github.com/baseten/pixi-react/blob/main/design/compatibility/cells/COMPATIBILITY.md) run this package on every pull request
   with React 19.2.8 and pixi.js 8.2.6 and 8.22.0 (packed install, types, and the conformance suite in Chromium), so
-  these versions are *tested*. They stay *candidate-not-certified*: no range is certified until the owner promotes one
-  in the compatibility manifest ([what "tested" means](https://github.com/baseten/pixi-react/blob/main/design/release.md#what-tested-means)).
+  these versions are *tested*. The [2026-10-10 verification record](https://github.com/baseten/pixi-react/blob/main/design/compatibility/verification/2026-10-10.md) *verifies* React 19.2.0 and 19.2.8 on
+  **WebGL** with the newest audited patch of every Pixi 8 minor (8.2.6 … 8.22.0) and with pixi.js 7.4.2 and 7.4.3, and
+  on **WebGPU** with pixi.js 8.10.2 … 8.22.0; on WebGPU, pixi.js 8.2.6 to 8.9.2 are an expected blank render,
+  unverified (a blank canvas on the software WebGPU adapter). The record ran on software rendering (SwiftShader, no
+  GPU); a run on a real GPU can be added as extra evidence. Verification is evidence, not a support guarantee, and the peer range stays as it is ([tested and verified](https://github.com/baseten/pixi-react/blob/main/design/release.md#tested-and-verified)).
 - **Reconciler builds.** The package ships one CommonJS file that `require`s `react-reconciler`; the consumer's
   bundler resolves that package's own `NODE_ENV` switch, so a production bundle contains only the production
   reconciler. React DOM keeps its own scheduler copy only if the package manager does not deduplicate them.

@@ -145,7 +145,7 @@ export function validateManifest(manifest: unknown, role: AdapterRole): AdapterM
         );
     }
 
-    for (const field of ['packageVersion', 'certification'] as const)
+    for (const field of ['packageVersion', 'verification'] as const)
     {
         if (typeof manifest[field] !== 'string')
         {
@@ -157,7 +157,7 @@ export function validateManifest(manifest: unknown, role: AdapterRole): AdapterM
         abi: Object.freeze({ major: CORE_ABI.major, minor: abi.minor }),
         id,
         packageVersion: manifest.packageVersion as string,
-        certification: manifest.certification as string,
+        verification: manifest.verification as string,
         provides: validateCapabilities(role, id, 'provides', manifest.provides),
         requires: validateCapabilities(role, id, 'requires', manifest.requires),
     });

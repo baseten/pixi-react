@@ -113,6 +113,22 @@ function describeReact(seed, epochId, version)
     return { epoch: epochId, adapterKey, adapter, version, tuple };
 }
 
+/**
+ * The render backends of a cell: the requested ones (a tier's `renderers`, `webgl` when none is given) that the Pixi
+ * adapter's `renderers` row lists, in the manifest's order. Pixi 7, for example, has no WebGPU renderer.
+ */
+export function cellRenderers(seed, pixiAdapterKey, requested)
+{
+    const matrix = seed.adapterMatrix;
+    const available = Object.keys(matrix.pixiAdapters[pixiAdapterKey].renderers ?? {});
+    const wanted = requested ?? ['webgl'];
+
+    return Object.keys(matrix.renderers).filter((name) => wanted.includes(name) && available.includes(name));
+}
+
+/** The render backends a tier asks for (`tiers.<tier>.renderers`), or an explicit `--renderers` override. */
+export const tierRenderers = (seed, tier, override) => override ?? seed.adapterMatrix.tiers[tier].renderers ?? ['webgl'];
+
 /** Builds one cell from a React selection and a Pixi version. */
 export function makeCell(seed, { react, pixi, commands, negative }, options = {})
 {
@@ -147,6 +163,8 @@ export function makeCell(seed, { react, pixi, commands, negative }, options = {}
         toolchain: matrix.toolchain,
         install: negative?.install ?? {},
         commands: selected.filter((name) => order.includes(name)).sort((a, b) => order.indexOf(a) - order.indexOf(b)),
+        // Render backends the conformance command runs, each separately: those the tier asks for that the Pixi adapter has.
+        renderers: cellRenderers(seed, pixiAdapterKey, options.renderers),
         expect: negative?.expect ?? null,
         description: negative?.description ?? null,
         ...(options.extra ?? {}),
@@ -247,10 +265,11 @@ function tierSelections(seed, tier, patches)
  * Cells of a tier. `patches` overrides the tier's React patch selection ('latest' or 'all') of its cross products;
  * `filter` keeps cells whose id or label contains any listed substring.
  */
-export function selectCells(seed, tier, { patches, filter } = {})
+export function selectCells(seed, tier, { patches, filter, renderers } = {})
 {
     assert.ok(seed.adapterMatrix.tiers[tier], `unknown tier ${tier}`);
-    const cells = tierSelections(seed, tier, patches).map(({ react, pixi }) => makeCell(seed, { react, pixi }));
+    const chosen = tierRenderers(seed, tier, renderers);
+    const cells = tierSelections(seed, tier, patches).map(({ react, pixi }) => makeCell(seed, { react, pixi }, { renderers: chosen }));
 
     const unique = new Set(cells.map((cell) => cell.id));
 
@@ -299,6 +318,29 @@ export function validateAdapterMatrix(seed)
     }
     for (const id of matrix.commonArtifacts) assert.ok(matrix.artifacts[id], `common artifact ${id}`);
     for (const command of matrix.commands.order) assert.ok(Number.isInteger(matrix.commands.timeoutSeconds[command]), `timeout for ${command}`);
+    const backends = Object.keys(matrix.renderers ?? {});
+
+    assert.ok(backends.includes('webgl'), 'renderers must define webgl');
+    for (const name of backends) assert.ok(typeof matrix.renderers[name].label === 'string', `renderers.${name}.label`);
+    assert.ok(matrix.gpuProfiles?.[matrix.defaultGpuProfile], 'defaultGpuProfile must name a gpuProfiles row');
+    assert.ok(Array.isArray(matrix.softwareRendererPatterns) && matrix.softwareRendererPatterns.length > 0, 'softwareRendererPatterns');
+    for (const [id, profile] of Object.entries(matrix.gpuProfiles))
+    {
+        assert.ok(typeof profile.description === 'string' && profile.description.length > 0, `gpuProfiles.${id}.description`);
+        assert.equal(typeof profile.headless, 'boolean', `gpuProfiles.${id}.headless`);
+        assert.ok(['software', 'hardware'].includes(profile.expect), `gpuProfiles.${id}.expect`);
+        for (const name of backends) assert.ok(Array.isArray(profile.chromiumArgs?.[name]), `gpuProfiles.${id}.chromiumArgs.${name}`);
+        // A hardware profile must not ask for a software renderer: it would record SwiftShader as a GPU.
+        if (profile.expect === 'hardware')
+        {
+            for (const arg of Object.values(profile.chromiumArgs).flat()) assert.doesNotMatch(arg, /swiftshader|use-webgpu-adapter|use-gl=|use-angle=/i, `gpuProfiles.${id}: ${arg} selects a software path`);
+        }
+    }
+    for (const [tier, config] of Object.entries(matrix.tiers))
+    {
+        assert.ok(Array.isArray(config.renderers) && config.renderers.length > 0, `${tier}: renderers`);
+        for (const name of config.renderers) assert.ok(backends.includes(name), `${tier}: unknown renderer ${name}`);
+    }
 
     for (const [key, adapter] of Object.entries(matrix.reactAdapters))
     {
@@ -334,6 +376,8 @@ export function validateAdapterMatrix(seed)
         assert.match(adapter.probeFactory, /^[A-Za-z0-9_]+$/, `${key}: probeFactory`);
         assert.ok(adapter.conformanceAppOptions && typeof adapter.conformanceAppOptions === 'object', `${key}: conformanceAppOptions`);
         assert.ok(Array.isArray(adapter.conformanceCapabilities), `${key}: conformanceCapabilities`);
+        assert.ok(adapter.renderers?.webgl, `${key}: renderers.webgl`);
+        for (const [name, backend] of Object.entries(adapter.renderers)) assert.ok(backends.includes(name) && backend.appOptions && typeof backend.appOptions === 'object', `${key}: renderers.${name}`);
         assert.match(adapter.typeConsumer, /^consumer\.[\w-]+\.tsx$/, `${key}: typeConsumer (a harness/typecheck file; cells.test.mjs checks it exists)`);
     }
 
@@ -381,6 +425,139 @@ export function validateAdapterMatrix(seed)
     {
         assert.ok(negative.expect.signatures.length > 0 && matrix.commands.order.includes(negative.expect.failingCommand), `negative ${negative.id}`);
     }
+    validateExpectedBlankRender(seed);
+}
+
+/**
+ * The expected-blank-render list (`adapterMatrix.expectedBlankRender`): cells whose render check is known to show a
+ * blank canvas on one backend under one GPU profile. Every entry needs a reason and its evidence, and lists only versions
+ * the nightly matrix runs. Checked against the verification records by validate.mjs.
+ */
+export function validateExpectedBlankRender(seed)
+{
+    const matrix = seed.adapterMatrix;
+    const list = matrix.expectedBlankRender ?? [];
+    const nightly = selectCells(seed, 'nightly', { patches: 'all' });
+    const seen = new Set();
+
+    assert.ok(Array.isArray(list), 'expectedBlankRender must be a list');
+    for (const entry of list)
+    {
+        const where = `expectedBlankRender ${entry.id ?? '(no id)'}`;
+
+        assert.match(entry.id ?? '', /^[a-z0-9.-]+$/, `${where}: id`);
+        assert.ok(typeof entry.reason === 'string' && entry.reason.trim().length >= 20, `${where}: a reason is required`);
+        assert.equal(entry.verification, 'unverified', `${where}: an expected blank render is unverified`);
+        const adapter = matrix.pixiAdapters[entry.pixiAdapter];
+
+        assert.ok(adapter, `${where}: unknown Pixi adapter ${entry.pixiAdapter}`);
+        assert.ok(adapter.renderers[entry.renderer], `${where}: ${adapter.id} has no ${entry.renderer} renderer`);
+        assert.ok(matrix.gpuProfiles[entry.gpuProfile], `${where}: unknown GPU profile ${entry.gpuProfile}`);
+        assert.ok(Array.isArray(entry.pixi) && entry.pixi.length > 0, `${where}: pixi versions`);
+        for (const version of entry.pixi)
+        {
+            const key = `${entry.pixiAdapter}|${version}|${entry.renderer}|${entry.gpuProfile}`;
+
+            assert.ok(!seen.has(key), `${where}: pixi.js ${version} is listed twice`);
+            seen.add(key);
+            assert.ok(nightly.some((cell) => cell.pixi.adapterKey === entry.pixiAdapter && cell.pixi.version === version && cell.renderers.includes(entry.renderer)), `${where}: no nightly ${entry.renderer} cell runs pixi.js ${version}`);
+        }
+        assert.equal(entry.signature?.renderer, entry.renderer, `${where}: signature.renderer`);
+        for (const field of ['canvas', 'extract']) assert.ok(Array.isArray(entry.signature[field]) && entry.signature[field].length === 4, `${where}: signature.${field}`);
+        assert.equal(entry.signature.screenshotMatches, false, `${where}: signature.screenshotMatches`);
+        for (const field of ['record', 'observed', 'adapter', 'cause', 'narrowed', 'realGpu'])
+        {
+            assert.ok(typeof entry.evidence?.[field] === 'string' && entry.evidence[field].length > 0, `${where}: evidence.${field}`);
+        }
+    }
+}
+
+/** A GPU profile row (`adapterMatrix.gpuProfiles`), with its id; the default one without a name. */
+export function gpuProfileOf(seed, name)
+{
+    const id = name ?? seed.adapterMatrix.defaultGpuProfile;
+    const profile = seed.adapterMatrix.gpuProfiles[id];
+
+    assert.ok(profile, `unknown GPU profile ${id} (${Object.keys(seed.adapterMatrix.gpuProfiles).join(', ')})`);
+
+    return { id, ...profile };
+}
+
+/**
+ * The expected-blank-render entry covering one cell's backend run under a GPU profile, or null. `pixiAdapter` is the
+ * adapter key (`pixi8`) or its id (`pixi-8`).
+ */
+export function expectedBlankFor(seed, { pixiAdapter, pixi, renderer, gpuProfile })
+{
+    const matrix = seed.adapterMatrix;
+    const key = matrix.pixiAdapters[pixiAdapter] ? pixiAdapter : Object.keys(matrix.pixiAdapters).find((candidate) => matrix.pixiAdapters[candidate].id === pixiAdapter);
+
+    return (matrix.expectedBlankRender ?? []).find((entry) => entry.pixiAdapter === key && entry.renderer === renderer && entry.gpuProfile === gpuProfile && entry.pixi.includes(pixi)) ?? null;
+}
+
+/**
+ * A backend run's Vitest JSON report, split by test file: the conformance scenarios, and the render check
+ * (harness/test/backend.test.tsx).
+ */
+export function splitConformanceReport(report)
+{
+    const tally = (predicate) =>
+    {
+        const results = (report?.testResults ?? []).filter((result) => predicate(result.name)).flatMap((result) => result.assertionResults ?? []);
+
+        return {
+            passed: results.filter((result) => result.status === 'passed').length,
+            failed: results.filter((result) => result.status === 'failed').length,
+            skipped: results.filter((result) => !['passed', 'failed'].includes(result.status)).length,
+        };
+    };
+    const check = tally((name) => name.endsWith('backend.test.tsx'));
+
+    return { scenarios: tally((name) => !name.endsWith('backend.test.tsx')), backendCheck: check.failed ? 'fail' : check.passed ? 'pass' : 'not run' };
+}
+
+const sameList = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => value === b[index]);
+
+/**
+ * How a backend run on the expected-blank-render list came out, like the 8.5.0 known-failure probe: `expected-fail` when
+ * every conformance scenario passed and the render check failed exactly as listed (the requested renderer, the listed
+ * read-backs); `fail` when a scenario failed, when the canvas rendered (the entry must be pruned), or when the render check
+ * failed some other way.
+ */
+export function classifyExpectedBlank(entry, { scenarios, backendCheck, renderer, readback, gpu })
+{
+    const versions = `${entry.id}`;
+
+    if (!scenarios || backendCheck === 'not run' || !readback)
+    {
+        return { status: 'fail', message: `expected blank render (${versions}): the run produced no render check result to compare` };
+    }
+    if (scenarios.failed > 0) return { status: 'fail', message: `${scenarios.failed} conformance scenario(s) failed; an expected blank render excuses only the render check` };
+    if (scenarios.passed < 1) return { status: 'fail', message: 'no conformance scenario ran (only the render check reported); an expected blank render needs the suite to pass' };
+    if (backendCheck === 'pass')
+    {
+        return { status: 'fail', message: `unexpected render: this cell is on the expected-blank-render list (${versions}) but its canvas now shows the red rectangle. Remove its pixi.js version from adapterMatrix.expectedBlankRender so the backend can verify it.` };
+    }
+    const { signature } = entry;
+    const matches = renderer === signature.renderer && sameList(readback.canvas, signature.canvas) && sameList(readback.extract, signature.extract)
+        && readback.screenshotMatches === signature.screenshotMatches && gpu?.matchesProfile !== false;
+
+    return matches
+        ? { status: 'expected-fail', message: `expected blank render confirmed (${versions}): canvas ${JSON.stringify(readback.canvas)}, every conformance scenario passed; unverified` }
+        : { status: 'fail', message: `the render check failed, but not as the expected blank render ${versions} records: renderer ${renderer}, read-backs ${JSON.stringify({ canvas: readback.canvas, extract: readback.extract, screenshotMatches: readback.screenshotMatches })}` };
+}
+
+/**
+ * How to spawn a package-manager command (npm, pnpm) on this platform without a POSIX shell. On Windows they are .cmd
+ * shims, which Node runs only through a shell (since the April 2024 security releases), so arguments are quoted for
+ * cmd.exe there; elsewhere the binary runs directly.
+ */
+export function platformCommand(name, args, platform = process.platform)
+{
+    if (platform !== 'win32') return { file: name, args, shell: false };
+    const quote = (arg) => (/^[\w.,:=@/\\+-]+$/.test(arg) ? arg : `"${arg.replaceAll('"', '""')}"`);
+
+    return { file: `${name}.cmd`, args: args.map(quote), shell: true };
 }
 
 /** sha256 of the sorted `[path, sha256]` list: the identity of a set of files. */
@@ -413,13 +590,30 @@ export function cellKey(seed, cell, artifacts, harness, environment, effective =
     // The effective manifest rows (ABI, capabilities, peers, expected failures, probes) decide what the checks assert.
     // `effective` is the generated cell configuration the harness asserts (derived capabilities, formats, tree);
     // callers that run cells pass it so indirect manifest inputs also invalidate the verdict.
-    const config = { react: cell.react, pixi: cell.pixi, install: cell.install, effective };
+    const config = { react: cell.react, pixi: cell.pixi, install: cell.install, renderers: cell.renderers, effective };
     const input = { schema: 3, id: cell.id, commands: cell.commands, deps: cell.deps, toolchain: cell.toolchain, artifacts: used, harness, environment, expect: cell.expect, config };
 
     return { key: sha256(input).slice(0, 40), depsKey: sha256({ deps: cell.deps, toolchain: cell.toolchain, commands: cell.commands, environment }).slice(0, 40), input };
 }
 
 const statusMark = { pass: 'pass', 'cached-pass': 'pass (cached)', 'expected-fail': 'expected failure', fail: 'FAIL', skipped: 'not run' };
+const backendLabel = { webgl: 'WebGL', webgpu: 'WebGPU' };
+
+/** A result cell's text: its status, and with per-backend results the status of each backend it ran. */
+function resultMark(row)
+{
+    const known = row.knownFailures?.length && row.status !== 'fail' ? ` + ${row.knownFailures.length} known defect` : '';
+    const backends = Object.entries(row.backends ?? {});
+
+    if (!backends.length || row.status === 'cached-pass') return `${statusMark[row.status] ?? row.status}${known}`;
+    if (backends.every(([, backend]) => backend.status === 'pass')) return `pass (${backends.map(([name]) => backendLabel[name] ?? name).join(', ')})${known}`;
+    // A backend on the expected-blank-render list that failed exactly as listed: not a failure, and unverified.
+    const blank = backends.filter(([, backend]) => backend.status === 'expected-fail').map(([name]) => `${backendLabel[name] ?? name} expected blank (unverified)`);
+
+    if (row.status === 'pass' && blank.length) return `pass (${backends.filter(([, backend]) => backend.status === 'pass').map(([name]) => backendLabel[name] ?? name).join(', ')}), ${blank.join(', ')}${known}`;
+
+    return `${statusMark[row.status] ?? row.status}: ${backends.map(([name, backend]) => `${backendLabel[name] ?? name} ${backend.status === 'pass' ? 'pass' : backend.status === 'expected-fail' ? 'expected blank' : backend.status.toUpperCase()}`).join(', ')}${known}`;
+}
 
 /** Markdown compatibility table (React adapters by Pixi version) from result rows `{ id, react, pixi, status }`. */
 export function renderTable(seed, rows, { title = 'Adapter compatibility table', manifestOnly = false, intro = true } = {})
@@ -432,7 +626,7 @@ export function renderTable(seed, rows, { title = 'Adapter compatibility table',
     const lines = [`# ${title}`, ''];
 
     if (intro) lines.push(manifestOnly
-        ? 'Generated from `design/compatibility/seed.json` (`adapterMatrix`). These are the cells CI runs, not a support certificate: the certified ranges stay empty until the owner promotes them.'
+        ? 'Generated from `design/compatibility/seed.json` (`adapterMatrix`). These are the cells CI runs. Verified tuples come from the dated verification records (`verifiedRanges`); verification is evidence, not a support guarantee.'
         : 'Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js, then checks the dependency tree, ESM/CJS imports and ABI, declaration consumers and the real-browser conformance suite.');
     lines.push('', `| React adapter @ React | ${pixiVersions.map((version) => `pixi.js ${version}`).join(' | ')} |`, `| --- | ${pixiVersions.map(() => '---').join(' | ')} |`);
     for (const key of reactKeys)
@@ -443,7 +637,7 @@ export function renderTable(seed, rows, { title = 'Adapter compatibility table',
         {
             const row = lookup.get(`${key}|${pixi}`);
 
-            return row ? (manifestOnly ? 'cell' : `${statusMark[row.status] ?? row.status}${row.knownFailures?.length && row.status !== 'fail' ? ` + ${row.knownFailures.length} known defect` : ''}`) : '-';
+            return row ? (manifestOnly ? 'cell' : resultMark(row)) : '-';
         }).join(' | ')} |`);
     }
     const negatives = rows.filter((row) => row.kind === 'negative');
@@ -486,9 +680,13 @@ export function renderCompatibilityDoc(seed)
         '',
         '<!-- Generated by `node design/compatibility/cells/run-cells.mjs doc`; do not edit. Source: `adapterMatrix` in seed.json. -->',
         '',
-        'This is the list of compatibility cells CI runs (issue 13), not a support certificate: `advertisedRanges` stays empty until the owner promotes a range. Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js. Results are published by the Compatibility workflows (job summary and the `compatibility-table` artifact).',
+        'This is the list of compatibility cells CI runs (issue 13). The PR-tier cells make a version **tested**; a tuple is **verified** on a render backend when its nightly cell passed on that backend in a dated [verification record](../verification/) whose boundary probes and incompatible pairs all behaved as expected (`verifiedRanges` in seed.json, derived from the records). The records so far ran on software rendering (SwiftShader WebGL, the WebGPU fallback adapter; no GPU); a real-GPU run can be added as extra evidence. Verification is evidence, not a support guarantee. Each cell installs the packed adapters into an isolated project with exactly the listed React, react-dom and pixi.js. Results are published by the Compatibility workflows (job summary and the `compatibility-table` artifact).',
         '',
         `Required PR check: **Compatibility (required)**. Nightly: **Compatibility (nightly)**, ${selectCells(seed, 'nightly').length} cells (${selectCells(seed, 'nightly', { patches: 'all' }).length} with minimum and latest React patches).`,
+        '',
+        `Render backends, each checked separately: PR tier ${tierRenderers(seed, 'pr').join(', ')}; nightly ${tierRenderers(seed, 'nightly').join(', ')}. ${Object.entries(matrix.pixiAdapters).map(([, adapter]) => `\`${adapter.id}\`: ${Object.keys(adapter.renderers).join(', ')}`).join('; ')}.`,
+        '',
+        `GPU profiles (\`--gpu\`): ${Object.entries(matrix.gpuProfiles).map(([id, profile]) => `**${id}**${id === matrix.defaultGpuProfile ? ' (default, what CI runs)' : ''}: ${profile.description}`).join(' ')}`,
         '',
         `Pixi adapters: ${Object.keys(matrix.pixiAdapters).map((key) =>
         {
@@ -506,6 +704,14 @@ export function renderCompatibilityDoc(seed)
         '',
         section('nightly'),
         `Nightly also re-runs all ${probes('nightly').length} audited tuples as boundary probes.`,
+        '',
+        '## Expected blank renders (unverified)',
+        '',
+        'Backend runs whose render check is known to show a blank canvas under one GPU profile (`adapterMatrix.expectedBlankRender`). The runner counts such a run as expected (not a failure, never verified) only when every conformance scenario passed and the canvas reads back exactly as listed; it fails the cell when the canvas renders, so the list is pruned.',
+        '',
+        '| Entry | Pixi adapter | Backend | GPU profile | pixi.js | Reason |',
+        '| --- | --- | --- | --- | --- | --- |',
+        ...(matrix.expectedBlankRender ?? []).map((entry) => `| ${entry.id} | ${matrix.pixiAdapters[entry.pixiAdapter].id} | ${entry.renderer} | ${entry.gpuProfile} | ${entry.pixi.join(', ')} | ${entry.reason} ${entry.evidence.narrowed} ${entry.evidence.realGpu} |`),
         '',
         '## Deliberately incompatible pairs',
         '',

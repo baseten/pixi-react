@@ -7,14 +7,22 @@
 //   list    --tier pr|nightly      print the cells (--format json|github|table)
 //   pack    --out DIR              pack the built workspace artifacts and record content hashes
 //   key     --cell ID              cache keys of one cell (needs --tarballs)
-//   run     --tier T | --cell IDS  run cells (--negative: the deliberately incompatible pairs)
+//   run     --tier T | --cell IDS  run cells (--negative: the deliberately incompatible pairs; --react V,V and
+//                                  --pixi V,V keep the tier's cells with those exact versions)
 //   all     --tier T               probes, cells and negative cases, then the table: what the required PR check runs
 //   probes  --tier T | --probe IDS run the fast #3 type/API probes at Pixi boundaries
 //   table   --results DIR          render the compatibility table from result files
 //   report  --tier T --out DIR     CI: table, results JSON and failure list; a missing result is a failure
+//   data    [--group IDS]          data-only probes (data-only.json): recorded, never verification; results in data-results/
 //
 // Common options: --tarballs DIR (default .compat/tarballs, packed on demand), --work DIR (default .compat),
-// --patches latest|all, --no-cache, --keep (keep the isolated project).
+// --patches latest|all, --renderers webgl,webgpu (override the tier's render backends), --gpu software|hardware (the
+// GPU profile, `adapterMatrix.gpuProfiles`: software rendering by default, as in CI; `hardware` uses the machine's real
+// GPU and fails a run that lands on a software renderer), --headed / --headless (override the profile's browser mode),
+// --no-cache, --keep (keep the isolated project).
+//
+// Runs on Linux, macOS and Windows (Node 22, npm and pnpm on PATH): commands are spawned without a POSIX shell, and on
+// Windows npm and pnpm through their .cmd shims.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -22,7 +30,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { boundaryProbes, cellArtifacts, cellKey, expectedPixiProvides, expectedTree, loadSeed, negativeCells, plannedRows, renderCompatibilityDoc, renderTable, selectCells, validateAdapterMatrix } from './matrix.mjs';
+import { boundaryProbes, cellArtifacts, cellKey, classifyExpectedBlank, expectedBlankFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, validateAdapterMatrix } from './matrix.mjs';
 import { packArtifacts, readArtifacts } from './pack.mjs';
 import { runProbe } from './probes.mjs';
 
@@ -43,7 +51,7 @@ function parseArguments(argv)
         assert.ok(name.startsWith('--'), `unexpected argument ${name}`);
         const key = name.slice(2);
 
-        if (['no-cache', 'keep', 'negative', 'json', 'manifest-only', 'no-probes'].includes(key)) options.flags.add(key);
+        if (['no-cache', 'keep', 'negative', 'json', 'manifest-only', 'no-probes', 'headed', 'headless'].includes(key)) options.flags.add(key);
         else options[key] = rest[++index];
     }
 
@@ -53,11 +61,17 @@ function parseArguments(argv)
 const options = parseArguments(process.argv.slice(2));
 
 // A selector passed but empty (an unset CI matrix value) must not fall back to running everything.
-for (const selector of ['cell', 'probe', 'chunk'])
+for (const selector of ['cell', 'probe', 'chunk', 'group', 'react', 'pixi'])
 {
     assert.ok(!(selector in options) || options[selector]?.trim(), `--${selector} was given an empty value`);
 }
 const work = resolve(options.work ?? join(root, '.compat'));
+// The GPU profile of this run: which Chromium flags provide each backend, and whether the render check must find a
+// software renderer or a real GPU.
+const gpu = gpuProfileOf(seed, options.gpu);
+
+assert.ok(!(options.flags.has('headed') && options.flags.has('headless')), '--headed and --headless contradict each other');
+const headless = options.flags.has('headed') ? false : options.flags.has('headless') ? true : gpu.headless;
 const csv = (value) => (value ? value.split(',').map((part) => part.trim()).filter(Boolean) : undefined);
 const tail = (text, lines = 40) => text.split('\n').slice(-lines).join('\n');
 
@@ -81,7 +95,8 @@ function harnessHash()
     for (const adapter of Object.values(matrix.pixiAdapters)) files.push(join(root, adapter.probeSource));
     const hash = createHash('sha256');
 
-    for (const file of files.sort()) hash.update(file.slice(root.length)).update(readFileSync(file));
+    // Paths relative to the repository with forward slashes, so the hash is the same on every platform.
+    for (const file of files.sort()) hash.update(file.slice(root.length).split('\\').join('/')).update(readFileSync(file));
 
     return hash.digest('hex');
 }
@@ -103,10 +118,13 @@ function selectedCells()
 
     if (options.flags.has('negative')) return negativeCells(seed).filter((cell) => !ids || ids.includes(cell.id));
     const tier = options.tier ?? 'pr';
-    const cells = selectCells(seed, tier, { patches: options.patches });
-    const chosen = ids ? cells.filter((cell) => ids.some((id) => cell.id === id || cell.id.includes(id))) : cells;
+    const cells = selectCells(seed, tier, { patches: options.patches, renderers: csv(options.renderers) });
+    const reacts = csv(options.react);
+    const pixis = csv(options.pixi);
+    const chosen = cells.filter((cell) => (!ids || ids.some((id) => cell.id === id || cell.id.includes(id)))
+        && (!reacts || reacts.includes(cell.react.version)) && (!pixis || pixis.includes(cell.pixi.version)));
 
-    assert.ok(!ids || chosen.length > 0, `no ${tier} cell matches ${ids?.join(', ')}`);
+    assert.ok(!(ids || reacts || pixis) || chosen.length > 0, `no ${tier} cell matches ${[ids, reacts, pixis].filter(Boolean).flat().join(', ')}`);
 
     return chosen;
 }
@@ -135,9 +153,23 @@ function cellConfig(cell, artifacts)
         conformanceCapabilities: [...new Set([...reactAdapter.conformanceCapabilities, ...pixiAdapter.conformanceCapabilities])],
         probeFactory: pixiAdapter.probeFactory,
         appOptions: pixiAdapter.conformanceAppOptions,
+        // Each render backend this cell runs the conformance suite on: the Chromium flags that provide it (from the GPU
+        // profile) and the application options that request it (harness/vitest.config.mts and harness/test/renderer.ts
+        // read these), plus the expected-blank-render entry that covers it under this profile, if any.
+        renderers: Object.fromEntries(cell.renderers.map((name) =>
+        {
+            const blank = cell.kind === 'cell' ? expectedBlankFor(seed, { pixiAdapter: cell.pixi.adapterKey, pixi: cell.pixi.version, renderer: name, gpuProfile: gpu.id }) : null;
+
+            return [name, { chromiumArgs: gpu.chromiumArgs[name], appOptions: pixiAdapter.renderers[name].appOptions, ...(blank ? { expectedBlankRender: { id: blank.id, signature: blank.signature } } : {}) }];
+        })),
+        // The GPU profile: harness/vitest.config.mts launches the browser headed or headless, and the render check
+        // (harness/test/backend.test.tsx) fails a run whose renderer is not what the profile expects (software or a GPU).
+        gpuProfile: { id: gpu.id, expect: gpu.expect, headless, softwarePatterns: matrix.softwareRendererPatterns },
         expectedConformanceFailures: reactAdapter.expectedConformanceFailures ?? {},
         optimizeDeps: [...new Set([...matrix.commonArtifacts.filter((id) => id !== 'conformance').map((id) => artifacts[id].package), spec(reactAdapter), spec(pixiAdapter), 'pixi.js'])],
         tree: { exact: tree.exact, absent: tree.absent, reconciler: tree.reconciler },
+        // Data-only probes only: run the conformance suite past the adapters' environment checks (harness/test/binding.tsx).
+        ...(cell.dataOnly ? { dataOnly: cell.dataOnly } : {}),
         packed,
         adapters: {
             react: {
@@ -164,7 +196,7 @@ function cellConfig(cell, artifacts)
 }
 
 /** The generated configuration a cell's checks assert; negative cells assert their own expectation instead. */
-const effectiveConfig = (cell, artifacts) => (cell.kind === 'cell' ? cellConfig(cell, artifacts) : null);
+const effectiveConfig = (cell, artifacts) => (cell.kind === 'negative' ? null : cellConfig(cell, artifacts));
 
 const TOOLCHAIN_FOR = { types: ['typescript'], conformance: ['vitest', '@vitest/browser', 'playwright', 'vite'] };
 
@@ -172,10 +204,14 @@ function writeProject(cell, dir, artifacts, config)
 {
     const dependencies = {};
 
-    for (const id of cellArtifacts(seed, cell)) dependencies[artifacts[id].package] = `file:${artifacts[id].file}`;
+    // Forward slashes: npm reads `file:C:/...` on Windows as well.
+    for (const id of cellArtifacts(seed, cell)) dependencies[artifacts[id].package] = `file:${artifacts[id].file.split('\\').join('/')}`;
     Object.assign(dependencies, cell.deps);
     for (const command of cell.commands) for (const name of TOOLCHAIN_FOR[command] ?? []) dependencies[name] = cell.toolchain[name];
-    writeFileSync(join(dir, 'package.json'), `${JSON.stringify({ name: 'compat-cell', private: true, type: 'module', dependencies }, null, 2)}\n`);
+    // Data-only probes may swap a transitive dependency (the reconciler) with an npm override; verification cells never do.
+    const overrides = cell.install?.overrides ? { overrides: cell.install.overrides } : {};
+
+    writeFileSync(join(dir, 'package.json'), `${JSON.stringify({ name: 'compat-cell', private: true, type: 'module', dependencies, ...overrides }, null, 2)}\n`);
     writeFileSync(join(dir, 'cell.json'), `${JSON.stringify(config, null, 2)}\n`);
 
     cpSync(join(here, 'harness'), dir, { recursive: true });
@@ -198,7 +234,9 @@ function writeProject(cell, dir, artifacts, config)
 function execute(name, args, { cwd, log, timeoutSeconds, env }, runner = process.execPath)
 {
     const started = Date.now();
-    const result = spawnSync(runner, args, { cwd, encoding: 'utf8', timeout: timeoutSeconds * 1000, maxBuffer: 256 * 1024 * 1024, env });
+    // Node itself runs directly; npm goes through its .cmd shim on Windows.
+    const command = runner === process.execPath ? { file: runner, args, shell: false } : platformCommand(runner, args);
+    const result = spawnSync(command.file, command.args, { cwd, encoding: 'utf8', timeout: timeoutSeconds * 1000, maxBuffer: 256 * 1024 * 1024, env, shell: command.shell });
     const output = `$ ${runner} ${args.join(' ')}\n${result.stdout ?? ''}${result.stderr ?? ''}${result.error ? `\n[${result.error.code ?? result.error.message}]` : ''}${result.signal ? `\n[killed by ${result.signal} after ${timeoutSeconds}s]` : ''}\n`;
 
     writeFileSync(log, output);
@@ -216,7 +254,8 @@ function commandLine(name, cell)
         case 'tree': return { args: ['checks/tree.mjs'] };
         case 'modules': return { args: ['checks/modules.mjs'] };
         case 'types': return { args: [...bin('node_modules/typescript/bin/tsc'), '-p', 'typecheck/tsconfig.bundler.json'], then: [{ args: [...bin('node_modules/typescript/bin/tsc'), '-p', 'typecheck/tsconfig.nodenext.json'] }] };
-        case 'conformance': return { args: ['node_modules/vitest/vitest.mjs', 'run', '--reporter=default', '--reporter=json', '--outputFile.json=conformance.json'] };
+        // One run per render backend (cell.renderers); each writes its own report.
+        case 'conformance': return { perRenderer: (renderer) => ({ args: ['node_modules/vitest/vitest.mjs', 'run', '--reporter=default', '--reporter=json', `--outputFile.json=conformance-${renderer}.json`] }) };
         default: throw new Error(`unknown command ${name} in ${cell.id}`);
     }
 }
@@ -229,12 +268,35 @@ function assertIsolated(dir)
     }
 }
 
+/** The lines of a failed command that say why: errors, failed tests and npm's peer complaints, at most 25. */
+function dataExcerpt(output)
+{
+    const wanted = /(FAIL|Error|error|✗|×|failed|rejected|ERESOLVE|invalid|missing|expected|TS\d{4})/;
+
+    return output.split('\n').filter((line) => wanted.test(line) && !line.startsWith('$ ')).map((line) => line.trim().slice(0, 300)).filter((line, index, all) => all.indexOf(line) === index).slice(0, 25);
+}
+
+/** What harness/test/backend.test.tsx printed about the browser's renderer (`COMPAT_BACKEND {...}`), or null. */
+function backendInfo(output)
+{
+    const line = output.split('\n').find((text) => text.startsWith('COMPAT_BACKEND '));
+
+    try
+    {
+        return line ? JSON.parse(line.slice('COMPAT_BACKEND '.length)) : null;
+    }
+    catch
+    {
+        return null;
+    }
+}
+
 function runCell(cell, artifacts, { harness, verdicts, out, results })
 {
     const started = Date.now();
     const { key, depsKey } = cellKey(seed, cell, artifacts, harness, environment(), effectiveConfig(cell, artifacts));
     const outDir = join(out, cell.id);
-    const base = { id: cell.id, kind: cell.kind, label: cell.label, adapterLabel: cell.react.adapter.id, reactVersion: cell.react.version, pixiVersion: cell.pixi.version, key, depsKey, expect: cell.expect, description: cell.description, commands: {} };
+    const base = { id: cell.id, kind: cell.kind, label: cell.label, adapterLabel: cell.react.adapter.id, reactVersion: cell.react.version, pixiVersion: cell.pixi.version, gpuProfile: gpu.id, key, depsKey, expect: cell.expect, description: cell.description, commands: {} };
     const verdictFile = join(verdicts, `${key}.json`);
 
     rmSync(outDir, { recursive: true, force: true });
@@ -243,7 +305,7 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
     if (cell.kind === 'cell' && !options.flags.has('no-cache') && existsSync(verdictFile))
     {
         const previous = JSON.parse(readFileSync(verdictFile, 'utf8'));
-        const row = { ...base, status: 'cached-pass', commands: previous.commands, conformance: previous.conformance, knownFailures: previous.knownFailures, message: `verdict cached for key ${key.slice(0, 12)} (same packed artifacts, versions and harness)`, durationMs: 0 };
+        const row = { ...base, status: 'cached-pass', commands: previous.commands, conformance: previous.conformance, backends: previous.backends, knownFailures: previous.knownFailures, ...(previous.expectedBlank ? { expectedBlank: previous.expectedBlank } : {}), message: `verdict cached for key ${key.slice(0, 12)} (same packed artifacts, versions and harness)`, durationMs: 0 };
 
         writeFileSync(join(results, `${cell.id}.json`), `${JSON.stringify(row, null, 2)}\n`);
 
@@ -267,6 +329,52 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
         for (const name of cell.commands)
         {
             const spec = commandLine(name, cell);
+
+            if (spec.perRenderer)
+            {
+                // Every backend runs even when an earlier one failed, so the result records each backend separately.
+                base.backends = {};
+                let total = 0;
+
+                for (const renderer of cell.renderers)
+                {
+                    const run = spec.perRenderer(renderer);
+                    const step = execute(name, run.args, { cwd: dir, log: join(outDir, `${name}-${renderer}.log`), timeoutSeconds: matrix.commands.timeoutSeconds[name], env: { ...env, COMPAT_RENDERER: renderer } }, run.runner);
+                    const info = backendInfo(step.output);
+                    const blank = config.renderers[renderer].expectedBlankRender;
+                    let status = step.status;
+                    let note;
+
+                    total += step.ms;
+                    const reportFile = join(dir, `conformance-${renderer}.json`);
+                    const split = existsSync(reportFile) ? splitConformanceReport(JSON.parse(readFileSync(reportFile, 'utf8'))) : {};
+
+                    // A pass needs the suite itself (at least one scenario, none failed) and the render check, separately.
+                    if (!blank && status === 'pass' && !(split.scenarios?.passed >= 1 && split.scenarios.failed === 0 && split.backendCheck === 'pass'))
+                    {
+                        status = 'fail';
+                        note = `the run exited cleanly but the report shows ${split.scenarios ? `${split.scenarios.passed} conformance scenario(s) passed, ${split.scenarios.failed} failed` : 'no report'} and a render check that is ${split.backendCheck ?? 'missing'}`;
+                    }
+                    if (blank)
+                    {
+                        // On the expected-blank-render list: like the 8.5.0 known-failure probe, the run must fail exactly
+                        // as listed (scenarios all pass, the canvas reads back blank); a render or any other failure fails.
+                        const verdict = classifyExpectedBlank({ ...blank, ...matrix.expectedBlankRender.find((entry) => entry.id === blank.id) }, { ...split, renderer: info?.actual, readback: info?.readback, gpu: info?.gpu });
+
+                        status = verdict.status;
+                        note = verdict.message;
+                    }
+                    base.backends[renderer] = { status, ms: step.ms, backend: info, ...(blank ? { expectedBlankRender: blank.id } : {}), ...(note ? { note } : {}), ...(cell.kind === 'data' && step.status !== 'pass' ? { excerpt: dataExcerpt(step.output) } : {}) };
+                    if (status === 'fail' && !failure) failure = { command: name, renderer, output: note ? `${note}\n${step.output}` : step.output };
+                }
+                // An expected blank render is not a failure of the command (and verifies nothing: see verification.mjs).
+                base.commands[name] = { status: Object.values(base.backends).every((backend) => ['pass', 'expected-fail'].includes(backend.status)) ? 'pass' : 'fail', ms: total };
+                const blanks = Object.entries(base.backends).filter(([, backend]) => backend.status === 'expected-fail').map(([renderer]) => renderer);
+
+                if (blanks.length) base.expectedBlank = blanks;
+                if (failure && cell.kind !== 'data') break;
+                continue;
+            }
             let step = execute(name, spec.args, { cwd: dir, log: join(outDir, `${name}.log`), timeoutSeconds: matrix.commands.timeoutSeconds[name], env }, spec.runner);
 
             for (const next of step.status === 'pass' ? spec.then ?? [] : [])
@@ -278,7 +386,13 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
             base.commands[name] = { status: step.status, ms: step.ms };
             if (step.status !== 'pass')
             {
-                failure = { command: name, output: step.output };
+                failure ??= { command: name, output: step.output };
+                // A data-only probe records every command it can run; only a failed install ends it.
+                if (cell.kind === 'data')
+                {
+                    base.commands[name].excerpt = dataExcerpt(step.output);
+                    if (name !== 'install') continue;
+                }
                 break;
             }
         }
@@ -291,17 +405,22 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
     }
     finally
     {
-        for (const name of ['package.json', 'package-lock.json', 'cell.json', 'npm-ls.json', 'tree-report.json', 'conformance.json']) if (existsSync(join(dir, name))) cpSync(join(dir, name), join(outDir, name));
+        for (const name of ['package.json', 'package-lock.json', 'cell.json', 'npm-ls.json', 'tree-report.json', ...cell.renderers.map((renderer) => `conformance-${renderer}.json`)]) if (existsSync(join(dir, name))) cpSync(join(dir, name), join(outDir, name));
         for (const name of ['typecheck', 'test/__screenshots__']) if (existsSync(join(dir, name))) cpSync(join(dir, name), join(outDir, name.replace('/', '-')), { recursive: true });
         if (!options.flags.has('keep')) rmSync(dir, { recursive: true, force: true });
         else process.stdout.write(`kept ${dir}\n`);
     }
 
-    if (existsSync(join(outDir, 'conformance.json')))
+    for (const renderer of cell.renderers)
     {
-        const report = JSON.parse(readFileSync(join(outDir, 'conformance.json'), 'utf8'));
+        const file = join(outDir, `conformance-${renderer}.json`);
 
-        base.conformance = { passed: report.numPassedTests, failed: report.numFailedTests, skipped: report.numPendingTests + (report.numTodoTests ?? 0), total: report.numTotalTests };
+        if (!existsSync(file) || !base.backends?.[renderer]) continue;
+        const report = JSON.parse(readFileSync(file, 'utf8'));
+
+        base.backends[renderer].conformance = { passed: report.numPassedTests, failed: report.numFailedTests, skipped: report.numPendingTests + (report.numTodoTests ?? 0), total: report.numTotalTests };
+        // The first backend's counts (WebGL) stay in `conformance`, as before backends were separate.
+        base.conformance ??= base.backends[renderer].conformance;
     }
     base.durationMs = Date.now() - started;
 
@@ -320,15 +439,22 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
             Object.assign(base, { status: 'expected-fail', message: line.replace(/^(npm error\s+)?\s*-?\s*/, '').trim() || `fails at ${wanted.failingCommand}` });
         }
     }
+    else if (cell.kind === 'data')
+    {
+        // Data, not a verdict: never cached, never verification.
+        base.status = failure ? 'fail' : 'pass';
+        base.dataOnly = cell.dataOnly;
+        base.group = cell.group;
+    }
     else if (failure)
     {
-        Object.assign(base, { status: 'fail', failedCommand: failure.command, message: `${failure.command} failed:\n${tail(failure.output, 30)}` });
+        Object.assign(base, { status: 'fail', failedCommand: failure.command, ...(failure.renderer ? { failedRenderer: failure.renderer } : {}), message: `${failure.command}${failure.renderer ? ` (${failure.renderer})` : ''} failed:\n${tail(failure.output, 30)}` });
     }
     else
     {
         base.status = 'pass';
         mkdirSync(verdicts, { recursive: true });
-        writeFileSync(verdictFile, `${JSON.stringify({ id: cell.id, key, commands: base.commands, conformance: base.conformance, knownFailures: base.knownFailures, at: new Date().toISOString() }, null, 2)}\n`);
+        writeFileSync(verdictFile, `${JSON.stringify({ id: cell.id, key, commands: base.commands, conformance: base.conformance, backends: base.backends, knownFailures: base.knownFailures, ...(base.expectedBlank ? { expectedBlank: base.expectedBlank } : {}), at: new Date().toISOString() }, null, 2)}\n`);
     }
     writeFileSync(join(results, `${cell.id}.json`), `${JSON.stringify(base, null, 2)}\n`);
 
@@ -338,9 +464,12 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
 function printRow(row)
 {
     const timing = Object.entries(row.commands ?? {}).map(([name, step]) => `${name} ${step.status === 'pass' ? '' : 'FAIL '}${(step.ms / 1000).toFixed(1)}s`).join(', ');
-    const counts = row.conformance ? `, conformance ${row.conformance.passed} passed/${row.conformance.skipped} skipped/${row.conformance.failed} failed` : '';
+    const count = (conformance) => `${conformance.passed} passed/${conformance.skipped} skipped/${conformance.failed} failed`;
+    const backends = Object.entries(row.backends ?? {}).filter(([, backend]) => backend.conformance);
+    const counts = backends.length ? `, ${backends.map(([name, backend]) => `${name} ${count(backend.conformance)}`).join(', ')}` : row.conformance ? `, conformance ${count(row.conformance)}` : '';
 
     process.stdout.write(`${row.status.toUpperCase().padEnd(13)} ${row.id}  [${timing}${counts}]  key ${row.key.slice(0, 12)}\n`);
+    for (const [name, backend] of Object.entries(row.backends ?? {})) if (backend.note) process.stdout.write(`    ${name}: ${backend.note}\n`);
     if (row.status === 'fail' || row.status === 'expected-fail') process.stdout.write(`${(row.message ?? '').split('\n').map((line) => `    ${line}`).join('\n')}\n`);
 }
 
@@ -359,8 +488,60 @@ function commandRun(cells = selectedCells())
     });
     const bad = rows.filter((row) => row.status === 'fail');
 
-    process.stdout.write(`${rows.length} cells: ${rows.filter((row) => row.status === 'pass').length} passed, ${rows.filter((row) => row.status === 'cached-pass').length} cached, ${rows.filter((row) => row.status === 'expected-fail').length} rejected as expected, ${bad.length} failed. Diagnostics: ${context.out}\n`);
+    const blank = rows.filter((row) => row.expectedBlank?.length).length;
+
+    process.stdout.write(`${rows.length} cells (GPU profile ${gpu.id}): ${rows.filter((row) => row.status === 'pass').length} passed${blank ? ` (${blank} with an expected blank render, unverified on that backend)` : ''}, ${rows.filter((row) => row.status === 'cached-pass').length} cached, ${rows.filter((row) => row.status === 'expected-fail').length} rejected as expected, ${bad.length} failed. Diagnostics: ${context.out}\n`);
     process.exitCode = process.exitCode || (bad.length ? 1 : 0);
+}
+
+/** The data-only probe cells of data-only.json (optionally only some groups), at the requested render backends. */
+function dataCells()
+{
+    const spec = JSON.parse(readFileSync(join(here, 'data-only.json'), 'utf8'));
+    const groups = csv(options.group);
+    const cells = [];
+
+    for (const group of spec.groups.filter((candidate) => !groups || groups.includes(candidate.id)))
+    {
+        for (const pixi of group.pixi)
+        {
+            for (const react of group.react)
+            {
+                const cell = makeCell(seed, { react: { epoch: react.epoch, version: react.version, typesReact: react.typesReact }, pixi }, { renderers: csv(options.renderers) ?? Object.keys(matrix.renderers) });
+
+                cells.push({
+                    ...cell,
+                    id: `data-react-${react.version}_pixi-${pixi.version}`,
+                    kind: 'data',
+                    group: group.id,
+                    react: { ...cell.react, reconciler: react.reconciler ?? cell.react.reconciler },
+                    install: { legacyPeerDeps: true, ...(react.reconciler ? { overrides: { 'react-reconciler': react.reconciler } } : {}) },
+                    dataOnly: { bypassEnvironmentCheck: true },
+                });
+            }
+        }
+    }
+    assert.ok(cells.length > 0, 'no data-only probe selected');
+
+    return cells;
+}
+
+function commandData()
+{
+    const artifacts = getArtifacts();
+    const context = { harness: harnessHash(), verdicts: join(work, 'data-verdicts'), out: join(work, 'data-out'), results: join(work, 'data-results') };
+    const rows = dataCells().map((cell) =>
+    {
+        const row = runCell(cell, artifacts, context);
+
+        printRow(row);
+        for (const [name, step] of Object.entries(row.commands)) if (step.excerpt) process.stdout.write(`    ${name}: ${step.excerpt.slice(0, 6).join('\n      ')}\n`);
+        for (const [name, backend] of Object.entries(row.backends ?? {})) if (backend.excerpt) process.stdout.write(`    conformance (${name}): ${backend.excerpt.slice(0, 6).join('\n      ')}\n`);
+
+        return row;
+    });
+
+    process.stdout.write(`${rows.length} data-only probes: ${rows.filter((row) => row.status === 'pass').length} ran clean, ${rows.filter((row) => row.status === 'fail').length} recorded a failure. Data, not verification. Results: ${context.results}\n`);
 }
 
 function commandProbes()
@@ -436,7 +617,7 @@ function commandTable()
 function commandReport()
 {
     const tier = options.tier ?? 'pr';
-    const expectedCells = [...selectCells(seed, tier, { patches: options.patches, filter: csv(options.filter) }), ...negativeCells(seed)];
+    const expectedCells = [...selectCells(seed, tier, { patches: options.patches, filter: csv(options.filter), renderers: csv(options.renderers) }), ...negativeCells(seed)];
     const report = buildReport(loadResults(resolve(options.results ?? join(work, 'results'))), { title: `Adapter compatibility table (${tier})`, expectedCells, expectedProbes: options.flags.has('no-probes') ? [] : boundaryProbes(seed, tier) });
     const out = resolve(options.out ?? join(work, 'report'));
 
@@ -455,7 +636,7 @@ switch (options.command)
         break;
     case 'list':
     {
-        const cells = options.flags.has('negative') ? negativeCells(seed) : selectCells(seed, options.tier ?? 'pr', { patches: options.patches, filter: csv(options.filter) });
+        const cells = options.flags.has('negative') ? negativeCells(seed) : selectCells(seed, options.tier ?? 'pr', { patches: options.patches, filter: csv(options.filter), renderers: csv(options.renderers) });
         const brief = (cell) => ({ id: cell.id, label: cell.label, react: cell.react.version, pixi: cell.pixi.version, commands: cell.commands });
 
         if (options.format === 'github') process.stdout.write(JSON.stringify({ cell: cells.map(brief) }));
@@ -504,13 +685,16 @@ switch (options.command)
         rmSync(join(work, 'results'), { recursive: true, force: true });
         if (!options.tarballs) packArtifacts(seed, join(work, 'tarballs'), root);
         commandProbes();
-        commandRun(selectCells(seed, options.tier ?? 'pr', { patches: options.patches }));
+        commandRun(selectCells(seed, options.tier ?? 'pr', { patches: options.patches, renderers: csv(options.renderers) }));
         commandRun(negativeCells(seed));
         options.title = `Adapter compatibility table (${options.tier ?? 'pr'})`;
         commandTable();
         break;
     case 'probes':
         commandProbes();
+        break;
+    case 'data':
+        commandData();
         break;
     case 'table':
         commandTable();

@@ -18,7 +18,7 @@ npm install pixi.js@8.22.0 react@19.3.0 react-dom@19.3.0 @pixi/react@8.1.0
 | | 8.0.x (upstream) | 8.1.0 |
 | --- | --- | --- |
 | `react` peer | `>=19.0.0` | `^19.3.0` (tested: 19.3.0) |
-| `pixi.js` peer | `^8.2.6` | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` (tested on every change: 8.2.6 and 8.22.0; the nightly cells cover every 8.x minor) |
+| `pixi.js` peer | `^8.2.6` | `>=8.2.6 <8.5.0 \|\| >=8.5.1 <8.23.0` (tested on every change: 8.2.6 and 8.22.0; the newest patch of every 8.x minor is verified on WebGL, and from 8.10.2 on WebGPU, on software rendering) |
 | Reconciler | react-reconciler 0.31.0, the React 19.0 one, whatever React 19 minor was installed | react-reconciler 0.34.0, the React 19.3 one |
 
 8.0.x ran React 19.0's reconciler on every React 19 minor, which no one had tested on 19.1 and later (from 19.2, React reinterprets one of the reconciler's root arguments). 8.1 builds in the reconciler of React 19.3 and declares the React versions it is tested with.

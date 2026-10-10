@@ -1,4 +1,4 @@
-// Historical scene/API audit, not a browser, renderer or adapter certificate.
+// Historical scene/API audit, not a browser, renderer or adapter verification record.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';

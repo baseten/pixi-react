@@ -62,7 +62,7 @@ describe('installed version bounds', () =>
         expect(error).toMatchObject({ code: 'UNSUPPORTED_TUPLE', adapterIds: ['pixi-8'], actual: { 'pixi.js': '8.5.0' } });
     });
 
-    it('records the certified bounds and the installed version in the manifest', () =>
+    it('records the tested bounds and the installed version in the manifest', () =>
     {
         for (const { pixi, version } of cells)
         {

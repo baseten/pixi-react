@@ -23,6 +23,7 @@ function validate(t, mutate)
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
     copyFileSync(new URL('surface-map.mjs', import.meta.url), join(root, 'surface-map.mjs'));
+    copyFileSync(new URL('verification.mjs', import.meta.url), join(root, 'verification.mjs'));
     writeFileSync(join(root, 'historical-seed.json'), JSON.stringify(seed));
     writeFileSync(join(root, seed.evidence), JSON.stringify(evidence));
 

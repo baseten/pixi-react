@@ -114,9 +114,13 @@ New APIs, available only through `createRenderer`: `useContextBridge`, `componen
 `Application`, and `Root.status`. The exact versions each package is tested with are in the generated
 [release compatibility table](release-compatibility.md).
 
-## Tested, not certified
+## Tested and verified
 
 React 19.3.0 (and each adapter's exact React versions) with pixi.js 8.2.6 and 8.22.0 run in the required PR-tier
-compatibility cells on every change, and the nightly tier covers every Pixi 8 minor. Release 1 calls these versions
-**tested**. No range is **certified**: the compatibility manifest's `advertisedRanges` stays empty until the owner
-promotes one ([release.md](release.md#what-tested-means)).
+compatibility cells on every change: these versions are **tested**. The [2026-10-10 verification record](compatibility/verification/2026-10-10.md)
+ran the full nightly matrix and **verifies** every React adapter at both audited patches with every Pixi 8 minor's
+newest audited patch and pixi.js 7.4.2 and 7.4.3 on **WebGL**, and with pixi.js 8.10.2 … 8.22.0 on **WebGPU**. On
+WebGPU, pixi.js 8.2.6 to 8.9.2 are an expected blank render, unverified: a blank canvas on the software WebGPU adapter,
+although every conformance scenario passes. The record ran on software rendering (SwiftShader, no GPU); a run on a
+real GPU can be added as extra evidence. The verified tuples are `verifiedRanges` in the compatibility manifest.
+Verification is evidence, not a support guarantee, and no peer range was widened ([release.md](release.md#tested-and-verified)).

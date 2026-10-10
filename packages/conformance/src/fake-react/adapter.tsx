@@ -104,7 +104,7 @@ export class FakeReactAdapter extends ReactAdapter<FakeReactFamily>
         abi: { major: 1, minor: 0 },
         id: 'conformance.fake-react-19',
         packageVersion: '0.0.0',
-        certification: 'none: conformance test double',
+        verification: 'none: conformance test double',
         provides: {},
         requires: { 'pixi.mutation': 1, 'pixi.visibility': 1, 'pixi.application': 1, 'pixi.ticker': 1 },
     };

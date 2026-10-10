@@ -2,8 +2,8 @@
  * The facade's React version policy (issue 49; amends D1/D5 for the facade only).
  *
  * `@pixi/react` declares `"react": "^19.3.0"`, so installs never fail with ERESOLVE on a newer React, while the
- * React 19.3 adapter it builds in is tested with React 19.3 only (the #13 compatibility cells; issue 40 records why
- * this is "tested", not "certified": no range is promoted in the compatibility manifest yet). A React 19 minor other
+ * React 19.3 adapter it builds in is tested with React 19.3 only (the #13 compatibility cells; issue 17's dated
+ * verification records list the exact tuples verified, as evidence, not a support guarantee). A React 19 minor other
  * than 19.3 therefore composes, and logs ONE console warning that names the tested version and how to pin. A React
  * outside the 19 major cannot work with the reconciler the facade depends on: the adapter's own `CompatibilityError`
  * (`UNSUPPORTED_TUPLE`) still rejects it. The modular per-minor adapter packages keep their exact peers and always

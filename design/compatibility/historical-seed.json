@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "issue": "https://github.com/baseten/pixi-react/issues/24",
-  "status": "historical-audit-not-support-certificate",
+  "status": "historical-audit-not-support-guarantee",
   "floors": {
     "react": "18.3.1",
     "pixi.js": "7.4.2",
     "pixi8": "8.2.6"
   },
-  "advertisedRanges": [],
+  "verifiedRanges": [],
   "evidence": "historical-evidence.json",
   "registry": {
     "@types/react": {

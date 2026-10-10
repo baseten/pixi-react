@@ -64,6 +64,28 @@ export function supportedPixiRange(seed, adapterKey = defaultPixiAdapter(seed))
     return segments.join(' || ');
 }
 
+/**
+ * The `verifiedRanges` entries (seed.json, derived from the dated verification records in design/compatibility/verification)
+ * that match a filter, summarised per render backend: the exact tuples verified on each, and the records (ids) behind them.
+ */
+export function verifiedTuples(seed, { reactAdapter, reactVersions, pixiAdapter } = {})
+{
+    const entries = (seed.verifiedRanges ?? []).filter((entry) => (!reactAdapter || entry.reactAdapter === reactAdapter)
+        && (!reactVersions || reactVersions.includes(entry.react)) && (!pixiAdapter || entry.pixiAdapter === pixiAdapter));
+    const backends = {};
+
+    for (const entry of entries)
+    {
+        for (const [backend, versions] of Object.entries(entry.backends))
+        {
+            backends[backend] ??= [];
+            for (const pixi of versions) backends[backend].push({ reactAdapter: entry.reactAdapter, react: entry.react, pixiAdapter: entry.pixiAdapter, pixi });
+        }
+    }
+
+    return { records: [...new Set(entries.flatMap((entry) => entry.records))].sort(), backends };
+}
+
 /** The version a package releases next: its Release 1 version until anything is released, then its package.json version. */
 export function releaseVersion(pkg, manifest, config)
 {
@@ -109,6 +131,12 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
     const pixiByDir = new Map(Object.entries(matrix.pixiAdapters).map(([key, adapter]) => [matrix.artifacts[adapter.artifact].dir, { key, adapter }]));
     const prCellsOf = (adapterKey) => selectCells(seed, 'pr').filter((cell) => cell.pixi.adapterKey === adapterKey)
         .map((cell) => ({ react: cell.react.version, reactAdapter: cell.react.adapter.id, pixi: cell.pixi.version }));
+    const verifiedOf = (react, pixiRow) =>
+    {
+        if (react) return verifiedTuples(seed, { reactAdapter: react.adapter.id });
+
+        return pixiRow ? verifiedTuples(seed, { pixiAdapter: pixiRow.adapter.id }) : null;
+    };
     const packages = config.packages.map((pkg) =>
     {
         const manifest = manifestOf(pkg.dir);
@@ -129,6 +157,8 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
             // Our packages it depends on; each at exactly this release's version (lockstep, issue 62).
             internal: Object.keys(manifest.dependencies ?? {}).filter((name) => config.byWorkspaceName.has(name)).map((name) => config.byWorkspaceName.get(name).publicName),
             reactEpoch: react?.key ?? null,
+            // Exact tuples a dated verification record verified for this package, per render backend (issue 17).
+            verified: verifiedOf(react, pixiRow),
             // The PR tier runs each React adapter at its newest audited patch against every PR-tier pixi.js version.
             prCells: react ? prPixi.map((pixi) => ({ react: reactPr, pixi })) : null,
             // A Pixi adapter: its manifest key, its declared range and the PR-tier cells that run it.
@@ -138,6 +168,7 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
                 range: pixiRow.adapter.declaredPeers['pixi.js'],
                 supportedRange: supportedPixiRange(seed, pixiRow.key),
                 prCells: prCellsOf(pixiRow.key),
+                renderers: Object.keys(pixiRow.adapter.renderers ?? {}),
             } : null,
         };
     });
@@ -151,6 +182,7 @@ export function releaseFacts({ root = repoRoot, config, seed = loadSeedAt(root) 
             reactEpoch: epochKey,
             reactMinor: epoch.reactMinor,
             reactTested: tested,
+            verified: verifiedTuples(seed, { reactAdapter: reactAdapter.id, reactVersions: tested, pixiAdapter: pixiAdapter.id }),
             newestReact,
             expectedReactPeer: `^${newestReact}`,
             composedPackages: packages.filter((pkg) => devDependencies.includes(pkg.workspaceName)),

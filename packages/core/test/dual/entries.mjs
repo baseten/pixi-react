@@ -10,7 +10,7 @@ const require = createRequire(import.meta.url);
 const cjs = require('@pixi-react-provisional/core');
 
 const manifest = (id, extra) => ({
-    abi: { major: 1, minor: 0 }, id, packageVersion: '0.0.0', certification: 'test', provides: {}, requires: {}, ...extra,
+    abi: { major: 1, minor: 0 }, id, packageVersion: '0.0.0', verification: 'test', provides: {}, requires: {}, ...extra,
 });
 
 // A Pixi adapter built on the ESM entry and a React adapter built on the CJS entry compose together.
