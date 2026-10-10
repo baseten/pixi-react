@@ -533,6 +533,7 @@ export function classifyExpectedBlank(entry, { scenarios, backendCheck, renderer
         return { status: 'fail', message: `expected blank render (${versions}): the run produced no render check result to compare` };
     }
     if (scenarios.failed > 0) return { status: 'fail', message: `${scenarios.failed} conformance scenario(s) failed; an expected blank render excuses only the render check` };
+    if (scenarios.passed < 1) return { status: 'fail', message: 'no conformance scenario ran (only the render check reported); an expected blank render needs the suite to pass' };
     if (backendCheck === 'pass')
     {
         return { status: 'fail', message: `unexpected render: this cell is on the expected-blank-render list (${versions}) but its canvas now shows the red rectangle. Remove its pixi.js version from adapterMatrix.expectedBlankRender so the backend can verify it.` };

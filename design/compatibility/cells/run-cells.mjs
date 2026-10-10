@@ -346,18 +346,25 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
                     let note;
 
                     total += step.ms;
+                    const reportFile = join(dir, `conformance-${renderer}.json`);
+                    const split = existsSync(reportFile) ? splitConformanceReport(JSON.parse(readFileSync(reportFile, 'utf8'))) : {};
+
+                    // A pass needs the suite itself (at least one scenario, none failed) and the render check, separately.
+                    if (!blank && status === 'pass' && !(split.scenarios?.passed >= 1 && split.scenarios.failed === 0 && split.backendCheck === 'pass'))
+                    {
+                        status = 'fail';
+                        note = `the run exited cleanly but the report shows ${split.scenarios ? `${split.scenarios.passed} conformance scenario(s) passed, ${split.scenarios.failed} failed` : 'no report'} and a render check that is ${split.backendCheck ?? 'missing'}`;
+                    }
                     if (blank)
                     {
                         // On the expected-blank-render list: like the 8.5.0 known-failure probe, the run must fail exactly
                         // as listed (scenarios all pass, the canvas reads back blank); a render or any other failure fails.
-                        const reportFile = join(dir, `conformance-${renderer}.json`);
-                        const split = existsSync(reportFile) ? splitConformanceReport(JSON.parse(readFileSync(reportFile, 'utf8'))) : {};
                         const verdict = classifyExpectedBlank({ ...blank, ...matrix.expectedBlankRender.find((entry) => entry.id === blank.id) }, { ...split, renderer: info?.actual, readback: info?.readback, gpu: info?.gpu });
 
                         status = verdict.status;
                         note = verdict.message;
                     }
-                    base.backends[renderer] = { status, ms: step.ms, backend: info, ...(blank ? { expectedBlankRender: blank.id, note } : {}), ...(cell.kind === 'data' && step.status !== 'pass' ? { excerpt: dataExcerpt(step.output) } : {}) };
+                    base.backends[renderer] = { status, ms: step.ms, backend: info, ...(blank ? { expectedBlankRender: blank.id } : {}), ...(note ? { note } : {}), ...(cell.kind === 'data' && step.status !== 'pass' ? { excerpt: dataExcerpt(step.output) } : {}) };
                     if (status === 'fail' && !failure) failure = { command: name, renderer, output: note ? `${note}\n${step.output}` : step.output };
                 }
                 // An expected blank render is not a failure of the command (and verifies nothing: see verification.mjs).

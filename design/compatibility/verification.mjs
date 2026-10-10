@@ -89,7 +89,8 @@ function backendEntry(backend, reportFile)
 
     return {
         status: backend.status,
-        ...(backend.expectedBlankRender ? { expectedBlankRender: backend.expectedBlankRender, note: backend.note } : {}),
+        ...(backend.expectedBlankRender ? { expectedBlankRender: backend.expectedBlankRender } : {}),
+        ...(backend.note ? { note: backend.note } : {}),
         ...(split ? { scenarios: split.suite, backendCheck: split.backendCheck } : {}),
         conformance: counts(backend.conformance),
         renderer: info.actual ?? null,
@@ -217,11 +218,18 @@ export function recordGate(record)
         && record.negatives.length > 0 && record.negatives.every((negative) => negative.status === 'expected-fail');
 }
 
+/** Whether a backend entry's conformance suite itself ran: at least one scenario passed and none failed. */
+export const scenariosRan = (entry) => Boolean(entry?.scenarios) && entry.scenarios.passed >= 1 && entry.scenarios.failed === 0;
+
 /** The verification rule for one tuple of a record on one backend. */
 export function tupleVerified(record, cell, backend, gate = recordGate(record))
 {
-    // Every command but the per-backend conformance run (whose result is the backend entry) must pass.
-    return gate && cell.backends[backend]?.status === 'pass' && Object.entries(cell.commands).every(([name, status]) => name === 'conformance' || status === 'pass');
+    const entry = cell.backends[backend];
+
+    // The backend passed with its suite and render check counted separately, and every command but the per-backend
+    // conformance run (whose result is the backend entry) passed.
+    return gate && entry?.status === 'pass' && scenariosRan(entry) && entry.backendCheck === 'pass'
+        && Object.entries(cell.commands).every(([name, status]) => name === 'conformance' || status === 'pass');
 }
 
 /** The summary block of a record, from its cells, probes and negative cases. */
@@ -472,6 +480,9 @@ export function validateRecord(seed, record, name = recordId(record))
             if (entry.status === 'pass')
             {
                 assert.ok(entry.conformance && entry.conformance.failed === 0 && entry.conformance.passed > 0, `${name}: ${cell.id} ${backend}: a pass needs conformance counts with no failure`);
+                // The suite and the render check separately: a passing render check alone is not a conformance run.
+                assert.ok(scenariosRan(entry), `${name}: ${cell.id} ${backend}: a pass needs at least one conformance scenario passed and none failed`);
+                assert.equal(entry.backendCheck, 'pass', `${name}: ${cell.id} ${backend}: a pass needs a passing render check`);
                 assert.equal(entry.renderer, backend, `${name}: ${cell.id} ${backend}: a pass must have run on the ${backend} renderer`);
             }
             if (entry.status === 'expected-fail')

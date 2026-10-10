@@ -9,7 +9,7 @@ import { checkExpectedBlankAgainstRecords, checkRenderedRecords, currentRecords,
 
 const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
-const pass = (renderer) => ({ status: 'pass', renderer, conformance: { passed: 80, failed: 0, skipped: 10, total: 90 } });
+const pass = (renderer) => ({ status: 'pass', scenarios: { passed: 79, failed: 0, skipped: 10 }, backendCheck: 'pass', renderer, conformance: { passed: 80, failed: 0, skipped: 10, total: 90 } });
 const commands = { install: 'pass', tree: 'pass', modules: 'pass', types: 'pass', conformance: 'pass' };
 const cell = (react, pixi, backends, extra = {}) => ({ id: `react-${react}_pixi-${pixi}`, reactAdapter: 'react-x', react, pixiAdapter: pixi.startsWith('7.') ? 'pixi-7' : 'pixi-8', pixi, commands, backends, ...extra });
 const record = (cells, extra = {}) => ({
@@ -99,9 +99,31 @@ test('within one machine and GPU profile the newest record supersedes; across th
     assert.deepEqual(deriveVerifiedRanges([older, newer, hardware]).map((entry) => [entry.records, entry.backends]), [[['2026-10-12-macos-m2', '2026-11-01'], { webgl: ['8.22.0'], webgpu: ['8.22.0'] }]]);
 });
 
+test('a pass verifies only with the suite and the render check counted separately', () =>
+{
+    const only = (entry) => deriveVerifiedRanges([record([cell('19.3.0', '8.22.0', { webgl: entry, webgpu: notApplicable })])]);
+
+    assert.equal(only(pass('webgl')).length, 1);
+    // The render check alone passed (conformance.test.tsx not discovered): 1 test passed in total, 0 scenarios.
+    assert.deepEqual(only({ ...pass('webgl'), scenarios: { passed: 0, failed: 0, skipped: 0 }, conformance: { passed: 1, failed: 0, skipped: 0, total: 1 } }), []);
+    assert.deepEqual(only({ ...pass('webgl'), scenarios: undefined }), []);
+    assert.deepEqual(only({ ...pass('webgl'), backendCheck: 'not run' }), []);
+    const records = loadRecords();
+    const hollow = clone(records[0]);
+    const target = hollow.cells.find((candidate) => candidate.backends.webgl.status === 'pass');
+
+    target.backends.webgl.scenarios = { passed: 0, failed: 0, skipped: 0 };
+    assert.throws(() => validateRecord(seed, hollow), /at least one conformance scenario passed/);
+    target.backends.webgl.scenarios = { passed: 86, failed: 0, skipped: 5 };
+    target.backends.webgl.backendCheck = 'not run';
+    assert.throws(() => validateRecord(seed, hollow), /a passing render check/);
+});
+
 test('an expected blank render passes only when it fails exactly as listed', () =>
 {
     assert.equal(classifyExpectedBlank(blankEntry, blankRun()).status, 'expected-fail');
+    // The render check failed but no conformance scenario ran: not an expected blank render.
+    assert.match(classifyExpectedBlank(blankEntry, blankRun({ scenarios: { passed: 0, failed: 0, skipped: 0 } })).message, /no conformance scenario ran/);
     // It rendered: the list must be pruned, so the run fails.
     const rendered = classifyExpectedBlank(blankEntry, blankRun({ backendCheck: 'pass', readback: { canvas: [255, 0, 0, 255], extract: [255, 0, 0, 255], screenshotMatches: true } }));
 
