@@ -109,7 +109,9 @@ test(`render backend: ${requestedRenderer}`, async () =>
         const readback = { screenshot: screenPixel, canvas: canvasPixel, extract: extractPixel, screenshotMatches: screenPixel.join() === RED.join(), canvasMatches: canvasPixel.join() === RED.join(), extractMatches: extractPixel.join() === RED.join() };
         const described = await describeBackend(app.renderer);
         const gpu = checkProfile(described);
-        const record = { requested: requestedRenderer, actual, pixi: pixi.VERSION, userAgent: navigator.userAgent, readback, ...described, ...(gpu ? { gpu } : {}) };
+        // The environment shims test/environment-shims.ts applied to this run (none unless the cell lists any).
+        const environmentShims = (globalThis as AnyRecord).__COMPAT_ENVIRONMENT_SHIMS__ ?? [];
+        const record = { requested: requestedRenderer, actual, pixi: pixi.VERSION, userAgent: navigator.userAgent, readback, ...described, ...(gpu ? { gpu } : {}), environmentShims };
 
         // eslint-disable-next-line no-console -- the runner reads this line from the conformance log.
         console.log(`COMPAT_BACKEND ${JSON.stringify(record)}`);

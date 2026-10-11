@@ -3373,48 +3373,36 @@
         }
       }
     },
-    "expectedBlankRender": [
+    "environmentShims": [
       {
-        "id": "pixi8-webgpu-blank-before-8.10-software",
-        "verification": "unverified",
+        "id": "pixi-webgpu-texture-units",
         "pixiAdapter": "pixi8",
         "renderer": "webgpu",
-        "gpuProfile": "software",
-        "pixi": [
-          "8.2.6",
-          "8.3.4",
-          "8.4.1",
-          "8.5.2",
-          "8.6.6",
-          "8.7.3",
-          "8.8.1",
-          "8.9.2"
-        ],
-        "reason": "An upstream pixi.js bug before 8.10 (pixijs/pixijs#11389, fixed by #11417, first released in 8.10.0): the WebGPU texture batch is sized from WebGL's MAX_TEXTURE_IMAGE_UNITS (32 on ANGLE/SwiftShader) while the WebGPU device keeps the default maxSampledTexturesPerShaderStage of 16, so the bind group layout and the batch pipeline are invalid and the canvas stays blank (reads [0,0,0,0]) although Pixi creates a WebGPU renderer and every conformance scenario passes. It is not specific to software rendering: any device whose WebGL texture-unit count exceeds its WebGPU per-stage limit is affected (upstream reports a Pixel 9 and Chrome on Ubuntu). Not in the adapters.",
-        "signature": {
-          "renderer": "webgpu",
-          "canvas": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "extract": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "screenshotMatches": false
+        "pixi": {
+          "from": "8.2.6",
+          "before": "8.10.0"
         },
-        "evidence": {
-          "record": "2026-10-10.2",
-          "observed": "Every React adapter and patch on each listed version (8 cells per version in the first 2026-10-10 record, 11 in 2026-10-10.2): Pixi created a WebGPU renderer and every conformance scenario passed, but the render check failed: the canvas copy and Pixi's extract read [0,0,0,0] and the screenshot shows the page instead of the red rectangle. The same cells pass on WebGL. Under a WebGPU validation error scope the device reports 'The number of sampled textures (32) in the Fragment stage exceeds the maximum per-stage limit (16). While calling [Device].CreateBindGroupLayout', then 'Invalid RenderPipeline \"PIXI Pipeline\"' and an invalid command buffer on every frame; Chrome logs these as console warnings and Pixi does not surface them.",
-          "adapter": "Dawn on SwiftShader's Vulkan device: vendor google, architecture swiftshader, isFallbackAdapter true. No GPU in the machine.",
-          "cause": "Before 8.10, Pixi sizes the batch (Batcher.defaultOptions.maxTextures, GpuGraphicsAdaptor, SdfShader) with getMaxTexturesPerBatch(), which reads WebGL's MAX_TEXTURE_IMAGE_UNITS (32 here), and requests the WebGPU device without requiredLimits, so maxSampledTexturesPerShaderStage stays 16. pixijs/pixijs#11417 (merge 89285a6, 2025-05-16, first in v8.10.0; https://github.com/pixijs/pixijs/pull/11417) sizes it from the device limit and fixes https://github.com/pixijs/pixijs/issues/11389 ('WebGPU broken on some devices'). No 8.9.x patch carries the fix.",
-          "narrowed": "Bisected with the pixi.js bundles on the same adapter: 8.2.6, 8.9.0, 8.9.2 and 8.9.2-dev.f4f8fb2 blank; 8.9.2-dev.89285a6 (the merge of #11417), 8.10.0, 8.10.1 and 8.10.2 render. First good release: 8.10.0.",
-          "realGpu": "A real GPU renders these versions when its WebGL and WebGPU texture limits agree: the full hardware record 2026-10-10-macos-26-apple-m5-max (Apple M5 Max, Metal, isFallbackAdapter false; WebGL reports 16 texture units there) passed 8.2.6 to 8.9.2 on WebGPU with every React adapter at both audited patches, so those tuples are verified on WebGPU with the known issue adapterMatrix.knownIssues pixi8-webgpu-texture-limit-before-8.10 beside them (owner ruling: verified + known issue). The blank render here is the #11389 limit mismatch of SwiftShader's fallback adapter, which that Mac does not have, not WebGPU on 8.2-8.9 as such."
-        }
+        "fixedIn": "8.10.0",
+        "knownIssue": "pixi8-webgpu-texture-limit-before-8.10",
+        "action": {
+          "kind": "clamp-webgl-parameter",
+          "parameter": "MAX_TEXTURE_IMAGE_UNITS",
+          "enum": 34930,
+          "max": 16
+        },
+        "does": "Before the first Pixi application initializes, wraps WebGLRenderingContext.prototype.getParameter and WebGL2RenderingContext.prototype.getParameter so that MAX_TEXTURE_IMAGE_UNITS (0x8872) returns Math.min(value, 16), 16 being WebGPU's default maxSampledTexturesPerShaderStage. Pixi then sizes its WebGPU texture batch within the device limit. Nothing else changes: the adapters, the scene and every check run as written.",
+        "reason": "An upstream pixi.js bug before 8.10, not an adapter defect (pixijs/pixijs#11389, fixed by #11417, first released in 8.10.0): pixi.js 8.2-8.9 size the WebGPU texture batch (Batcher.defaultOptions.maxTextures, GpuGraphicsAdaptor, SdfShader) from WebGL's MAX_TEXTURE_IMAGE_UNITS while requesting the WebGPU device without requiredLimits, so on a device whose WebGL texture-unit count exceeds its WebGPU per-stage limit (32 against 16 on ANGLE/SwiftShader; upstream reports a Pixel 9 and Chrome on Ubuntu) the bind group layout and the batch pipeline are invalid and the canvas stays blank. The matrix measures this project's adapters, not that bug (owner ruling 2026-10-11), so WebGPU runs in this range apply the workaround under every GPU profile; WebGL runs and pixi.js 8.10+ never do.",
+        "evidence": "Bisected on Dawn over SwiftShader (isFallbackAdapter true): 8.2.6, 8.9.0, 8.9.2 and 8.9.2-dev.f4f8fb2 render a blank canvas with the validation error 'The number of sampled textures (32) in the Fragment stage exceeds the maximum per-stage limit (16)'; 8.9.2-dev.89285a6 (the merge of #11417), 8.10.0, 8.10.1 and 8.10.2 render. With this clamp, 8.2.6 and 8.9.2 render a rectangle, a sprite, text and an unbatchable 2000-point Graphics. The 2026-10-10.2 record (run without it) shows the blank canvas on all 88 WebGPU cells of 8.2.6-8.9.2; on the Apple M5 Max hardware record WebGL reports 16 units, so the clamp is a no-op there.",
+        "links": [
+          {
+            "label": "pixijs/pixijs#11389",
+            "url": "https://github.com/pixijs/pixijs/issues/11389"
+          },
+          {
+            "label": "pixijs/pixijs#11417",
+            "url": "https://github.com/pixijs/pixijs/pull/11417"
+          }
+        ]
       }
     ],
     "knownIssues": [
@@ -3427,8 +3415,8 @@
           "before": "8.10.0"
         },
         "fixedIn": "8.10.0",
-        "summary": "some devices render a blank canvas on WebGPU: pixi.js before 8.10 sizes the WebGPU texture batch from WebGL's texture-unit count, which exceeds the WebGPU per-stage limit on those devices",
-        "advice": "use pixi.js 8.10 or later for WebGPU, or WebGL",
+        "summary": "WebGPU renders a blank canvas on devices whose WebGL texture-unit count exceeds their WebGPU per-stage limit",
+        "advice": "Use pixi.js 8.10+ or WebGL",
         "links": [
           {
             "label": "pixijs/pixijs#11389",
@@ -3439,7 +3427,7 @@
             "url": "https://github.com/pixijs/pixijs/pull/11417"
           }
         ],
-        "note": "Owner ruling 2026-10-10: a tuple a record verified stays verified (\"verified + known issue\"); this note is shown beside every verified WebGPU range below 8.10. The software profile's expected-blank list (expectedBlankRender) is the same bug on SwiftShader's fallback adapter."
+        "note": "Owner rulings 2026-10-10 (\"verified + known issue\") and 2026-10-11 (the matrix measures this project, not pixi.js bugs): a verified tuple stays verified, and every generated table marks the verified WebGPU tuples below 8.10 with this footnote. The verification runs apply the workaround as the environment shim pixi-webgpu-texture-units (adapterMatrix.environmentShims)."
       }
     ],
     "formats": [
