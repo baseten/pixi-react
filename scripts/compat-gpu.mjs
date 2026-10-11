@@ -24,7 +24,7 @@
  */
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { cpus, release } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -115,7 +115,9 @@ function detectMachine(browser)
 /**
  * The work directory is wiped at the start of a run, so it must be a dedicated output directory: strictly inside the
  * checkout, under a top-level `.compat*` directory (git- and ESLint-ignored). Anything else, such as `.`, `..`, the
- * checkout itself, an ancestor of it or a source directory, is refused before anything is removed.
+ * checkout itself, an ancestor of it or a source directory, is refused before anything is removed. So is a path through a
+ * symbolic link or junction below the checkout (a symlinked `.compat`, say): the check above is lexical, and the wipe
+ * would follow the link out of the checkout.
  */
 export function safeWorkDir(root, work)
 {
@@ -128,6 +130,18 @@ export function safeWorkDir(root, work)
     {
         throw new Error(`--work ${work} resolves to ${resolvedWork}, which is not a dedicated output directory: use a path under `
             + `the checkout's .compat directory (default .compat/gpu/full). It is wiped at the start of a run.`);
+    }
+
+    let path = resolvedRoot;
+
+    for (const part of inside.split(/[\\/]/))
+    {
+        path = join(path, part);
+        if (lstatSync(path, { throwIfNoEntry: false })?.isSymbolicLink())
+        {
+            throw new Error(`--work ${work} goes through the symbolic link ${path}, and the wipe at the start of a run would follow `
+                + `it out of the checkout: use a real directory under the checkout's .compat directory.`);
+        }
     }
 
     return resolvedWork;

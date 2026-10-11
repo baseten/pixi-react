@@ -1,9 +1,11 @@
 // Offline tests of scripts/compat-gpu.mjs (`pnpm compat:gpu`, the one-command hardware run): arguments, the machine
 // slug and the steps it spawns. Nothing here runs a cell.
 import assert from 'node:assert/strict';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { firstGpu, machineSlug, safeWorkDir, macosMajorFromDarwin, parseArguments, planSteps, pushCommands, slugify, TARGETED } from '../../../scripts/compat-gpu.mjs';
+import { firstGpu, machineSlug, macosMajorFromDarwin, parseArguments, planSteps, pushCommands, safeWorkDir, slugify, TARGETED } from '../../../scripts/compat-gpu.mjs';
 
 const context = { slug: 'macos-26-apple-m5-max', date: '2026-10-12', commit: 'a'.repeat(40), platform: 'darwin' };
 
@@ -85,5 +87,28 @@ test('safeWorkDir only accepts a dedicated directory under the checkout\'s .comp
     for (const bad of ['.', '..', '../..', root, join('/', 'repo'), '/', 'packages', 'design/compatibility', '.compat/../packages', '.git', join('/', 'tmp', 'gpu')])
     {
         assert.throws(() => safeWorkDir(root, bad), /not a dedicated output directory/, bad);
+    }
+});
+
+test('safeWorkDir refuses a work directory reached through a symbolic link', () =>
+{
+    const root = mkdtempSync(join(tmpdir(), 'compat-gpu-root-'));
+    const outside = mkdtempSync(join(tmpdir(), 'compat-gpu-outside-'));
+
+    try
+    {
+        mkdirSync(join(outside, 'gpu', 'full'), { recursive: true });
+        symlinkSync(outside, join(root, '.compat'), 'junction');
+        assert.throws(() => safeWorkDir(root, '.compat/gpu/full'), /symbolic link/);
+        mkdirSync(join(root, '.compat-real', 'gpu'), { recursive: true });
+        symlinkSync(outside, join(root, '.compat-real', 'gpu', 'full'), 'junction');
+        assert.throws(() => safeWorkDir(root, '.compat-real/gpu/full'), /symbolic link/);
+        assert.equal(safeWorkDir(root, '.compat-real/other'), join(root, '.compat-real', 'other'));
+        assert.ok(existsSync(join(outside, 'gpu', 'full')));
+    }
+    finally
+    {
+        rmSync(root, { recursive: true, force: true });
+        rmSync(outside, { recursive: true, force: true });
     }
 });
