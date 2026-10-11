@@ -74,7 +74,7 @@ The shims replaced the expected-blank-render list (`expectedBlankRender`), under
 
 ### Running on a real GPU
 
-For a contributor with a GPU on **macOS** or **Windows**. Linux is not supported for the hardware profile (untested; it would likely need extra Chromium flags). The commands are the same in zsh and in PowerShell (Windows PowerShell 5.1 or PowerShell 7) once the tools are installed and the variables of step 2 are set: the runner spawns no shell of its own, and npm and pnpm run through their `.cmd` shims on Windows. Everything a run writes goes under `.compat/` (git-ignored).
+For a contributor with a GPU on **macOS** or **Windows**. Linux is not supported for the hardware profile (untested; it would likely need extra Chromium flags). One command does the whole run, the same in zsh and in PowerShell (Windows PowerShell 5.1 or PowerShell 7): `pnpm compat:gpu` (`scripts/compat-gpu.mjs`), which spawns no shell of its own and runs npm and pnpm through their `.cmd` shims on Windows. The manual steps it automates are in the appendix below. Everything a run writes goes under `.compat/` (git-ignored).
 
 **Which browser.** On macOS the pinned Chromium renders WebGPU on the GPU (Metal). On Windows it does not: Playwright's Chromium 133 has `navigator.gpu` but `requestAdapter()` returns null (with `--enable-unsafe-webgpu` it offers only the SwiftShader fallback adapter), while the installed Chrome and Edge render on the GPU (an NVIDIA RTX 4070 on Windows 11 reported vendor `nvidia`, architecture `lovelace`). So Windows runs use `--browser chrome` (or `msedge`, which every Windows 11 has); the record then says it ran an installed browser, with its version.
 
@@ -86,7 +86,7 @@ For a contributor with a GPU on **macOS** or **Windows**. Linux is not supported
 | Node, the version in `.nvmrc` (22.22.0; `package.json` requires `^22.22.0`) | [nvm](https://github.com/nvm-sh/nvm): `nvm install 22.22.0`, then `nvm use 22.22.0` (or [fnm](https://github.com/Schniz/fnm): `fnm install 22.22.0`, then `fnm use 22.22.0`; or the nodejs.org installer for 22.22.0) | [nvm-windows](https://github.com/coreybutler/nvm-windows): `winget install --id CoreyButler.NVMforWindows -e`, open a new PowerShell, then `nvm install 22.22.0` and `nvm use 22.22.0` (in an administrator PowerShell if it reports "access denied"). Or [fnm](https://github.com/Schniz/fnm): `winget install --id Schniz.fnm -e`, open a new PowerShell, then `fnm env --use-on-cd --shell powershell \| Out-String \| Invoke-Expression`, `fnm install 22.22.0` and `fnm use 22.22.0` (the first of the three again in every new PowerShell, or add it to `$PROFILE`). Or the nodejs.org installer for 22.22.0 |
 | pnpm (the `packageManager` version, through corepack) | `corepack enable` | `corepack enable` (in an administrator PowerShell if it reports EPERM) |
 | npm | comes with Node | comes with Node |
-| The browser | nothing to install: the pinned Chromium (step 3) | Google Chrome: `winget install --id Google.Chrome -e` (or use the preinstalled Edge with `msedge` in step 2) |
+| The browser | nothing to install: `pnpm compat:gpu` installs the pinned Chromium | Google Chrome: `winget install --id Google.Chrome -e` (or use the preinstalled Edge with `--browser msedge`) |
 
 Check with `node --version` (v22.22.0 or a later 22.x), `pnpm --version` (10.28.0) and `npm --version`.
 
@@ -98,9 +98,50 @@ Windows only, three things to set once:
 - **Long paths.** The cells install deep `node_modules` trees under `%TEMP%`. Clone into a short path (for example `C:\src`) and, if npm reports `ENAMETOOLONG` or a path-too-long error, enable Win32 long paths in an administrator PowerShell and reboot: `New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force`.
 - **Line endings.** Clone with `core.autocrlf=false` (the clone command below sets it for this clone only). With CRLF checkouts the packed artifacts differ from the commit's, so `verification.mjs compare` cannot show that the record ran the commit's code.
 
-#### 2. Set four variables
+#### 2. Run
 
-Every command below reads `$BRANCH`, `$MACHINE`, `$TODAY` and `$COMPAT_BROWSER`, so it is the same in both shells (PowerShell variable names ignore case). Nothing in a command is a placeholder to edit. `$TODAY` is the UTC date, as in the records.
+Clone into a short path (Windows: for example `C:\src`), check the Node version, and run. On macOS (zsh):
+
+```sh
+git clone -c core.autocrlf=false https://github.com/baseten/pixi-react.git
+cd pixi-react
+git checkout main                          # or the branch you were asked to run
+node --version                             # must print v22.22.0
+pnpm compat:gpu
+```
+
+On Windows (PowerShell), with the installed Chrome (or `--browser msedge`):
+
+```powershell
+git clone -c core.autocrlf=false https://github.com/baseten/pixi-react.git
+cd pixi-react
+git checkout main                          # or the branch you were asked to run
+node --version                             # must print v22.22.0
+pnpm compat:gpu --browser chrome
+```
+
+`pnpm compat:gpu`:
+
+1. refuses a Node outside `engines.node` (it names the required v22.22.0 and `.nvmrc`), and tracked files with uncommitted changes (`--allow-dirty` overrides), and prints the full commit (compare all 40 characters with the commit you were asked to run, never a short SHA);
+2. installs and builds the workspace (`--no-build` skips it) and, for `chromium`, installs the pinned Chromium;
+3. wipes and packs into `.compat/gpu/full/tarballs` (`--work DIR` for another directory);
+4. runs every nightly cell on the hardware profile (`--patches all --gpu hardware --no-cache`, with your `--browser`), then the boundary probes, then the incompatible pairs. A failing cell, probe or pair never stops the run (failures are data); a setup error (install, build, pack, no result at all) does;
+5. builds `design/compatibility/verification/<date>-<machine>.json` and `.md` with the UTC date, the full commit, the packed artifacts and the machine slug it detects: `macos-<major>-<cpu>` on macOS, `windows-<build>-<first GPU>` on Windows (for example `windows-26200-nvidia-geforce-rtx-4070`), with `-chrome` or `-msedge` appended for an installed browser (`--machine SLUG` overrides it; Linux is refused);
+6. prints a summary: cells passed and failed per backend, probes, incompatible pairs, and where the record and diagnostics are.
+
+The full run takes one to three hours on a laptop and opens a browser window for each backend run; leave the machine alone. On macOS it keeps the Mac awake (`caffeinate`); on Windows set Sleep to "Never" first (Settings > System > Power). `--targeted` runs only the 20 WebGPU cells of appendix C's first command (a partial record, evidence only), for a quick check.
+
+#### 3. What to send back
+
+The two record files the run printed (`design/compatibility/verification/` plus the date and machine slug, `.json` and `.md`), in a pull request or attached to the issue; `pnpm compat:gpu --push` does it for you (a new branch `records/<machine>-<date>` from HEAD, only that directory, one `[skip ci]` commit, pushed). To commit them, stage only that directory: `git add design/compatibility/verification/`, never `git add .` or `git add -A` (a work directory holds thousands of generated files; `.compat/` and any `.compat*/` directory are git-ignored and never linted, but other leftovers may not be). If any cell failed, also a zip of the run's `out` directory (`.compat/gpu/full/out` for `pnpm compat:gpu`, `.compat/gpu/out` for the manual steps) (logs, reports, screenshots), for example `zip -r gpu-out.zip .compat/gpu/full/out` (macOS) or `Compress-Archive .compat/gpu/full/out gpu-out.zip` (PowerShell). The maintainer then runs `node design/compatibility/verification.mjs ranges --write` and `node scripts/release/compat-table.mjs --write`; the record sits beside the software one, which stays.
+
+A full hardware record verifies the tuples that passed on it; a partial record without probes and negative cases verifies nothing and is evidence only. Within one machine and GPU profile only the newest record counts (a later failure revokes that machine's earlier verification, and a later partial run replaces an earlier full one), so rerun on the same machine with the same `--machine` slug only to supersede; records of different machines or profiles add up. The environment shim `pixi-webgpu-texture-units` applies under the hardware profile too (WebGPU, pixi.js 8.2.6 … 8.9.2): each record lists it on those runs with the WebGL texture-unit count the machine reported and the clamped value, and on a GPU whose WebGL reports 16 units or fewer it changes nothing (the Apple M5 Max reports 16, observed in the owner's 2026-10-11 Mac run, whose record is pending a re-run on the required Node version; an NVIDIA RTX 4070 on Windows reported 16 in a standalone probe). Its tuples are marked with the known issue's footnote in every table, like the software ones.
+
+What is untested: the hardware profile has run on macOS (record 2026-10-10-macos-26-apple-m5-max, and a 2026-10-11 run whose record is pending a re-run on Node 22). On Windows the first hardware run found two defects, both fixed since without a Windows rerun: the 8.3 short temp path (every cell failed in Vitest browser mode) and the bundled Chromium's missing WebGPU adapter (the run hung; now it fails at once, and `--browser chrome` uses the installed Chrome). The `chrome` and `msedge` channels have not run in CI or on the maintainer's Linux machine, which has neither browser. `pnpm compat:gpu` itself has been tested only for its arguments, machine slugs and steps, and as a targeted run on the maintainer's Linux machine with the platform check bypassed; its first macOS and Windows runs are its real test. An earlier review found and fixed one more Windows defect: the cells' tree check spawned `npm` without its `.cmd` shim (`harness/checks/tree.mjs`).
+
+#### Appendix A. Set four variables
+
+Every command of this appendix reads `$BRANCH`, `$MACHINE`, `$TODAY` and `$COMPAT_BROWSER`, so it is the same in both shells (PowerShell variable names ignore case). Nothing in a command is a placeholder to edit. `$TODAY` is the UTC date, as in the records.
 
 macOS (zsh):
 
@@ -126,57 +167,50 @@ $COMPAT_BROWSER = 'chrome'                      # the installed Google Chrome ('
 
 On a machine with two GPUs (integrated and discrete), check that `$gpu` names the one Chromium uses (the record reports the GPU the browser saw), and set `$MACHINE` by hand if not, as lowercase words joined by hyphens. Keep the same `$MACHINE` for every later run on that machine.
 
-#### 3. Clone, install, build, and install the browser
+#### Appendix B. Clone, install, build, and install the browser
 
 ```sh
 git clone -c core.autocrlf=false https://github.com/baseten/pixi-react.git
 cd pixi-react
 git checkout $BRANCH
 git rev-parse HEAD
+node --version
 pnpm install --frozen-lockfile
 pnpm build
 pnpm --filter ./apps/examples exec playwright install chromium
 node design/compatibility/cells/run-cells.mjs pack --out .compat/gpu/tarballs
 ```
 
-`git rev-parse HEAD` prints the full 40-character commit: if you were given a commit to run, compare all 40 characters with it. Do not compare short forms: `git rev-parse --short` prints as many characters as the repository needs to be unambiguous, which can be more than 7.
+`node --version` must print `v22.22.0` (the runner refuses any Node outside `engines.node`; switch with `nvm use 22.22.0` or `fnm use 22.22.0`). `git rev-parse HEAD` prints the full 40-character commit: if you were given a commit to run, compare all 40 characters with it. Do not compare short forms: `git rev-parse --short` prints as many characters as the repository needs to be unambiguous, which can be more than 7.
 
 `pnpm --filter ./apps/examples exec playwright install chromium` installs the browser of the pinned Playwright (the examples app pins the same version as the cells; `node design/compatibility/cells/run-cells.mjs toolchain --name playwright` prints it). `npx playwright` is not the way: it was "not recognized" on both a Mac and a Windows contributor machine, as the repository root has no Playwright of its own. On Windows the run itself uses the installed Chrome, but install the pinned Chromium anyway: it is what `--browser chromium` and the examples tests use.
 
-#### 4. A targeted run (23 cells)
+#### Appendix C. A targeted run (23 cells)
 
 The WebGPU versions the environment shim covers (pixi.js 8.2.6 … 8.9.2) plus 8.10.2 and 8.22.0, with React 18.3.1 and 19.3.0, on both backends (20 cells), then three Pixi 7.2/7.3 and React 18.0 cells. A browser window opens for each backend run; leave the machine alone while it runs.
 
 ```sh
 node design/compatibility/cells/run-cells.mjs run --tier nightly --patches all --gpu hardware --browser $COMPAT_BROWSER --no-cache --work .compat/gpu --tarballs .compat/gpu/tarballs --react 18.3.1,19.3.0 --pixi 8.2.6,8.3.4,8.4.1,8.5.2,8.6.6,8.7.3,8.8.1,8.9.2,8.10.2,8.22.0
 node design/compatibility/cells/run-cells.mjs run --tier nightly --patches all --gpu hardware --browser $COMPAT_BROWSER --no-cache --work .compat/gpu --tarballs .compat/gpu/tarballs --cell react-18.0.0_pixi-8.22.0,react-18.0.0_pixi-7.2.0,react-19.3.0_pixi-7.3.3
-node design/compatibility/verification.mjs build --work .compat/gpu --date $TODAY --commit $(git rev-parse HEAD) --machine $MACHINE --scope partial
+node design/compatibility/verification.mjs build --work .compat/gpu --tarballs .compat/gpu/tarballs --date $TODAY --commit $(git rev-parse HEAD) --machine $MACHINE --scope partial
 ```
 
-If every WebGPU run fails at once with `no WebGPU adapter in this browser`, the browser has no hardware WebGPU: on Windows set `$COMPAT_BROWSER = 'chrome'` (or `'msedge'`) and run again. A run that ends with `COMPAT_PAGE_CRASHED` crashed the browser page; send the diagnostics (step 6).
+If every WebGPU run fails at once with `no WebGPU adapter in this browser`, the browser has no hardware WebGPU: on Windows set `$COMPAT_BROWSER = 'chrome'` (or `'msedge'`) and run again. A run that ends with `COMPAT_PAGE_CRASHED` crashed the browser page; send the diagnostics (step 3).
 
-#### 5. Or the full run
+#### Appendix D. Or the full run
 
-Every nightly cell (297: every React adapter at its minimum and latest audited patch × the newest audited patch of every Pixi 8 minor and every audited Pixi 7 release), then the boundary probes and the incompatible pairs, which a record needs before it verifies anything. On the maintainer's 4-vCPU software runs the cells took about an hour in three parallel shards (about 35 s per cell per shard); one shard on a laptop takes about one to three hours. Use a fresh work directory (delete `.compat/gpu` first, then pack again as in step 3), so a targeted run's results do not mix in.
+Every nightly cell (297: every React adapter at its minimum and latest audited patch × the newest audited patch of every Pixi 8 minor and every audited Pixi 7 release), then the boundary probes and the incompatible pairs, which a record needs before it verifies anything. On the maintainer's 4-vCPU software runs the cells took about an hour in three parallel shards (about 35 s per cell per shard); one shard on a laptop takes about one to three hours. Use a fresh work directory (delete `.compat/gpu` first, then pack again as in appendix B), so a targeted run's results do not mix in.
 
 ```sh
 node design/compatibility/cells/run-cells.mjs run --tier nightly --patches all --gpu hardware --browser $COMPAT_BROWSER --no-cache --work .compat/gpu --tarballs .compat/gpu/tarballs
 node design/compatibility/cells/run-cells.mjs probes --tier nightly --work .compat/gpu
 node design/compatibility/cells/run-cells.mjs run --negative --no-cache --gpu hardware --browser $COMPAT_BROWSER --work .compat/gpu --tarballs .compat/gpu/tarballs
-node design/compatibility/verification.mjs build --work .compat/gpu --date $TODAY --commit $(git rev-parse HEAD) --machine $MACHINE
+node design/compatibility/verification.mjs build --work .compat/gpu --tarballs .compat/gpu/tarballs --date $TODAY --commit $(git rev-parse HEAD) --machine $MACHINE
 ```
 
 A failing cell does not stop the run; its diagnostics are in `.compat/gpu/out/` (one directory per cell).
 
 The `build` command writes `design/compatibility/verification/$TODAY-$MACHINE.json` and `.md`, with the OS, CPU, Node, npm, pnpm and browser versions and the GPU the render checks reported (WebGL `UNMASKED_RENDERER`, the WebGPU adapter and `isFallbackAdapter` with the field it came from). The Browser row names the browser and its full version and says whether it was the Chromium pinned by Playwright or an installed one (`--browser chrome` or `msedge`). A full record supersedes an earlier partial one of the same machine with no other change: a later date counts as newer, and on the same date add `--sequence 2` (it writes `$TODAY-$MACHINE.2`); building again with the same date and no `--sequence` replaces the file.
-
-#### 6. What to send back
-
-The two record files the `build` command printed (`design/compatibility/verification/` plus the date and machine slug, `.json` and `.md`), in a pull request or attached to the issue. To commit them, stage only that directory: `git add design/compatibility/verification/`, never `git add .` or `git add -A` (a work directory holds thousands of generated files; `.compat/` and any `.compat*/` directory are git-ignored and never linted, but other leftovers may not be). If any cell failed, also a zip of `.compat/gpu/out` (logs, reports, screenshots), for example `zip -r gpu-out.zip .compat/gpu/out` (macOS) or `Compress-Archive .compat/gpu/out gpu-out.zip` (PowerShell). The maintainer then runs `node design/compatibility/verification.mjs ranges --write` and `node scripts/release/compat-table.mjs --write`; the record sits beside the software one, which stays.
-
-A full hardware record verifies the tuples that passed on it; a partial record without probes and negative cases verifies nothing and is evidence only. Within one machine and GPU profile only the newest record counts (a later failure revokes that machine's earlier verification, and a later partial run replaces an earlier full one), so rerun on the same machine with the same `--machine` slug only to supersede; records of different machines or profiles add up. The environment shim `pixi-webgpu-texture-units` applies under the hardware profile too (WebGPU, pixi.js 8.2.6 … 8.9.2): each record lists it on those runs with the WebGL texture-unit count the machine reported and the clamped value, and on a GPU whose WebGL reports 16 units or fewer it changes nothing (the Apple M5 Max reports 16, observed in the owner's 2026-10-11 Mac run, whose record is pending a re-run on the required Node version; an NVIDIA RTX 4070 on Windows reported 16 in a standalone probe). Its tuples are marked with the known issue's footnote in every table, like the software ones.
-
-What is untested: the hardware profile has run on macOS (record 2026-10-10-macos-26-apple-m5-max, and a 2026-10-11 run whose record is pending a re-run on Node 22). On Windows the first hardware run found two defects, both fixed since without a Windows rerun: the 8.3 short temp path (every cell failed in Vitest browser mode) and the bundled Chromium's missing WebGPU adapter (the run hung; now it fails at once, and `--browser chrome` uses the installed Chrome). The `chrome` and `msedge` channels have not run in CI or on the maintainer's Linux machine, which has neither browser. An earlier review found and fixed one more Windows defect: the cells' tree check spawned `npm` without its `.cmd` shim (`harness/checks/tree.mjs`).
 
 ## Data-only probes
 
