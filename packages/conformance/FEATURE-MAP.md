@@ -293,6 +293,7 @@ Feature `root.concurrency`.
 | --- | --- | --- | --- |
 | `root.concurrency.automatic-batching` | contract | Two updates from a non-React callback produce one scheduled render (concurrent root semantics). | pass |
 | `root.concurrency.react-18-concurrent-root` | contract | Automatic batching and non-synchronous transitions hold under React 18, proving a ConcurrentRoot. | not run: needs `react.18` |
+| `root.concurrency.react-19-transition` | contract | Automatic batching and a non-synchronous `startTransition` hold under React 19; the transition reports no unhandled error, and a `ReactSharedInternals.S` handler installed before the root was created still runs to completion (every reconciler handler in the chain forwards to the previous one). | pass |
 
 ## Root error routing
 
@@ -306,4 +307,4 @@ Feature `root.errors`.
 
 ## Summary
 
-92 scenarios: 89 pass, 0 expected failures, 3 not run against the baseline.
+93 scenarios: 90 pass, 0 expected failures, 3 not run against the baseline.

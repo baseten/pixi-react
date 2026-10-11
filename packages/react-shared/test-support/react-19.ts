@@ -6,11 +6,14 @@
  * Each package calls `describeReact19Package` from `test/package.test.ts` with its own modules; nothing here imports
  * a per-minor package.
  */
+import { useActivityBridge } from 'its-fine';
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
+import * as React from 'react';
 import { describe, expect, it } from 'vitest';
+import { selectActivityBridge } from '../src/react-19/adapter';
 import { CompatibilityError, type PixiTypes } from '@pixi-react-provisional/core';
 
 import type { EpochInfo } from '../src/react-19/adapter';
@@ -111,6 +114,16 @@ function withReact<T extends new() => object>(Adapter: T, version: string): Inst
     instance.reactVersion = () => version;
 
     return instance;
+}
+
+/** The adapter's Activity bridge selection, with the `React.Activity` it feature-detects replaced. */
+function bridgeWith<T extends new() => object>(Adapter: T, activity: unknown): unknown
+{
+    const instance = new Adapter() as InstanceType<T> & { reactActivity(): unknown; activityBridge(): unknown };
+
+    instance.reactActivity = () => activity;
+
+    return instance.activityBridge();
 }
 
 export function describeReact19Package(pkg: React19PackageUnderTest): void
@@ -301,6 +314,39 @@ export function describeReact19Package(pkg: React19PackageUnderTest): void
                 expect((failure as CompatibilityError).actual).toEqual({ react: other });
                 expect((failure as Error).message).toContain(`@pixi-react-provisional/react-${other.split('.').slice(0, 2).join('.')}`);
             }
+        });
+
+        describe('parent Activity bridge follows React.Activity, not the package minor', () =>
+        {
+            const ownBridge = epoch >= '19.2' ? useActivityBridge : undefined;
+
+            it('selects a bridge only when one is given and React exports Activity', () =>
+            {
+                const bridge = () => () => null;
+
+                expect(selectActivityBridge(Symbol.for('react.activity'), bridge)).toBe(bridge);
+                expect(selectActivityBridge(undefined, bridge)).toBeUndefined();
+                expect(selectActivityBridge(Symbol.for('react.activity'), undefined)).toBeUndefined();
+            });
+
+            it(`uses ${ownBridge ? 'its-fine\'s useActivityBridge' : 'no bridge'} when React has Activity`, () =>
+            {
+                expect(bridgeWith(Adapter, Symbol.for('react.activity'))).toBe(ownBridge);
+            });
+
+            it('falls back to no bridge (a pass-through) when React has no Activity (React 19.0/19.1)', () =>
+            {
+                expect(bridgeWith(Adapter, undefined)).toBeUndefined();
+            });
+
+            it('reads the installed React.Activity by default', () =>
+            {
+                const installed = (React as { Activity?: unknown }).Activity ? ownBridge : undefined;
+
+                expect((new Adapter() as unknown as { reactActivity(): unknown }).reactActivity())
+                    .toBe((React as { Activity?: unknown }).Activity);
+                expect((new Adapter() as unknown as { activityBridge(): unknown }).activityBridge()).toBe(installed);
+            });
         });
 
         it('keeps EPOCH.packageName and packageVersion equal to package.json', () =>

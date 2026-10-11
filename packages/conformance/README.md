@@ -105,7 +105,12 @@ failures.
   `react.18`, `pixi.globals` and `dom.resize`, lists no expected failures, and skips only the five
   `parity.upstream` scenarios. A React 19 capability React 18 lacks (such as `react.activity`) is never
   provided by that binding, so a scenario requiring it is skipped by capability, never listed as an expected
-  failure.
+  failure. Its React 19 counterpart, `root.concurrency.react-19-transition`, requires `react.19` and runs in every
+  React 19 binding (the per-minor fixtures, the facade, the fake and core bindings, the cells): besides a scheduled,
+  committed `startTransition`, it asserts that no error is reported globally and that a `ReactSharedInternals.S`
+  handler installed before the root was created still runs to completion. That catches a reconciler whose transition
+  handler throws before forwarding (react-reconciler 0.34 with React 19.0–19.2); the `breakTransitionChain` negative
+  control injects that fault.
 - `Application.lifecycle.webgpu-devices` depends on the render backend, which no capability names (a cell's backend
   is chosen per run): it runs its 40 WebGPU mount/unmount cycles only when the probe's optional `gpuDevice(app)`
   reports a `GPUDevice`, and otherwise mounts once and stops. It spies on `GPUAdapter.prototype.requestDevice` and
