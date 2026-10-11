@@ -26,6 +26,8 @@ function caught(action: () => unknown): CompatibilityError
 }
 
 const HINT = 'A development build (NODE_ENV !== \'production\') gives the full message.';
+/** Every message of a documented code ends with its docs page, in production too (issue 71). */
+const DOCS = 'https://baseten.github.io/pixi-react/errors/';
 
 describe('production builds', () =>
 {
@@ -52,8 +54,8 @@ describe('production builds', () =>
             expect(error.actual).toEqual({ major: 2, minor: 0 });
         }
 
-        expect(production.message).toBe(`ABI_MISMATCH (test.pixi; expected {"major":1}; actual {"major":2,"minor":0}). ${HINT}`);
-        expect(development.message).toMatch(/implements ABI 2\.0, but this core implements ABI 1\.0/);
+        expect(production.message).toBe(`ABI_MISMATCH (test.pixi; expected {"major":1}; actual {"major":2,"minor":0}). ${HINT} See ${DOCS}ABI_MISMATCH/`);
+        expect(development.message).toMatch(/implements ABI 2\.0, but this core implements ABI 1\.0.* See https:\/\/baseten\.github\.io\/pixi-react\/errors\/ABI_MISMATCH\/$/);
     });
 
     it('keeps the capability negotiation', () =>
@@ -80,14 +82,14 @@ describe('production builds', () =>
         const conflict = caught(() => registry.extend({ Node: class Other extends FakeNode {} }));
 
         expect(conflict.code).toBe('REGISTRY_CONFLICT');
-        expect(conflict.message).toBe(`REGISTRY_CONFLICT (test.react, test.pixi; actual {"name":"Node"}). ${HINT}`);
+        expect(conflict.message).toBe(`REGISTRY_CONFLICT (test.react, test.pixi; actual {"name":"Node"}). ${HINT} See ${DOCS}REGISTRY_CONFLICT/`);
         expect(caught(() => registry.resolve('Missing')).message).toMatch(/"Missing" is not registered.*extend\(\{ Missing \}\)/);
     });
 
-    it('builds the message only for an empty one: an explicit message is kept as given', () =>
+    it('builds the message only for an empty one: an explicit message is kept, followed by the docs page', () =>
     {
         expect(new CompatibilityError('', { code: 'core.TARGET_LEASED', adapterIds: [] }).message)
-            .toBe(`core.TARGET_LEASED. ${HINT}`);
-        expect(new CompatibilityError('Custom.', { code: 'ROOT_DISPOSED', adapterIds: ['a'] }).message).toBe('Custom.');
+            .toBe(`core.TARGET_LEASED. ${HINT} See ${DOCS}core-TARGET_LEASED/`);
+        expect(new CompatibilityError('Custom.', { code: 'ROOT_DISPOSED', adapterIds: ['a'] }).message).toBe(`Custom. See ${DOCS}ROOT_DISPOSED/`);
     });
 });

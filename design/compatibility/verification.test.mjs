@@ -2,10 +2,12 @@
 // shims (and the retired expected-blank-render list in old records), and that the checked-in records, their Markdown and seed.json's verifiedRanges agree.
 // Run with `node --test design/compatibility/*.test.mjs`.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { validateAdapterMatrix } from './cells/matrix.mjs';
-import { checkRenderedRecords, currentRecords, deriveVerifiedRanges, ENVIRONMENT_SHIMS_SINCE, loadRecords, recordGate, refreshRecord, renderingOf, renderRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
+import { browserOfRows, buildRecord, checkRenderedRecords, currentRecords, describeBrowser, deriveVerifiedRanges, ENVIRONMENT_SHIMS_SINCE, loadRecords, recordGate, refreshRecord, renderingOf, renderRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
 
 const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -334,5 +336,80 @@ test('data-only results never reach verifiedRanges', () =>
 
             if (!nightly) assert.ok(!verified.has(`${row.react}|${row.pixi}`), `${row.id} is data only`);
         }
+    }
+});
+
+test('records name the browser of their runs, and say so loudly when it was an installed one rather than the pinned Chromium', () =>
+{
+    const run = (browser, extra = {}) => ({ kind: 'cell', browser: browser.id, backends: { webgpu: { status: 'pass', browser, backend: { actual: 'webgpu' } } }, ...extra });
+    const chrome = { id: 'chrome', channel: 'chrome', name: 'Google Chrome', version: '154.0.7700.10' };
+    const pinned = { id: 'chromium', channel: null, name: 'Chromium', version: '133.0.6943.16' };
+
+    assert.deepEqual(browserOfRows([run(chrome)]), { id: 'chrome', channel: 'chrome', pinned: false, name: 'Google Chrome', version: '154.0.7700.10' });
+    assert.equal(browserOfRows([{ kind: 'cell', backends: {} }]), null);
+    assert.throws(() => browserOfRows([run(chrome), run(pinned)]), /mix browsers/);
+    const env = (browser) => ({ chromium: 'Chromium 154.0.0.0 headed', playwright: '1.50.1', gpu: 'real GPU: nvidia / lovelace', browser });
+    const installed = describeBrowser(env(browserOfRows([run(chrome)])));
+
+    assert.match(installed, /Google Chrome 154\.0\.7700\.10 \(headed\), installed on the machine \(Playwright channel `chrome`\), not the Chromium pinned by Playwright 1\.50\.1/);
+    assert.match(describeBrowser(env(browserOfRows([run(pinned)]))), /^Chromium 133\.0\.6943\.16 \(headed\), the Chromium pinned by Playwright 1\.50\.1$/);
+    // Records from before browsers were recorded keep their Browser row.
+    assert.equal(describeBrowser({ chromium: 'Chromium 133.0.6943.16 headless', playwright: '1.50.1' }), 'Chromium 133.0.6943.16 headless, Playwright 1.50.1');
+    assert.match(renderingOf(seed, 'hardware', env(browserOfRows([run(chrome)]))).note, /The browser was Google Chrome 154\.0\.7700\.10 as installed on the machine \(Playwright channel chrome\), not the Chromium pinned by Playwright\./);
+    assert.doesNotMatch(renderingOf(seed, 'hardware', env(browserOfRows([run(pinned)]))).note, /installed/);
+});
+
+test('a software record cannot name an installed browser', () =>
+{
+    const [software] = loadRecords().filter((candidate) => candidate.gpuProfile === 'software');
+    const bad = clone(software);
+
+    bad.environment.browser = { id: 'chrome', channel: 'chrome', pinned: false, name: 'Google Chrome', version: '154.0.7700.10' };
+    assert.throws(() => validateRecord(seed, bad), /installed browser \(chrome\) is allowed only in a hardware record/);
+    bad.environment.browser = { id: 'chromium', channel: null, pinned: true, name: 'Chromium', version: '133.0.6943.16' };
+    validateRecord(seed, bad);
+});
+
+test('records from 2026-10-11 on need the required Node and, when full, their packed artifacts; older ones are kept as recorded', () =>
+{
+    const [current] = loadRecords().filter((candidate) => candidate.id === '2026-10-11');
+    const wrongNode = clone(current);
+
+    wrongNode.environment.node = '24.18.0';
+    assert.throws(() => validateRecord(seed, wrongNode), /ran on Node 24\.18\.0, outside package\.json engines\.node "\^22\.22\.0"/);
+    const noArtifacts = clone(current);
+
+    noArtifacts.artifacts = {};
+    assert.throws(() => validateRecord(seed, noArtifacts), /names the packed artifacts its cells installed/);
+    // A partial record may name none; an older record keeps what it recorded.
+    validateRecord(seed, { ...noArtifacts, scope: 'partial', summary: summarizeRecord(seed, { ...noArtifacts, scope: 'partial' }) });
+    const [oldMac] = loadRecords().filter((candidate) => candidate.id === '2026-10-10-macos-26-apple-m5-max');
+
+    assert.deepEqual(oldMac.artifacts, {});
+    validateRecord(seed, oldMac);
+    assert.ok(oldMac.findings.some((finding) => finding.includes('artifacts map is empty')));
+});
+
+test('build reads the packed artifacts from --tarballs and refuses a full record without them', () =>
+{
+    const work = mkdtempSync(join(tmpdir(), 'verification-build-test-'));
+    const options = { work, date: '2026-10-12', commit: '0'.repeat(40), environment: { node: '22.22.0', chromium: 'x', os: 'y' }, run: { commands: [], notes: [] } };
+
+    try
+    {
+        assert.throws(() => buildRecord(seed, options), /artifacts\.json is missing or empty: a full record needs the packed artifacts/);
+        assert.deepEqual(buildRecord(seed, { ...options, scope: 'partial' }).artifacts, {});
+        const tarballs = join(work, 'elsewhere');
+
+        mkdirSync(tarballs);
+        writeFileSync(join(tarballs, 'artifacts.json'), JSON.stringify({ core: { package: '@x/core', version: '1.0.0', hash: 'abc', files: { 'index.js': 'h1', 'README.md': 'h2' } } }));
+        const record = buildRecord(seed, { ...options, tarballs });
+
+        assert.deepEqual(Object.keys(record.artifacts), ['core']);
+        assert.equal(record.artifacts.core.contentSha256, 'abc');
+    }
+    finally
+    {
+        rmSync(work, { recursive: true, force: true });
     }
 });

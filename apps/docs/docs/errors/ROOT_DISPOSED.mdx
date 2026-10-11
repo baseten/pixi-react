@@ -1,0 +1,20 @@
+---
+title: ROOT_DISPOSED
+slug: /errors/ROOT_DISPOSED
+---
+
+# `ROOT_DISPOSED`
+
+**A root, or the renderer runtime, was used after it was unmounted or disposed.** Teardown is final: a disposed root does not restart, and a disposed runtime creates no new roots.
+
+## Common causes
+
+- Calling `root.render(...)` after `root.unmount()`, or after the `<Application>` that owned it unmounted.
+- A render queued while the root was disposing (for example a `render` call from an effect that ran during unmount).
+- Using `createRoot` or `extend` of a renderer whose runtime was disposed.
+
+## How to fix
+
+- Create a new root with `createRoot` for each mount; do not keep a root across unmounts.
+- Await `root.unmount()` before creating a root on the same element.
+- Guard asynchronous callbacks (timers, loaders) so they stop rendering once their component unmounts.

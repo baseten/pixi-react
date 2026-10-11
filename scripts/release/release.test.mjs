@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { compareWithBudget, compareWithUpstream, DEVELOPMENT_ONLY_TEXT, KNOWN_GAPS, OWN_CODE_BUDGETS, UPSTREAM_BASELINE } from './bundles.mjs';
+import { compareWithBudget, compareWithUpstream, DEVELOPMENT_ONLY_TEXT, KNOWN_GAPS, OWN_CODE_BUDGETS, readErrorDocsUrl, UPSTREAM_BASELINE } from './bundles.mjs';
 import { loadReleaseConfig, makeRewriter, OUTPUT_MARKER, outputDirProblem, repoRoot, resetOutputDir } from './config.mjs';
 import { checkTree, scanInstalls } from './consumers.mjs';
 import { inspectPackage, resolveExport } from './inspect.mjs';
@@ -672,6 +672,14 @@ test('our own code has a budget in every bundled fixture kind, and production bu
     assert.ok(DEVELOPMENT_ONLY_TEXT.length > 0);
     assert.deepEqual(compareWithBudget(1000, 1000), [], 'equal is within the budget');
     assert.equal(compareWithBudget(1001, 1000).length, 1, 'one byte over');
+});
+
+test('the error reference URL, which production bundles must keep, is read from core\'s one definition (issue 71)', () =>
+{
+    const url = readErrorDocsUrl();
+
+    assert.match(url, /^https:\/\/[^/]+\/.*errors\/$/);
+    for (const text of DEVELOPMENT_ONLY_TEXT) assert.ok(!url.includes(text), 'the URL is not development-only text');
 });
 
 test('mainMergeBase uses the more recent of main and origin/main, so a stale local main does not mislead', () =>

@@ -2,14 +2,15 @@
 // `node --test design/compatibility/cells/*.test.mjs`; nothing here installs a package.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { applyTypeAssertions, cellKey, environmentShimsFor, gpuProfileOf, knownIssueFootnote, loadSeed, negativeCells, platformCommand, renderCompatibilityDoc, renderTable, selectCells, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
+import { applyTypeAssertions, assertRequiredNode, browserOf, BROWSERS, cellKey, environmentShimsFor, gpuProfileOf, knownIssueFootnote, loadSeed, makeCellDir, negativeCells, nodeRequirement, platformCommand, renderCompatibilityDoc, renderTable, satisfiesNodeRange, selectCells, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
 import { entryClosure, extractTarball } from './pack.mjs';
 import { compareWithEvidence } from './probes.mjs';
+import { checkProfile, fallbackOf } from './harness/test/gpu-identity.mts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const seed = loadSeed();
@@ -409,4 +410,136 @@ test('version-dependent type assertions: kept from their version on, omitted bel
     // Every other assertion stays.
     assert.ok(at('7.2.0').includes('@ts-expect-error `preference` is a Pixi 8 renderer option'));
     assert.throws(() => applyTypeAssertions('{/* compat:begin unknown */}\nx\n{/* compat:end unknown */}\n', { kept: [], omitted: [] }), /not an adapterMatrix typeAssertions entry/);
+});
+
+test('a cell\'s work directory is used by its real path: an 8.3 short temp path is expanded (Windows, mocked)', () =>
+{
+    // os.tmpdir() on Windows for the profile "Sam Hill": the 8.3 short name, which Vitest browser mode cannot serve.
+    const calls = [];
+    const long = 'C:/Users/Sam Hill/AppData/Local/Temp/compat-react-19.3.0_pixi-8.22.0-Ab12';
+    const dir = makeCellDir('compat-react-19.3.0_pixi-8.22.0-', {
+        tmp: 'C:/Users/SAMHIL~1/AppData/Local/Temp',
+        mkdtemp: (prefix) => { calls.push(['mkdtemp', prefix]); return `${prefix}Ab12`; },
+        realpath: (path) => { calls.push(['realpath', path]); return path.replace('SAMHIL~1', 'Sam Hill'); },
+    });
+
+    assert.equal(dir, long);
+    assert.deepEqual(calls.map(([name]) => name), ['mkdtemp', 'realpath']);
+    assert.ok(calls[1][1].includes('SAMHIL~1'), 'realpath receives what mkdtemp created');
+});
+
+test('a cell\'s work directory resolves symlinks in the temp path (real file system)', () =>
+{
+    const scratch = realpathSync(mkdtempSync(join(tmpdir(), 'compat-realpath-test-')));
+
+    try
+    {
+        mkdirSync(join(scratch, 'real temp'));
+        symlinkSync(join(scratch, 'real temp'), join(scratch, 'link'), 'dir');
+        const dir = makeCellDir('compat-x-', { tmp: join(scratch, 'link') });
+
+        assert.ok(dir.startsWith(join(scratch, 'real temp', 'compat-x-')), dir);
+        assert.equal(dir, realpathSync.native(dir));
+    }
+    finally
+    {
+        rmSync(scratch, { recursive: true, force: true });
+    }
+});
+
+test('the runner creates cell directories only through makeCellDir and runs Vitest with that directory as its root', () =>
+{
+    const text = readFileSync(join(here, 'run-cells.mjs'), 'utf8').replace(/\/\/.*$/gm, '');
+
+    assert.ok(!/mkdtempSync|tmpdir\(/.test(text), 'run-cells.mjs creates a temp directory without makeCellDir');
+    assert.match(text, /const dir = makeCellDir\(/);
+    assert.match(text, /'--root', dir/);
+    assert.match(text, /cwd: dir/);
+});
+
+test('browsers: the pinned Chromium by default; an installed Chrome or Edge only under the hardware profile', () =>
+{
+    const software = gpuProfileOf(seed);
+    const hardware = gpuProfileOf(seed, 'hardware');
+
+    assert.deepEqual(browserOf(undefined, software), BROWSERS.chromium);
+    assert.equal(browserOf('chromium', hardware).channel, null);
+    assert.equal(browserOf('chrome', hardware).channel, 'chrome');
+    assert.equal(browserOf('msedge', hardware).channel, 'msedge');
+    assert.throws(() => browserOf('chrome', software), /--browser chrome needs --gpu hardware/);
+    assert.throws(() => browserOf('msedge', software), /needs --gpu hardware/);
+    assert.throws(() => browserOf('firefox', hardware), /unknown --browser firefox/);
+    const result = spawnSync(process.execPath, [join(here, 'run-cells.mjs'), 'list', '--browser', 'chrome'], { encoding: 'utf8' });
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /--browser chrome needs --gpu hardware/);
+});
+
+test('fallback adapters: adapter.info.isFallbackAdapter first, then adapter.isFallbackAdapter, else unknown (never false)', () =>
+{
+    assert.deepEqual(fallbackOf({ isFallbackAdapter: false }, { isFallbackAdapter: true }), { isFallbackAdapter: true, source: 'adapter.info.isFallbackAdapter' });
+    assert.deepEqual(fallbackOf({ isFallbackAdapter: true }, { vendor: 'google' }), { isFallbackAdapter: true, source: 'adapter.isFallbackAdapter' });
+    assert.deepEqual(fallbackOf({}, { vendor: 'nvidia' }), { isFallbackAdapter: null, source: 'unknown' });
+    const hardware = { id: 'hardware', expect: 'hardware', softwarePatterns: seed.adapterMatrix.softwareRendererPatterns };
+    const software = { ...hardware, id: 'software', expect: 'software' };
+    const adapter = (fields) => ({ gpuAdapter: { ...fields, isFallbackAdapter: null, fallbackSource: 'unknown' } });
+
+    // Unknown flag: the names decide. A real GPU passes the hardware profile; SwiftShader fails it.
+    assert.equal(checkProfile(adapter({ vendor: 'nvidia', architecture: 'lovelace' }), hardware).matchesProfile, true);
+    assert.equal(checkProfile(adapter({ vendor: 'nvidia', architecture: 'lovelace' }), hardware).fallbackAdapter, 'unknown');
+    const swift = checkProfile(adapter({ vendor: 'google', architecture: 'swiftshader' }), hardware);
+
+    assert.equal(swift.matchesProfile, false);
+    assert.match(swift.decidedBy, /softwareRendererPatterns \(SwiftShader\)/);
+    // Unknown flag and no name: a hardware run cannot claim a GPU.
+    assert.equal(checkProfile(adapter({}), hardware).matchesProfile, false);
+    // A known flag decides, from whichever field reported it.
+    assert.equal(checkProfile({ gpuAdapter: { vendor: 'apple', architecture: 'metal-3', isFallbackAdapter: false, fallbackSource: 'adapter.info.isFallbackAdapter' } }, hardware).matchesProfile, true);
+    const fallback = checkProfile({ gpuAdapter: { vendor: 'x', isFallbackAdapter: true, fallbackSource: 'adapter.info.isFallbackAdapter' } }, hardware);
+
+    assert.equal(fallback.matchesProfile, false);
+    assert.equal(fallback.decidedBy, 'adapter.info.isFallbackAdapter');
+    assert.equal(checkProfile({ gpuAdapter: { vendor: 'google', architecture: 'swiftshader', isFallbackAdapter: true, fallbackSource: 'adapter.isFallbackAdapter' } }, software).matchesProfile, true);
+    assert.equal(checkProfile({ webglRenderer: 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)' }, software).matchesProfile, true);
+});
+
+test('a WebGPU run asks for an adapter before Pixi initializes and fails at once without one', () =>
+{
+    const config = readFileSync(join(here, 'harness/vitest.config.mts'), 'utf8');
+    const preflight = readFileSync(join(here, 'harness/test/webgpu-preflight.ts'), 'utf8');
+
+    assert.match(config, /setupFiles: \['test\/crash-watch\.ts', \.\.\.\(renderer === 'webgpu' \? \['test\/webgpu-preflight\.ts'\] : \[\]\)/);
+    assert.match(config, /channel \? \{ channel \} : \{\}/);
+    assert.match(preflight, /requestAdapter\(\)/);
+    assert.match(preflight, /no WebGPU adapter in this browser/);
+    assert.match(preflight, /on Windows try --browser chrome/);
+});
+
+test('every run registers the page-crash watch in its first setup file, before anything renders', () =>
+{
+    const watch = readFileSync(join(here, 'harness/test/crash-watch.ts'), 'utf8');
+
+    assert.match(watch, /commands as Record<string, any>\)\.compatBrowser\(\)/);
+});
+
+test('Node version: run, probes and all refuse a Node outside package.json engines.node (the .nvmrc version)', () =>
+{
+    const requirement = nodeRequirement();
+
+    assert.equal(requirement.nvmrc, '22.22.0');
+    assert.ok(satisfiesNodeRange(requirement.nvmrc, requirement.range));
+    for (const [version, ok] of [['22.22.0', true], ['22.23.1', true], ['v22.22.0', true], ['22.21.9', false], ['23.0.0', false], ['24.18.0', false], ['20.19.0', false]])
+    {
+        assert.equal(satisfiesNodeRange(version, '^22.22.0'), ok, version);
+    }
+    assert.ok(satisfiesNodeRange('18.20.0', '>=18.0.0 <19.0.0 || ^22.22.0'));
+    assert.ok(!satisfiesNodeRange('19.0.0', '>=18.0.0 <19.0.0 || ^22.22.0'));
+    assert.throws(() => assertRequiredNode('24.18.0', requirement), /Node 24\.18\.0 does not satisfy package\.json engines\.node "\^22\.22\.0": switch to the version in \.nvmrc \(22\.22\.0\)/);
+    assertRequiredNode('22.22.0', requirement);
+    const text = readFileSync(join(here, 'run-cells.mjs'), 'utf8');
+
+    for (const command of ['run', 'all', 'probes'])
+    {
+        assert.match(text, new RegExp(`case '${command}':\\n(?:\\s*//.*\\n)*\\s*assertRequiredNode\\(\\);`), `${command} checks the Node version first`);
+    }
 });

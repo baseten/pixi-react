@@ -1,0 +1,22 @@
+---
+title: core.INVALID_OPTION
+slug: /errors/core-INVALID_OPTION
+---
+
+# `core.INVALID_OPTION`
+
+**A renderer option has a value core does not accept.** The error names the option and the accepted values (`expected`) and what was passed (`actual`).
+
+## Common causes
+
+- `registryConflict` is neither `'reject'` (the default) nor `'replace'`, for example a misspelling such as `'replaced'`.
+
+## How to fix
+
+Pass one of the accepted values:
+
+```ts
+createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() }, { registryConflict: 'replace' });
+```
+
+Leave the option out for the default (`'reject'`, which raises [`REGISTRY_CONFLICT`](./REGISTRY_CONFLICT.mdx) instead of replacing a registered class).

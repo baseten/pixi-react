@@ -14,8 +14,10 @@ __screenshots__/
 .cache-loader
 apps/docs/build
 
-# Adapter compatibility cells: packed tarballs, verdicts and diagnostics (design/compatibility/cells)
+# Adapter compatibility cells: packed tarballs, verdicts and diagnostics (design/compatibility/cells), and any other
+# work directory a run was pointed at (.compat-gpu-full/ and the like): generated projects, never committed or linted.
 .compat/
+.compat*/
 
 # Example browser tests: Playwright results, traces, report (apps/examples/README.md). Baselines are committed.
 apps/examples/.playwright/

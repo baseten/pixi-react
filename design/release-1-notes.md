@@ -85,8 +85,9 @@ development-only ([#58](https://github.com/baseten/pixi-react/issues/58)):
 
 - A `CompatibilityError` keeps its `code`, `adapterIds`, `capability`, `expected`, `actual` and `cause`, and its
   message is built from them, for example `ABI_MISMATCH (pixi-8; expected {"major":1}; actual {"major":2,"minor":0}).
-  A development build (NODE_ENV !== 'production') gives the full message.` An unregistered element
-  (`UNKNOWN_ELEMENT`) keeps its full message.
+  A development build (NODE_ENV !== 'production') gives the full message. See https://baseten.github.io/pixi-react/errors/ABI_MISMATCH/`
+  An unregistered element (`UNKNOWN_ELEMENT`) keeps its full message. In every build, the message ends with a link to
+  the code's page in the docs' error reference ([#71](https://github.com/baseten/pixi-react/issues/71)).
 - A few `TypeError`s for invalid arguments have shorter messages, such as `Invalid createRoot() target.`
 - The Pixi 8 adapter's console warnings (a Pixi-named event prop such as `onpointerdown`, `draw` on a node that is not
   a Graphics, a dashed prop naming a missing field, a removed prop with no default to restore) are development-only.

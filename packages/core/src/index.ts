@@ -22,7 +22,7 @@ export type {
     CompatibilityErrorDetails,
     CompatibilityErrorValues,
 } from './errors.js';
-export { CompatibilityError, CoreErrorCodes, isCompatibilityErrorCode, TeardownError } from './errors.js';
+export { CompatibilityError, CoreErrorCodes, ERROR_DOCS_URL, errorDocsUrl, isCompatibilityErrorCode, TeardownError } from './errors.js';
 export type { Adapters } from './runtime.js';
 export { compose } from './runtime.js';
 export type {

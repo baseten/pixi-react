@@ -42,6 +42,8 @@ export interface CompatibilityErrorDetails {
     readonly expected?: CompatibilityErrorValues;
     readonly actual?: CompatibilityErrorValues;
     readonly cause?: unknown;
+    /** An adapter-namespaced code's docs page; built-in and `core.` codes link to core's error reference instead. */
+    readonly docsUrl?: string;
 }
 /** One shared Error class for core and adapters; message is human-readable, code is stable. */
 export declare class CompatibilityError extends Error implements CompatibilityErrorDetails {
@@ -53,6 +55,8 @@ export declare class CompatibilityError extends Error implements CompatibilityEr
     readonly expected?: CompatibilityErrorValues;
     readonly actual?: CompatibilityErrorValues;
     readonly cause?: unknown;
+    /** The docs page the message ends with (`See <docsUrl>`), when the code has one. */
+    readonly docsUrl?: string;
 }
 /** How a node joins a parent. Open strings, e.g. role 'child' | 'filter' | 'particle'; the scene interprets them. */
 export interface AttachRule {

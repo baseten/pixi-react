@@ -52,11 +52,22 @@ requires) drops the text from a production bundle. In production a `Compatibilit
 `adapterIds`, `capability`, `expected`, `actual` and `cause`, and its message is built from them:
 
 ```text
-ABI_MISMATCH (pixi-8; expected {"major":1}; actual {"major":2,"minor":0}). A development build (NODE_ENV !== 'production') gives the full message.
+ABI_MISMATCH (pixi-8; expected {"major":1}; actual {"major":2,"minor":0}). A development build (NODE_ENV !== 'production') gives the full message. See https://baseten.github.io/pixi-react/errors/ABI_MISMATCH/
 ```
 
 `UNKNOWN_ELEMENT` (an unregistered element) keeps its full message in every build. A `CompatibilityError` constructed
-with an empty message gets the same message built from its details; a non-empty message is kept as given. The runtime
+with an empty message gets the same message built from its details; a non-empty message is kept as given.
+
+### Error reference links
+
+In every build, the message of a built-in or `core.` code ends with ` See <url>`, the code's page in the docs' error
+reference ([issue 71](https://github.com/baseten/pixi-react/issues/71)), and `error.docsUrl` holds the same URL. The
+address is written once, in `ERROR_DOCS_URL` (`src/errors.ts`); `errorDocsUrl(code)` appends the code's slug, the code
+with each `.` replaced by `-` (`errors/ABI_MISMATCH/`, `errors/core-TARGET_LEASED/`). An adapter-namespaced code
+(`community.shader.UNSUPPORTED_FORMAT`) gets a link only when the adapter passes `docsUrl` in the details; this
+repository's React adapters do so for `react-18.FOREIGN_RUNTIME` and `react-19.FOREIGN_RUNTIME`. `docsUrl` is ignored
+for built-in and `core.` codes. `test/error-docs.test.ts` fails when one of these codes has no page under
+`apps/docs/docs/errors/`. The runtime
 JavaScript is one bundled CommonJS file (`dist/cjs/index.js`); the declarations stay one per module.
 
 ### Runtime

@@ -1,0 +1,24 @@
+---
+title: UNSUPPORTED_NODE
+slug: /errors/UNSUPPORTED_NODE
+---
+
+# `UNSUPPORTED_NODE`
+
+**A registered class cannot be a scene node, or a tree operation is not valid for it.** The Pixi adapter decides, when a class is registered, which role it plays (a child `Container`, a `Filter`, a `Particle`) and what it may contain. Core then checks every insert, move and removal against those rules before changing the scene, so an invalid tree never leaves a half-applied mutation.
+
+## Common causes
+
+- **A class that is not a display object.** `Texture`, `Point`, `GraphicsContext` and other resources are passed as props, not rendered as elements. (`@pixi/react`'s `extend` keeps upstream's behaviour and silently ignores them; the modular `extend` rejects them.)
+- **A value that is not a constructor** passed to `extend`.
+- **A PixiJS feature the installed pixi.js does not have,** such as `ParticleContainer` before pixi.js 8.5, `RenderLayer` before 8.7 or `DOMContainer` before 8.9. The error names the missing capability; see [`CAPABILITY_MISSING`](./CAPABILITY_MISSING.mdx).
+- **A child an element does not accept,** for example a `Particle` outside a `ParticleContainer`, React children inside a `Mesh` or `RenderLayer`, or a node inserted below itself.
+- **A node from another root or renderer,** or one that was already destroyed (for example kept in a ref and reused after unmount).
+
+## How to fix
+
+- Pass resources as props: `<pixiSprite texture={texture} />`, not `<pixiTexture />`.
+- Register only `Container` subclasses, `Filter`s and (with a pixi.js that supports them) `Particle`s.
+- Upgrade pixi.js within the adapter's range to use a newer PixiJS feature, or move to PixiJS 8: see [Upgrading from PixiJS 7 to 8](../upgrading-pixi-7-to-8.mdx).
+- Restructure the tree so each element only contains children it accepts; to add a node to a `RenderLayer`, call `layer.attach(node)` through a ref.
+- Do not reuse nodes across roots, or after unmount.

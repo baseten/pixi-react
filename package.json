@@ -18,6 +18,7 @@
     "prepare": "husky install",
     "test": "turbo run test:unit test:e2e",
     "test:compatibility": "node design/compatibility/cells/run-cells.mjs all --tier pr",
+    "compat:gpu": "node scripts/compat-gpu.mjs",
     "test:contract": "pnpm --filter @pixi-react-provisional/design-contract test:contract",
     "test:conformance": "turbo run test:conformance",
     "test:e2e": "turbo run test:e2e",
