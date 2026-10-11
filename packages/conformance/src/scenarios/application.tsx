@@ -50,6 +50,23 @@ async function unmountBeforeInit(ctx: ScenarioContext)
     return { app, onInitCalls, constructedAtUnmount };
 }
 
+/** Sequential WebGPU applications in `Application.lifecycle.webgpu-devices`. */
+const WEBGPU_CYCLES = 40;
+
+interface WebGpuClasses
+{
+    readonly GPUAdapter: { prototype: { requestDevice(this: object, ...args: unknown[]): Promise<object> } };
+    readonly GPUDevice: { prototype: { destroy(this: object): void } };
+}
+
+/** The browser's WebGPU interface classes, or `undefined` outside a WebGPU-capable browser. */
+function webgpuClasses(): WebGpuClasses | undefined
+{
+    const { GPUAdapter, GPUDevice } = globalThis as Partial<WebGpuClasses>;
+
+    return GPUAdapter && GPUDevice ? { GPUAdapter, GPUDevice } : undefined;
+}
+
 export const applicationScenarios = [
     defineScenario({
         id: 'Application.init.success',
@@ -287,6 +304,72 @@ export const applicationScenarios = [
             const settled = journal.indexOf((entry) => entry.op === 'app.init.settled');
 
             expect(firstConstruct, 'first construction after init settled').toBeGreaterThan(settled);
+        },
+    }),
+    defineScenario({
+        id: 'Application.lifecycle.webgpu-devices',
+        feature: 'Application.lifecycle',
+        title: 'repeated WebGPU applications each initialize, and each unmount destroys the GPUDevice requested for it',
+        expected: `On a WebGPU renderer (the probe reports \`gpuDevice\`): ${WEBGPU_CYCLES} sequential mount/unmount cycles each initialize, and every \`GPUDevice\` requested for an application is destroyed when it unmounts. Other backends mount once and stop.`,
+        async run(ctx)
+        {
+            const { probe } = ctx;
+            const gpu = webgpuClasses();
+
+            if (!probe.gpuDevice || !gpu)
+            {
+                return;
+            }
+
+            const requested = new Set<object>();
+            const destroyed = new Set<object>();
+            const { requestDevice } = gpu.GPUAdapter.prototype;
+            const { destroy } = gpu.GPUDevice.prototype;
+
+            gpu.GPUAdapter.prototype.requestDevice = async function spiedRequestDevice(this: object, ...args: unknown[])
+            {
+                const device = await requestDevice.apply(this, args);
+
+                requested.add(device);
+
+                return device;
+            };
+            gpu.GPUDevice.prototype.destroy = function spiedDestroy(this: object)
+            {
+                destroyed.add(this);
+
+                return destroy.call(this);
+            };
+            ctx.onCleanup(() =>
+            {
+                gpu.GPUAdapter.prototype.requestDevice = requestDevice;
+                gpu.GPUDevice.prototype.destroy = destroy;
+            });
+
+            for (let cycle = 0; cycle < WEBGPU_CYCLES; cycle++)
+            {
+                // Fails promptly (onInitError) when the device request rejects, for example when a driver ran out of
+                // devices that earlier applications leaked.
+                const { app } = await ctx.mountApp(null);
+                const device = probe.gpuDevice(app);
+
+                if (!device)
+                {
+                    expect(cycle, 'a later application fell back from WebGPU').toBe(0);
+
+                    return;
+                }
+
+                expect(requested.has(device), `cycle ${cycle}: the renderer's device was requested for it`).toBe(true);
+                await ctx.unmount();
+                expect(destroyed.has(device), `cycle ${cycle}: the renderer's device is destroyed on unmount`).toBe(true);
+            }
+
+            // pixi.js's isWebGPUSupported() requests one device of its own the first time it runs on a page and keeps it
+            // (cached, never a renderer's), so at most one requested device may outlive the scenario.
+            const kept = [...requested].filter((device) => !destroyed.has(device));
+
+            expect(kept.length, 'requested devices never destroyed (pixi.js\'s one support-check device at most)').toBeLessThanOrEqual(1);
         },
     }),
     defineScenario({

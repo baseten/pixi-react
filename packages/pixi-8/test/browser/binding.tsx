@@ -30,8 +30,11 @@ export const appOptions = Object.freeze({
  */
 export const PIXI8_BINDING_CAPABILITIES: readonly Capability[] = ['react.19', 'pixi.globals', 'dom.resize', 'pixi.filter-children', ...PIXI8_SCENE_CAPABILITIES];
 
-/** A fresh composition; Pixi-specific tests also get the renderer and the adapter. */
-export function createPixi8Composition(options: Pixi8AdapterOptions = {})
+/**
+ * A fresh composition; Pixi-specific tests also get the renderer and the adapter. `overrides` replace application
+ * options (the WebGPU cells pass `preference: 'webgpu'`).
+ */
+export function createPixi8Composition(options: Pixi8AdapterOptions = {}, overrides: Readonly<Record<string, unknown>> = {})
 {
     let roots = () => 0;
     const probe = createPixi8Probe(() => roots());
@@ -54,7 +57,7 @@ export function createPixi8Composition(options: Pixi8AdapterOptions = {})
         },
         elementFor: element,
         probe,
-        appOptions,
+        appOptions: Object.freeze({ ...appOptions, ...overrides }),
         async dispose()
         {
             try
@@ -71,13 +74,15 @@ export function createPixi8Composition(options: Pixi8AdapterOptions = {})
     return Object.assign(composition, { renderer, adapter, probe });
 }
 
-export function createPixi8Binding(version: string): ConformanceBinding
+export function createPixi8Binding(version: string, overrides: Readonly<Record<string, unknown>> = {}): ConformanceBinding
 {
+    const backend = overrides.preference ? `, ${String(overrides.preference)}` : '';
+
     return {
-        id: `core + renderer + Pixi8Adapter on pixi.js ${version} (fake React 19 adapter)`,
+        id: `core + renderer + Pixi8Adapter on pixi.js ${version}${backend} (fake React 19 adapter)`,
         capabilities: PIXI8_BINDING_CAPABILITIES,
         // Every issue-8 defect the facade still lists passes here; nothing is expected to fail.
         expectedFailures: {},
-        create: () => createPixi8Composition(),
+        create: () => createPixi8Composition({}, overrides),
     };
 }

@@ -206,6 +206,8 @@ export function createPixi8Probe(rootCount: () => number): Pixi8Probe
 
             return { width, height };
         },
+        // Only a WebGPU renderer has `gpu` (its adapter and device).
+        gpuDevice: (app) => (app as { renderer?: { gpu?: { device?: object } | null } | null }).renderer?.gpu?.device ?? undefined,
         isAppDestroyed: (app) => (app as Application).renderer === null && (app as Application).stage === null,
         rootCount,
         createTexture()
