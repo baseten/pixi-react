@@ -508,11 +508,18 @@ test('a WebGPU run asks for an adapter before Pixi initializes and fails at once
     const config = readFileSync(join(here, 'harness/vitest.config.mts'), 'utf8');
     const preflight = readFileSync(join(here, 'harness/test/webgpu-preflight.ts'), 'utf8');
 
-    assert.match(config, /setupFiles: \[\.\.\.\(renderer === 'webgpu' \? \['test\/webgpu-preflight\.ts'\] : \[\]\)/);
+    assert.match(config, /setupFiles: \['test\/crash-watch\.ts', \.\.\.\(renderer === 'webgpu' \? \['test\/webgpu-preflight\.ts'\] : \[\]\)/);
     assert.match(config, /channel \? \{ channel \} : \{\}/);
     assert.match(preflight, /requestAdapter\(\)/);
     assert.match(preflight, /no WebGPU adapter in this browser/);
     assert.match(preflight, /on Windows try --browser chrome/);
+});
+
+test('every run registers the page-crash watch in its first setup file, before anything renders', () =>
+{
+    const watch = readFileSync(join(here, 'harness/test/crash-watch.ts'), 'utf8');
+
+    assert.match(watch, /commands as Record<string, any>\)\.compatBrowser\(\)/);
 });
 
 test('Node version: run, probes and all refuse a Node outside package.json engines.node (the .nvmrc version)', () =>

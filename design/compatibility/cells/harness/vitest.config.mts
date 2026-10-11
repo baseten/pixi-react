@@ -8,7 +8,8 @@
 //
 // When the backend lists environment shims (cell.json `renderers.<name>.environmentShims`, from the manifest's
 // `adapterMatrix.environmentShims`), test/environment-shims.ts is the first setup file, so each shim is in place before
-// any Pixi application initializes. Other runs never load it.
+// any Pixi application initializes (after test/crash-watch.ts, which only registers the page-crash watch). Other runs
+// never load it.
 //
 // The browser is the Chromium pinned by Playwright unless cell.json `browser.channel` names an installed one (`chrome`,
 // `msedge`: run-cells.mjs --browser, hardware profile only), which Playwright launches through its `channel` option. A
@@ -60,9 +61,9 @@ export default defineConfig({
     },
     test: {
         include: ['test/**/*.test.tsx'],
-        // The WebGPU preflight first (WebGPU runs only), then environment shims (only when this backend lists any); React
+        // The page-crash watch first, then the WebGPU preflight (WebGPU runs only), then environment shims (only when this backend lists any); React
         // before 18.3 (cell.json lendAct) is lent the `act` of react-dom/test-utils, which the suite calls.
-        setupFiles: [...(renderer === 'webgpu' ? ['test/webgpu-preflight.ts'] : []), ...(backend.environmentShims?.length ? ['test/environment-shims.ts'] : []), ...(cell.lendAct ? ['test/lend-act.ts'] : []), 'test/renderer.ts'],
+        setupFiles: ['test/crash-watch.ts', ...(renderer === 'webgpu' ? ['test/webgpu-preflight.ts'] : []), ...(backend.environmentShims?.length ? ['test/environment-shims.ts'] : []), ...(cell.lendAct ? ['test/lend-act.ts'] : []), 'test/renderer.ts'],
         testTimeout: 15_000,
         browser: {
             enabled: true,
