@@ -175,8 +175,20 @@ teardown: core forwards them to every renderer-owned node (`nodeDestroyOptions`)
   `defaultTextStyle` and `resizeTo`. Absent keys are cleared. Init-only renderer options are ignored, never copied
   onto the app.
 - **`destroy({ rendererDestroyOptions, destroyOptions })`** calls `Application.destroy(rendererDestroyOptions,
-  destroyOptions)` unchanged. It then releases the leases and the style writer. Every step runs even if one throws,
-  the errors are thrown together, and a second call does nothing.
+  destroyOptions)` unchanged. It then destroys the WebGPU device pixi.js leaves behind (below) and releases the leases
+  and the style writer. Every step runs even if one throws, the errors are thrown together, and a second call does
+  nothing.
+- **WebGPU device.** pixi.js before 8.21 never destroys the `GPUDevice` its WebGPU renderer created
+  (`GpuDeviceSystem.destroy` only drops it; fixed by [pixijs/pixijs#12173](https://github.com/pixijs/pixijs/pull/12173)
+  in 8.21.0), so every application that mounts and unmounts on WebGPU would leak one. Metal and SwiftShader tolerate
+  many leaked devices; Direct3D 12 (Chrome on Windows) does not, and `requestDevice` then fails with `E_OUTOFMEMORY`.
+  On those versions the session reads `renderer.gpu.device` before Pixi destroys the renderer (on `destroy`, and when
+  `init` failed after creating one) and calls `device.destroy()` afterwards, once Pixi has released its GPU resources.
+  A device the application supplied through `gpu` (or `webgpu.gpu`, pixi.js 8.12+) is the application's and is never
+  destroyed, as in pixi.js 8.21; pixi.js before 8.12 ignores `gpu` and creates its own device, which is destroyed. On
+  8.21+ (`PIXI8_BOUNDARIES.destroysOwnGpuDevice`) Pixi destroys its own device and the adapter does nothing. WebGL
+  renderers are unaffected. pixi.js's one-time WebGPU support check (`isWebGPUSupported`) also requests a device and
+  keeps it, once per page; that one is not the adapter's to destroy.
 - **Ticker.** `subscribe({ callback, context, isEnabled, priority })` adds one wrapped listener per subscription. The
   callback receives the Pixi 8 `Ticker`, with `this` set to `context`. Its idempotent cleanup removes only that
   subscription, even when two subscriptions share a callback/context pair.
@@ -274,10 +286,12 @@ arguments of `createRenderer` cannot select a JSX namespace. The consumer fixtur
 | `… typecheck` | The sources (with the JSX entries) and tests against 8.2.6, and the sources against 8.22.0 (`tsconfig.current.json`) |
 | `… test:unit` | Typecheck, then Node unit tests that bind 8.2.6, 8.9.2 and 8.22.0 side by side: version bounds, the global registries, node definitions, props, particles and the 8.10 semantics, the D6 entries and the built dependency graph. Then `check:graph` |
 | `… test:conformance` | The conformance suite in Chromium on 8.2.6 and 8.22.0 |
-| `… test:e2e` | The conformance cells plus scene tests on 8.2.6, 8.9.2 and 8.22.0: failures, shared textures, repeated cleanup, multiple apps, custom instances, filters, particles, gated special nodes and `removeParticles` |
+| `… test:e2e` | The conformance cells plus scene tests on 8.2.6, 8.9.2 and 8.22.0: failures, shared textures, repeated cleanup, multiple apps, custom instances, filters, particles, gated special nodes and `removeParticles`; and the WebGPU cells (`webgpu-8.2.6`, `webgpu-8.22.0`, software WebGPU on SwiftShader): the WebGPU device lifecycle, a supplied `gpu`, a rejected `requestDevice`, and the `Application.lifecycle` scenarios on WebGPU |
 
 A browser cell aliases the bare `pixi.js` specifier (in the adapter source, the probe and the tests) to a
-version-pinned install (`pixi.js-8.9`, `pixi.js-current`). Set `CI=true` to run Chromium headless.
+version-pinned install (`pixi.js-8.9`, `pixi.js-current`). Set `CI=true` to run Chromium headless. Every cell except
+`webgpu-*` runs on WebGL; the whole conformance catalogue on WebGPU runs in the nightly
+[compatibility cells](https://github.com/baseten/pixi-react/blob/main/design/compatibility/cells/README.md).
 
 The conformance binding (`test/browser/binding.tsx`) composes the real core, renderer and `Pixi8Adapter` with the
 conformance package's fake React 19 adapter, a react-reconciler 0.31 test double; the real React adapter is

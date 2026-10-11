@@ -61,6 +61,15 @@ until issue 10; owners issues 7, 8 and 9) pass in 8.1.0:
 Kept as in 8.0.x for now (deferred to a future major, D4): silent `extend` replacement, global `extensions` and
 `defaultTextStyle`, `PixiElements` covering every PixiJS class, and accepting changes to init-only options.
 
+### WebGPU device leak (pixi.js before 8.21)
+
+pixi.js 8.2.6 to 8.20.x never destroys the `GPUDevice` its WebGPU renderer created, so every `<Application>` that
+mounted and unmounted on WebGPU leaked one (fixed upstream in 8.21.0 by
+[pixijs/pixijs#12173](https://github.com/pixijs/pixijs/pull/12173)). Direct3D 12 (Chrome on Windows) runs out of
+devices: `requestDevice` fails with `E_OUTOFMEMORY` and later applications cannot initialize. In 8.1.0 the Pixi 8
+adapter (and so `@pixi/react`) destroys that device on teardown on pixi.js before 8.21, never a device the application
+supplied through `gpu`. See the [`@pixi/react-pixi-8` README](../packages/pixi-8/README.md#application-lifecycle).
+
 ### Bundle size
 
 Measured on the release fixture (`scripts/release/fixtures/bundle/facade.mjs`; esbuild 0.21.5, minified, production,
