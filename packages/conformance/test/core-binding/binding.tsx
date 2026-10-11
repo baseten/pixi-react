@@ -7,6 +7,7 @@ import { FakePixiAdapter } from '../../src/fake-pixi/adapter';
 import { FakeReactAdapter } from '../../src/fake-react/adapter';
 import { PixiJournal } from '../../src/journal';
 import { createBuiltins, createFakeProbe } from '../fake-binding/probe';
+import { applyTransitionChainFault } from '../fake-binding/transitionChainFault';
 import { createRenderer } from '@pixi-react-provisional/renderer';
 
 import type { Capability, Composition, ConformanceBinding, PixiElement, ReactBindingApi } from '../../src/binding';
@@ -15,6 +16,7 @@ import type { RendererOptions } from '@pixi-react-provisional/core';
 
 function createComposition(options: RendererOptions, faults: FakeRuntimeFaults = {}): Composition
 {
+    const restoreTransitionChain = applyTransitionChainFault(faults);
     const journal = new PixiJournal();
     const { builtins, kindOf } = createBuiltins();
     let rootCount = () => 0;
@@ -45,7 +47,17 @@ function createComposition(options: RendererOptions, faults: FakeRuntimeFaults =
         probe,
         appOptions: { width: 64, height: 64 },
         // Disposing the runtime tears down every root it still holds and aggregates failures.
-        dispose: () => renderer.runtime.dispose(),
+        async dispose()
+        {
+            try
+            {
+                await renderer.runtime.dispose();
+            }
+            finally
+            {
+                restoreTransitionChain();
+            }
+        },
     };
 }
 

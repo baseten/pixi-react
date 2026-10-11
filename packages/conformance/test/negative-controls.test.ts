@@ -41,6 +41,10 @@ const controls: Array<{ fault: keyof FakeRuntimeFaults; scenarios: Record<string
         scenarios: { 'Application.init.failure-no-unhandled-rejection': /unhandled rejections/ },
     },
     {
+        fault: 'breakTransitionChain',
+        scenarios: { 'root.concurrency.react-19-transition': /errors reported during the transition/ },
+    },
+    {
         fault: 'skipTickerCleanup',
         scenarios: {
             'useTick.unmount-cleanup': /calls: expected 2 to be 1/,

@@ -104,6 +104,12 @@ export interface FakeRuntimeFaults extends FakePixiFaults
 {
     /** `<Application>` does not handle a rejected render, so an init failure becomes an unhandled rejection. */
     leakInitRejection?: boolean;
+    /**
+     * A transition-finish handler (React 19's `ReactSharedInternals.S`) that throws before forwarding to the handler it
+     * replaced, as react-reconciler 0.34 does when paired with React 19.0-19.2. Installed by the binding when the
+     * composition is created and removed on dispose.
+     */
+    breakTransitionChain?: boolean;
 }
 
 export interface FakeRuntimeOptions

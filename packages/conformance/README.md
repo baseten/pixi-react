@@ -105,7 +105,12 @@ failures.
   `react.18`, `pixi.globals` and `dom.resize`, lists no expected failures, and skips only the five
   `parity.upstream` scenarios. A React 19 capability React 18 lacks (such as `react.activity`) is never
   provided by that binding, so a scenario requiring it is skipped by capability, never listed as an expected
-  failure.
+  failure. Its React 19 counterpart, `root.concurrency.react-19-transition`, requires `react.19` and runs in every
+  React 19 binding (the per-minor fixtures, the facade, the fake and core bindings, the cells): besides a scheduled,
+  committed `startTransition`, it asserts that no error is reported globally and that a `ReactSharedInternals.S`
+  handler installed before the root was created still runs to completion. That catches a reconciler whose transition
+  handler throws before forwarding (react-reconciler 0.34 with React 19.0–19.2); the `breakTransitionChain` negative
+  control injects that fault.
 - **contract** scenarios state required behaviour. **parity** scenarios record current upstream behaviour
   that decision D4 keeps in the facade (global extension and default-text-style behaviour, silent `extend`
   replacement, constructor option keys); they need `parity.upstream`.

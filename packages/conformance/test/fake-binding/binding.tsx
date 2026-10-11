@@ -2,11 +2,13 @@ import { PIXI8_SCENE_CAPABILITIES } from '../../src/binding';
 import { PixiJournal } from '../../src/journal';
 import { createBuiltins, createFakeProbe } from './probe';
 import { createFakeRuntime, type FakeRuntimeFaults } from './runtime';
+import { applyTransitionChainFault } from './transitionChainFault';
 
 import type { Composition, ConformanceBinding, PixiElement } from '../../src/binding';
 
 function createComposition(faults: FakeRuntimeFaults): Composition
 {
+    const restoreTransitionChain = applyTransitionChainFault(faults);
     const journal = new PixiJournal();
     const { builtins, kindOf } = createBuiltins();
     let rootCount = () => 0;
@@ -32,6 +34,7 @@ function createComposition(faults: FakeRuntimeFaults): Composition
         async dispose()
         {
             await Promise.all([...runtime.roots].map((root) => root.unmount()));
+            restoreTransitionChain();
         },
     };
 }

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { type ReactNode, startTransition, useState } from 'react';
 import { expect } from 'vitest';
 import { defineScenario } from '../scenario';
@@ -48,6 +49,48 @@ async function assertAutomaticBatching(ctx: ScenarioContext, sibling: ReactNode 
     return stage;
 }
 
+/** The part of React 19's shared internals the transition scenario touches. */
+interface SharedInternals19
+{
+    /** `onStartTransitionFinish`: called by `startTransition` after the scope ran. Reconcilers chain onto it. */
+    S: ((...args: unknown[]) => void) | null;
+}
+
+/** React 19's shared internals. React 18 has no `S` hook (it uses `ReactCurrentBatchConfig`). */
+function sharedInternals19(): SharedInternals19
+{
+    const internals = (React as unknown as Record<string, SharedInternals19 | undefined>)
+        .__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+
+    if (!internals || !('S' in internals))
+    {
+        throw new Error('React 19 shared internals with an onStartTransitionFinish (S) hook are not available.');
+    }
+
+    return internals;
+}
+
+/**
+ * Captures errors React reports globally (an error thrown from a transition's finish handler goes to `reportError`,
+ * which dispatches a window `error` event, or to `console.error` where it cannot) for the rest of the scenario.
+ * Returns a reader of everything captured so far.
+ */
+function captureReportedErrors(ctx: ScenarioContext): () => unknown[]
+{
+    const reported: unknown[] = [];
+    const consoleCalls = ctx.captureConsoleErrors();
+    const listener = (event: ErrorEvent) =>
+    {
+        reported.push(event.error ?? event.message);
+        event.preventDefault();
+    };
+
+    window.addEventListener('error', listener, { capture: true });
+    ctx.onCleanup(() => window.removeEventListener('error', listener, { capture: true }));
+
+    return () => [...reported, ...consoleCalls.flat()];
+}
+
 export const rootScenarios = [
     defineScenario({
         id: 'root.concurrency.automatic-batching',
@@ -90,6 +133,65 @@ export const rootScenarios = [
             });
 
             expect(synchronousLabel, 'label right after a transition update').toBe('before');
+        },
+    }),
+    defineScenario({
+        id: 'root.concurrency.react-19-transition',
+        feature: 'root.concurrency',
+        requires: ['react.19'],
+        title: 'a React 19 transition is scheduled, commits, and keeps the shared startTransition handler chain intact',
+        expected: 'Automatic batching and a non-synchronous `startTransition` hold under React 19; the transition reports no '
+            + 'unhandled error, and a `ReactSharedInternals.S` handler installed before the root was created still runs '
+            + 'to completion (every reconciler handler in the chain forwards to the previous one).',
+        async run(ctx)
+        {
+            const { elements: { container: Container }, probe, waitFor } = ctx;
+            const internals = sharedInternals19();
+            const previous = internals.S;
+            let completed = 0;
+
+            // Installed before the scene root exists. It calls the chain installed before it (the handlers React DOM
+            // and each loaded reconciler installed, each forwarding to the one it replaced) and counts only once that
+            // whole chain returned. A handler in the chain that throws (react-reconciler 0.34 with React 19.0-19.2
+            // reads the `types` those transitions lack) leaves the count unchanged and reports the error globally.
+            internals.S = function conformanceOnStartTransitionFinish(this: unknown, ...args: unknown[])
+            {
+                previous?.apply(this, args);
+                completed += 1;
+            };
+            ctx.onCleanup(() =>
+            {
+                internals.S = previous;
+            });
+
+            const reportedErrorsSoFar = captureReportedErrors(ctx);
+            const rejections = ctx.captureUnhandledRejections();
+            let setValue!: (value: string) => void;
+            const Transitioning = () =>
+            {
+                const [value, update] = useState('before');
+
+                setValue = update;
+
+                return <Container label={value} />;
+            };
+            const stage = await assertAutomaticBatching(ctx, <Transitioning />);
+            const transitioning = () => probe.label(probe.children(stage)[1]);
+            let synchronousLabel: string | undefined;
+            const completedBefore = completed;
+
+            await ctx.outsideAct(async () =>
+            {
+                startTransition(() => setValue('after'));
+                synchronousLabel = transitioning();
+                await waitFor(() => transitioning() === 'after');
+            });
+            await ctx.yieldTask();
+
+            expect(synchronousLabel, 'label right after a transition update').toBe('before');
+            expect(reportedErrorsSoFar().map(messageOf), 'errors reported during the transition').toEqual([]);
+            expect(rejections.map(messageOf), 'unhandled rejections').toEqual([]);
+            expect(completed - completedBefore, 'completed runs of the previously installed S handler chain').toBe(1);
         },
     }),
     defineScenario({
