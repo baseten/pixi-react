@@ -234,7 +234,8 @@ Each backend column shows the status and the conformance scenarios passed/skippe
 
 ## Findings
 
-- Added 2026-10-11 (no re-run): this record ran before environment shims existed, so none was applied. The shim pixi-webgpu-texture-units (adapterMatrix.environmentShims) is a no-op on this machine: this record did not measure MAX_TEXTURE_IMAGE_UNITS, but the later full record 2026-10-11-macos-26-apple-m5-max did, measuring 16 (16 → 16 on all 88 shimmed runs), which is at most WebGPU's default maxSampledTexturesPerShaderStage (16). That is why pixi.js 8.2.6 to 8.9.2 rendered on WebGPU here without it (pixijs/pixijs#11389 needs a WebGL texture-unit count above the WebGPU per-stage limit). The record stays valid as recorded.
+- Added 2026-10-11 (no re-run): this record ran before environment shims existed, so none was applied. The shim pixi-webgpu-texture-units (adapterMatrix.environmentShims) is a no-op on this machine: this record did not measure MAX_TEXTURE_IMAGE_UNITS, but it is 16 here, at most WebGPU's default maxSampledTexturesPerShaderStage (16): the owner's 2026-10-11 Mac run logged the shim's original value as 16 (16 → 16 on all 88 shimmed runs); that record is pending a re-run on the required Node version. That is why pixi.js 8.2.6 to 8.9.2 rendered on WebGPU here without it (pixijs/pixijs#11389 needs a WebGL texture-unit count above the WebGPU per-stage limit). The record stays valid as recorded.
+- Added 2026-10-11 (no re-run): this record's artifacts map is empty (the tarballs were packed outside the work directory, which verification.mjs build did not read), so `verification.mjs compare` cannot show which packed code it ran. It stays valid as recorded: the checks that require a full record's artifacts and a Node version within package.json engines apply to records from 2026-10-11 on.
 
 ## Boundary probes
 

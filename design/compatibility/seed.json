@@ -11,12 +11,81 @@
   },
   "verifiedRanges": [
     {
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "pixiAdapter": "pixi-7",
+      "records": [
+        "2026-10-10-macos-26-apple-m5-max"
+      ],
+      "backends": {
+        "webgl": [
+          "7.4.2",
+          "7.4.3"
+        ]
+      }
+    },
+    {
+      "reactAdapter": "react-18",
+      "react": "18.3.1",
+      "pixiAdapter": "pixi-8",
+      "records": [
+        "2026-10-10-macos-26-apple-m5-max"
+      ],
+      "backends": {
+        "webgl": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ],
+        "webgpu": [
+          "8.2.6",
+          "8.3.4",
+          "8.4.1",
+          "8.5.2",
+          "8.6.6",
+          "8.7.3",
+          "8.8.1",
+          "8.9.2",
+          "8.10.2",
+          "8.11.0",
+          "8.12.0",
+          "8.13.2",
+          "8.14.3",
+          "8.15.0",
+          "8.16.0",
+          "8.17.1",
+          "8.18.1",
+          "8.19.0",
+          "8.20.1",
+          "8.21.0",
+          "8.22.0"
+        ]
+      }
+    },
+    {
       "reactAdapter": "react-18.0",
       "react": "18.0.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -34,8 +103,7 @@
       "react": "18.0.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -105,8 +173,7 @@
       "react": "18.1.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -124,8 +191,7 @@
       "react": "18.1.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -195,8 +261,7 @@
       "react": "18.2.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -214,8 +279,7 @@
       "react": "18.2.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -285,8 +349,7 @@
       "react": "18.3.1",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -304,8 +367,7 @@
       "react": "18.3.1",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -375,8 +437,8 @@
       "react": "19.0.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -394,8 +456,8 @@
       "react": "19.0.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -465,8 +527,8 @@
       "react": "19.0.8",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -484,8 +546,8 @@
       "react": "19.0.8",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -555,8 +617,8 @@
       "react": "19.1.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -574,8 +636,8 @@
       "react": "19.1.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -645,8 +707,8 @@
       "react": "19.1.9",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -664,8 +726,8 @@
       "react": "19.1.9",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -735,8 +797,8 @@
       "react": "19.2.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -754,8 +816,8 @@
       "react": "19.2.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -825,8 +887,8 @@
       "react": "19.2.8",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -844,8 +906,8 @@
       "react": "19.2.8",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -915,8 +977,8 @@
       "react": "19.3.0",
       "pixiAdapter": "pixi-7",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
@@ -934,8 +996,8 @@
       "react": "19.3.0",
       "pixiAdapter": "pixi-8",
       "records": [
-        "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-10-macos-26-apple-m5-max",
+        "2026-10-11"
       ],
       "backends": {
         "webgl": [
