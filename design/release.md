@@ -225,8 +225,8 @@ compatibility, not pixi.js's own bugs). pixi.js before 8.10 has an upstream bug
 renders): Pixi sizes the WebGPU texture batch from WebGL's `MAX_TEXTURE_IMAGE_UNITS` (32 on SwiftShader) while the
 WebGPU device allows 16 sampled textures per stage, so the pipeline is invalid and the canvas stays blank although
 every conformance scenario passes. It is not specific to software rendering: real devices with that mismatch are
-affected, while an Apple M5 Max is not: its WebGL reports 16 units (observed: the owner's 2026-10-11 Mac run logged
-the shim's original value as 16; that record is pending a re-run on the required Node version). The owner's Windows PC
+affected, while an Apple M5 Max is not: its WebGL reports 16 units (recorded: the shim log of hardware record
+2026-10-11-macos-26-apple-m5-max shows the original value 16). The owner's Windows PC
 (NVIDIA RTX 4070, ANGLE over Direct3D 11) also reported 16 in a standalone probe (not yet a record). The adapters do not work around it. The
 harness does, as a labelled shim: on WebGPU runs of the Pixi 8 adapter with pixi.js `>=8.2.6 <8.10.0`, under every GPU
 profile, `harness/test/environment-shims.ts` clamps `getParameter(MAX_TEXTURE_IMAGE_UNITS)` of both WebGL contexts to
@@ -241,13 +241,16 @@ unverified, run without the shim) and are superseded by the 2026-10-11 record, n
 runs on ANGLE over SwiftShader and WebGPU on SwiftShader's fallback adapter (`isFallbackAdapter: true`), as in CI. That
 counts as verification (owner ruling). A run on a real GPU (`run-cells.mjs --gpu hardware`, see the
 [cells README](compatibility/cells/README.md#running-on-a-real-gpu)) adds a dated record beside the software one: the
-full [2026-10-10-macos-26-apple-m5-max](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md) record (Apple
-M5 Max, Metal; 184 cells at main d0071c1, before the React 18 split and the Pixi 7.2 widening) passed every cell on
-both backends, so it verifies React 18.3.1 (the former `react-18` package) and every React 19 adapter with pixi.js
-8.2.6 … 8.22.0 on WebGL and WebGPU and with 7.4.2 and 7.4.3 on WebGL. It ran before environment shims existed and
-needs no re-run: pixi.js 8.2–8.9 rendered on WebGPU there without the shim, and the Mac's WebGL reports 16 texture
-units (observed in the owner's 2026-10-11 Mac run, whose shim log recorded the original value 16; that record is pending
-a re-run on the required Node version), so the shim is a no-op there.
+full [2026-10-11-macos-26-apple-m5-max](compatibility/verification/2026-10-11-macos-26-apple-m5-max.md) record (Apple
+M5 Max, Metal, Chromium 133, Node 22.22.0; 297 cells at main 899b799, run with `pnpm compat:gpu`) passed every cell on
+both backends (WebGL 297 of 297, WebGPU 231 of 231), all 51 boundary probes and all 7 incompatible pairs, so it
+verifies the same tuples as the software record: every React adapter with pixi.js 8.2.6 … 8.22.0 on WebGL and WebGPU
+and with 7.2.0 … 7.4.3 on WebGL. The shim ran on its 88 WebGPU runs of 8.2.6 to 8.9.2 and was a no-op: the Mac's WebGL
+reports 16 texture units (its shim log records 16 → 16). It supersedes that machine's
+[2026-10-10-macos-26-apple-m5-max](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md) record (184 cells at
+main d0071c1, before the React 18 split, the Pixi 7.2 widening and environment shims; pixi.js 8.2–8.9 rendered on
+WebGPU there without the shim), which no longer contributes to `verifiedRanges`. The Windows hardware run (NVIDIA RTX
+4070, `--browser chrome`) is not a record yet.
 
 **Known issues** (`adapterMatrix.knownIssues`, owner rulings 2026-10-10, "verified + known issue", and 2026-10-11). A
 tuple a record verified stays verified, and the generated tables (the release table, COMPATIBILITY.md, the record
