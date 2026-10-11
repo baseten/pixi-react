@@ -74,7 +74,7 @@ The adapter passes props to PixiJS as written, so PixiJS 8's API changes show up
 | Meshes | Accept children | Do not accept children: wrap them in a container |
 | `ParticleContainer` | Its children are Sprites | Its children are `Particle` elements (pixi.js 8.5 and later) |
 | Canvas | `view` | `canvas` |
-| Destroy | `rendererDestroyOptions` is the boolean `removeView` | `rendererDestroyOptions` is `{ removeView }` |
+| Destroy | `rendererDestroyOptions` is Pixi 7's `removeView`: a boolean, or `{ removeView }` (converted; other Pixi 8 keys are ignored with a warning) | `rendererDestroyOptions` is Pixi 8's `RendererDestroyOptions` or a boolean, passed to `Application.destroy` as is, so an existing `{true}` keeps working |
 
 PixiJS 8 adds elements the PixiJS 7 adapter cannot render, each from the pixi.js version that introduced it: `Particle` and the PixiJS 8 `ParticleContainer` (8.5), `RenderLayer` (8.7) and `DOMContainer` (8.9). With an older pixi.js they fail with [`UNSUPPORTED_NODE`](./errors/UNSUPPORTED_NODE.mdx) naming the missing capability.
 
