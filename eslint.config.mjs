@@ -19,6 +19,8 @@ export default [
             'apps/docs/.docusaurus/**/*',
             // Design probes import uninstalled React 17 / Pixi 6 packages.
             'design/**/*',
+            // Compatibility-cell work directories (.compat/, and stray ones such as .compat-gpu-full/): generated projects.
+            '.compat*/**/*',
         ],
     },
     ...pixiConfig,
