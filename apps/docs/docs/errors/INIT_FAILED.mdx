@@ -1,0 +1,20 @@
+---
+title: INIT_FAILED
+slug: /errors/INIT_FAILED
+---
+
+# `INIT_FAILED`
+
+**The Pixi application of a root failed to initialize.** The original error is the `cause`, and the development message repeats it. A failed root is not retried: an automatic retry could allocate a second application while the first is half-initialized. Every render queued on the root rejects with this error.
+
+## Common causes
+
+- The browser could not create the requested renderer, for example `preference: 'webgpu'` without WebGPU support, or WebGL disabled.
+- An invalid application option, or an error thrown by an application plugin or `init` callback.
+- On some devices, WebGPU with pixi.js before 8.10 draws a blank canvas or fails because of a PixiJS bug ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389)); use pixi.js 8.10 or later for WebGPU, or WebGL.
+
+## How to fix
+
+1. Read `error.cause`: it is the error PixiJS (or your callback) threw. The `<Application>` of a renderer composed with `createRenderer` also passes it to `onInitError`.
+2. Fix the cause, for example fall back to `preference: 'webgl'`.
+3. Unmount the failed root and create a new one (`root.unmount()`, then `createRoot`); with `<Application>`, remount it, for example by changing its `key`.

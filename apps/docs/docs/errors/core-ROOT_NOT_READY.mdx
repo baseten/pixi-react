@@ -1,0 +1,22 @@
+---
+title: core.ROOT_NOT_READY
+slug: /errors/core-ROOT_NOT_READY
+---
+
+# `core.ROOT_NOT_READY`
+
+**The operation needs the root's Pixi application, which is not initialized yet.** Initialization is asynchronous: until it finishes, the root's status is not `ready`, and the error reports it (`actual.status`).
+
+## Common causes
+
+Core raises it when something creates a scene node, subscribes a ticker callback or updates the application's options on a root whose application is not ready. The React adapters wait for initialization before they commit, so this usually comes from code that drives a root directly:
+
+- a custom integration or adapter that creates nodes, or calls the root's ticker or application methods, before the root's first render has resolved.
+
+A root whose initialization failed raises [`INIT_FAILED`](./INIT_FAILED.mdx) instead, and one that is unmounting or unmounted [`ROOT_DISPOSED`](./ROOT_DISPOSED.mdx).
+
+## How to fix
+
+- Await the root's first render before touching its application: `const app = await root.render(<Scene />);` resolves with the initialized application.
+- Inside the tree, use `useApplication()`, which returns `isInitialised` with the application, and wait until it is `true`.
+- With `<Application>`, use `onInit`, which runs once the application is ready.

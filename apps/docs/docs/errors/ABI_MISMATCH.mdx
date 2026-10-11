@@ -1,0 +1,44 @@
+---
+title: ABI_MISMATCH
+slug: /errors/ABI_MISMATCH
+---
+
+# `ABI_MISMATCH`
+
+**The adapters and core do not implement the same adapter interface (ABI).** Core checks every adapter's manifest and methods when `createRenderer` composes them, before anything is allocated, and throws `ABI_MISMATCH` naming the adapter (`adapterIds`) and, for a version conflict, the ABI each side implements (`expected`, `actual`).
+
+## Common causes
+
+- **Packages of different versions.** The `@pixi/react-*` packages are released together and depend on each other at exactly the same version. Installing, for example, `@pixi/react-pixi-8` at one version and `@pixi/react-renderer` at another installs two copies of `@pixi/react-core`; when their ABIs differ, composition fails.
+- **Adapters passed in the wrong slot**, such as a Pixi adapter as `react` in `createRenderer({ react, pixi })`: the message asks whether a Pixi adapter was passed as `react`.
+- **A value that is not an adapter instance**, for example the adapter class instead of `new Pixi8Adapter()`.
+- **A third-party adapter** built for another ABI major, or one that needs a newer ABI minor than the installed core.
+- **A Pixi session that is not an object or lacks a method** (third-party Pixi adapters only).
+
+## How to fix
+
+1. Check that every `@pixi/react-*` package is at the same version, and that only one copy of `@pixi/react-core` is installed:
+
+   ```bash
+   npm ls @pixi/react-core
+   ```
+
+2. Reinstall all of them at one version, for example (React 19.3 with PixiJS 8):
+
+   ```bash
+   npm install @pixi/react-renderer@8.1.0 @pixi/react-19.3@8.1.0 @pixi/react-pixi-8@8.1.0
+   ```
+
+   If you list `@pixi/react-core` in your own dependencies (to import `CompatibilityError`), pin it to that version too.
+
+3. Pass instances in the right slots:
+
+   ```ts
+   createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
+   ```
+
+4. For a third-party adapter, install a release built for the ABI major of your core (`CORE_ABI`, exported by `@pixi/react-core`).
+
+`@pixi/react` itself bundles its adapters at one ABI and cannot raise this error for its own composition.
+
+The package names are the planned public names; they depend on the npm scope agreed with the PixiJS maintainers.

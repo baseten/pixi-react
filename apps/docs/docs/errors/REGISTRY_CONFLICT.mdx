@@ -1,0 +1,21 @@
+---
+title: REGISTRY_CONFLICT
+slug: /errors/REGISTRY_CONFLICT
+---
+
+# `REGISTRY_CONFLICT`
+
+**Another class is already registered under this element name in this renderer.** A renderer composed with `createRenderer` rejects a second, different constructor for a name it already has, because replacing it would silently change what existing elements construct. The error names the element (`actual.name`).
+
+## Common causes
+
+- Two libraries, or two parts of one app, call `extend` with the same key for different classes, for example a custom `Sprite` subclass registered as `Sprite`.
+- Two copies of pixi.js are installed, so `extend({ Sprite })` from two modules passes two different `Sprite` classes.
+
+`@pixi/react` keeps upstream's behaviour: its `extend` replaces the existing class silently and does not raise this error.
+
+## How to fix
+
+- Register the second class under its own name: `extend({ MySprite })` renders `<pixiMySprite>`.
+- If two copies of pixi.js are installed, deduplicate them so one is loaded (`npm ls pixi.js`, then `npm dedupe` or align the versions).
+- To replace registrations on purpose, create the renderer with `createRenderer({ react, pixi }, { registryConflict: 'replace' })`.

@@ -1,0 +1,24 @@
+---
+title: CAPABILITY_MISSING
+slug: /errors/CAPABILITY_MISSING
+---
+
+# `CAPABILITY_MISSING`
+
+**A feature needs a capability that the composed adapters do not provide.** Adapters declare capabilities (namespaced IDs with a protocol version, such as `pixi.visibility: 1` or `pixi8.particle: 1`). Core checks that each adapter's requirements are provided before binding, and a feature used later checks for its capability. The error names the capability (`capability`) and the version needed and found (`expected`, `actual`; `null` means not provided).
+
+## Common causes
+
+- **A PixiJS feature newer than the installed pixi.js.** The Pixi 8 adapter provides `pixi8.particle` from pixi.js 8.5, `pixi8.render-layer` from 8.7 and `pixi8.dom-container` from 8.9. With an older pixi.js, `ParticleContainer`, `RenderLayer` or `DOMContainer` cannot be used. (Registering one of them fails with [`UNSUPPORTED_NODE`](./UNSUPPORTED_NODE.mdx) naming the same capability.)
+- **A PixiJS 8 feature with the PixiJS 7 adapter.** `@pixi/react-pixi-7` does not provide the PixiJS 8 capabilities.
+- **A React 19 root option with a React 18 adapter.** React 18 roots have no `onCaughtError` or `onUncaughtError` callbacks (`react.root-error-callbacks`).
+- **A React feature the renderer does not support,** such as fragment refs or `ViewTransition` with the React 19.3 adapter.
+- **`requiredCapabilities`** passed to `createRenderer` that the adapters do not provide.
+- **`applyProps` with a Pixi adapter that has no standalone `applyProps`** (third-party adapters).
+
+## How to fix
+
+- Upgrade pixi.js to a version that provides the capability (within the adapter's peer range), for example `npm install pixi.js@8.22.0` together with your `@pixi/react-*` packages at their current version.
+- To use PixiJS 8 features, move from PixiJS 7 to 8: see [Upgrading from PixiJS 7 to 8](../upgrading-pixi-7-to-8.mdx).
+- To use React 19 root options, move from React 18 to 19: see [Upgrading from React 18 to 19](../upgrading-react-18-to-19.mdx). On React 18, catch render errors with an error boundary, or use `onRecoverableError`.
+- Otherwise, avoid the feature, or compose with an adapter that provides the named capability.

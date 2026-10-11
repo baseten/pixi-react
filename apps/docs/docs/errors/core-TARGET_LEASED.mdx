@@ -1,0 +1,20 @@
+---
+title: core.TARGET_LEASED
+slug: /errors/core-TARGET_LEASED
+---
+
+# `core.TARGET_LEASED`
+
+**The DOM element (or a canvas inside it) already belongs to another root.** A root owns its target element until its teardown has finished. Core keeps this ownership across every loaded copy of core, so two renderers (for example `@pixi/react` and a renderer you composed) cannot draw into the same element either. The error names the current owner (`actual.owner`).
+
+## Common causes
+
+- `createRoot` on an element whose previous root has not finished unmounting.
+- Two renderers (for example `@pixi/react` and a renderer composed with `createRenderer`) both calling `createRoot` on the same element or canvas.
+- A root created on an element that contains the canvas of another root of the same runtime: replacing the element's children would detach that canvas.
+
+## How to fix
+
+- Await the previous root's teardown before reusing the element: `await root.unmount()`, then `createRoot(element)`.
+- Give each root its own element.
+- Do not create a root on a parent of another root's canvas; render into a sibling element instead.

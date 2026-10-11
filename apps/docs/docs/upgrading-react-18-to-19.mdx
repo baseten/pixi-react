@@ -1,0 +1,96 @@
+---
+sidebar_position: 3
+title: Upgrading from React 18 to 19
+---
+
+This guide is for applications that compose their renderer with `createRenderer` and a React 18 adapter package (`@pixi/react-18.0` … `@pixi/react-18.3`), as described in [Migrating to 8.1](./migrating-to-8.1.mdx#older-react-19-minors-and-react-18-createrenderer). Upgrading React means swapping that package for the React 19 package of your new React minor: each adapter package is built for exactly one React minor, with that minor's `react-reconciler`, and rejects any other.
+
+For React's own changes, read the [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) first.
+
+## What happens if you only upgrade React
+
+The React 18 adapter rejects React 19 when the renderer is created, with a [`CompatibilityError` (`UNSUPPORTED_TUPLE`)](./errors/UNSUPPORTED_TUPLE.mdx). In a development build the message names the package to install instead; in every build it ends with a link to that page.
+
+## 1. Upgrade React and swap the adapter package
+
+Choose the React 19 package of the React minor you install. All `@pixi/react-*` packages must stay at the same version (they are released together; mixing versions fails with [`ABI_MISMATCH`](./errors/ABI_MISMATCH.mdx)).
+
+| React | Package | Tested React versions |
+| --- | --- | --- |
+| 19.0 | `@pixi/react-19.0` | 19.0.0, 19.0.8 |
+| 19.1 | `@pixi/react-19.1` | 19.1.0, 19.1.9 |
+| 19.2 | `@pixi/react-19.2` | 19.2.0, 19.2.8 |
+| 19.3 | `@pixi/react-19.3` | 19.3.0 |
+
+For React 19.3, with npm:
+
+```bash
+npm uninstall @pixi/react-18.3
+npm install @pixi/react-19.3@8.1.0 react@19.3.0 react-dom@19.3.0 @types/react@19.3.0 @types/react-dom@19.3.0
+```
+
+With pnpm:
+
+```bash
+pnpm remove @pixi/react-18.3
+pnpm add @pixi/react-19.3@8.1.0 react@19.3.0 react-dom@19.3.0
+```
+
+With Yarn:
+
+```bash
+yarn remove @pixi/react-18.3
+yarn add @pixi/react-19.3@8.1.0 react@19.3.0 react-dom@19.3.0
+```
+
+Use the package you had (`@pixi/react-18.0`, `-18.1` or `-18.2`) in the remove command if it was not `@pixi/react-18.3`. Keep `@pixi/react-renderer` and your Pixi adapter (`@pixi/react-pixi-8` or `@pixi/react-pixi-7`) as they are: they work with every React adapter.
+
+## 2. Change the `createRenderer` import
+
+Only the module that calls `createRenderer` changes. The React 18 packages export `React18Adapter`; the React 19 packages export `React19Adapter`:
+
+```diff
+ // src/pixi-react.ts
+ import { createRenderer } from '@pixi/react-renderer';
+- import { React18Adapter } from '@pixi/react-18.3';
++ import { React19Adapter } from '@pixi/react-19.3';
+ import { Pixi8Adapter } from '@pixi/react-pixi-8';
+
+ export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
+-    createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() });
++    createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
+```
+
+Components keep importing from your module, so nothing else changes.
+
+## 3. Switch the JSX type entry
+
+In the `.d.ts` file that declares the element types, use the React 19 entry of your Pixi adapter:
+
+```diff
+- import '@pixi/react-pixi-8/jsx/react-18';
++ import '@pixi/react-pixi-8/jsx/react-19';
+```
+
+(`@pixi/react-pixi-7/jsx/react-19` with the PixiJS 7 adapter.)
+
+## 4. Optional: React 19 features
+
+React 19 roots accept `onCaughtError` and `onUncaughtError` on `<Application>` and `createRoot`; the React 18 adapters reject them with [`CAPABILITY_MISSING`](./errors/CAPABILITY_MISSING.mdx). The React 19.3 package also supports `<Activity>`.
+
+## 5. Optional: move to `@pixi/react`
+
+On React 19.3 with PixiJS 8 you can drop the composition and use `@pixi/react` itself, which builds in the React 19.3 and PixiJS 8 adapters:
+
+```bash
+npm uninstall @pixi/react-renderer @pixi/react-19.3 @pixi/react-pixi-8
+npm install @pixi/react@8.1.0
+```
+
+Then import `Application`, `extend` and the hooks from `@pixi/react` instead of your module, and delete the module. `@pixi/react` keeps upstream's behaviour: `extend` replaces a registered name silently, and it does not offer the modular APIs (`useContextBridge`, `component(Ctor)`, root error props, `Root.status`). If your app uses those, keep the composition. Mixing the two (an `<Application>` of one with hooks of the other) fails with [`react-19.FOREIGN_RUNTIME`](./errors/react-19-FOREIGN_RUNTIME.mdx).
+
+## Tested and verified combinations
+
+The React 19 packages are tested on every change with pixi.js 8.2.6 and 8.22.0, and verified with every PixiJS 8 minor's newest patch on WebGL and WebGPU, on software rendering (WebGPU with pixi.js before 8.10 needs the workaround for [a PixiJS bug](./migrating-to-8.1.mdx#known-issue-webgpu-with-pixijs-8289)). Verification is evidence, not a support guarantee.
+
+The package names above are the planned public names; they depend on the npm scope agreed with the PixiJS maintainers.
