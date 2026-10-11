@@ -1,0 +1,93 @@
+---
+sidebar_position: 4
+title: Upgrading from PixiJS 7 to 8
+---
+
+This guide is for applications on PixiJS 7 that compose their renderer with `createRenderer` and the PixiJS 7 adapter, `@pixi/react-pixi-7` ([Migrating to 8.1](./migrating-to-8.1.mdx#pixijs-7-createrenderer-with-the-pixijs-7-adapter)). Upgrading means swapping it for the PixiJS 8 adapter, `@pixi/react-pixi-8`: each Pixi adapter is for one PixiJS major and rejects the other.
+
+If you use upstream's `@pixi/react` 7.x API (`Stage`, `PixiComponent`, `withFilters`), start with [Migrating to 8.1](./migrating-to-8.1.mdx) instead: the 8.x API replaces it.
+
+Most of the work is PixiJS's own: read the [PixiJS v8 migration guide](https://pixijs.com/8.x/guides/migrations/v8) first.
+
+## What happens if you only upgrade pixi.js
+
+The PixiJS 7 adapter rejects pixi.js 8 when the renderer is created, with a [`CompatibilityError` (`UNSUPPORTED_TUPLE`)](./errors/UNSUPPORTED_TUPLE.mdx) that tells you to compose the PixiJS 8 adapter. The reverse (pixi.js 7 with `@pixi/react-pixi-8`) fails the same way.
+
+## 1. Upgrade pixi.js and swap the adapter package
+
+Keep every `@pixi/react-*` package at the same version. With npm:
+
+```bash
+npm uninstall @pixi/react-pixi-7
+npm install @pixi/react-pixi-8@8.1.0 pixi.js@8.22.0
+```
+
+With pnpm:
+
+```bash
+pnpm remove @pixi/react-pixi-7
+pnpm add @pixi/react-pixi-8@8.1.0 pixi.js@8.22.0
+```
+
+With Yarn:
+
+```bash
+yarn remove @pixi/react-pixi-7
+yarn add @pixi/react-pixi-8@8.1.0 pixi.js@8.22.0
+```
+
+The PixiJS 8 adapter accepts pixi.js `>=8.2.6 <8.5.0 || >=8.5.1 <8.23.0` (8.5.0 is excluded). Your React adapter and `@pixi/react-renderer` stay as they are.
+
+## 2. Change the `createRenderer` import
+
+```diff
+ // src/pixi-react.ts
+ import { createRenderer } from '@pixi/react-renderer';
+ import { React18Adapter } from '@pixi/react-18.3';
+- import { Pixi7Adapter } from '@pixi/react-pixi-7';
++ import { Pixi8Adapter } from '@pixi/react-pixi-8';
+
+ export const { Application, extend, useApplication, useTick, useExtend, createRoot, applyProps } =
+-    createRenderer({ react: new React18Adapter(), pixi: new Pixi7Adapter() });
++    createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() });
+```
+
+And the JSX type entry, in your `.d.ts` file:
+
+```diff
+- import '@pixi/react-pixi-7/jsx/react-18';
++ import '@pixi/react-pixi-8/jsx/react-18';
+```
+
+(`/jsx/react-19` with a React 19 adapter.)
+
+## 3. Update your scene for PixiJS 8
+
+The adapter passes props to PixiJS as written, so PixiJS 8's API changes show up in your JSX. The ones the adapters handle differently:
+
+| Topic | With `@pixi/react-pixi-7` | With `@pixi/react-pixi-8` |
+| --- | --- | --- |
+| `useTick` | The callback receives the frame delta, a number | The callback receives the `Ticker`; read `ticker.deltaTime` |
+| Construction | Positional constructor arguments taken from props (`texture`, `text`, `style`) | One options object built from the props |
+| Names | `name` | `label` |
+| Graphics | `draw` receives the node; use the imperative API (`beginFill`, `drawRect`, `endFill`); share a `geometry` | `draw` receives the node; use PixiJS 8's API (`rect(...).fill(...)`); share a `GraphicsContext` with the `context` prop |
+| Meshes | Accept children | Do not accept children: wrap them in a container |
+| `ParticleContainer` | Its children are Sprites | Its children are `Particle` elements (pixi.js 8.5 and later) |
+| Canvas | `view` | `canvas` |
+| Destroy | `rendererDestroyOptions` is Pixi 7's `removeView`: a boolean, or `{ removeView }` (converted; other Pixi 8 keys are ignored with a warning) | `rendererDestroyOptions` is Pixi 8's `RendererDestroyOptions` or a boolean, passed to `Application.destroy` as is, so an existing `{true}` keeps working |
+
+PixiJS 8 adds elements the PixiJS 7 adapter cannot render, each from the pixi.js version that introduced it: `Particle` and the PixiJS 8 `ParticleContainer` (8.5), `RenderLayer` (8.7) and `DOMContainer` (8.9). With an older pixi.js they fail with [`UNSUPPORTED_NODE`](./errors/UNSUPPORTED_NODE.mdx) naming the missing capability.
+
+## 4. Optional: move to `@pixi/react`
+
+With React 19.3 you can drop the composition and use `@pixi/react`, which builds in the React 19.3 and PixiJS 8 adapters. See [Upgrading from React 18 to 19](./upgrading-react-18-to-19.mdx#5-optional-move-to-pixireact) for the steps and the behaviour differences.
+
+## WebGPU with pixi.js 8.2 to 8.9
+
+PixiJS 8 can render with WebGPU. On some devices pixi.js before 8.10 draws a blank canvas with WebGPU because of a PixiJS bug ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed in 8.10.0): use pixi.js 8.10 or later for WebGPU, or the WebGL renderer. The compatibility tables verify WebGPU on 8.2 to 8.9 only with a test workaround for that bug, and mark it with this footnote. See [the known issue](./migrating-to-8.1.mdx#known-issue-webgpu-with-pixijs-8289).
+
+## Tested and verified combinations
+
+The PixiJS 8 adapter is tested on every change with pixi.js 8.2.6 and 8.22.0, and verified with every PixiJS 8 minor's newest patch and every React adapter on WebGL, and on WebGPU (with the footnote above), on software rendering. Verification is evidence, not a support guarantee.
+
+The package names above are the planned public names; they depend on the npm scope agreed with the PixiJS maintainers.

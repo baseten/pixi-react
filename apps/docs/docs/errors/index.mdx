@@ -1,0 +1,55 @@
+---
+title: Error reference
+slug: /errors
+sidebar_position: 0
+---
+
+Every `CompatibilityError` thrown by `@pixi/react` and the modular `@pixi/react-*` packages has a stable `code`, and its message ends with a link to the code's page here, in development and production builds alike:
+
+```text
+UNSUPPORTED_TUPLE (react-18.3; expected {"react":"18.3.x",…}; actual {"react":"19.3.0"}). A development build (NODE_ENV !== 'production') gives the full message. See https://baseten.github.io/pixi-react/errors/UNSUPPORTED_TUPLE/
+```
+
+Production builds shorten the message to the code and its details. Run a development build for the full text, or read the page the link names.
+
+## Codes
+
+| Code | Raised when |
+| --- | --- |
+| [`ABI_MISMATCH`](./ABI_MISMATCH.mdx) | An adapter and core implement different adapter interfaces (usually packages of different versions) |
+| [`CAPABILITY_MISSING`](./CAPABILITY_MISSING.mdx) | A feature needs a capability the composed adapters do not provide |
+| [`UNSUPPORTED_TUPLE`](./UNSUPPORTED_TUPLE.mdx) | The installed React or pixi.js is not one the adapter package is for |
+| [`UNKNOWN_ELEMENT`](./UNKNOWN_ELEMENT.mdx) | A JSX element name is not registered with `extend` |
+| [`UNSUPPORTED_NODE`](./UNSUPPORTED_NODE.mdx) | A registered class cannot be a scene node, or a tree operation is invalid |
+| [`REGISTRY_CONFLICT`](./REGISTRY_CONFLICT.mdx) | Two classes are registered under one element name |
+| [`ROOT_DISPOSED`](./ROOT_DISPOSED.mdx) | A root or renderer is used after it was unmounted |
+| [`INIT_FAILED`](./INIT_FAILED.mdx) | The Pixi application of a root failed to initialize |
+| [`core.TARGET_LEASED`](./core-TARGET_LEASED.mdx) | A DOM element already belongs to another root |
+| [`core.ROOT_NOT_READY`](./core-ROOT_NOT_READY.mdx) | A root operation needs an initialized application |
+| [`core.INVALID_OPTION`](./core-INVALID_OPTION.mdx) | A renderer option has a value core does not accept |
+| [`react-18.FOREIGN_RUNTIME`](./react-18-FOREIGN_RUNTIME.mdx) | A hook of one renderer is called inside another renderer's application (React 18 adapters) |
+| [`react-19.FOREIGN_RUNTIME`](./react-19-FOREIGN_RUNTIME.mdx) | The same, for the React 19 adapters and `@pixi/react` |
+
+A page's address is the code with every `.` replaced by `-`: `core.TARGET_LEASED` is at `errors/core-TARGET_LEASED/`.
+
+## Codes of other adapters
+
+Third-party adapters raise codes in their own namespace, such as `community.shader.UNSUPPORTED_FORMAT`. They are not listed here. An adapter can give such an error its own page by passing `docsUrl` with the error's details; the message then ends with that link:
+
+```ts
+import { CompatibilityError } from '@pixi/react-core';
+
+throw new CompatibilityError('This shader format is not supported.', {
+    code: 'community.shader.UNSUPPORTED_FORMAT',
+    adapterIds: ['community.shader'],
+    docsUrl: 'https://example.com/shader-adapter/errors#unsupported-format',
+});
+```
+
+Built-in and `core.` codes always link to this reference; `docsUrl` is ignored for them.
+
+## Handling errors in code
+
+Narrow an unknown error with `instanceof CompatibilityError` (from `@pixi/react-core`) and switch on `code`, not on the message: the message text differs between development and production builds. The page link is also available as `error.docsUrl`. When two copies of core may be loaded (for example `@pixi/react` next to modular packages), check `error.name === 'CompatibilityError'` instead of `instanceof`.
+
+See also the upgrade guides: [React 18 to 19](../upgrading-react-18-to-19.mdx) and [PixiJS 7 to 8](../upgrading-pixi-7-to-8.mdx).

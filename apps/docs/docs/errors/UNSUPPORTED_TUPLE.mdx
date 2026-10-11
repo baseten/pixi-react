@@ -1,0 +1,62 @@
+---
+title: UNSUPPORTED_TUPLE
+slug: /errors/UNSUPPORTED_TUPLE
+---
+
+# `UNSUPPORTED_TUPLE`
+
+**The installed React or pixi.js is not one the adapter package is for.** Each React adapter package is built for one React minor, with that minor's exact `react-reconciler`, and each Pixi adapter for one PixiJS major. When the renderer is created, each adapter checks the installed version and rejects any other. The error names the adapter (`adapterIds`), what it is for (`expected`) and what is installed (`actual`).
+
+## Common causes
+
+- **React was upgraded or downgraded, but the React adapter package was not swapped.** For example, React 19.3.0 is installed but `@pixi/react-18.3` is for React 18.3. The development message names the package for the installed minor.
+- **Another React minor of the same major.** `@pixi/react-19.1` accepts React 19.1 only; React 19.2 needs `@pixi/react-19.2`.
+- **pixi.js was upgraded from 7 to 8 (or the reverse), but the Pixi adapter was not swapped.** `@pixi/react-pixi-7` rejects pixi.js 8, and `@pixi/react-pixi-8` rejects pixi.js 7.
+- **A pixi.js version outside the adapter's range,** an excluded one (pixi.js 8.5.0, 7.4.0) or a pre-release.
+- **`@pixi/react` with React 18.** `@pixi/react` 8.x is for React 19 (tested with 19.3); it rejects another React major. (Another React 19 minor only logs a warning.)
+
+## How to fix
+
+Swap the adapter package for the one that matches what is installed, keeping every `@pixi/react-*` package at the same version. Then update its import in the module where you call `createRenderer`.
+
+| Installed React | React adapter package | Import |
+| --- | --- | --- |
+| 18.0.0, 18.1.0, 18.2.0 | `@pixi/react-18.0`, `-18.1`, `-18.2` | `import { React18Adapter } from '@pixi/react-18.2';` |
+| 18.3.1 | `@pixi/react-18.3` | `import { React18Adapter } from '@pixi/react-18.3';` |
+| 19.0, 19.1, 19.2 | `@pixi/react-19.0`, `-19.1`, `-19.2` | `import { React19Adapter } from '@pixi/react-19.1';` |
+| 19.3.0 | `@pixi/react-19.3` (or `@pixi/react`) | `import { React19Adapter } from '@pixi/react-19.3';` |
+
+| Installed pixi.js | Pixi adapter package | Import |
+| --- | --- | --- |
+| 7.2.x, 7.3.x, 7.4.2, 7.4.3 | `@pixi/react-pixi-7` | `import { Pixi7Adapter } from '@pixi/react-pixi-7';` |
+| 8.2.6 to 8.22.x (not 8.5.0) | `@pixi/react-pixi-8` | `import { Pixi8Adapter } from '@pixi/react-pixi-8';` |
+
+For example, after upgrading React 18.3 to 19.3:
+
+```bash
+npm uninstall @pixi/react-18.3
+npm install @pixi/react-19.3@8.1.0 react@19.3.0 react-dom@19.3.0
+```
+
+```ts
+// before
+import { React18Adapter } from '@pixi/react-18.3';
+// after
+import { React19Adapter } from '@pixi/react-19.3';
+
+export const { Application, extend, useApplication, useTick } =
+    createRenderer({ react: new React19Adapter(), pixi: new Pixi8Adapter() });
+```
+
+After upgrading pixi.js 7 to 8:
+
+```bash
+npm uninstall @pixi/react-pixi-7
+npm install @pixi/react-pixi-8@8.1.0 pixi.js@8.22.0
+```
+
+and replace `Pixi7Adapter` from `@pixi/react-pixi-7` with `Pixi8Adapter` from `@pixi/react-pixi-8` (and the `jsx` type entry: `@pixi/react-pixi-8/jsx/react-19`). With pnpm use `pnpm remove` and `pnpm add`; with Yarn, `yarn remove` and `yarn add`.
+
+The upgrade guides walk through the whole change: [React 18 to 19](../upgrading-react-18-to-19.mdx) and [PixiJS 7 to 8](../upgrading-pixi-7-to-8.mdx). For `@pixi/react` with React 18, either upgrade React to 19.3, or compose your own renderer with `createRenderer` and a React 18 package ([Migrating to 8.1](../migrating-to-8.1.mdx#older-react-19-minors-and-react-18-createrenderer)).
+
+The package names are the planned public names; they depend on the npm scope agreed with the PixiJS maintainers.

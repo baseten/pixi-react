@@ -1,0 +1,30 @@
+---
+title: UNKNOWN_ELEMENT
+slug: /errors/UNKNOWN_ELEMENT
+---
+
+# `UNKNOWN_ELEMENT`
+
+**A JSX element name is not registered.** Nothing is registered automatically: an element such as `<pixiSprite>` renders only after its class was registered with `extend` (or `useExtend`) in the same renderer. The message names the element and the `extend` call that registers it.
+
+## Common causes
+
+- **`extend` was never called** for the class, or it was called after the first render that uses it.
+- **`extend` was called on another renderer.** Each `createRenderer` call has its own registry; `extend` from one does not register in another, and `extend` from `@pixi/react` does not register in a renderer you composed.
+- **A misspelled element name.** Element names are the registered key with a `pixi` prefix: `extend({ Sprite })` registers `<pixiSprite>`.
+- **An element name that is not a non-empty string,** or a node definition that does not come from this runtime's registry (custom integrations).
+
+## How to fix
+
+Register the class before rendering, with the `extend` of the renderer that renders it:
+
+```tsx
+import { Container, Sprite } from 'pixi.js';
+import { extend } from './pixi-react'; // the module that exports your createRenderer result, or '@pixi/react'
+
+extend({ Container, Sprite });
+
+// <pixiContainer><pixiSprite texture={texture} /></pixiContainer>
+```
+
+Inside a component, `useExtend({ Sprite })` registers the class when the component renders; use the element in that component or below it. See [extend](../extend.mdx).

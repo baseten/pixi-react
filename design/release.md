@@ -421,7 +421,8 @@ workspace's version) inside those consumer projects:
   and explicit fixtures may keep no more pixi.js modules and no more pixi.js bytes than that baseline. See Pixi
   constructor elimination below.
 - **Our own code stays within its budget.** The bytes our packages contribute to each production bundle are at most
-  the fixture's budget, and no development-only diagnostic text is left in it. See
+  the fixture's budget, no development-only diagnostic text is left in it, and the error reference address that
+  `CompatibilityError` messages end with is. See
   [Our own code in production bundles](#our-own-code-in-production-bundles) below.
 
 Bundle sizes come from fixed fixtures and pinned versions. They describe those fixtures only. Tree shaking never
@@ -485,6 +486,13 @@ contains development-only text (`DEVELOPMENT_ONLY_TEXT`). Raise a budget only de
 The JSX-order insert fix (PR 67) added about 400 bytes to each fixture with a Pixi adapter (facade 66,393, React 19.3 +
 pixi-8 56,854, React 18 + pixi-8 55,110, React 19.3 + pixi-7 56,059); the budgets were raised then to leave roughly
 1.5 KB of headroom.
+
+The error reference links (issue 71) add about 300 bytes to every fixture: every `CompatibilityError` message ends with
+its docs page in production too, so core keeps the address (`ERROR_DOCS_URL`) and the code-to-page mapping. Measured
+on main before and after: facade 66,607 → 66,905, React 19.3 + pixi-8 57,068 → 57,414, React 18.3 + pixi-8 56,196 →
+56,542, React 19.3 + pixi-7 56,323 → 56,669, renderer only 23,172 → 23,457. Every fixture stays within its budget, so
+no budget was raised; React 18.3 + pixi-8 has 58 bytes of headroom left. `bundles.mjs` also fails a production
+bundle of our packages that lacks the address, which is not development-only text.
 
 ### Development and production reconciler builds
 
