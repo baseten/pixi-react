@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { firstGpu, machineSlug, macosMajorFromDarwin, parseArguments, planSteps, pushCommands, slugify, TARGETED } from '../../../scripts/compat-gpu.mjs';
+import { firstGpu, machineSlug, safeWorkDir, macosMajorFromDarwin, parseArguments, planSteps, pushCommands, slugify, TARGETED } from '../../../scripts/compat-gpu.mjs';
 
 const context = { slug: 'macos-26-apple-m5-max', date: '2026-10-12', commit: 'a'.repeat(40), platform: 'darwin' };
 
@@ -74,4 +74,16 @@ test('compat:gpu --push: a new records branch from HEAD, only the records direct
         ['commit', '-m', 'Add the hardware verification record 2026-10-12-windows-26200-nvidia-geforce-rtx-4070-chrome [skip ci]'],
         ['push', '-u', 'origin', 'records/windows-26200-nvidia-geforce-rtx-4070-chrome-2026-10-12'],
     ]);
+});
+
+test('safeWorkDir only accepts a dedicated directory under the checkout\'s .compat*', () =>
+{
+    const root = join('/', 'repo', 'pixi-react');
+
+    assert.equal(safeWorkDir(root, '.compat/gpu/full'), join(root, '.compat', 'gpu', 'full'));
+    assert.equal(safeWorkDir(root, join(root, '.compat-gpu', 'x')), join(root, '.compat-gpu', 'x'));
+    for (const bad of ['.', '..', '../..', root, join('/', 'repo'), '/', 'packages', 'design/compatibility', '.compat/../packages', '.git', join('/', 'tmp', 'gpu')])
+    {
+        assert.throws(() => safeWorkDir(root, bad), /not a dedicated output directory/, bad);
+    }
 });

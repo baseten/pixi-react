@@ -26,7 +26,7 @@ import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { cpus, release } from 'node:os';
-import { dirname, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertRequiredNode, BROWSERS, nodeRequirement, platformCommand } from '../design/compatibility/cells/matrix.mjs';
 
@@ -112,6 +112,27 @@ function detectMachine(browser)
  * The steps of a run, in order: what to spawn, and whether a failure stops the run (`fatal`) or is data. `node` is
  * the Node binary; package-manager commands go through `platformCommand` (.cmd shims on Windows).
  */
+/**
+ * The work directory is wiped at the start of a run, so it must be a dedicated output directory: strictly inside the
+ * checkout, under a top-level `.compat*` directory (git- and ESLint-ignored). Anything else, such as `.`, `..`, the
+ * checkout itself, an ancestor of it or a source directory, is refused before anything is removed.
+ */
+export function safeWorkDir(root, work)
+{
+    const resolvedRoot = resolve(root);
+    const resolvedWork = resolve(resolvedRoot, work);
+    const inside = relative(resolvedRoot, resolvedWork);
+    const [first] = inside.split(/[\\/]/);
+
+    if (!inside || inside.startsWith('..') || isAbsolute(inside) || !first.startsWith('.compat'))
+    {
+        throw new Error(`--work ${work} resolves to ${resolvedWork}, which is not a dedicated output directory: use a path under `
+            + `the checkout's .compat directory (default .compat/gpu/full). It is wiped at the start of a run.`);
+    }
+
+    return resolvedWork;
+}
+
 export function planSteps(options, { slug, date, commit, platform = process.platform })
 {
     const work = options.work;
@@ -240,7 +261,7 @@ function main()
     assert.ok(['darwin', 'win32'].includes(process.platform), `the hardware profile runs on macOS and Windows only, not ${process.platform}`);
     const slug = options.machine ?? detectMachine(options.browser);
     const date = new Date().toISOString().slice(0, 10);
-    const work = resolve(root, options.work);
+    const work = safeWorkDir(root, options.work);
     const results = join(work, 'results');
     const recordId = `${date}-${slug}`;
 
