@@ -49,6 +49,11 @@ export const PIXI8_BOUNDARIES = Object.freeze({
     renderLayer: '8.7.0',
     /** `DOMContainer`. */
     domContainer: '8.9.0',
+    /**
+     * WebGPU `GpuDeviceSystem.destroy()` destroys the `GPUDevice` the renderer created (pixijs/pixijs#12173). Before
+     * it, every WebGPU renderer leaked its device, so the adapter destroys the device itself (see `session.ts`).
+     */
+    destroysOwnGpuDevice: '8.21.0',
 } as const);
 
 const VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;

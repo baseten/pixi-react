@@ -23,6 +23,26 @@ export interface SessionGlobals
 
 type SessionStatus = 'new' | 'initialising' | 'ready' | 'failed' | 'destroyed';
 
+/** A WebGPU `GPUDevice`, as far as the adapter uses it. */
+interface GpuDeviceLike
+{
+    destroy(): void;
+}
+
+/** What the adapter reads of a Pixi renderer: a WebGPU renderer has `gpu` (its adapter and device), WebGL has none. */
+interface RendererLike
+{
+    readonly gpu?: { readonly device?: unknown } | null;
+}
+
+/** The devices an application supplied through the `gpu` option (pixi.js 8.12+), top-level or under `webgpu`. */
+function suppliedGpuDevices(options: object): unknown[]
+{
+    const { gpu, webgpu } = options as { gpu?: { device?: unknown } | null; webgpu?: { gpu?: { device?: unknown } | null } | null };
+
+    return [gpu?.device, webgpu?.gpu?.device].filter((device) => device !== undefined && device !== null);
+}
+
 /** The plain option values of a `defaultTextStyle` given either as options or as a `TextStyle`. */
 function styleValues(pixi: PixiBinding, style: unknown): Record<string, unknown> | undefined
 {
@@ -49,6 +69,8 @@ export class Pixi8Session implements PixiSession<Pixi8Types>
     private status: SessionStatus = 'new';
     private readonly leases: ExtensionLeaseHolder;
     private resizeTarget: Pixi8ResizeTarget = null;
+    /** WebGPU devices the application supplied (`gpu`): they belong to the application and are never destroyed here. */
+    private suppliedDevices: unknown[] = [];
 
     constructor(private readonly globals: SessionGlobals, private readonly canvas: HTMLCanvasElement)
     {
@@ -83,6 +105,7 @@ export class Pixi8Session implements PixiSession<Pixi8Types>
             signal.throwIfAborted();
             this.leases.update(extensions);
             this.globals.defaultStyle.write(this, styleValues(this.globals.pixi, defaultTextStyle));
+            this.suppliedDevices = suppliedGpuDevices(applicationOptions);
             await this.app.init({
                 ...applicationOptions,
                 ...(resizeTo ? { resizeTo } : {}),
@@ -100,8 +123,36 @@ export class Pixi8Session implements PixiSession<Pixi8Types>
         this.status = 'ready';
     }
 
+    /**
+     * The WebGPU device of the application's renderer when pixi.js will not destroy it, captured before the renderer is
+     * destroyed (destroying it clears `renderer.gpu`). pixi.js before 8.21 (`PIXI8_BOUNDARIES.destroysOwnGpuDevice`,
+     * pixijs/pixijs#12173) never calls `GPUDevice.destroy()`, so every WebGPU application would leak its device; a
+     * driver runs out of them after enough mounts (Direct3D 12: `requestDevice` fails with E_OUTOFMEMORY). A device
+     * the application supplied through `gpu` is the application's and is never returned, as pixi.js does from 8.21.
+     * pixi.js before 8.12 ignores `gpu` and creates its own device, which the identity check returns. `undefined`
+     * for a WebGL renderer, no renderer, or pixi.js 8.21+.
+     */
+    private leakedGpuDevice(): GpuDeviceLike | undefined
+    {
+        if (this.globals.nodes.features.destroysOwnGpuDevice)
+        {
+            return undefined;
+        }
+
+        const renderer = (this.app as { renderer?: RendererLike | null }).renderer;
+        const device = renderer?.gpu?.device as Partial<GpuDeviceLike> | null | undefined;
+
+        if (!device || typeof device.destroy !== 'function' || this.suppliedDevices.includes(device))
+        {
+            return undefined;
+        }
+
+        return device as GpuDeviceLike;
+    }
+
     private releaseAfterFailure(): void
     {
+        let device: GpuDeviceLike | undefined;
         const steps = [
             () => this.leases.releaseAll(),
             () => this.globals.defaultStyle.release(this),
@@ -110,9 +161,12 @@ export class Pixi8Session implements PixiSession<Pixi8Types>
                 // A renderer exists only when Application.init failed after creating it (for example in a plugin).
                 if ((this.app as { renderer?: unknown }).renderer)
                 {
+                    device = this.leakedGpuDevice();
                     this.app.renderer.destroy();
                 }
             },
+            // After the renderer, which still uses the device while it destroys its GPU resources.
+            () => device?.destroy(),
         ];
 
         for (const step of steps)
@@ -228,8 +282,9 @@ export class Pixi8Session implements PixiSession<Pixi8Types>
     }
 
     /**
-     * Destroys the application with both destroy channels forwarded unchanged, then releases the global leases.
-     * Every step runs even if an earlier one throws; the failures are thrown together. Idempotent.
+     * Destroys the application with both destroy channels forwarded unchanged, then the WebGPU device pixi.js leaves
+     * behind (before 8.21, see `leakedGpuDevice`), then releases the global leases. Every step runs even if an earlier
+     * one throws; the failures are thrown together. Idempotent.
      */
     destroy(options: Pixi8DestroyOptions | undefined): void
     {
@@ -243,14 +298,19 @@ export class Pixi8Session implements PixiSession<Pixi8Types>
         this.status = 'destroyed';
 
         const errors: unknown[] = [];
+        let device: GpuDeviceLike | undefined;
         const steps = [
             () =>
             {
                 if (initialised)
                 {
+                    device = this.leakedGpuDevice();
                     this.app.destroy(options?.rendererDestroyOptions, options?.destroyOptions);
                 }
             },
+            // After Pixi's own destroy, which still uses the device while it releases its GPU resources; also when
+            // that destroy threw, since the renderer is unusable either way.
+            () => device?.destroy(),
             () => this.leases.releaseAll(),
             () => this.globals.defaultStyle.release(this),
         ];
