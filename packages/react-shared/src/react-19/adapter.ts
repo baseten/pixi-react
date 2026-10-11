@@ -1,4 +1,5 @@
-import { version as installedReactVersion } from 'react';
+// `Activity` is read as a property of the CommonJS `react` module, so it is `undefined` on React 19.0/19.1, which lack it.
+import { Activity as ReactActivity, version as installedReactVersion } from 'react';
 import { createBindings, type ParentActivityBridge } from './bindings.js';
 import {
     type AdapterManifest,
@@ -42,6 +43,20 @@ export const REQUIRED_PIXI_CAPABILITIES: CapabilityMap = Object.freeze({
     'pixi.application': 1,
     'pixi.ticker': 1,
 });
+
+/**
+ * The parent Activity bridge to use with the installed React: `bridge` when React has `Activity` (19.2+; pass the
+ * installed `React.Activity`), and `undefined` otherwise, so the scene root renders its children through a
+ * pass-through. its-fine's `useActivityBridge` throws ("requires React 19.2 or later") when `React.Activity` is
+ * missing, so the bridge is selected by that same feature, never by the package's minor alone.
+ */
+export function selectActivityBridge(
+    activity: unknown,
+    bridge: ParentActivityBridge | undefined,
+): ParentActivityBridge | undefined
+{
+    return bridge && activity ? bridge : undefined;
+}
 
 function minorOf(version: string): string | undefined
 {
@@ -93,6 +108,12 @@ export abstract class React19Adapter extends ReactAdapter<React19Family>
         return installedReactVersion;
     }
 
+    /** The installed React's `Activity` export (`undefined` before 19.2), for feature detection. Overridable for tests. */
+    protected reactActivity(): unknown
+    {
+        return ReactActivity;
+    }
+
     /**
      * Rejects an installed React outside this package's minor line. The reconciler this package depends on is pinned
      * to that line; another minor needs another package, never this one.
@@ -129,7 +150,7 @@ export abstract class React19Adapter extends ReactAdapter<React19Family>
         const bindings = createBindings(runtime, {
             adapterId: this.manifest.id,
             renderer: this.createRenderer(runtime),
-            useParentActivity: this.parentActivityBridge(),
+            useParentActivity: this.activityBridge(),
         });
 
         // `Extract<S, PixiTypes>` is `S`; TypeScript cannot reduce it for a generic S (see core's README).
@@ -149,5 +170,15 @@ export abstract class React19Adapter extends ReactAdapter<React19Family>
     protected parentActivityBridge(): ParentActivityBridge | undefined
     {
         return undefined;
+    }
+
+    /**
+     * The bridge `bind` uses: this epoch's `parentActivityBridge()` when the installed React has `Activity`, otherwise
+     * none (a pass-through). Behaviour on 19.2+ is unchanged; without `Activity`, rendering never reaches its-fine's
+     * `useActivityBridge`, which would throw.
+     */
+    protected activityBridge(): ParentActivityBridge | undefined
+    {
+        return selectActivityBridge(this.reactActivity(), this.parentActivityBridge());
     }
 }
