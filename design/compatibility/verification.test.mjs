@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { validateAdapterMatrix } from './cells/matrix.mjs';
-import { checkRenderedRecords, currentRecords, deriveVerifiedRanges, ENVIRONMENT_SHIMS_SINCE, loadRecords, recordGate, refreshRecord, renderingOf, renderRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
+import { browserOfRows, checkRenderedRecords, currentRecords, describeBrowser, deriveVerifiedRanges, ENVIRONMENT_SHIMS_SINCE, loadRecords, recordGate, refreshRecord, renderingOf, renderRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
 
 const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -335,4 +335,35 @@ test('data-only results never reach verifiedRanges', () =>
             if (!nightly) assert.ok(!verified.has(`${row.react}|${row.pixi}`), `${row.id} is data only`);
         }
     }
+});
+
+test('records name the browser of their runs, and say so loudly when it was an installed one rather than the pinned Chromium', () =>
+{
+    const run = (browser, extra = {}) => ({ kind: 'cell', browser: browser.id, backends: { webgpu: { status: 'pass', browser, backend: { actual: 'webgpu' } } }, ...extra });
+    const chrome = { id: 'chrome', channel: 'chrome', name: 'Google Chrome', version: '154.0.7700.10' };
+    const pinned = { id: 'chromium', channel: null, name: 'Chromium', version: '133.0.6943.16' };
+
+    assert.deepEqual(browserOfRows([run(chrome)]), { id: 'chrome', channel: 'chrome', pinned: false, name: 'Google Chrome', version: '154.0.7700.10' });
+    assert.equal(browserOfRows([{ kind: 'cell', backends: {} }]), null);
+    assert.throws(() => browserOfRows([run(chrome), run(pinned)]), /mix browsers/);
+    const env = (browser) => ({ chromium: 'Chromium 154.0.0.0 headed', playwright: '1.50.1', gpu: 'real GPU: nvidia / lovelace', browser });
+    const installed = describeBrowser(env(browserOfRows([run(chrome)])));
+
+    assert.match(installed, /Google Chrome 154\.0\.7700\.10 \(headed\), installed on the machine \(Playwright channel `chrome`\), not the Chromium pinned by Playwright 1\.50\.1/);
+    assert.match(describeBrowser(env(browserOfRows([run(pinned)]))), /^Chromium 133\.0\.6943\.16 \(headed\), the Chromium pinned by Playwright 1\.50\.1$/);
+    // Records from before browsers were recorded keep their Browser row.
+    assert.equal(describeBrowser({ chromium: 'Chromium 133.0.6943.16 headless', playwright: '1.50.1' }), 'Chromium 133.0.6943.16 headless, Playwright 1.50.1');
+    assert.match(renderingOf(seed, 'hardware', env(browserOfRows([run(chrome)]))).note, /The browser was Google Chrome 154\.0\.7700\.10 as installed on the machine \(Playwright channel chrome\), not the Chromium pinned by Playwright\./);
+    assert.doesNotMatch(renderingOf(seed, 'hardware', env(browserOfRows([run(pinned)]))).note, /installed/);
+});
+
+test('a software record cannot name an installed browser', () =>
+{
+    const [software] = loadRecords().filter((candidate) => candidate.gpuProfile === 'software');
+    const bad = clone(software);
+
+    bad.environment.browser = { id: 'chrome', channel: 'chrome', pinned: false, name: 'Google Chrome', version: '154.0.7700.10' };
+    assert.throws(() => validateRecord(seed, bad), /installed browser \(chrome\) is allowed only in a hardware record/);
+    bad.environment.browser = { id: 'chromium', channel: null, pinned: true, name: 'Chromium', version: '133.0.6943.16' };
+    validateRecord(seed, bad);
 });

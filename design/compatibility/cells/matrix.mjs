@@ -1,9 +1,12 @@
 // Pure functions over the #3 seed manifest: generate adapter compatibility cells, validate the `adapterMatrix` section,
 // derive cache keys and render the compatibility table. Nothing here touches the network, npm or the file system
-// beyond reading the seed, so `cells.test.mjs` can exercise all of it offline.
+// beyond reading the seed (and `makeCellDir`, which creates a cell's temp directory through injectable functions), so
+// `cells.test.mjs` can exercise all of it offline.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, realpathSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 export const here = new URL('.', import.meta.url);
 export const seedPath = new URL('../seed.json', import.meta.url);
@@ -677,6 +680,43 @@ export function platformCommand(name, args, platform = process.platform)
     const quote = (arg) => (/^[\w.,:=@/\\+-]+$/.test(arg) ? arg : `"${arg.replaceAll('"', '""')}"`);
 
     return { file: `${name}.cmd`, args: args.map(quote), shell: true };
+}
+
+/**
+ * Creates a cell's isolated work directory under the OS temp directory and returns its real, long path. On Windows
+ * `os.tmpdir()` can be an 8.3 short path (`C:/Users/SAMHIL~1/AppData/Local/Temp` for a profile named "Sam Hill"); Vite
+ * resolves module ids to the long path while Vitest's root and test files keep the short one, so the browser runner never
+ * finds its tests (`__vitest_browser_runner__.runTests is not a function`). `realpathSync.native` expands 8.3 names (and
+ * resolves symlinks, as macOS's `/var` -> `/private/var`), and the runner uses this path everywhere: cwd, Vitest root,
+ * cell.json. The file-system functions are parameters so a test can stand in for Windows.
+ */
+export function makeCellDir(prefix, { tmp = tmpdir(), mkdtemp = mkdtempSync, realpath = realpathSync.native } = {})
+{
+    return realpath(mkdtemp(join(tmp, prefix)));
+}
+
+/**
+ * The browsers a cell can run in (`run-cells.mjs --browser`). `chromium` is the Chromium build pinned by the toolchain's
+ * Playwright (`playwright install chromium`), the only one the software profile (CI) allows; `chrome` and `msedge` are
+ * the browsers installed on the machine, launched through Playwright's `channel`, for the hardware profile where the
+ * bundled Chromium has no hardware WebGPU (Windows). Records name the one a run used.
+ */
+export const BROWSERS = Object.freeze({
+    chromium: Object.freeze({ id: 'chromium', channel: null, pinned: true, description: 'the Chromium pinned by the toolchain\'s Playwright' }),
+    chrome: Object.freeze({ id: 'chrome', channel: 'chrome', pinned: false, description: 'the Google Chrome installed on this machine' }),
+    msedge: Object.freeze({ id: 'msedge', channel: 'msedge', pinned: false, description: 'the Microsoft Edge installed on this machine' }),
+});
+
+/** The browser of a run (`--browser`, `chromium` by default); an installed browser only under a hardware GPU profile. */
+export function browserOf(name, gpuProfile)
+{
+    const id = name ?? 'chromium';
+    const browser = BROWSERS[id];
+
+    assert.ok(browser, `unknown --browser ${id} (${Object.keys(BROWSERS).join(', ')})`);
+    assert.ok(browser.pinned || gpuProfile?.expect === 'hardware', `--browser ${id} needs --gpu hardware: the ${gpuProfile?.id ?? 'software'} profile (CI) runs only the Chromium pinned by Playwright`);
+
+    return browser;
 }
 
 /** sha256 of the sorted `[path, sha256]` list: the identity of a set of files. */

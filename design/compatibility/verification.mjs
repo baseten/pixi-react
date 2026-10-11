@@ -37,7 +37,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { arch, cpus, release, totalmem, type, version } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { boundaryProbes, compareVersions, environmentShimsFor, fileSetHash, gpuProfileOf, knownIssueFootnote, knownIssueMark, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
+import { boundaryProbes, BROWSERS, compareVersions, environmentShimsFor, fileSetHash, gpuProfileOf, knownIssueFootnote, knownIssueMark, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -114,6 +114,8 @@ function backendEntry(backend, reportFile)
         ...(info.webglRenderer ? { webglRenderer: info.webglRenderer } : {}),
         ...(info.gpuAdapter ? { gpuAdapter: info.gpuAdapter } : {}),
         ...(info.gpu ? { gpu: info.gpu } : {}),
+        // The browser of this run (name, full version, Playwright channel), when the harness reported it.
+        ...(backend.browser ?? info.browser ? { browser: backend.browser ?? info.browser } : {}),
     };
 }
 
@@ -187,7 +189,44 @@ function commandVersion(name)
 }
 
 /** A short description of a WebGPU adapter as the render check reported it. */
-const describeAdapter = (adapter) => (adapter ? `${[adapter.vendor, adapter.architecture, adapter.device, adapter.description].filter(Boolean).join(' / ') || 'unnamed adapter'}, isFallbackAdapter ${adapter.isFallbackAdapter}` : null);
+const describeAdapter = (adapter) => (adapter
+    ? `${[adapter.vendor, adapter.architecture, adapter.device, adapter.description].filter(Boolean).join(' / ') || 'unnamed adapter'}, isFallbackAdapter ${adapter.isFallbackAdapter ?? 'unknown'}${adapter.fallbackSource ? ` (${adapter.fallbackSource === 'unknown' ? 'neither adapter.info.isFallbackAdapter nor adapter.isFallbackAdapter exists' : `from ${adapter.fallbackSource}`})` : ''}`
+    : null);
+
+/**
+ * The browser of a run's backend runs (the harness reports name, full version and Playwright channel per run), or null
+ * when none reported it (results from before browsers were recorded). One record covers one browser.
+ */
+export function browserOfRows(rows)
+{
+    const seen = rows.flatMap((row) => Object.values(row.backends ?? {}).map((backend) => backend.browser ?? backend.backend?.browser).filter(Boolean));
+    const ids = [...new Set(rows.filter((row) => row.kind === 'cell' && row.browser).map((row) => row.browser))];
+    const versions = [...new Set(seen.map((browser) => `${browser.name} ${browser.version}`))];
+
+    assert.ok(ids.length <= 1, `the results mix browsers (${ids.join(', ')}): one record covers one browser`);
+    assert.ok(versions.length <= 1, `the results mix browser versions (${versions.join(', ')}): one record covers one browser`);
+    const id = ids[0] ?? seen[0]?.id ?? (seen.length ? 'chromium' : null);
+
+    if (!id) return null;
+    const known = BROWSERS[id];
+
+    assert.ok(known, `unknown browser ${id}`);
+
+    return { id, channel: known.channel, pinned: known.pinned, name: seen[0]?.name ?? null, version: seen[0]?.version ?? null };
+}
+
+/** The Browser row of a record: which browser, its version, and whether it was the Chromium pinned by Playwright. */
+export function describeBrowser(env)
+{
+    if (!env.browser) return `${env.chromium}, Playwright ${env.playwright}`;
+    const { name, version, channel, pinned } = env.browser;
+    const mode = (/headless/).test(env.chromium ?? '') ? 'headless' : 'headed';
+    const named = `${name ?? 'unknown browser'} ${version ?? '(version not reported)'}`;
+
+    return pinned
+        ? `${named} (${mode}), the Chromium pinned by Playwright ${env.playwright}`
+        : `**${named} (${mode}), installed on the machine (Playwright channel \`${channel}\`), not the Chromium pinned by Playwright ${env.playwright}**; Playwright ${env.playwright} drove it`;
+}
 
 /**
  * The machine a run's results came from, when the caller gives none (`--extra`): OS, CPU, Node, npm, pnpm, and what the
@@ -198,6 +237,7 @@ export function collectEnvironment(seed, rows, gpuProfile)
     const infos = rows.flatMap((row) => Object.values(row.backends ?? {}).map((backend) => backend.backend).filter(Boolean));
     const userAgent = infos.find((info) => info.userAgent)?.userAgent ?? '';
     const chrome = userAgent.match(/(HeadlessChrome|Chrome)\/([\d.]+)/);
+    const browser = browserOfRows(rows);
     const webgl = [...new Set(infos.map((info) => info.webglRenderer).filter(Boolean))];
     const webgpu = [...new Set(infos.map((info) => describeAdapter(info.gpuAdapter)).filter(Boolean))];
     const cpu = cpus();
@@ -212,10 +252,16 @@ export function collectEnvironment(seed, rows, gpuProfile)
         pnpm: commandVersion('pnpm'),
         playwright: seed.adapterMatrix.toolchain.playwright,
         chromium: chrome ? `Chromium ${chrome[2]}${chrome[1] === 'HeadlessChrome' ? ' headless' : ' headed'}` : 'unknown',
+        ...(browser ? { browser } : {}),
         gpu: gpuProfile === 'hardware' ? `real GPU: ${[...webgl, ...webgpu].join('; ') || 'not reported'}` : 'none used: every backend renders in software',
         backends: { ...(webgl.length ? { webgl: webgl.join('; ') } : {}), ...(webgpu.length ? { webgpu: webgpu.join('; ') } : {}) },
     };
 }
+
+/** The sentence a hardware record's rendering note adds when its runs used an installed browser, not the pinned Chromium. */
+const installedBrowserNote = (environment) => (environment?.browser && !environment.browser.pinned
+    ? ` The browser was ${[environment.browser.name ?? environment.browser.id, environment.browser.version].filter(Boolean).join(' ')} as installed on the machine (Playwright channel ${environment.browser.channel}), not the Chromium pinned by Playwright.`
+    : '');
 
 /** How a record rendered: the GPU profile and a plain statement, which the record and every summary of it repeat. */
 export function renderingOf(seed, gpuProfile, environment)
@@ -225,7 +271,7 @@ export function renderingOf(seed, gpuProfile, environment)
     return profile.expect === 'software'
         ? { profile: profile.id, kind: 'software', note: SOFTWARE_NOTE }
         // The collected environment already says "real GPU: ..."; say it once.
-        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${(environment?.gpu ?? 'see the environment').replace(/^real GPU:\s*/i, '')}. The render check confirmed no backend ran on a software renderer or a fallback adapter.` };
+        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${(environment?.gpu ?? 'see the environment').replace(/^real GPU:\s*/i, '')}. The render check confirmed no backend ran on a software renderer or a fallback adapter.${installedBrowserNote(environment)}` };
 }
 
 /** Whether a record's boundary probes and negative cases all behaved as expected: without it, the record verifies nothing. */
@@ -316,7 +362,9 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
 
     assert.ok(profiles.length <= 1, `the results mix GPU profiles (${profiles.join(', ')}): one record covers one profile`);
     const gpuProfile = profiles[0] ?? seed.adapterMatrix.defaultGpuProfile;
-    const env = environment && Object.keys(environment).length ? environment : collectEnvironment(seed, rows, gpuProfile);
+    // A person's environment (--extra) still gets the browser the runs reported, so a record always names it.
+    const ranIn = browserOfRows(rows);
+    const env = environment && Object.keys(environment).length ? { ...environment, ...(environment.browser || !ranIn ? {} : { browser: ranIn }) } : collectEnvironment(seed, rows, gpuProfile);
 
     assert.ok(['full', 'partial'].includes(scope), `scope ${scope}`);
     assert.ok(Number.isInteger(sequence) && sequence >= 1, `sequence ${sequence}`);
@@ -512,6 +560,13 @@ export function validateRecord(seed, record, name = recordId(record))
     else assert.ok(record.machine, `${name}: a hardware record names its machine`);
     assert.ok(['full', 'partial'].includes(record.scope), `${name}: scope`);
     assert.ok(record.environment?.node && record.environment?.chromium && record.environment?.os, `${name}: environment`);
+    if (record.environment.browser)
+    {
+        const known = BROWSERS[record.environment.browser.id];
+
+        assert.ok(known && known.channel === record.environment.browser.channel && known.pinned === record.environment.browser.pinned, `${name}: environment.browser`);
+        assert.ok(known.pinned || profile.expect === 'hardware', `${name}: an installed browser (${known.id}) is allowed only in a hardware record`);
+    }
     const ids = record.cells.map((cell) => cell.id);
 
     assert.equal(new Set(ids).size, ids.length, `${name}: duplicate cell`);
@@ -650,7 +705,7 @@ export function renderRecord(record, seed = loadSeed())
         `| OS | ${env.os}, kernel ${env.kernel}, ${env.arch} |`,
         `| CPU | ${env.cpu} |`,
         `| Node / npm / pnpm | ${env.node} / ${env.npm} / ${env.pnpm} |`,
-        `| Browser | ${env.chromium}, Playwright ${env.playwright} |`,
+        `| Browser | ${describeBrowser(env)} |`,
         `| GPU | ${env.gpu} |`,
         ...backends.map((backend) => `| ${label[backend] ?? backend} | ${env.backends?.[backend] ?? '-'} |`),
         '',

@@ -1,8 +1,8 @@
 /**
  * Environment shims of this backend run (cell.json `renderers.<backend>.environmentShims`, from the manifest's
  * `adapterMatrix.environmentShims`): labelled workarounds for an upstream pixi.js bug, so the run measures the adapters
- * rather than that bug. vitest.config.mts loads this file as the first setup file, only when the backend lists a shim,
- * so every shim is in place before any Pixi application initializes. The render check (backend.test.tsx) reports what
+ * rather than that bug. vitest.config.mts loads this file first (after the WebGPU preflight of a WebGPU run), only when
+ * the backend lists a shim, so every shim is in place before any Pixi application initializes. The render check (backend.test.tsx) reports what
  * was applied in its COMPAT_BACKEND line, and the runner fails a run whose report differs from the configuration.
  *
  * `clamp-webgl-parameter`: WebGLRenderingContext and WebGL2RenderingContext `getParameter(enum)` return at most `max`.

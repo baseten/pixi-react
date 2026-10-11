@@ -9,14 +9,43 @@
 // When the backend lists environment shims (cell.json `renderers.<name>.environmentShims`, from the manifest's
 // `adapterMatrix.environmentShims`), test/environment-shims.ts is the first setup file, so each shim is in place before
 // any Pixi application initializes. Other runs never load it.
+//
+// The browser is the Chromium pinned by Playwright unless cell.json `browser.channel` names an installed one (`chrome`,
+// `msedge`: run-cells.mjs --browser, hardware profile only), which Playwright launches through its `channel` option. A
+// WebGPU run loads test/webgpu-preflight.ts first: it fails the run at once when the browser has no WebGPU adapter. The
+// `compatBrowser` command reports the launched browser's version and fails the run as soon as the page crashes, instead
+// of leaving Vitest waiting until the runner's timeout.
 import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vitest/config';
+
+type AnyRecord = Record<string, any>;
 
 const cell = JSON.parse(readFileSync(new URL('./cell.json', import.meta.url), 'utf8'));
 const renderer = process.env.COMPAT_RENDERER || 'webgl';
 const backend = cell.renderers?.[renderer];
 
 if (!backend) throw new Error(`COMPAT_RENDERER=${renderer}: this cell runs ${Object.keys(cell.renderers ?? {}).join(', ') || 'no renderer'}`);
+const channel: string | null = cell.browser?.channel ?? null;
+const watched = new WeakSet<object>();
+
+/** Browser command: the launched browser's version, and a watch that ends the run when the page crashes. */
+function compatBrowser(context: AnyRecord): AnyRecord
+{
+    const page = context.page as AnyRecord | undefined;
+
+    if (page && !watched.has(page))
+    {
+        watched.add(page);
+        page.on('crash', () =>
+        {
+            process.stderr.write(`\nCOMPAT_PAGE_CRASHED the ${channel ?? 'chromium'} page running the ${renderer} tests crashed; failing the run now instead of waiting for the timeout\n`);
+            process.exit(1);
+        });
+    }
+    const launched = context.context?.browser?.();
+
+    return { version: launched?.version?.() ?? null, channel };
+}
 
 export default defineConfig({
     esbuild: { jsx: 'automatic' },
@@ -31,10 +60,17 @@ export default defineConfig({
     },
     test: {
         include: ['test/**/*.test.tsx'],
-        // Environment shims first (only when this backend lists any); React before 18.3 (cell.json lendAct) is lent the
-        // `act` of react-dom/test-utils, which the suite calls.
-        setupFiles: [...(backend.environmentShims?.length ? ['test/environment-shims.ts'] : []), ...(cell.lendAct ? ['test/lend-act.ts'] : []), 'test/renderer.ts'],
+        // The WebGPU preflight first (WebGPU runs only), then environment shims (only when this backend lists any); React
+        // before 18.3 (cell.json lendAct) is lent the `act` of react-dom/test-utils, which the suite calls.
+        setupFiles: [...(renderer === 'webgpu' ? ['test/webgpu-preflight.ts'] : []), ...(backend.environmentShims?.length ? ['test/environment-shims.ts'] : []), ...(cell.lendAct ? ['test/lend-act.ts'] : []), 'test/renderer.ts'],
         testTimeout: 15_000,
-        browser: { enabled: true, name: 'chromium', provider: 'playwright', headless: cell.gpuProfile?.headless ?? true, providerOptions: { launch: { args: backend.chromiumArgs } } },
+        browser: {
+            enabled: true,
+            name: 'chromium',
+            provider: 'playwright',
+            headless: cell.gpuProfile?.headless ?? true,
+            providerOptions: { launch: { args: backend.chromiumArgs, ...(channel ? { channel } : {}) } },
+            commands: { compatBrowser },
+        },
     },
 });
