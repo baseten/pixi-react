@@ -202,6 +202,11 @@ export interface PixiFeatures
     readonly domContainer: boolean;
     /** `removeParticles(begin, end)` takes an end index (8.10+); before, the second argument was a count. */
     readonly removeParticlesEndIndex: boolean;
+    /**
+     * Pixi destroys the WebGPU `GPUDevice` its renderer created when the renderer is destroyed (8.21+). Before, the
+     * adapter destroys it (see `Pixi8Session`).
+     */
+    readonly destroysOwnGpuDevice: boolean;
 }
 
 /**
@@ -219,6 +224,8 @@ export function detectFeatures(pixi: { readonly VERSION: string }): PixiFeatures
         renderLayer: since(PIXI8_BOUNDARIES.renderLayer),
         domContainer: since(PIXI8_BOUNDARIES.domContainer),
         removeParticlesEndIndex: version ? isAtLeast(version, PIXI8_BOUNDARIES.removeParticlesEndIndex) : true,
+        // Unknown: the adapter destroys the device, which is harmless if Pixi does too (GPUDevice.destroy is idempotent).
+        destroysOwnGpuDevice: since(PIXI8_BOUNDARIES.destroysOwnGpuDevice),
     });
 }
 

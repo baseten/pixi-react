@@ -479,7 +479,7 @@ Measured with the same fixtures (minified, `NODE_ENV=production`), the bytes our
 | --- | --- | --- | --- |
 | Facade (`@pixi/react`) | 85,911 | 65,977 | 68,000 |
 | Explicit React 19.3 + pixi-8 (core, renderer, react-19.3, pixi-8) | 72,196 | 56,463 | 58,300 |
-| Explicit React 18.3 + pixi-8 (core, renderer, react-18.3, pixi-8; `react-18` before the per-minor split) | 65,962 | 54,719 | 56,600 |
+| Explicit React 18.3 + pixi-8 (core, renderer, react-18.3, pixi-8; `react-18` before the per-minor split) | 65,962 | 54,719 | 58,500 |
 | Explicit React 19.3 + pixi-7 (core, renderer, react-19.3, pixi-7; issue 16) | - | 55,668 | 57,500 |
 | Renderer only (core, renderer) | 29,577 | 23,175 | 24,000 |
 
@@ -495,6 +495,12 @@ on main before and after: facade 66,607 → 66,905, React 19.3 + pixi-8 57,068 �
 56,542, React 19.3 + pixi-7 56,323 → 56,669, renderer only 23,172 → 23,457. Every fixture stays within its budget, so
 no budget was raised; React 18.3 + pixi-8 has 58 bytes of headroom left. `bundles.mjs` also fails a production
 bundle of our packages that lacks the address, which is not development-only text.
+
+The WebGPU device fix (the Pixi 8 adapter destroys the `GPUDevice` pixi.js before 8.21 leaks) adds about 500 bytes to
+every fixture with the Pixi 8 adapter. Measured on main before and after: facade 66,905 → 67,417, React 19.3 + pixi-8
+57,414 → 57,915, React 18.3 + pixi-8 56,542 → 57,043; React 19.3 + pixi-7 (56,669) and renderer only (23,457) are
+unchanged. React 18.3 + pixi-8 exceeded its 56,600 budget, which was raised to 58,500 (about 1.5 KB of headroom, as
+after PR 67); the others stay within theirs.
 
 ### Development and production reconciler builds
 

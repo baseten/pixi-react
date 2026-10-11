@@ -162,6 +162,12 @@ export interface PixiProbe
      */
     filterClass?(): Constructor;
 
+    /**
+     * The WebGPU `GPUDevice` of an initialized app's renderer, or `undefined` when the renderer is not WebGPU. A probe
+     * without it never runs WebGPU-only checks (`Application.lifecycle.webgpu-devices`).
+     */
+    gpuDevice?(app: unknown): object | undefined;
+
     /** Makes the next application initialization reject with `error`. */
     failNextInit(error: Error): InitAttempt;
     /** Holds the next application initialization until the gate is released. */

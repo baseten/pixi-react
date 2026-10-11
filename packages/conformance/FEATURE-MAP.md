@@ -173,6 +173,7 @@ Feature `Application.lifecycle`.
 | `Application.lifecycle.remount` | contract | Each mount initializes a new app; each unmount destroys its app once and releases its root. | pass |
 | `Application.lifecycle.strict-mode` | contract | Under StrictMode: one initialization, one `onInit`, each child once, one destruction on unmount. | pass |
 | `Application.lifecycle.strict-mode-children-after-init` | contract | The StrictMode effect replay does not commit children to an uninitialized app. | pass |
+| `Application.lifecycle.webgpu-devices` | contract | On a WebGPU renderer (the probe reports `gpuDevice`): 40 sequential mount/unmount cycles each initialize, and every `GPUDevice` requested for an application is destroyed when it unmounts. Other backends mount once and stop. | pass |
 
 ## `<Application>` ref (`getApplication`, `getCanvas`)
 
@@ -306,4 +307,4 @@ Feature `root.errors`.
 
 ## Summary
 
-92 scenarios: 89 pass, 0 expected failures, 3 not run against the baseline.
+93 scenarios: 90 pass, 0 expected failures, 3 not run against the baseline.

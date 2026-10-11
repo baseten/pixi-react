@@ -111,6 +111,15 @@ failures.
   handler installed before the root was created still runs to completion. That catches a reconciler whose transition
   handler throws before forwarding (react-reconciler 0.34 with React 19.0–19.2); the `breakTransitionChain` negative
   control injects that fault.
+- `Application.lifecycle.webgpu-devices` depends on the render backend, which no capability names (a cell's backend
+  is chosen per run): it runs its 40 WebGPU mount/unmount cycles only when the probe's optional `gpuDevice(app)`
+  reports a `GPUDevice`, and otherwise mounts once and stops. It spies on `GPUAdapter.prototype.requestDevice` and
+  `GPUDevice.prototype.destroy` and requires every device requested for an application to be destroyed when it
+  unmounts. The Pixi 8 probe implements `gpuDevice`; the WebGPU runs are the Pixi 8 package's `webgpu-*` cells and the
+  nightly compatibility cells.
+- `mountApp` rejects with the error when the binding reports an initialization failure through `onInitError`, so a
+  failed initialization fails its scenario at once instead of holding its act scope open past the test timeout (which
+  would queue every later scenario's React work behind it).
 - **contract** scenarios state required behaviour. **parity** scenarios record current upstream behaviour
   that decision D4 keeps in the facade (global extension and default-text-style behaviour, silent `extend`
   replacement, constructor option keys); they need `parity.upstream`.

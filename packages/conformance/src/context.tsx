@@ -57,7 +57,8 @@ export interface ScenarioContext
     unmount(): Promise<void>;
     /**
      * Renders `<Application {...appOptions} {...props}>{children}</Application>` into the primary root and
-     * resolves once `onInit` has run and the scene commit has flushed.
+     * resolves once `onInit` has run and the scene commit has flushed. Rejects with the error when the binding reports
+     * an initialization failure through `onInitError`.
      */
     mountApp(children?: ReactNode, props?: Record<string, unknown>, options?: RenderOptions): Promise<MountedApp>;
     /**
@@ -240,8 +241,19 @@ export function createScenarioContext(composition: Composition): ScenarioContext
                 (latestProps.onInit as ((app: unknown) => void) | undefined)?.(app);
                 ready.resolve(app);
             };
+            // A failed initialization rejects the mount at once. Waiting for an `onInit` that never comes would keep
+            // the act scope open past the test timeout, and React would queue every later scenario's work behind it.
+            // Bindings without `onInitError` (the upstream facade) still only time out.
+            const onInitError = (error: unknown) =>
+            {
+                (latestProps.onInitError as ((error: unknown) => void) | undefined)?.(error);
+                ready.reject(error);
+            };
+
+            // Marked handled: renderUntil awaits it only after its render scope, possibly a task later.
+            ready.promise.catch(() => undefined);
             const element = (nextChildren: ReactNode) => (
-                <Application {...composition.appOptions} {...latestProps} onInit={onInit}>
+                <Application {...composition.appOptions} {...latestProps} onInit={onInit} onInitError={onInitError}>
                     {nextChildren}
                 </Application>
             );
