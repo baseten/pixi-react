@@ -71,7 +71,8 @@ describe('Application', () =>
 
         await expect.poll(() => onInitSpy.mock.calls.length).toEqual(1);
 
-        expect(receivedValue).toBe(true);
+        // Children commit after onInit (render tasks run once the root is ready, after onInit), so wait for the commit.
+        await expect.poll(() => receivedValue).toBe(true);
     });
 
     describe('onInit', () =>
