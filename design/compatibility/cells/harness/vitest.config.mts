@@ -5,6 +5,10 @@
 // Chromium flags that provide it, and (through test/renderer.ts) the application options that request it. The flags and
 // whether the browser is headless come from the run's GPU profile (cell.json `gpuProfile`): the software profile runs
 // headless on SwiftShader; the hardware profile runs headed with no flags, on the platform's own GPU path.
+//
+// When the backend lists environment shims (cell.json `renderers.<name>.environmentShims`, from the manifest's
+// `adapterMatrix.environmentShims`), test/environment-shims.ts is the first setup file, so each shim is in place before
+// any Pixi application initializes. Other runs never load it.
 import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vitest/config';
 
@@ -27,8 +31,9 @@ export default defineConfig({
     },
     test: {
         include: ['test/**/*.test.tsx'],
-        // React before 18.3 (cell.json lendAct) is lent the `act` of react-dom/test-utils, which the suite calls.
-        setupFiles: [...(cell.lendAct ? ['test/lend-act.ts'] : []), 'test/renderer.ts'],
+        // Environment shims first (only when this backend lists any); React before 18.3 (cell.json lendAct) is lent the
+        // `act` of react-dom/test-utils, which the suite calls.
+        setupFiles: [...(backend.environmentShims?.length ? ['test/environment-shims.ts'] : []), ...(cell.lendAct ? ['test/lend-act.ts'] : []), 'test/renderer.ts'],
         testTimeout: 15_000,
         browser: { enabled: true, name: 'chromium', provider: 'playwright', headless: cell.gpuProfile?.headless ?? true, providerOptions: { launch: { args: backend.chromiumArgs } } },
     },

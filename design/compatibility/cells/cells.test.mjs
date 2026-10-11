@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { applyTypeAssertions, cellKey, expectedBlankFor, gpuProfileOf, loadSeed, negativeCells, platformCommand, renderCompatibilityDoc, renderTable, selectCells, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
+import { applyTypeAssertions, cellKey, environmentShimsFor, gpuProfileOf, knownIssueFootnote, loadSeed, negativeCells, platformCommand, renderCompatibilityDoc, renderTable, selectCells, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
 import { entryClosure, extractTarball } from './pack.mjs';
 import { compareWithEvidence } from './probes.mjs';
 
@@ -308,23 +308,67 @@ test('GPU profiles: software by default (SwiftShader flags), hardware with none 
     assert.throws(() => gpuProfileOf(seed, 'metal'), /unknown GPU profile metal/);
 });
 
-test('the expected-blank-render list applies to its own backend, versions and GPU profile only', () =>
+test('the environment shim applies to its own adapter, backend and pixi.js range, under every GPU profile', () =>
 {
-    const lookup = (pixi, renderer = 'webgpu', gpuProfile = 'software', pixiAdapter = 'pixi8') => expectedBlankFor(seed, { pixiAdapter, pixi, renderer, gpuProfile })?.id ?? null;
-    const [entry] = seed.adapterMatrix.expectedBlankRender;
+    const lookup = (pixi, renderer = 'webgpu', pixiAdapter = 'pixi8') => environmentShimsFor(seed, { pixiAdapter, pixi, renderer }).map((shim) => shim.id);
+    const [shim] = seed.adapterMatrix.environmentShims;
 
-    assert.equal(lookup('8.9.2'), entry.id);
-    assert.equal(lookup('8.2.6', 'webgpu', 'software', 'pixi-8'), entry.id, 'by adapter id as well as key');
-    assert.equal(lookup('8.10.2'), null);
-    assert.equal(lookup('8.9.2', 'webgl'), null);
-    assert.equal(lookup('8.9.2', 'webgpu', 'hardware'), null);
+    assert.equal(shim.id, 'pixi-webgpu-texture-units');
+    assert.deepEqual(shim.action, { kind: 'clamp-webgl-parameter', parameter: 'MAX_TEXTURE_IMAGE_UNITS', enum: 0x8872, max: 16 });
+    for (const version of ['8.2.6', '8.5.2', '8.9.2']) assert.deepEqual(lookup(version), [shim.id], version);
+    assert.deepEqual(lookup('8.2.6', 'webgpu', 'pixi-8'), [shim.id], 'by adapter id as well as key');
+    // Never on WebGL, never from the fixed release on, never on another adapter.
+    assert.deepEqual(lookup('8.9.2', 'webgl'), []);
+    assert.deepEqual(lookup('8.10.0'), []);
+    assert.deepEqual(lookup('8.10.2'), []);
+    assert.deepEqual(lookup('7.4.3', 'webgl', 'pixi7'), []);
+    assert.ok(!('gpuProfile' in shim), 'a shim is not tied to one GPU profile');
 });
 
-test('the table shows an expected blank render as a pass on the other backend, never as verified', () =>
+test('environment shims need links, a reason, a range ending at or below fixedIn, and never clamp WebGL on a WebGL run', () =>
 {
-    const row = { id: 'react-19.3.0_pixi-8.9.2', kind: 'cell', adapterLabel: 'react-19.3', reactVersion: '19.3.0', pixiVersion: '8.9.2', status: 'pass', backends: { webgl: { status: 'pass' }, webgpu: { status: 'expected-fail' } } };
+    const broken = (mutate) =>
+    {
+        const copy = JSON.parse(JSON.stringify(seed));
 
-    assert.match(renderTable(seed, [row]), /pass \(WebGL\), WebGPU expected blank \(unverified\)/);
+        mutate(copy.adapterMatrix.environmentShims[0], copy);
+
+        return () => validateAdapterMatrix(copy);
+    };
+
+    assert.doesNotThrow(() => validateAdapterMatrix(seed));
+    assert.throws(broken((shim) => { delete shim.reason; }), /reason is required/);
+    assert.throws(broken((shim) => { shim.links = []; }), /links/);
+    assert.throws(broken((shim) => { shim.links = [{ label: 'x', url: 'http://example.com' }]; }), /https url/);
+    assert.throws(broken((shim) => { shim.pixi.before = '8.11.0'; }), /at or below fixedIn/);
+    assert.throws(broken((shim) => { shim.pixi = { from: '8.10.0', before: '8.2.6' }; }), /from must be below/);
+    assert.throws(broken((shim) => { shim.renderer = 'webgl'; }), /never applies to a WebGL run/);
+    assert.throws(broken((shim) => { shim.pixiAdapter = 'pixi7'; }), /has no webgpu renderer/);
+    assert.throws(broken((shim) => { shim.action.kind = 'patch-anything'; }), /action.kind/);
+    assert.throws(broken((shim) => { shim.knownIssue = 'nope'; }), /not an adapterMatrix.knownIssues id/);
+    assert.throws(broken((shim) => { shim.pixi = { from: '8.23.0', before: '8.24.0' }; shim.fixedIn = '8.24.0'; }), /no nightly webgpu cell/);
+    assert.throws(broken((_shim, copy) => { copy.adapterMatrix.expectedBlankRender = []; }), /replaced by environmentShims/);
+});
+
+test('the tables mark shimmed cells and runs with the known issue\'s footnote, once', () =>
+{
+    const [issue] = seed.adapterMatrix.knownIssues;
+    const footnote = knownIssueFootnote(seed, issue);
+
+    assert.equal(footnote.split(' The verification runs')[0], '\\* WebGPU on pixi.js <8.10 needs the workaround for [pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389) (fixed in 8.10.0): without it, WebGPU renders a blank canvas on devices whose WebGL texture-unit count exceeds their WebGPU per-stage limit. Use pixi.js 8.10+ or WebGL.');
+    const shimmed = { id: 'react-19.3.0_pixi-8.9.2', kind: 'cell', adapterLabel: 'react-19.3', reactVersion: '19.3.0', pixiVersion: '8.9.2', status: 'pass', backends: { webgl: { status: 'pass' }, webgpu: { status: 'pass', environmentShims: [{ id: 'pixi-webgpu-texture-units', original: 32, clamped: 16 }] } } };
+    const plain = { ...shimmed, id: 'react-19.3.0_pixi-8.22.0', pixiVersion: '8.22.0', backends: { webgl: { status: 'pass' }, webgpu: { status: 'pass' } } };
+    const table = renderTable(seed, [shimmed, plain]);
+
+    assert.match(table, /pass \(WebGL, WebGPU\\\*\) \| pass \(WebGL, WebGPU\) \|/);
+    assert.equal(table.split(footnote).length, 2, 'one footnote under the table');
+    // A shimmed run that still fails is a failure, marked like any other.
+    assert.match(renderTable(seed, [{ ...shimmed, status: 'fail', backends: { ...shimmed.backends, webgpu: { ...shimmed.backends.webgpu, status: 'fail' } } }]), /FAIL: WebGL pass, WebGPU\\\* FAIL/);
+    // The manifest-only nightly table marks the cells a shim applies to; the PR tier (WebGL only) has none.
+    const doc = renderCompatibilityDoc(seed);
+
+    assert.match(doc, /## Nightly tier[\s\S]*cell\\\*[\s\S]*## Environment shims/);
+    assert.doesNotMatch(doc.slice(0, doc.indexOf('## Nightly tier')), /cell\\\*/);
 });
 
 test('package managers spawn without a POSIX shell, through .cmd shims on Windows', () =>

@@ -482,51 +482,84 @@ export function validateAdapterMatrix(seed)
     {
         assert.ok(negative.expect.signatures.length > 0 && matrix.commands.order.includes(negative.expect.failingCommand), `negative ${negative.id}`);
     }
-    validateExpectedBlankRender(seed);
     validateKnownIssues(seed);
+    validateEnvironmentShims(seed);
+}
+
+/** The adapter key of a Pixi adapter given by key (`pixi8`) or id (`pixi-8`). */
+function pixiAdapterKey(seed, pixiAdapter)
+{
+    const adapters = seed.adapterMatrix.pixiAdapters;
+
+    return adapters[pixiAdapter] ? pixiAdapter : Object.keys(adapters).find((candidate) => adapters[candidate].id === pixiAdapter);
+}
+
+const inRange = (version, range) => compareVersions(version, range.from) >= 0 && compareVersions(version, range.before) < 0;
+
+/** The action kinds an environment shim may take (harness/test/environment-shims.ts implements each). */
+export const SHIM_ACTIONS = ['clamp-webgl-parameter'];
+
+/**
+ * Environment shims (`adapterMatrix.environmentShims`): labelled workarounds for an upstream bug that the harness applies
+ * to one backend of one Pixi adapter on a pixi.js range (`from` inclusive, `before` exclusive), under every GPU profile,
+ * so the matrix measures this project's adapters rather than the bug (owner ruling, 2026-10-11). Every backend run
+ * records the shims it applied; a tuple verified with a shim stays verified and carries the shim id, and every generated
+ * table marks it with its known issue's footnote. `pixiAdapter` is the adapter key (`pixi8`) or its id (`pixi-8`).
+ */
+export function environmentShimsFor(seed, { pixiAdapter, renderer, pixi })
+{
+    const key = pixiAdapterKey(seed, pixiAdapter);
+
+    return (seed.adapterMatrix.environmentShims ?? []).filter((shim) => shim.pixiAdapter === key && shim.renderer === renderer && inRange(pixi, shim.pixi));
 }
 
 /**
- * The expected-blank-render list (`adapterMatrix.expectedBlankRender`): cells whose render check is known to show a
- * blank canvas on one backend under one GPU profile. Every entry needs a reason and its evidence, and lists only versions
- * the nightly matrix runs. Checked against the verification records by validate.mjs.
+ * Structural checks of `adapterMatrix.environmentShims`: an id, a backend the adapter has, an exact range that ends at or
+ * below `fixedIn` and covers a nightly cell, a known action, what it does, a reason and https links, and the known issue
+ * it works around (same adapter and backend, a range that contains the shim's, the same `fixedIn`). A shim that changes
+ * WebGL parameters never applies to a WebGL run: it would change what that backend measures.
  */
-export function validateExpectedBlankRender(seed)
+export function validateEnvironmentShims(seed)
 {
     const matrix = seed.adapterMatrix;
-    const list = matrix.expectedBlankRender ?? [];
+    const ids = new Set();
     const nightly = selectCells(seed, 'nightly', { patches: 'all' });
-    const seen = new Set();
 
-    assert.ok(Array.isArray(list), 'expectedBlankRender must be a list');
-    for (const entry of list)
+    assert.ok(!('expectedBlankRender' in matrix), 'expectedBlankRender was replaced by environmentShims (owner ruling, 2026-10-11)');
+    assert.ok(Array.isArray(matrix.environmentShims ?? []), 'environmentShims must be a list');
+    for (const shim of matrix.environmentShims ?? [])
     {
-        const where = `expectedBlankRender ${entry.id ?? '(no id)'}`;
+        const where = `environmentShims ${shim.id ?? '(no id)'}`;
 
-        assert.match(entry.id ?? '', /^[a-z0-9.-]+$/, `${where}: id`);
-        assert.ok(typeof entry.reason === 'string' && entry.reason.trim().length >= 20, `${where}: a reason is required`);
-        assert.equal(entry.verification, 'unverified', `${where}: an expected blank render is unverified`);
-        const adapter = matrix.pixiAdapters[entry.pixiAdapter];
+        assert.match(shim.id ?? '', /^[a-z0-9.-]+$/, `${where}: id`);
+        assert.ok(!ids.has(shim.id), `${where}: duplicate id`);
+        ids.add(shim.id);
+        const adapter = matrix.pixiAdapters[shim.pixiAdapter];
 
-        assert.ok(adapter, `${where}: unknown Pixi adapter ${entry.pixiAdapter}`);
-        assert.ok(adapter.renderers[entry.renderer], `${where}: ${adapter.id} has no ${entry.renderer} renderer`);
-        assert.ok(matrix.gpuProfiles[entry.gpuProfile], `${where}: unknown GPU profile ${entry.gpuProfile}`);
-        assert.ok(Array.isArray(entry.pixi) && entry.pixi.length > 0, `${where}: pixi versions`);
-        for (const version of entry.pixi)
+        assert.ok(adapter, `${where}: unknown Pixi adapter ${shim.pixiAdapter}`);
+        assert.ok(adapter.renderers[shim.renderer], `${where}: ${adapter.id} has no ${shim.renderer} renderer`);
+        for (const field of ['from', 'before']) assert.match(shim.pixi?.[field] ?? '', /^\d+\.\d+\.\d+$/, `${where}: pixi.${field} (an exact version)`);
+        assert.ok(compareVersions(shim.pixi.from, shim.pixi.before) < 0, `${where}: pixi.from must be below pixi.before`);
+        assert.match(shim.fixedIn ?? '', /^\d+\.\d+\.\d+$/, `${where}: fixedIn`);
+        assert.ok(compareVersions(shim.pixi.before, shim.fixedIn) <= 0, `${where}: the range must end at or below fixedIn ${shim.fixedIn} (a fixed pixi.js never runs with the shim)`);
+        assert.ok(nightly.some((cell) => cell.pixi.adapterKey === shim.pixiAdapter && cell.renderers.includes(shim.renderer) && inRange(cell.pixi.version, shim.pixi)), `${where}: no nightly ${shim.renderer} cell is in its range`);
+        assert.ok(SHIM_ACTIONS.includes(shim.action?.kind), `${where}: action.kind must be one of ${SHIM_ACTIONS.join(', ')}`);
+        if (shim.action.kind === 'clamp-webgl-parameter')
         {
-            const key = `${entry.pixiAdapter}|${version}|${entry.renderer}|${entry.gpuProfile}`;
+            assert.notEqual(shim.renderer, 'webgl', `${where}: a WebGL parameter clamp never applies to a WebGL run`);
+            assert.match(shim.action.parameter ?? '', /^[A-Z0-9_]+$/, `${where}: action.parameter (the WebGL constant's name)`);
+            assert.ok(Number.isInteger(shim.action.enum) && Number.isInteger(shim.action.max) && shim.action.max > 0, `${where}: action.enum and action.max`);
+        }
+        for (const field of ['does', 'reason', 'evidence']) assert.ok(typeof shim[field] === 'string' && shim[field].trim().length >= 20, `${where}: ${field} is required`);
+        assert.ok(Array.isArray(shim.links) && shim.links.length > 0, `${where}: links`);
+        for (const link of shim.links) assert.ok(typeof link.label === 'string' && link.label && (/^https:\/\//).test(link.url ?? ''), `${where}: each link needs a label and an https url`);
+        const issue = (matrix.knownIssues ?? []).find((candidate) => candidate.id === shim.knownIssue);
 
-            assert.ok(!seen.has(key), `${where}: pixi.js ${version} is listed twice`);
-            seen.add(key);
-            assert.ok(nightly.some((cell) => cell.pixi.adapterKey === entry.pixiAdapter && cell.pixi.version === version && cell.renderers.includes(entry.renderer)), `${where}: no nightly ${entry.renderer} cell runs pixi.js ${version}`);
-        }
-        assert.equal(entry.signature?.renderer, entry.renderer, `${where}: signature.renderer`);
-        for (const field of ['canvas', 'extract']) assert.ok(Array.isArray(entry.signature[field]) && entry.signature[field].length === 4, `${where}: signature.${field}`);
-        assert.equal(entry.signature.screenshotMatches, false, `${where}: signature.screenshotMatches`);
-        for (const field of ['record', 'observed', 'adapter', 'cause', 'narrowed', 'realGpu'])
-        {
-            assert.ok(typeof entry.evidence?.[field] === 'string' && entry.evidence[field].length > 0, `${where}: evidence.${field}`);
-        }
+        assert.ok(issue, `${where}: knownIssue ${shim.knownIssue} is not an adapterMatrix.knownIssues id`);
+        assert.ok(issue.pixiAdapter === shim.pixiAdapter && issue.renderer === shim.renderer, `${where}: its known issue is about another adapter or backend`);
+        assert.ok(compareVersions(issue.pixi.from, shim.pixi.from) <= 0 && compareVersions(shim.pixi.before, issue.pixi.before) <= 0, `${where}: its range must lie within its known issue's`);
+        assert.equal(issue.fixedIn, shim.fixedIn, `${where}: fixedIn differs from its known issue's`);
+        for (const link of issue.links) assert.ok(shim.links.some((candidate) => candidate.url === link.url), `${where}: links must include its known issue's ${link.label}`);
     }
 }
 
@@ -538,20 +571,40 @@ export function validateExpectedBlankRender(seed)
  */
 export function knownIssuesFor(seed, { pixiAdapter, renderer, pixi })
 {
-    const matrix = seed.adapterMatrix;
-    const key = matrix.pixiAdapters[pixiAdapter] ? pixiAdapter : Object.keys(matrix.pixiAdapters).find((candidate) => matrix.pixiAdapters[candidate].id === pixiAdapter);
+    const key = pixiAdapterKey(seed, pixiAdapter);
 
-    return (matrix.knownIssues ?? []).filter((issue) => issue.pixiAdapter === key && (!renderer || issue.renderer === renderer)
-        && (!pixi || (compareVersions(pixi, issue.pixi.from) >= 0 && compareVersions(pixi, issue.pixi.before) < 0)));
+    return (seed.adapterMatrix.knownIssues ?? []).filter((issue) => issue.pixiAdapter === key && (!renderer || issue.renderer === renderer) && (!pixi || inRange(pixi, issue.pixi)));
 }
 
-/** A known issue as one Markdown sentence fragment, with its range, links and advice. */
-export function knownIssueNote(seed, issue)
+/**
+ * The footnote mark of a known issue (`\*`, `\*\*`, ... by its position in `adapterMatrix.knownIssues`), escaped for
+ * Markdown. Every generated table puts it after a verified tuple or range the issue covers.
+ */
+export function knownIssueMark(seed, issue)
+{
+    const index = (seed.adapterMatrix.knownIssues ?? []).findIndex((candidate) => candidate.id === issue.id);
+
+    return '\\*'.repeat(index + 1);
+}
+
+/** `8.10` for `8.10.0`: the shortest form of a version, for "pixi.js <8.10". */
+const shortVersion = (version) => version.replace(/(\.0)+$/, '');
+
+/**
+ * A known issue's footnote, the one sentence every generated table (the release table, COMPATIBILITY.md, the record
+ * Markdown) prints for it, starting with its mark. When an environment shim works around the issue, the footnote says
+ * the backend needs that workaround and names the shim the verification runs apply.
+ */
+export function knownIssueFootnote(seed, issue)
 {
     const backend = seed.adapterMatrix.renderers[issue.renderer]?.label ?? issue.renderer;
-    const [first, ...rest] = issue.links;
+    const [first] = issue.links;
+    const shims = (seed.adapterMatrix.environmentShims ?? []).filter((shim) => shim.knownIssue === issue.id);
+    const range = `${backend} on pixi.js <${shortVersion(issue.pixi.before)}`;
 
-    return `**Known issue** (pixi.js before ${issue.pixi.before} on ${backend}): ${issue.summary} ([${first.label}](${first.url})${rest.map((link) => `, [${link.label}](${link.url})`).join('')}; fixed in ${issue.fixedIn}); ${issue.advice}.`;
+    return shims.length
+        ? `${knownIssueMark(seed, issue)} ${range} needs the workaround for [${first.label}](${first.url}) (fixed in ${issue.fixedIn}): without it, ${issue.summary}. ${issue.advice}. The verification runs apply that workaround as the labelled environment shim ${shims.map((shim) => `\`${shim.id}\``).join(', ')} (\`adapterMatrix.environmentShims\`).`
+        : `${knownIssueMark(seed, issue)} ${range} is affected by [${first.label}](${first.url}) (fixed in ${issue.fixedIn}): ${issue.summary}. ${issue.advice}.`;
 }
 
 /** Structural checks of `adapterMatrix.knownIssues`: a range, a backend the adapter has, a summary, advice and links. */
@@ -593,18 +646,6 @@ export function gpuProfileOf(seed, name)
 }
 
 /**
- * The expected-blank-render entry covering one cell's backend run under a GPU profile, or null. `pixiAdapter` is the
- * adapter key (`pixi8`) or its id (`pixi-8`).
- */
-export function expectedBlankFor(seed, { pixiAdapter, pixi, renderer, gpuProfile })
-{
-    const matrix = seed.adapterMatrix;
-    const key = matrix.pixiAdapters[pixiAdapter] ? pixiAdapter : Object.keys(matrix.pixiAdapters).find((candidate) => matrix.pixiAdapters[candidate].id === pixiAdapter);
-
-    return (matrix.expectedBlankRender ?? []).find((entry) => entry.pixiAdapter === key && entry.renderer === renderer && entry.gpuProfile === gpuProfile && entry.pixi.includes(pixi)) ?? null;
-}
-
-/**
  * A backend run's Vitest JSON report, split by test file: the conformance scenarios, and the render check
  * (harness/test/backend.test.tsx).
  */
@@ -623,37 +664,6 @@ export function splitConformanceReport(report)
     const check = tally((name) => name.endsWith('backend.test.tsx'));
 
     return { scenarios: tally((name) => !name.endsWith('backend.test.tsx')), backendCheck: check.failed ? 'fail' : check.passed ? 'pass' : 'not run' };
-}
-
-const sameList = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => value === b[index]);
-
-/**
- * How a backend run on the expected-blank-render list came out, like the 8.5.0 known-failure probe: `expected-fail` when
- * every conformance scenario passed and the render check failed exactly as listed (the requested renderer, the listed
- * read-backs); `fail` when a scenario failed, when the canvas rendered (the entry must be pruned), or when the render check
- * failed some other way.
- */
-export function classifyExpectedBlank(entry, { scenarios, backendCheck, renderer, readback, gpu })
-{
-    const versions = `${entry.id}`;
-
-    if (!scenarios || backendCheck === 'not run' || !readback)
-    {
-        return { status: 'fail', message: `expected blank render (${versions}): the run produced no render check result to compare` };
-    }
-    if (scenarios.failed > 0) return { status: 'fail', message: `${scenarios.failed} conformance scenario(s) failed; an expected blank render excuses only the render check` };
-    if (scenarios.passed < 1) return { status: 'fail', message: 'no conformance scenario ran (only the render check reported); an expected blank render needs the suite to pass' };
-    if (backendCheck === 'pass')
-    {
-        return { status: 'fail', message: `unexpected render: this cell is on the expected-blank-render list (${versions}) but its canvas now shows the red rectangle. Remove its pixi.js version from adapterMatrix.expectedBlankRender so the backend can verify it.` };
-    }
-    const { signature } = entry;
-    const matches = renderer === signature.renderer && sameList(readback.canvas, signature.canvas) && sameList(readback.extract, signature.extract)
-        && readback.screenshotMatches === signature.screenshotMatches && gpu?.matchesProfile !== false;
-
-    return matches
-        ? { status: 'expected-fail', message: `expected blank render confirmed (${versions}): canvas ${JSON.stringify(readback.canvas)}, every conformance scenario passed; unverified` }
-        : { status: 'fail', message: `the render check failed, but not as the expected blank render ${versions} records: renderer ${renderer}, read-backs ${JSON.stringify({ canvas: readback.canvas, extract: readback.extract, screenshotMatches: readback.screenshotMatches })}` };
 }
 
 /**
@@ -708,20 +718,28 @@ export function cellKey(seed, cell, artifacts, harness, environment, effective =
 const statusMark = { pass: 'pass', 'cached-pass': 'pass (cached)', 'expected-fail': 'expected failure', fail: 'FAIL', skipped: 'not run' };
 const backendLabel = { webgl: 'WebGL', webgpu: 'WebGPU' };
 
-/** A result cell's text: its status, and with per-backend results the status of each backend it ran. */
-function resultMark(row)
+/** The known issues behind the environment shims a backend run applied (each entry `{ id, ... }` or an id). */
+export function shimIssues(seed, applied)
+{
+    const matrix = seed.adapterMatrix;
+    const ids = (applied ?? []).map((entry) => (typeof entry === 'string' ? entry : entry.id));
+    const issues = ids.map((id) => (matrix.environmentShims ?? []).find((shim) => shim.id === id)?.knownIssue).filter(Boolean);
+
+    return [...new Set(issues)].map((id) => matrix.knownIssues.find((issue) => issue.id === id)).filter(Boolean);
+}
+
+/** A result cell's text: its status, and with per-backend results the status of each backend it ran (marked when shimmed). */
+function resultMark(seed, row)
 {
     const known = row.knownFailures?.length && row.status !== 'fail' ? ` + ${row.knownFailures.length} known defect` : '';
     const backends = Object.entries(row.backends ?? {});
+    const name = ([key, backend]) => `${backendLabel[key] ?? key}${shimIssues(seed, backend.environmentShims).map((issue) => knownIssueMark(seed, issue)).join('')}`;
 
-    if (!backends.length || row.status === 'cached-pass') return `${statusMark[row.status] ?? row.status}${known}`;
-    if (backends.every(([, backend]) => backend.status === 'pass')) return `pass (${backends.map(([name]) => backendLabel[name] ?? name).join(', ')})${known}`;
-    // A backend on the expected-blank-render list that failed exactly as listed: not a failure, and unverified.
-    const blank = backends.filter(([, backend]) => backend.status === 'expected-fail').map(([name]) => `${backendLabel[name] ?? name} expected blank (unverified)`);
+    if (!backends.length) return `${statusMark[row.status] ?? row.status}${known}`;
+    if (row.status === 'cached-pass') return `${statusMark[row.status]} (${backends.map(name).join(', ')})${known}`;
+    if (backends.every(([, backend]) => backend.status === 'pass')) return `pass (${backends.map(name).join(', ')})${known}`;
 
-    if (row.status === 'pass' && blank.length) return `pass (${backends.filter(([, backend]) => backend.status === 'pass').map(([name]) => backendLabel[name] ?? name).join(', ')}), ${blank.join(', ')}${known}`;
-
-    return `${statusMark[row.status] ?? row.status}: ${backends.map(([name, backend]) => `${backendLabel[name] ?? name} ${backend.status === 'pass' ? 'pass' : backend.status === 'expected-fail' ? 'expected blank' : backend.status.toUpperCase()}`).join(', ')}${known}`;
+    return `${statusMark[row.status] ?? row.status}: ${backends.map((entry) => `${name(entry)} ${entry[1].status === 'pass' ? 'pass' : entry[1].status.toUpperCase()}`).join(', ')}${known}`;
 }
 
 /** Markdown compatibility table (React adapters by Pixi version) from result rows `{ id, react, pixi, status }`. */
@@ -733,6 +751,8 @@ export function renderTable(seed, rows, { title = 'Adapter compatibility table',
         compareVersions(a.split('|')[1], b.split('|')[1]));
     const lookup = new Map(cells.map((row) => [`${row.adapterLabel}|${row.reactVersion}|${row.pixiVersion}`, row]));
     const lines = [`# ${title}`, ''];
+    // The known issues behind an environment shim one of the cells applies: one footnote each, under the table.
+    const footnotes = new Map();
 
     if (intro) lines.push(manifestOnly
         ? 'Generated from `design/compatibility/seed.json` (`adapterMatrix`). These are the cells CI runs. Verified tuples come from the dated verification records (`verifiedRanges`); verification is evidence, not a support guarantee.'
@@ -746,9 +766,15 @@ export function renderTable(seed, rows, { title = 'Adapter compatibility table',
         {
             const row = lookup.get(`${key}|${pixi}`);
 
-            return row ? (manifestOnly ? 'cell' : resultMark(row)) : '-';
+            if (!row) return '-';
+            const shimmed = manifestOnly ? row.shimIssues ?? [] : Object.values(row.backends ?? {}).flatMap((backend) => shimIssues(seed, backend.environmentShims));
+
+            shimmed.forEach((issue) => footnotes.set(issue.id, issue));
+
+            return manifestOnly ? `cell${[...new Set(shimmed)].map((issue) => knownIssueMark(seed, issue)).join('')}` : resultMark(seed, row);
         }).join(' | ')} |`);
     }
+    if (footnotes.size) lines.push('', ...[...footnotes.values()].map((issue) => knownIssueFootnote(seed, issue)));
     const negatives = rows.filter((row) => row.kind === 'negative');
 
     if (negatives.length)
@@ -771,6 +797,8 @@ export function plannedRows(seed, tier, options)
         reactVersion: cell.react.version,
         pixiVersion: cell.pixi.version,
         status: 'skipped',
+        // The known issues whose environment shim this cell applies on some backend: the table marks it.
+        shimIssues: shimIssues(seed, cell.kind === 'cell' ? cell.renderers.flatMap((renderer) => environmentShimsFor(seed, { pixiAdapter: cell.pixi.adapterKey, renderer, pixi: cell.pixi.version })) : []),
         expect: cell.expect,
         description: cell.description,
     });
@@ -814,19 +842,19 @@ export function renderCompatibilityDoc(seed)
         section('nightly'),
         `Nightly also re-runs all ${probes('nightly').length} audited tuples as boundary probes.`,
         '',
-        '## Expected blank renders (unverified)',
+        '## Environment shims',
         '',
-        'Backend runs whose render check is known to show a blank canvas under one GPU profile (`adapterMatrix.expectedBlankRender`). The runner counts such a run as expected (not a failure, never verified) only when every conformance scenario passed and the canvas reads back exactly as listed; it fails the cell when the canvas renders, so the list is pruned.',
+        'Labelled workarounds for upstream pixi.js bugs (`adapterMatrix.environmentShims`; owner ruling 2026-10-11: the matrix measures this project\'s adapters, not pixi.js bugs). The harness applies a shim only to the backend runs of its Pixi adapter, backend and pixi.js range, under every GPU profile, before the first Pixi application initializes; each backend run records the shims it applied, and a tuple verified with one stays verified and carries its id. A shimmed run that renders is a normal pass; one that still fails is a failure. Cells marked with a footnote above apply one on some backend (nightly WebGPU only: the PR tier runs WebGL).',
         '',
-        '| Entry | Pixi adapter | Backend | GPU profile | pixi.js | Reason |',
-        '| --- | --- | --- | --- | --- | --- |',
-        ...(matrix.expectedBlankRender ?? []).map((entry) => `| ${entry.id} | ${matrix.pixiAdapters[entry.pixiAdapter].id} | ${entry.renderer} | ${entry.gpuProfile} | ${entry.pixi.join(', ')} | ${entry.reason} ${entry.evidence.narrowed} ${entry.evidence.realGpu} |`),
+        '| Shim | Pixi adapter | Backend | pixi.js | What it does | Why | Links |',
+        '| --- | --- | --- | --- | --- | --- | --- |',
+        ...(matrix.environmentShims ?? []).map((shim) => `| \`${shim.id}\` | ${matrix.pixiAdapters[shim.pixiAdapter].id} | ${shim.renderer} | \`>=${shim.pixi.from} <${shim.pixi.before}\` (fixed in ${shim.fixedIn}) | ${shim.does} | ${shim.reason} | ${shim.links.map((link) => `[${link.label}](${link.url})`).join(', ')} |`),
         '',
         '## Known issues',
         '',
-        'Upstream issues of a pixi.js range on one backend (`adapterMatrix.knownIssues`). They change no verdict: a tuple a record verified stays verified, and the release table and the records show the note beside every verified range it covers.',
+        'Upstream issues of a pixi.js range on one backend (`adapterMatrix.knownIssues`). They change no verdict: a tuple a record verified stays verified, and the release table, this page and the records mark every verified tuple or range an issue covers with its footnote:',
         '',
-        ...(matrix.knownIssues ?? []).map((issue) => `- \`${matrix.pixiAdapters[issue.pixiAdapter].id}\`, pixi.js ${issue.pixi.from} to before ${issue.pixi.before}: ${knownIssueNote(seed, issue)}`),
+        ...(matrix.knownIssues ?? []).map((issue) => `${knownIssueFootnote(seed, issue)} (\`${issue.id}\`: \`${matrix.pixiAdapters[issue.pixiAdapter].id}\`, pixi.js ${issue.pixi.from} to before ${issue.pixi.before}; ${issue.links.map((link) => `[${link.label}](${link.url})`).join(', ')}.)`),
         '',
         '## Deliberately incompatible pairs',
         '',

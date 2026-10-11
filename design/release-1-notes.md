@@ -118,11 +118,10 @@ New APIs, available only through `createRenderer`: `useContextBridge`, `componen
 ## Tested and verified
 
 React 19.3.0 (and each adapter's exact React versions) with pixi.js 8.2.6 and 8.22.0 run in the required PR-tier
-compatibility cells on every change: these versions are **tested**. The [2026-10-10.2 verification record](compatibility/verification/2026-10-10.2.md)
+compatibility cells on every change: these versions are **tested**. The [2026-10-11 verification record](compatibility/verification/2026-10-11.md)
 ran the full nightly matrix and **verifies** every React adapter (React 18.0 to 19.3) at every audited patch with every
-Pixi 8 minor's newest audited patch and pixi.js 7.2.0, 7.2.4, 7.3.0, 7.3.3, 7.4.2 and 7.4.3 on **WebGL**, and with pixi.js 8.10.2 … 8.22.0 on **WebGPU**. On
-its software WebGPU adapter, pixi.js 8.2.6 to 8.9.2 are an expected blank render, unverified, although every
-conformance scenario passes. The full [Apple M5 Max hardware record](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md)
-(Metal) verifies the React 19 adapters with every Pixi 8 minor on both backends, so WebGPU is verified from 8.2.6 for
-them. **Known issue:** some devices render a blank canvas on WebGPU before pixi.js 8.10 ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by [#11417](https://github.com/pixijs/pixijs/pull/11417) in 8.10.0); use pixi.js 8.10 or later for WebGPU, or WebGL. The verified tuples are `verifiedRanges` in the compatibility manifest.
+Pixi 8 minor's newest audited patch and pixi.js 7.2.0, 7.2.4, 7.3.0, 7.3.3, 7.4.2 and 7.4.3 on **WebGL**, and with every
+Pixi 8 minor on **WebGPU**, pixi.js 8.2.6 to 8.9.2 with the test shim described below. The full [Apple M5 Max hardware record](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md)
+(Metal) verifies the React 19 adapters with every Pixi 8 minor on both backends, WebGPU from 8.2.6 without any shim.
+**Known issue:** WebGPU on pixi.js <8.10 needs the workaround for [pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389) (fixed in 8.10.0 by [#11417](https://github.com/pixijs/pixijs/pull/11417)): without it, WebGPU renders a blank canvas on devices whose WebGL texture-unit count exceeds their WebGPU per-stage limit. Use pixi.js 8.10+ or WebGL. The compatibility matrix applies that workaround as a labelled test shim (`pixi-webgpu-texture-units`: WebGL's `MAX_TEXTURE_IMAGE_UNITS` clamped to 16 before Pixi initializes, on WebGPU runs of pixi.js 8.2.6 to 8.9.x only) so that it measures this project's adapters rather than the upstream bug; an application gets no such shim from these packages. The verified tuples are `verifiedRanges` in the compatibility manifest.
 Verification is evidence, not a support guarantee, and no peer range was widened ([release.md](release.md#tested-and-verified)).

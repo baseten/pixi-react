@@ -30,7 +30,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { boundaryProbes, cellArtifacts, cellKey, classifyExpectedBlank, expectedBlankFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, applyTypeAssertions, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
+import { boundaryProbes, cellArtifacts, cellKey, environmentShimsFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, applyTypeAssertions, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
 import { packArtifacts, readArtifacts } from './pack.mjs';
 import { runProbe } from './probes.mjs';
 
@@ -158,12 +158,13 @@ function cellConfig(cell, artifacts)
         appOptions: pixiAdapter.conformanceAppOptions,
         // Each render backend this cell runs the conformance suite on: the Chromium flags that provide it (from the GPU
         // profile) and the application options that request it (harness/vitest.config.mts and harness/test/renderer.ts
-        // read these), plus the expected-blank-render entry that covers it under this profile, if any.
+        // read these), plus the environment shims that apply to it (adapterMatrix.environmentShims: harness/vitest.config.mts
+        // loads harness/test/environment-shims.ts first when there are any). The same under every GPU profile.
         renderers: Object.fromEntries(cell.renderers.map((name) =>
         {
-            const blank = cell.kind === 'cell' ? expectedBlankFor(seed, { pixiAdapter: cell.pixi.adapterKey, pixi: cell.pixi.version, renderer: name, gpuProfile: gpu.id }) : null;
+            const shims = cell.kind === 'negative' ? [] : environmentShimsFor(seed, { pixiAdapter: cell.pixi.adapterKey, pixi: cell.pixi.version, renderer: name });
 
-            return [name, { chromiumArgs: gpu.chromiumArgs[name], appOptions: pixiAdapter.renderers[name].appOptions, ...(blank ? { expectedBlankRender: { id: blank.id, signature: blank.signature } } : {}) }];
+            return [name, { chromiumArgs: gpu.chromiumArgs[name], appOptions: pixiAdapter.renderers[name].appOptions, ...(shims.length ? { environmentShims: shims.map((shim) => ({ id: shim.id, ...shim.action })) } : {}) }];
         })),
         // The GPU profile: harness/vitest.config.mts launches the browser headed or headless, and the render check
         // (harness/test/backend.test.tsx) fails a run whose renderer is not what the profile expects (software or a GPU).
@@ -320,7 +321,7 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
     if (cell.kind === 'cell' && !options.flags.has('no-cache') && existsSync(verdictFile))
     {
         const previous = JSON.parse(readFileSync(verdictFile, 'utf8'));
-        const row = { ...base, status: 'cached-pass', commands: previous.commands, conformance: previous.conformance, backends: previous.backends, knownFailures: previous.knownFailures, ...(previous.expectedBlank ? { expectedBlank: previous.expectedBlank } : {}), message: `verdict cached for key ${key.slice(0, 12)} (same packed artifacts, versions and harness)`, durationMs: 0 };
+        const row = { ...base, status: 'cached-pass', commands: previous.commands, conformance: previous.conformance, backends: previous.backends, knownFailures: previous.knownFailures, message: `verdict cached for key ${key.slice(0, 12)} (same packed artifacts, versions and harness)`, durationMs: 0 };
 
         writeFileSync(join(results, `${cell.id}.json`), `${JSON.stringify(row, null, 2)}\n`);
 
@@ -356,7 +357,7 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
                     const run = spec.perRenderer(renderer);
                     const step = execute(name, run.args, { cwd: dir, log: join(outDir, `${name}-${renderer}.log`), timeoutSeconds: matrix.commands.timeoutSeconds[name], env: { ...env, COMPAT_RENDERER: renderer } }, run.runner);
                     const info = backendInfo(step.output);
-                    const blank = config.renderers[renderer].expectedBlankRender;
+                    const shims = config.renderers[renderer].environmentShims ?? [];
                     let status = step.status;
                     let note;
 
@@ -365,28 +366,24 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
                     const split = existsSync(reportFile) ? splitConformanceReport(JSON.parse(readFileSync(reportFile, 'utf8'))) : {};
 
                     // A pass needs the suite itself (at least one scenario, none failed) and the render check, separately.
-                    if (!blank && status === 'pass' && !(split.scenarios?.passed >= 1 && split.scenarios.failed === 0 && split.backendCheck === 'pass'))
+                    if (status === 'pass' && !(split.scenarios?.passed >= 1 && split.scenarios.failed === 0 && split.backendCheck === 'pass'))
                     {
                         status = 'fail';
                         note = `the run exited cleanly but the report shows ${split.scenarios ? `${split.scenarios.passed} conformance scenario(s) passed, ${split.scenarios.failed} failed` : 'no report'} and a render check that is ${split.backendCheck ?? 'missing'}`;
                     }
-                    if (blank)
-                    {
-                        // On the expected-blank-render list: like the 8.5.0 known-failure probe, the run must fail exactly
-                        // as listed (scenarios all pass, the canvas reads back blank); a render or any other failure fails.
-                        const verdict = classifyExpectedBlank({ ...blank, ...matrix.expectedBlankRender.find((entry) => entry.id === blank.id) }, { ...split, renderer: info?.actual, readback: info?.readback, gpu: info?.gpu });
+                    // The render check reports the environment shims the run applied; they must be exactly the configured ones.
+                    const applied = info?.environmentShims ?? [];
+                    const mismatch = info && applied.map((shim) => shim.id).join() !== shims.map((shim) => shim.id).join();
 
-                        status = verdict.status;
-                        note = verdict.message;
+                    if (status === 'pass' && mismatch)
+                    {
+                        status = 'fail';
+                        note = `environment shims: configured [${shims.map((shim) => shim.id).join(', ')}], but the render check reports [${applied.map((shim) => shim.id).join(', ')}]`;
                     }
-                    base.backends[renderer] = { status, ms: step.ms, backend: info, ...(blank ? { expectedBlankRender: blank.id } : {}), ...(note ? { note } : {}), ...(cell.kind === 'data' && step.status !== 'pass' ? { excerpt: dataExcerpt(step.output) } : {}) };
+                    base.backends[renderer] = { status, ms: step.ms, backend: info, ...(shims.length || applied.length ? { environmentShims: applied.length ? applied : shims.map((shim) => ({ id: shim.id, reported: false })) } : {}), ...(note ? { note } : {}), ...(cell.kind === 'data' && step.status !== 'pass' ? { excerpt: dataExcerpt(step.output) } : {}) };
                     if (status === 'fail' && !failure) failure = { command: name, renderer, output: note ? `${note}\n${step.output}` : step.output };
                 }
-                // An expected blank render is not a failure of the command (and verifies nothing: see verification.mjs).
-                base.commands[name] = { status: Object.values(base.backends).every((backend) => ['pass', 'expected-fail'].includes(backend.status)) ? 'pass' : 'fail', ms: total };
-                const blanks = Object.entries(base.backends).filter(([, backend]) => backend.status === 'expected-fail').map(([renderer]) => renderer);
-
-                if (blanks.length) base.expectedBlank = blanks;
+                base.commands[name] = { status: Object.values(base.backends).every((backend) => backend.status === 'pass') ? 'pass' : 'fail', ms: total };
                 if (failure && cell.kind !== 'data') break;
                 continue;
             }
@@ -469,7 +466,7 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
     {
         base.status = 'pass';
         mkdirSync(verdicts, { recursive: true });
-        writeFileSync(verdictFile, `${JSON.stringify({ id: cell.id, key, commands: base.commands, conformance: base.conformance, backends: base.backends, knownFailures: base.knownFailures, ...(base.expectedBlank ? { expectedBlank: base.expectedBlank } : {}), at: new Date().toISOString() }, null, 2)}\n`);
+        writeFileSync(verdictFile, `${JSON.stringify({ id: cell.id, key, commands: base.commands, conformance: base.conformance, backends: base.backends, knownFailures: base.knownFailures, at: new Date().toISOString() }, null, 2)}\n`);
     }
     writeFileSync(join(results, `${cell.id}.json`), `${JSON.stringify(base, null, 2)}\n`);
 
@@ -503,9 +500,9 @@ function commandRun(cells = selectedCells())
     });
     const bad = rows.filter((row) => row.status === 'fail');
 
-    const blank = rows.filter((row) => row.expectedBlank?.length).length;
+    const shimmed = rows.filter((row) => Object.values(row.backends ?? {}).some((backend) => backend.environmentShims?.length)).length;
 
-    process.stdout.write(`${rows.length} cells (GPU profile ${gpu.id}): ${rows.filter((row) => row.status === 'pass').length} passed${blank ? ` (${blank} with an expected blank render, unverified on that backend)` : ''}, ${rows.filter((row) => row.status === 'cached-pass').length} cached, ${rows.filter((row) => row.status === 'expected-fail').length} rejected as expected, ${bad.length} failed. Diagnostics: ${context.out}\n`);
+    process.stdout.write(`${rows.length} cells (GPU profile ${gpu.id}): ${rows.filter((row) => row.status === 'pass').length} passed${shimmed ? ` (${shimmed} with an environment shim on a backend)` : ''}, ${rows.filter((row) => row.status === 'cached-pass').length} cached, ${rows.filter((row) => row.status === 'expected-fail').length} rejected as expected, ${bad.length} failed. Diagnostics: ${context.out}\n`);
     process.exitCode = process.exitCode || (bad.length ? 1 : 0);
 }
 

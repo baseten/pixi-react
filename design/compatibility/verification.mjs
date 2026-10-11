@@ -17,8 +17,10 @@
  * The rule (`VERIFICATION_RULE`), per tuple (React adapter, exact React, Pixi adapter, exact pixi.js) and per render
  * backend: the tuple is verified on the backend when its cell passed on that backend in a record (every command, every
  * conformance scenario and the render check) and every boundary probe and negative case of that record behaved as
- * expected. A run on the expected-blank-render list (`adapterMatrix.expectedBlankRender`) that failed exactly as listed
- * is not a failure, but verifies nothing. Backends are never inferred from each other.
+ * expected. A backend run that applied an environment shim (`adapterMatrix.environmentShims`, a labelled workaround for
+ * an upstream pixi.js bug) is judged like any other: a pass verifies the tuple, which carries the shim's id
+ * (`verifiedRanges[].environmentShims`), and a failure is a failure. Runs that records before 2026-10-11 list as expected
+ * blank renders (the retired `expectedBlankRender` list) verify nothing. Backends are never inferred from each other.
  *
  * Usage:
  *   node design/compatibility/verification.mjs build --work DIR --date YYYY-MM-DD --commit SHA [--machine SLUG] [--sequence N]
@@ -35,7 +37,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { arch, cpus, release, totalmem, type, version } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { boundaryProbes, classifyExpectedBlank, compareVersions, expectedBlankFor, fileSetHash, gpuProfileOf, knownIssueNote, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
+import { boundaryProbes, compareVersions, environmentShimsFor, fileSetHash, gpuProfileOf, knownIssueFootnote, knownIssueMark, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -44,9 +46,16 @@ export const STATEMENT = 'Verification is evidence, not a support guarantee.';
 export const SCHEMA_VERSION = 2;
 export const VERIFICATION_RULE = 'A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on a render backend when its cell '
     + 'passed on that backend in this record (every command, every conformance scenario and the render check) and every boundary probe '
-    + 'and every negative case of this record behaved as expected. A run on the expected-blank-render list (adapterMatrix.expectedBlankRender) '
-    + 'that failed exactly as listed is not a failure, but verifies nothing. Each tuple lists every backend it is verified on; backends '
-    + 'are never inferred from each other.';
+    + 'and every negative case of this record behaved as expected. A backend run that applied an environment shim (adapterMatrix.environmentShims, '
+    + 'a labelled workaround for an upstream pixi.js bug) is judged like any other: a pass verifies the tuple, which carries the shim id, and a '
+    + 'failure is a failure. A run a record before 2026-10-11 lists as an expected blank render (the retired expectedBlankRender list) verifies '
+    + 'nothing. Each tuple lists every backend it is verified on; backends are never inferred from each other.';
+/**
+ * The day environment shims replaced the expected-blank-render list (owner ruling, 2026-10-11). A record from this day on
+ * lists, on every backend run, exactly the shims the manifest applies to it, and has no expected blank render; an older
+ * record lists no shim and may keep the expected blank renders it recorded (they verify nothing).
+ */
+export const ENVIRONMENT_SHIMS_SINCE = '2026-10-11';
 /** What a record says about how it rendered, by GPU profile: software verification counts, with this note. */
 export const SOFTWARE_NOTE = 'Software rendering: no GPU took part. WebGL ran on ANGLE over SwiftShader and WebGPU on Dawn over SwiftShader\'s '
     + 'Vulkan device, a fallback adapter (isFallbackAdapter true). It counts as verification; a run on a real GPU '
@@ -95,8 +104,9 @@ function backendEntry(backend, reportFile)
 
     return {
         status: backend.status,
-        ...(backend.expectedBlankRender ? { expectedBlankRender: backend.expectedBlankRender } : {}),
         ...(backend.note ? { note: backend.note } : {}),
+        // The environment shims the run applied (harness/test/environment-shims.ts): id, parameter, original and clamped value.
+        ...(backend.environmentShims?.length ? { environmentShims: backend.environmentShims } : {}),
         ...(split ? { scenarios: split.suite, backendCheck: split.backendCheck } : {}),
         conformance: counts(backend.conformance),
         renderer: info.actual ?? null,
@@ -260,6 +270,7 @@ export function summarizeRecord(seed, record)
             cells: applicable.length,
             passed: applicable.filter((cell) => cell.backends[name].status === 'pass').length,
             expectedBlank: applicable.filter((cell) => cell.backends[name].status === 'expected-fail').length,
+            withEnvironmentShim: applicable.filter((cell) => cell.backends[name].environmentShims?.length).length,
             failed: applicable.filter((cell) => cell.backends[name].status === 'fail').length,
             notRun: applicable.filter((cell) => !['pass', 'fail', 'expected-fail'].includes(cell.backends[name].status)).length,
             backendCheckFailed: applicable.filter((cell) => cell.backends[name].backendCheck === 'fail').length,
@@ -424,11 +435,22 @@ export function deriveVerifiedRanges(records, seed = loadSeed())
 
                 if (!entry.records.includes(recordId(record))) entry.records.push(recordId(record));
                 entry.backends[backend] = [...new Set([...(entry.backends[backend] ?? []), cell.pixi])].sort(compareVersions);
+                // A tuple verified with an environment shim carries the shim's id: backend -> shim id -> pixi.js versions.
+                for (const shim of cell.backends[backend].environmentShims ?? [])
+                {
+                    entry.environmentShims ??= {};
+                    entry.environmentShims[backend] ??= {};
+                    entry.environmentShims[backend][shim.id] = [...new Set([...(entry.environmentShims[backend][shim.id] ?? []), cell.pixi])].sort(compareVersions);
+                }
                 entries.set(key, entry);
             }
         }
     }
-    for (const entry of entries.values()) entry.backends = Object.fromEntries(Object.keys(entry.backends).sort().map((name) => [name, entry.backends[name]]));
+    for (const entry of entries.values())
+    {
+        entry.backends = Object.fromEntries(Object.keys(entry.backends).sort().map((name) => [name, entry.backends[name]]));
+        if (entry.environmentShims) entry.environmentShims = Object.fromEntries(Object.keys(entry.environmentShims).sort().map((name) => [name, entry.environmentShims[name]]));
+    }
 
     return [...entries.values()].sort((a, b) => a.reactAdapter.localeCompare(b.reactAdapter, 'en', { numeric: true }) || compareVersions(a.react, b.react) || a.pixiAdapter.localeCompare(b.pixiAdapter));
 }
@@ -515,12 +537,23 @@ export function validateRecord(seed, record, name = recordId(record))
             }
             if (entry.status === 'expected-fail')
             {
-                // An expected blank render is one the manifest lists for this profile, and it failed exactly as listed.
-                const listed = expectedBlankFor(seed, { pixiAdapter: cell.pixiAdapter, pixi: cell.pixi, renderer: backend, gpuProfile: record.gpuProfile });
+                // Only a record from before environment shims may keep an expected blank render, as it recorded it: the
+                // suite passed, the render check failed, and it verifies nothing.
+                assert.ok(record.date < ENVIRONMENT_SHIMS_SINCE, `${name}: ${cell.id} ${backend}: an expected blank render in a record from ${ENVIRONMENT_SHIMS_SINCE} on (the expectedBlankRender list was retired; a blank canvas is a failure)`);
+                assert.ok(typeof entry.expectedBlankRender === 'string' && entry.expectedBlankRender.length > 0, `${name}: ${cell.id} ${backend}: expectedBlankRender names the retired list entry`);
+                assert.ok(scenariosRan(entry) && entry.backendCheck === 'fail', `${name}: ${cell.id} ${backend}: an expected blank render passed every scenario and failed the render check`);
+            }
+            // Environment shims: a record from ENVIRONMENT_SHIMS_SINCE on lists exactly the shims the manifest applies to
+            // every run that reached the render check; an older one lists none.
+            const shims = (entry.environmentShims ?? []).map((shim) => shim.id);
+            const ran = entry.renderer !== undefined && entry.renderer !== null;
 
-                assert.ok(listed, `${name}: ${cell.id} ${backend}: an expected blank render that adapterMatrix.expectedBlankRender does not list for the ${record.gpuProfile} profile`);
-                assert.equal(entry.expectedBlankRender, listed.id, `${name}: ${cell.id} ${backend}: expectedBlankRender`);
-                assert.equal(classifyExpectedBlank(listed, entry).status, 'expected-fail', `${name}: ${cell.id} ${backend}: does not match the listed blank render`);
+            if (record.date < ENVIRONMENT_SHIMS_SINCE) assert.deepEqual(shims, [], `${name}: ${cell.id} ${backend}: a record from before ${ENVIRONMENT_SHIMS_SINCE} applied no environment shim`);
+            else if (ran || shims.length)
+            {
+                const expected = environmentShimsFor(seed, { pixiAdapter: cell.pixiAdapter, renderer: backend, pixi: cell.pixi }).map((shim) => shim.id);
+
+                assert.deepEqual(shims, expected, `${name}: ${cell.id} ${backend}: environment shims applied differ from what adapterMatrix.environmentShims applies`);
             }
         }
     }
@@ -529,45 +562,8 @@ export function validateRecord(seed, record, name = recordId(record))
 }
 
 /**
- * The expected-blank-render list against the records (validate.mjs): an entry's evidence names a record of its GPU
- * profile that ran its cells, and in every record of that profile each listed cell's run on the backend is an expected
- * blank render: one that rendered (or failed otherwise) means the list needs pruning (or the cell is a real failure).
- */
-export function checkExpectedBlankAgainstRecords(seed, records)
-{
-    const problems = [];
-
-    for (const entry of seed.adapterMatrix.expectedBlankRender ?? [])
-    {
-        const adapterId = seed.adapterMatrix.pixiAdapters[entry.pixiAdapter].id;
-        const evidence = records.find((record) => recordId(record) === entry.evidence.record);
-
-        if (!evidence) problems.push(`${entry.id}: evidence.record ${entry.evidence.record} is not a checked-in record`);
-        else if (evidence.gpuProfile !== entry.gpuProfile) problems.push(`${entry.id}: record ${entry.evidence.record} ran the ${evidence.gpuProfile} profile, not ${entry.gpuProfile}`);
-        for (const record of records.filter((candidate) => candidate.gpuProfile === entry.gpuProfile))
-        {
-            for (const version of entry.pixi)
-            {
-                const cells = record.cells.filter((cell) => cell.pixiAdapter === adapterId && cell.pixi === version);
-
-                if (record === evidence && !cells.length) problems.push(`${entry.id}: record ${recordId(record)} has no pixi.js ${version} cell`);
-                for (const cell of cells)
-                {
-                    const status = cell.backends[entry.renderer]?.status;
-
-                    if (status !== 'expected-fail' && status !== 'not run') problems.push(`${entry.id}: ${recordId(record)} ${cell.id} ${entry.renderer} is ${status}, not an expected blank render${status === 'pass' ? ': prune the list' : ''}`);
-                }
-            }
-        }
-    }
-
-    return problems;
-}
-
-/**
- * Re-applies the current manifest and rule to a record without re-running anything: a backend run the runner reported
- * as failed that matches an expected-blank-render entry exactly becomes an expected blank render (the runner before that
- * list reported it as a failure), and the summary, rule, statement and rendering note are recomputed.
+ * Re-applies the current manifest and rule to a record without re-running anything: the rule, statement, rendering note
+ * and summary are recomputed. What the record observed (statuses, read-backs, shims applied) is kept as it was.
  */
 export function refreshRecord(seed, record)
 {
@@ -576,32 +572,6 @@ export function refreshRecord(seed, record)
     next.gpuProfile ??= seed.adapterMatrix.defaultGpuProfile;
     next.rendering = renderingOf(seed, next.gpuProfile, next.environment);
     next.scope ??= 'full';
-    next.cells = record.cells.map((cell) =>
-    {
-        const backends = { ...cell.backends };
-        let changed = false;
-
-        for (const [backend, entry] of Object.entries(backends))
-        {
-            const listed = expectedBlankFor(seed, { pixiAdapter: cell.pixiAdapter, pixi: cell.pixi, renderer: backend, gpuProfile: next.gpuProfile });
-
-            if (!listed || entry.status !== 'fail') continue;
-            const verdict = classifyExpectedBlank(listed, entry);
-
-            if (verdict.status !== 'expected-fail') continue;
-            const { status: _status, ...rest } = entry;
-
-            backends[backend] = { status: 'expected-fail', expectedBlankRender: listed.id, note: verdict.message, ...rest };
-            changed = true;
-        }
-        if (!changed) return cell;
-        const ok = Object.values(backends).every((entry) => ['pass', 'expected-fail', 'not applicable'].includes(entry.status));
-        const commands = { ...cell.commands, ...(ok && cell.commands.conformance ? { conformance: 'pass' } : {}) };
-        const passed = ok && Object.values(commands).every((status) => status === 'pass');
-        const { failure: _failure, ...rest } = cell;
-
-        return { ...rest, status: passed ? 'pass' : cell.status, commands, backends, ...(passed ? {} : { failure: cell.failure }) };
-    });
     next.summary = summarizeRecord(seed, next);
 
     // Keep the key order of a built record.
@@ -616,24 +586,40 @@ export function renderRecord(record, seed = loadSeed())
     const label = { webgl: 'WebGL', webgpu: 'WebGPU' };
     const backends = Object.keys(record.summary.backends);
     const env = record.environment;
-    const mark = (entry) =>
+    const gate = recordGate(record);
+    const required = requiredCommands(seed);
+    // The known issues covering a tuple this record verified on a backend: the cell is marked with each one's footnote.
+    const issuesOf = (cell, backend) => (cell && seed && tupleVerified(record, cell, backend, gate, required) ? knownIssuesFor(seed, { pixiAdapter: cell.pixiAdapter, renderer: backend, pixi: cell.pixi }) : []);
+    const mark = (entry, cell = null, backend = null) =>
     {
         if (!entry || entry.status === 'not applicable') return 'n/a';
         if (!['pass', 'fail', 'expected-fail'].includes(entry.status)) return entry.status;
         const counts = entry.scenarios ? ` ${entry.scenarios.passed}/${entry.scenarios.skipped}/${entry.scenarios.failed}` : '';
+        const shimmed = entry.environmentShims?.length ? ' (shimmed)' : '';
 
         if (entry.status === 'expected-fail') return `expected blank (unverified)${counts}`;
         const check = entry.backendCheck === 'fail' ? ', render check FAIL' : '';
 
-        return `${entry.status === 'pass' ? 'pass' : '**FAIL**'}${counts}${check}`;
+        return `${entry.status === 'pass' ? 'pass' : '**FAIL**'}${issuesOf(cell, backend).map((issue) => knownIssueMark(seed, issue)).join('')}${counts}${shimmed}${check}`;
     };
     const id = recordId(record);
     const blanks = new Map();
+    const shims = new Map();
 
     for (const cell of record.cells)
     {
         for (const [backend, entry] of Object.entries(cell.backends))
         {
+            for (const shim of entry.environmentShims ?? [])
+            {
+                const item = shims.get(shim.id) ?? { backend, runs: 0, passed: 0, pixi: new Set(), values: new Set() };
+
+                item.runs++;
+                if (entry.status === 'pass') item.passed++;
+                item.pixi.add(cell.pixi);
+                if (shim.parameter) item.values.add(`${shim.parameter} ${shim.original ?? 'unreadable'} → ${shim.clamped ?? 'unreadable'}`);
+                shims.set(shim.id, item);
+            }
             if (entry.status !== 'expected-fail') continue;
             const item = blanks.get(entry.expectedBlankRender) ?? { backend, cells: 0, pixi: new Set() };
 
@@ -642,6 +628,8 @@ export function renderRecord(record, seed = loadSeed())
             blanks.set(entry.expectedBlankRender, item);
         }
     }
+    const anyBlank = Object.values(record.summary.backends).some((summary) => summary.expectedBlank > 0);
+    const anyShim = Object.values(record.summary.backends).some((summary) => summary.withEnvironmentShim > 0);
     const lines = [
         `# Verification record ${id}`,
         '',
@@ -674,50 +662,46 @@ export function renderRecord(record, seed = loadSeed())
         '',
         '## Summary',
         '',
-        `${record.summary.cells} cells (${record.summary.cellsPassedEveryBackend} passed on every backend they run, ${record.summary.cellsWithExpectedBlank} with an expected blank render on one backend), ${record.summary.probes.passed} of ${record.summary.probes.total} boundary probes passed (${record.summary.probes.expectedFailures} of them by failing exactly as the audit recorded), ${record.summary.negatives.rejectedAsExpected} of ${record.summary.negatives.total} incompatible pairs rejected as expected${recordGate(record) ? '' : '. **Not every probe and negative case behaved as expected, so this record verifies nothing**'}.`,
+        `${record.summary.cells} cells (${record.summary.cellsPassedEveryBackend} passed on every backend they run${record.summary.cellsWithExpectedBlank ? `, ${record.summary.cellsWithExpectedBlank} with an expected blank render on one backend` : ''}), ${record.summary.probes.passed} of ${record.summary.probes.total} boundary probes passed (${record.summary.probes.expectedFailures} of them by failing exactly as the audit recorded), ${record.summary.negatives.rejectedAsExpected} of ${record.summary.negatives.total} incompatible pairs rejected as expected${recordGate(record) ? '' : '. **Not every probe and negative case behaved as expected, so this record verifies nothing**'}.`,
         '',
-        '| Backend | Cells | Passed | Expected blank (unverified) | Failed | Render check failed | Not run | Not applicable | Conformance scenarios passed / skipped / failed | Tuples verified |',
-        '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+        `| Backend | Cells | Passed |${anyShim ? ' With an environment shim |' : ''}${anyBlank ? ' Expected blank (unverified) |' : ''} Failed | Render check failed | Not run | Not applicable | Conformance scenarios passed / skipped / failed | Tuples verified |`,
+        `| --- | --- | --- |${anyShim ? ' --- |' : ''}${anyBlank ? ' --- |' : ''} --- | --- | --- | --- | --- | --- |`,
         ...backends.map((backend) =>
         {
             const s = record.summary.backends[backend];
 
-            return `| ${label[backend] ?? backend} | ${s.cells} | ${s.passed} | ${s.expectedBlank} | ${s.failed} | ${s.backendCheckFailed} | ${s.notRun} | ${s.notApplicable} | ${s.scenarios.passed} / ${s.scenarios.skipped} / ${s.scenarios.failed} | ${s.verifiedTuples} |`;
+            return `| ${label[backend] ?? backend} | ${s.cells} | ${s.passed} |${anyShim ? ` ${s.withEnvironmentShim} |` : ''}${anyBlank ? ` ${s.expectedBlank} |` : ''} ${s.failed} | ${s.backendCheckFailed} | ${s.notRun} | ${s.notApplicable} | ${s.scenarios.passed} / ${s.scenarios.skipped} / ${s.scenarios.failed} | ${s.verifiedTuples} |`;
         }),
         '',
     ];
 
-    // Known upstream issues (adapterMatrix.knownIssues) covering tuples this record verified: shown beside them.
+    // Known upstream issues (adapterMatrix.knownIssues) covering tuples this record verified: one footnote each, marked on
+    // those tuples in the cells table, with the environment shims this record applied for it.
     const issues = new Map();
 
-    if (seed)
+    for (const cell of record.cells)
     {
-        const gate = recordGate(record);
-
-        for (const cell of record.cells)
+        for (const backend of Object.keys(cell.backends))
         {
-            for (const backend of Object.keys(cell.backends))
+            for (const issue of issuesOf(cell, backend))
             {
-                if (!tupleVerified(record, cell, backend, gate, requiredCommands(seed))) continue;
-                for (const issue of knownIssuesFor(seed, { pixiAdapter: cell.pixiAdapter, renderer: backend, pixi: cell.pixi }))
-                {
-                    const item = issues.get(issue.id) ?? { issue, cells: 0, pixi: new Set() };
+                const item = issues.get(issue.id) ?? { issue, cells: 0, pixi: new Set() };
 
-                    item.cells += 1;
-                    item.pixi.add(cell.pixi);
-                    issues.set(issue.id, item);
-                }
+                item.cells += 1;
+                item.pixi.add(cell.pixi);
+                issues.set(issue.id, item);
             }
         }
     }
-    if (issues.size)
+    if (issues.size || shims.size)
     {
         lines.push(
-            '## Known issues beside verified tuples',
+            '## Environment shims and known issues',
             '',
-            'Tuples this record verified that a known upstream issue covers (`adapterMatrix.knownIssues`). They stay verified (owner ruling, 2026-10-10); the issue can still show on other devices.',
-            '',
-            ...[...issues.values()].map(({ issue, cells, pixi }) => `- ${label[issue.renderer] ?? issue.renderer}, ${cells} verified ${cells === 1 ? 'tuple' : 'tuples'} on pixi.js ${[...pixi].sort(compareVersions).join(', ')}: ${knownIssueNote(seed, issue)}`),
+            ...[...issues.values()].flatMap(({ issue, cells, pixi }) => [`${knownIssueFootnote(seed, issue)} This record verified ${cells} ${label[issue.renderer] ?? issue.renderer} ${cells === 1 ? 'tuple' : 'tuples'} it covers (pixi.js ${[...pixi].sort(compareVersions).join(', ')}), marked in the cells table; they stay verified (owner rulings 2026-10-10 and 2026-10-11).`, '']),
+            ...(shims.size
+                ? [...shims.entries()].map(([shim, item]) => `- Environment shim \`${shim}\` (${label[item.backend] ?? item.backend}): applied to ${item.runs} ${item.runs === 1 ? 'run' : 'runs'} on pixi.js ${[...item.pixi].sort(compareVersions).join(', ')}, ${item.passed} passed; ${[...item.values].join('; ') || 'values not reported'}. Marked "(shimmed)" in the cells table.`)
+                : [record.date < ENVIRONMENT_SHIMS_SINCE ? `- No environment shim was applied: this record ran before environment shims existed (${ENVIRONMENT_SHIMS_SINCE}).` : '- No environment shim applied to any run of this record.']),
             '',
         );
     }
@@ -726,7 +710,7 @@ export function renderRecord(record, seed = loadSeed())
         lines.push(
             '## Expected blank renders (unverified)',
             '',
-            'Runs on the manifest\'s expected-blank-render list (`adapterMatrix.expectedBlankRender`, where each entry gives its reason and evidence) that failed exactly as listed: every conformance scenario passed and the canvas read back blank. They are not failures of the run and verify nothing.',
+            `Runs this record lists as expected blank renders under the expected-blank-render list of its time (\`adapterMatrix.expectedBlankRender\`, retired on ${ENVIRONMENT_SHIMS_SINCE} for environment shims): every conformance scenario passed and the canvas read back blank. They verify nothing; a later record supersedes them.`,
             '',
             '| Entry | Backend | Cells | pixi.js |',
             '| --- | --- | --- | --- |',
@@ -737,11 +721,11 @@ export function renderRecord(record, seed = loadSeed())
     lines.push(
         '## Cells',
         '',
-        'Each backend column shows the status and the conformance scenarios passed/skipped/failed (skips are scenarios whose capability the cell does not provide). Each backend run also has a render check (harness/test/backend.test.tsx: the requested renderer is the one Pixi created, and a screenshot of the canvas shows the red rectangle it drew); "render check FAIL" marks a run whose scenarios passed but whose canvas stayed blank, and "expected blank (unverified)" one the expected-blank-render list covers. Pixi 7 has no WebGPU renderer (n/a).',
+        `Each backend column shows the status and the conformance scenarios passed/skipped/failed (skips are scenarios whose capability the cell does not provide). Each backend run also has a render check (harness/test/backend.test.tsx: the requested renderer is the one Pixi created, and a screenshot of the canvas shows the red rectangle it drew); "render check FAIL" marks a run whose scenarios passed but whose canvas stayed blank${anyBlank ? ', and "expected blank (unverified)" one the retired expected-blank-render list covered' : ''}. "(shimmed)" marks a run that applied an environment shim, and a footnote mark a verified tuple a known issue covers (see above). Pixi 7 has no WebGPU renderer (n/a).`,
         '',
         `| Cell | React adapter | reconciler | Pixi adapter | Commands | ${backends.map((backend) => label[backend] ?? backend).join(' | ')} |`,
         `| --- | --- | --- | --- | --- | ${backends.map(() => '---').join(' | ')} |`,
-        ...record.cells.map((cell) => `| ${cell.id} | ${cell.reactAdapter} | ${cell.reconciler} | ${cell.pixiAdapter} | ${Object.values(cell.commands).every((status) => status === 'pass') ? 'all pass' : Object.entries(cell.commands).filter(([, status]) => status !== 'pass').map(([name]) => `${name} FAIL`).join(', ') || cell.status} | ${backends.map((backend) => mark(cell.backends[backend])).join(' | ')} |`),
+        ...record.cells.map((cell) => `| ${cell.id} | ${cell.reactAdapter} | ${cell.reconciler} | ${cell.pixiAdapter} | ${Object.values(cell.commands).every((status) => status === 'pass') ? 'all pass' : Object.entries(cell.commands).filter(([, status]) => status !== 'pass').map(([name]) => `${name} FAIL`).join(', ') || cell.status} | ${backends.map((backend) => mark(cell.backends[backend], cell, backend)).join(' | ')} |`),
         '',
     );
     const failures = record.cells.filter((cell) => cell.failure);

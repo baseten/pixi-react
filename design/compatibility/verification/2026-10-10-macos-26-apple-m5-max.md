@@ -6,7 +6,7 @@
 
 **Rendering: hardware (GPU profile `hardware`).** Real GPU: ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version); apple / metal-3, isFallbackAdapter false. The render check confirmed no backend ran on a software renderer or a fallback adapter.
 
-Rule: A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on a render backend when its cell passed on that backend in this record (every command, every conformance scenario and the render check) and every boundary probe and every negative case of this record behaved as expected. A run on the expected-blank-render list (adapterMatrix.expectedBlankRender) that failed exactly as listed is not a failure, but verifies nothing. Each tuple lists every backend it is verified on; backends are never inferred from each other.
+Rule: A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on a render backend when its cell passed on that backend in this record (every command, every conformance scenario and the render check) and every boundary probe and every negative case of this record behaved as expected. A backend run that applied an environment shim (adapterMatrix.environmentShims, a labelled workaround for an upstream pixi.js bug) is judged like any other: a pass verifies the tuple, which carries the shim id, and a failure is a failure. A run a record before 2026-10-11 lists as an expected blank render (the retired expectedBlankRender list) verifies nothing. Each tuple lists every backend it is verified on; backends are never inferred from each other.
 
 ## Environment
 
@@ -28,89 +28,89 @@ Rule: A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verif
 
 ## Summary
 
-184 cells (184 passed on every backend they run, 0 with an expected blank render on one backend), 44 of 44 boundary probes passed (1 of them by failing exactly as the audit recorded), 6 of 6 incompatible pairs rejected as expected.
+184 cells (184 passed on every backend they run), 44 of 44 boundary probes passed (1 of them by failing exactly as the audit recorded), 6 of 6 incompatible pairs rejected as expected.
 
-| Backend | Cells | Passed | Expected blank (unverified) | Failed | Render check failed | Not run | Not applicable | Conformance scenarios passed / skipped / failed | Tuples verified |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| WebGL | 184 | 184 | 0 | 0 | 0 | 0 | 0 | 15309 / 1435 / 0 | 184 |
-| WebGPU | 168 | 168 | 0 | 0 | 0 | 0 | 16 | 14007 / 1281 / 0 | 168 |
+| Backend | Cells | Passed | Failed | Render check failed | Not run | Not applicable | Conformance scenarios passed / skipped / failed | Tuples verified |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| WebGL | 184 | 184 | 0 | 0 | 0 | 0 | 15309 / 1435 / 0 | 184 |
+| WebGPU | 168 | 168 | 0 | 0 | 0 | 16 | 14007 / 1281 / 0 | 168 |
 
-## Known issues beside verified tuples
+## Environment shims and known issues
 
-Tuples this record verified that a known upstream issue covers (`adapterMatrix.knownIssues`). They stay verified (owner ruling, 2026-10-10); the issue can still show on other devices.
+\* WebGPU on pixi.js <8.10 needs the workaround for [pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389) (fixed in 8.10.0): without it, WebGPU renders a blank canvas on devices whose WebGL texture-unit count exceeds their WebGPU per-stage limit. Use pixi.js 8.10+ or WebGL. The verification runs apply that workaround as the labelled environment shim `pixi-webgpu-texture-units` (`adapterMatrix.environmentShims`). This record verified 64 WebGPU tuples it covers (pixi.js 8.2.6, 8.3.4, 8.4.1, 8.5.2, 8.6.6, 8.7.3, 8.8.1, 8.9.2), marked in the cells table; they stay verified (owner rulings 2026-10-10 and 2026-10-11).
 
-- WebGPU, 64 verified tuples on pixi.js 8.2.6, 8.3.4, 8.4.1, 8.5.2, 8.6.6, 8.7.3, 8.8.1, 8.9.2: **Known issue** (pixi.js before 8.10.0 on WebGPU): some devices render a blank canvas on WebGPU: pixi.js before 8.10 sizes the WebGPU texture batch from WebGL's texture-unit count, which exceeds the WebGPU per-stage limit on those devices ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), [pixijs/pixijs#11417](https://github.com/pixijs/pixijs/pull/11417); fixed in 8.10.0); use pixi.js 8.10 or later for WebGPU, or WebGL.
+- No environment shim was applied: this record ran before environment shims existed (2026-10-11).
 
 ## Cells
 
-Each backend column shows the status and the conformance scenarios passed/skipped/failed (skips are scenarios whose capability the cell does not provide). Each backend run also has a render check (harness/test/backend.test.tsx: the requested renderer is the one Pixi created, and a screenshot of the canvas shows the red rectangle it drew); "render check FAIL" marks a run whose scenarios passed but whose canvas stayed blank, and "expected blank (unverified)" one the expected-blank-render list covers. Pixi 7 has no WebGPU renderer (n/a).
+Each backend column shows the status and the conformance scenarios passed/skipped/failed (skips are scenarios whose capability the cell does not provide). Each backend run also has a render check (harness/test/backend.test.tsx: the requested renderer is the one Pixi created, and a screenshot of the canvas shows the red rectangle it drew); "render check FAIL" marks a run whose scenarios passed but whose canvas stayed blank. "(shimmed)" marks a run that applied an environment shim, and a footnote mark a verified tuple a known issue covers (see above). Pixi 7 has no WebGPU renderer (n/a).
 
 | Cell | React adapter | reconciler | Pixi adapter | Commands | WebGL | WebGPU |
 | --- | --- | --- | --- | --- | --- | --- |
-| react-18.3.1_pixi-8.2.6 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
-| react-19.0.0_pixi-8.2.6 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.0.8_pixi-8.2.6 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.0_pixi-8.2.6 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.9_pixi-8.2.6 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.0_pixi-8.2.6 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.8_pixi-8.2.6 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.3.0_pixi-8.2.6 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-18.3.1_pixi-8.3.4 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
-| react-19.0.0_pixi-8.3.4 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.0.8_pixi-8.3.4 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.0_pixi-8.3.4 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.9_pixi-8.3.4 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.0_pixi-8.3.4 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.8_pixi-8.3.4 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.3.0_pixi-8.3.4 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-18.3.1_pixi-8.4.1 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
-| react-19.0.0_pixi-8.4.1 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.0.8_pixi-8.4.1 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.0_pixi-8.4.1 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.9_pixi-8.4.1 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.0_pixi-8.4.1 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.8_pixi-8.4.1 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.3.0_pixi-8.4.1 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-18.3.1_pixi-8.5.2 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
-| react-19.0.0_pixi-8.5.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.0.8_pixi-8.5.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.0_pixi-8.5.2 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.9_pixi-8.5.2 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.0_pixi-8.5.2 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.8_pixi-8.5.2 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.3.0_pixi-8.5.2 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-18.3.1_pixi-8.6.6 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
-| react-19.0.0_pixi-8.6.6 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.0.8_pixi-8.6.6 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.0_pixi-8.6.6 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.9_pixi-8.6.6 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.0_pixi-8.6.6 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.8_pixi-8.6.6 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.3.0_pixi-8.6.6 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-18.3.1_pixi-8.7.3 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
-| react-19.0.0_pixi-8.7.3 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.0.8_pixi-8.7.3 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.0_pixi-8.7.3 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.9_pixi-8.7.3 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.0_pixi-8.7.3 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.8_pixi-8.7.3 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.3.0_pixi-8.7.3 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-18.3.1_pixi-8.8.1 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
-| react-19.0.0_pixi-8.8.1 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.0.8_pixi-8.8.1 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.0_pixi-8.8.1 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.9_pixi-8.8.1 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.0_pixi-8.8.1 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.8_pixi-8.8.1 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.3.0_pixi-8.8.1 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-18.3.1_pixi-8.9.2 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
-| react-19.0.0_pixi-8.9.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.0.8_pixi-8.9.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.0_pixi-8.9.2 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.1.9_pixi-8.9.2 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.0_pixi-8.9.2 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.2.8_pixi-8.9.2 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
-| react-19.3.0_pixi-8.9.2 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
+| react-18.3.1_pixi-8.2.6 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass\* 86/5/0 |
+| react-19.0.0_pixi-8.2.6 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.0.8_pixi-8.2.6 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.0_pixi-8.2.6 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.9_pixi-8.2.6 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.0_pixi-8.2.6 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.8_pixi-8.2.6 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.3.0_pixi-8.2.6 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-18.3.1_pixi-8.3.4 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass\* 86/5/0 |
+| react-19.0.0_pixi-8.3.4 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.0.8_pixi-8.3.4 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.0_pixi-8.3.4 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.9_pixi-8.3.4 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.0_pixi-8.3.4 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.8_pixi-8.3.4 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.3.0_pixi-8.3.4 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-18.3.1_pixi-8.4.1 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass\* 86/5/0 |
+| react-19.0.0_pixi-8.4.1 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.0.8_pixi-8.4.1 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.0_pixi-8.4.1 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.9_pixi-8.4.1 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.0_pixi-8.4.1 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.8_pixi-8.4.1 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.3.0_pixi-8.4.1 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-18.3.1_pixi-8.5.2 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass\* 86/5/0 |
+| react-19.0.0_pixi-8.5.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.0.8_pixi-8.5.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.0_pixi-8.5.2 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.9_pixi-8.5.2 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.0_pixi-8.5.2 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.8_pixi-8.5.2 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.3.0_pixi-8.5.2 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-18.3.1_pixi-8.6.6 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass\* 86/5/0 |
+| react-19.0.0_pixi-8.6.6 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.0.8_pixi-8.6.6 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.0_pixi-8.6.6 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.9_pixi-8.6.6 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.0_pixi-8.6.6 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.8_pixi-8.6.6 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.3.0_pixi-8.6.6 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-18.3.1_pixi-8.7.3 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass\* 86/5/0 |
+| react-19.0.0_pixi-8.7.3 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.0.8_pixi-8.7.3 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.0_pixi-8.7.3 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.9_pixi-8.7.3 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.0_pixi-8.7.3 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.8_pixi-8.7.3 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.3.0_pixi-8.7.3 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-18.3.1_pixi-8.8.1 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass\* 86/5/0 |
+| react-19.0.0_pixi-8.8.1 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.0.8_pixi-8.8.1 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.0_pixi-8.8.1 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.9_pixi-8.8.1 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.0_pixi-8.8.1 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.8_pixi-8.8.1 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.3.0_pixi-8.8.1 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-18.3.1_pixi-8.9.2 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass\* 86/5/0 |
+| react-19.0.0_pixi-8.9.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.0.8_pixi-8.9.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.0_pixi-8.9.2 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.1.9_pixi-8.9.2 | react-19.1 | 0.32.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.0_pixi-8.9.2 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.2.8_pixi-8.9.2 | react-19.2 | 0.33.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
+| react-19.3.0_pixi-8.9.2 | react-19.3 | 0.34.0 | pixi-8 | all pass | pass 83/8/0 | pass\* 83/8/0 |
 | react-18.3.1_pixi-8.10.2 | react-18 | 0.29.2 | pixi-8 | all pass | pass 86/5/0 | pass 86/5/0 |
 | react-19.0.0_pixi-8.10.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
 | react-19.0.8_pixi-8.10.2 | react-19.0 | 0.31.0 | pixi-8 | all pass | pass 83/8/0 | pass 83/8/0 |
@@ -231,6 +231,10 @@ Each backend column shows the status and the conformance scenarios passed/skippe
 | react-19.2.0_pixi-7.4.3 | react-19.2 | 0.33.0 | pixi-7 | all pass | pass 81/10/0 | n/a |
 | react-19.2.8_pixi-7.4.3 | react-19.2 | 0.33.0 | pixi-7 | all pass | pass 81/10/0 | n/a |
 | react-19.3.0_pixi-7.4.3 | react-19.3 | 0.34.0 | pixi-7 | all pass | pass 81/10/0 | n/a |
+
+## Findings
+
+- Added 2026-10-11 (no re-run): this record ran before environment shims existed, so none was applied. The shim pixi-webgpu-texture-units (adapterMatrix.environmentShims) would most likely be a no-op on this machine: this record did not measure MAX_TEXTURE_IMAGE_UNITS, but since pixi.js 8.2–8.9 size the WebGPU batch from it and a value above WebGPU's default maxSampledTexturesPerShaderStage (16) fails validation, WebGL here must report at most 16 (inferred; the next hardware run records the original value). That is why pixi.js 8.2.6 to 8.9.2 rendered on WebGPU here without it (pixijs/pixijs#11389 needs a WebGL texture-unit count above the WebGPU per-stage limit). The record stays valid as recorded.
 
 ## Boundary probes
 

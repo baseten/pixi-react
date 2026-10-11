@@ -7,7 +7,7 @@ import { reactAbiSha256 } from './react-abi.mjs';
 import { resolvedPackagesSha256 } from './resolved-packages.mjs';
 import { surfaceMapSha256 } from './surface-map.mjs';
 import { validateHistoricalObservation } from './validate-historical.mjs';
-import { checkExpectedBlankAgainstRecords, checkRenderedRecords, deriveVerifiedRanges, loadRecords, validateRecord } from './verification.mjs';
+import { checkRenderedRecords, deriveVerifiedRanges, loadRecords, validateRecord } from './verification.mjs';
 
 const read = (name) => JSON.parse(readFileSync(new URL(name, import.meta.url)));
 const historical = process.argv[2] === '--historical';
@@ -32,9 +32,6 @@ else
     validateAdapterMatrix(seed);
     for (const record of records) validateRecord(seed, record);
     assert.deepEqual(checkRenderedRecords(), [], 'verification record Markdown is current');
-    // The expected-blank-render list (every entry has a reason; validateAdapterMatrix) agrees with the records: its
-    // evidence record ran its cells, and no record of its GPU profile shows a listed cell rendering or failing otherwise.
-    assert.deepEqual(checkExpectedBlankAgainstRecords(seed, records), [], 'adapterMatrix.expectedBlankRender must match the verification records');
     assert.deepEqual(seed.verifiedRanges, deriveVerifiedRanges(records), 'seed.json verifiedRanges must equal what the verification records derive (node design/compatibility/verification.mjs ranges --write)');
 }
 assert.equal(new Set(seed.probes.map((p) => p.id)).size, seed.probes.length);
