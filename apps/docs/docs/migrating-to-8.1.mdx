@@ -84,7 +84,9 @@ The package names above are the planned public names; they depend on the npm sco
 
 ## Known issue: WebGPU with PixiJS 8.2–8.9
 
-On some devices PixiJS 8.2 to 8.9 draw a blank canvas with the WebGPU renderer, because they size the WebGPU texture batch from WebGL's texture-unit count ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed in 8.10.0 by [#11417](https://github.com/pixijs/pixijs/pull/11417)). This is a PixiJS bug, not a `@pixi/react` one: use PixiJS 8.10 or later for WebGPU, or the WebGL renderer.
+On some devices PixiJS 8.2 to 8.9 draw a blank canvas with the WebGPU renderer, because they size the WebGPU texture batch from WebGL's texture-unit count ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed in 8.10.0 by [#11417](https://github.com/pixijs/pixijs/pull/11417)). This is a PixiJS bug, not a `@pixi/react` one. WebGPU on PixiJS before 8.10 needs a workaround for it: without one, WebGPU renders a blank canvas on devices whose WebGL texture-unit count exceeds their WebGPU per-stage limit. Use PixiJS 8.10 or later for WebGPU, or the WebGL renderer.
+
+The compatibility tables mark WebGPU with PixiJS 8.2–8.9 with this caveat. To test the adapters rather than this bug, the compatibility matrix runs those WebGPU cells with a labelled test shim that caps WebGL's `MAX_TEXTURE_IMAGE_UNITS` at 16 before PixiJS starts. `@pixi/react` does not apply it in your application.
 
 ## Bug fixes
 

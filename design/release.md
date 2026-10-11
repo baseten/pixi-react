@@ -209,43 +209,50 @@ two tiers. **Verification is evidence, not a support guarantee.** "Supported" is
   `design/compatibility/seed.json` lists exactly the tuples the records verified, per backend;
   `design/compatibility/verification.mjs` derives it from the records and `validate.mjs` fails when they disagree.
 
-The [2026-10-10.2 record](compatibility/verification/2026-10-10.2.md) (297 cells: every React adapter, React 18.0 to
+The [2026-10-11 record](compatibility/verification/2026-10-11.md) (297 cells: every React adapter, React 18.0 to
 19.3, at every audited patch × every Pixi 8 minor's newest audited patch and pixi.js 7.2.0, 7.2.4, 7.3.0, 7.3.3, 7.4.2
-and 7.4.3) supersedes the first 2026-10-10 record (184 cells) of the same machine and verifies:
+and 7.4.3) supersedes the two 2026-10-10 records of the same machine (only the newest record of a machine and GPU
+profile counts) and verifies:
 
 - **WebGL:** every nightly tuple (297 of 297 cells).
-- **WebGPU:** pixi.js 8.10.2 to 8.22.0 with every React adapter (143 of the 231 Pixi 8 cells). Pixi 7 has no WebGPU
-  renderer.
-- **Expected blank render, unverified:** pixi.js 8.2.6, 8.3.4, 8.4.1, 8.5.2, 8.6.6, 8.7.3, 8.8.1 and 8.9.2 on WebGPU
-  (88 cells). Pixi creates a WebGPU renderer and every conformance scenario passes, but the canvas stays blank on the
-  software fallback adapter. The cause is an upstream pixi.js bug before 8.10
-  ([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by
-  [#11417](https://github.com/pixijs/pixijs/pull/11417), first released in 8.10.0; bisected: 8.9.2 blank, 8.10.0
-  renders): Pixi sizes the WebGPU texture batch from WebGL's `MAX_TEXTURE_IMAGE_UNITS` (32 on SwiftShader) while the
-  device allows 16 sampled textures per stage, so the pipeline is invalid. It is not specific to software rendering:
-  real devices with that mismatch are affected too, while the full hardware record from an Apple M5 Max (WebGL
-  reports 16 units there) renders 8.2.6 to 8.9.2 on WebGPU. The adapters do not work around it. These cells are on the manifest's
-  `adapterMatrix.expectedBlankRender` list with that reason and evidence. Like the 8.5.0 ParticleContainer
-  known-failure probe, the runner counts such a run as expected only when it fails exactly as listed (scenarios pass,
-  canvas blank) and fails the cell when one starts rendering, so the list gets pruned; a conformance failure there
-  still fails.
+- **WebGPU:** every Pixi 8 tuple (231 of 231 cells), pixi.js 8.2.6 to 8.9.2 (88 cells) with the environment shim
+  `pixi-webgpu-texture-units`. Pixi 7 has no WebGPU renderer.
 
-**Software rendering and a real GPU.** The 2026-10-10 records ran on software rendering: the machine has no GPU, WebGL
+**Environment shims** (`adapterMatrix.environmentShims`, owner ruling 2026-10-11: the matrix measures this project's
+compatibility, not pixi.js's own bugs). pixi.js before 8.10 has an upstream bug
+([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by
+[#11417](https://github.com/pixijs/pixijs/pull/11417), first released in 8.10.0; bisected: 8.9.2 blank, 8.10.0
+renders): Pixi sizes the WebGPU texture batch from WebGL's `MAX_TEXTURE_IMAGE_UNITS` (32 on SwiftShader) while the
+WebGPU device allows 16 sampled textures per stage, so the pipeline is invalid and the canvas stays blank although
+every conformance scenario passes. It is not specific to software rendering: real devices with that mismatch are
+affected, while an Apple M5 Max (WebGL reports 16 units there) renders. The adapters do not work around it. The
+harness does, as a labelled shim: on WebGPU runs of the Pixi 8 adapter with pixi.js `>=8.2.6 <8.10.0`, under every GPU
+profile, `harness/test/environment-shims.ts` clamps `getParameter(MAX_TEXTURE_IMAGE_UNITS)` of both WebGL contexts to
+16 before the first Pixi application initializes. It never applies to WebGL runs or to pixi.js 8.10+. Each backend
+run records the shims it applied (with the original and clamped value: 32 and 16 on SwiftShader), a shimmed run that
+renders is a normal pass and one that still blanks is a failure, and a tuple verified with a shim stays verified and
+carries the shim id (`verifiedRanges[].environmentShims`). This replaced the expected-blank-render list
+(`expectedBlankRender`) of the 2026-10-10 records: their 64 and 88 WebGPU runs on 8.2–8.9 stay as recorded (blank,
+unverified, run without the shim) and are superseded by the 2026-10-11 record, never turned into passes.
+
+**Software rendering and a real GPU.** The software records ran on software rendering: the machine has no GPU, WebGL
 runs on ANGLE over SwiftShader and WebGPU on SwiftShader's fallback adapter (`isFallbackAdapter: true`), as in CI. That
 counts as verification (owner ruling). A run on a real GPU (`run-cells.mjs --gpu hardware`, see the
 [cells README](compatibility/cells/README.md#running-on-a-real-gpu)) adds a dated record beside the software one: the
 full [2026-10-10-macos-26-apple-m5-max](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md) record (Apple
 M5 Max, Metal; 184 cells at main d0071c1, before the React 18 split and the Pixi 7.2 widening) passed every cell on
 both backends, so it verifies React 18.3.1 (the former `react-18` package) and every React 19 adapter with pixi.js
-8.2.6 … 8.22.0 on WebGL and WebGPU and with 7.4.2 and 7.4.3 on WebGL. WebGPU is therefore verified from 8.2.6 for
-those adapters, and from 8.10.2 for the React 18.0–18.3 packages.
+8.2.6 … 8.22.0 on WebGL and WebGPU and with 7.4.2 and 7.4.3 on WebGL. It ran before environment shims existed and
+needs no re-run: WebGL reports 16 texture units there, so the shim would be a no-op.
 
-**Known issues** (`adapterMatrix.knownIssues`, owner ruling 2026-10-10: "verified + known issue"). A tuple a record
-verified stays verified, and the generated tables and records show the issue beside every verified range it covers.
-Today: some devices render a blank canvas on WebGPU before pixi.js 8.10
-([pixijs/pixijs#11389](https://github.com/pixijs/pixijs/issues/11389), fixed by
-[#11417](https://github.com/pixijs/pixijs/pull/11417) in 8.10.0); use pixi.js 8.10 or later for WebGPU, or WebGL.
-`validate.mjs` requires each entry to name its version range, backend and links.
+**Known issues** (`adapterMatrix.knownIssues`, owner rulings 2026-10-10, "verified + known issue", and 2026-10-11). A
+tuple a record verified stays verified, and the generated tables (the release table, COMPATIBILITY.md, the record
+Markdown) mark every verified tuple or range an issue covers with one footnote. Today, for every verified WebGPU tuple
+below pixi.js 8.10: "\* WebGPU on pixi.js <8.10 needs the workaround for pixijs/pixijs#11389 (fixed in 8.10.0):
+without it, WebGPU renders a blank canvas on devices whose WebGL texture-unit count exceeds their WebGPU per-stage
+limit. Use pixi.js 8.10+ or WebGL." The footnote also names the test shim. `validate.mjs` requires each known issue to
+name its version range, backend and links, and each environment shim its links, range (ending at or below `fixedIn`),
+backend, action and reason.
 
 Verification never widens a peer range (D5: never broader than the evidence). The peer ranges stay exactly the tested
 versions: the verified tuples include them and add the minimum React patches, every Pixi 8 minor's newest audited
@@ -688,8 +695,8 @@ Each React adapter's peer lists exactly the React versions its fixtures test (D5
 patch with pixi.js 8.2.6 and 8.22.0 and React 18.0.0 with 8.2.6 on every PR, and every React adapter with every Pixi 8
 minor in the nightly tier (run weekly); the Pixi 7 adapter with React 18.0.0 on pixi.js 7.2.0 and React 19.3.0 on 7.4.3
 on every PR, and with every React adapter on every tested Pixi 7 release in the nightly tier. These versions are *tested*; the
-[2026-10-10.2 verification record](compatibility/verification/2026-10-10.2.md) verifies the nightly tuples on WebGL, and on
-WebGPU from pixi.js 8.10.2 (8.2–8.9 are an expected blank render, unverified), on software rendering
+[2026-10-11 verification record](compatibility/verification/2026-10-11.md) verifies the nightly tuples on WebGL and
+WebGPU (WebGPU on pixi.js 8.2–8.9 with the test shim for pixijs/pixijs#11389), on software rendering
 ([Tested and verified](#tested-and-verified)). The
 generated [release compatibility table](release-compatibility.md) lists them per package and release.
 
