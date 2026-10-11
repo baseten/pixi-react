@@ -234,7 +234,7 @@ Each backend column shows the status and the conformance scenarios passed/skippe
 
 ## Findings
 
-- Added 2026-10-11 (no re-run): this record ran before environment shims existed, so none was applied. The shim pixi-webgpu-texture-units (adapterMatrix.environmentShims) would be a no-op on this machine: WebGL on Apple/Metal reports MAX_TEXTURE_IMAGE_UNITS 16, equal to WebGPU's default maxSampledTexturesPerShaderStage, which is why pixi.js 8.2.6 to 8.9.2 rendered on WebGPU here without it (pixijs/pixijs#11389 needs a WebGL texture-unit count above the WebGPU per-stage limit). The record stays valid as recorded.
+- Added 2026-10-11 (no re-run): this record ran before environment shims existed, so none was applied. The shim pixi-webgpu-texture-units (adapterMatrix.environmentShims) would most likely be a no-op on this machine: this record did not measure MAX_TEXTURE_IMAGE_UNITS, but since pixi.js 8.2–8.9 size the WebGPU batch from it and a value above WebGPU's default maxSampledTexturesPerShaderStage (16) fails validation, WebGL here must report at most 16 (inferred; the next hardware run records the original value). That is why pixi.js 8.2.6 to 8.9.2 rendered on WebGPU here without it (pixijs/pixijs#11389 needs a WebGL texture-unit count above the WebGPU per-stage limit). The record stays valid as recorded.
 
 ## Boundary probes
 
