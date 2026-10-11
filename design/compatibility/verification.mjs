@@ -24,6 +24,7 @@
  *
  * Usage:
  *   node design/compatibility/verification.mjs build --work DIR --date YYYY-MM-DD --commit SHA [--machine SLUG] [--sequence N]
+ *       [--tarballs DIR]   # the packed artifacts the cells installed (default DIR/tarballs); a full record needs them
  *       [--scope full|partial] [--extra FILE]   # a record from a run's work directory (partial: only the cells it ran)
  *   node design/compatibility/verification.mjs refresh [--record ID] [--extra FILE]   # re-apply the manifest's lists and the rule
  *   node design/compatibility/verification.mjs render [--check]   # the .md files from the .json records
@@ -37,7 +38,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { arch, cpus, release, totalmem, type, version } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { boundaryProbes, compareVersions, environmentShimsFor, fileSetHash, gpuProfileOf, knownIssueFootnote, knownIssueMark, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
+import { boundaryProbes, BROWSERS, compareVersions, nodeRequirement, satisfiesNodeRange, environmentShimsFor, fileSetHash, gpuProfileOf, knownIssueFootnote, knownIssueMark, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -56,6 +57,12 @@ export const VERIFICATION_RULE = 'A tuple (React adapter, exact React, Pixi adap
  * record lists no shim and may keep the expected blank renders it recorded (they verify nothing).
  */
 export const ENVIRONMENT_SHIMS_SINCE = '2026-10-11';
+/**
+ * From this day on a record must come from the required Node (package.json `engines.node`, the version in .nvmrc), and
+ * a full record must name the packed artifacts its cells installed (so `compare` can check its code). Older records are
+ * kept as recorded (2026-10-10-macos-26-apple-m5-max has no artifacts; a finding says so).
+ */
+export const RECORD_REQUIREMENTS_SINCE = '2026-10-11';
 /** What a record says about how it rendered, by GPU profile: software verification counts, with this note. */
 export const SOFTWARE_NOTE = 'Software rendering: no GPU took part. WebGL ran on ANGLE over SwiftShader and WebGPU on Dawn over SwiftShader\'s '
     + 'Vulkan device, a fallback adapter (isFallbackAdapter true). It counts as verification; a run on a real GPU '
@@ -114,6 +121,8 @@ function backendEntry(backend, reportFile)
         ...(info.webglRenderer ? { webglRenderer: info.webglRenderer } : {}),
         ...(info.gpuAdapter ? { gpuAdapter: info.gpuAdapter } : {}),
         ...(info.gpu ? { gpu: info.gpu } : {}),
+        // The browser of this run (name, full version, Playwright channel), when the harness reported it.
+        ...(backend.browser ?? info.browser ? { browser: backend.browser ?? info.browser } : {}),
     };
 }
 
@@ -187,7 +196,44 @@ function commandVersion(name)
 }
 
 /** A short description of a WebGPU adapter as the render check reported it. */
-const describeAdapter = (adapter) => (adapter ? `${[adapter.vendor, adapter.architecture, adapter.device, adapter.description].filter(Boolean).join(' / ') || 'unnamed adapter'}, isFallbackAdapter ${adapter.isFallbackAdapter}` : null);
+const describeAdapter = (adapter) => (adapter
+    ? `${[adapter.vendor, adapter.architecture, adapter.device, adapter.description].filter(Boolean).join(' / ') || 'unnamed adapter'}, isFallbackAdapter ${adapter.isFallbackAdapter ?? 'unknown'}${adapter.fallbackSource ? ` (${adapter.fallbackSource === 'unknown' ? 'neither adapter.info.isFallbackAdapter nor adapter.isFallbackAdapter exists' : `from ${adapter.fallbackSource}`})` : ''}`
+    : null);
+
+/**
+ * The browser of a run's backend runs (the harness reports name, full version and Playwright channel per run), or null
+ * when none reported it (results from before browsers were recorded). One record covers one browser.
+ */
+export function browserOfRows(rows)
+{
+    const seen = rows.flatMap((row) => Object.values(row.backends ?? {}).map((backend) => backend.browser ?? backend.backend?.browser).filter(Boolean));
+    const ids = [...new Set(rows.filter((row) => row.kind === 'cell' && row.browser).map((row) => row.browser))];
+    const versions = [...new Set(seen.map((browser) => `${browser.name} ${browser.version}`))];
+
+    assert.ok(ids.length <= 1, `the results mix browsers (${ids.join(', ')}): one record covers one browser`);
+    assert.ok(versions.length <= 1, `the results mix browser versions (${versions.join(', ')}): one record covers one browser`);
+    const id = ids[0] ?? seen[0]?.id ?? (seen.length ? 'chromium' : null);
+
+    if (!id) return null;
+    const known = BROWSERS[id];
+
+    assert.ok(known, `unknown browser ${id}`);
+
+    return { id, channel: known.channel, pinned: known.pinned, name: seen[0]?.name ?? null, version: seen[0]?.version ?? null };
+}
+
+/** The Browser row of a record: which browser, its version, and whether it was the Chromium pinned by Playwright. */
+export function describeBrowser(env)
+{
+    if (!env.browser) return `${env.chromium}, Playwright ${env.playwright}`;
+    const { name, version, channel, pinned } = env.browser;
+    const mode = (/headless/).test(env.chromium ?? '') ? 'headless' : 'headed';
+    const named = `${name ?? 'unknown browser'} ${version ?? '(version not reported)'}`;
+
+    return pinned
+        ? `${named} (${mode}), the Chromium pinned by Playwright ${env.playwright}`
+        : `**${named} (${mode}), installed on the machine (Playwright channel \`${channel}\`), not the Chromium pinned by Playwright ${env.playwright}**; Playwright ${env.playwright} drove it`;
+}
 
 /**
  * The machine a run's results came from, when the caller gives none (`--extra`): OS, CPU, Node, npm, pnpm, and what the
@@ -198,6 +244,7 @@ export function collectEnvironment(seed, rows, gpuProfile)
     const infos = rows.flatMap((row) => Object.values(row.backends ?? {}).map((backend) => backend.backend).filter(Boolean));
     const userAgent = infos.find((info) => info.userAgent)?.userAgent ?? '';
     const chrome = userAgent.match(/(HeadlessChrome|Chrome)\/([\d.]+)/);
+    const browser = browserOfRows(rows);
     const webgl = [...new Set(infos.map((info) => info.webglRenderer).filter(Boolean))];
     const webgpu = [...new Set(infos.map((info) => describeAdapter(info.gpuAdapter)).filter(Boolean))];
     const cpu = cpus();
@@ -212,10 +259,16 @@ export function collectEnvironment(seed, rows, gpuProfile)
         pnpm: commandVersion('pnpm'),
         playwright: seed.adapterMatrix.toolchain.playwright,
         chromium: chrome ? `Chromium ${chrome[2]}${chrome[1] === 'HeadlessChrome' ? ' headless' : ' headed'}` : 'unknown',
+        ...(browser ? { browser } : {}),
         gpu: gpuProfile === 'hardware' ? `real GPU: ${[...webgl, ...webgpu].join('; ') || 'not reported'}` : 'none used: every backend renders in software',
         backends: { ...(webgl.length ? { webgl: webgl.join('; ') } : {}), ...(webgpu.length ? { webgpu: webgpu.join('; ') } : {}) },
     };
 }
+
+/** The sentence a hardware record's rendering note adds when its runs used an installed browser, not the pinned Chromium. */
+const installedBrowserNote = (environment) => (environment?.browser && !environment.browser.pinned
+    ? ` The browser was ${[environment.browser.name ?? environment.browser.id, environment.browser.version].filter(Boolean).join(' ')} as installed on the machine (Playwright channel ${environment.browser.channel}), not the Chromium pinned by Playwright.`
+    : '');
 
 /** How a record rendered: the GPU profile and a plain statement, which the record and every summary of it repeat. */
 export function renderingOf(seed, gpuProfile, environment)
@@ -225,7 +278,7 @@ export function renderingOf(seed, gpuProfile, environment)
     return profile.expect === 'software'
         ? { profile: profile.id, kind: 'software', note: SOFTWARE_NOTE }
         // The collected environment already says "real GPU: ..."; say it once.
-        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${(environment?.gpu ?? 'see the environment').replace(/^real GPU:\s*/i, '')}. The render check confirmed no backend ran on a software renderer or a fallback adapter.` };
+        : { profile: profile.id, kind: 'hardware', note: `Real GPU: ${(environment?.gpu ?? 'see the environment').replace(/^real GPU:\s*/i, '')}. The render check confirmed no backend ran on a software renderer or a fallback adapter.${installedBrowserNote(environment)}` };
 }
 
 /** Whether a record's boundary probes and negative cases all behaved as expected: without it, the record verifies nothing. */
@@ -301,8 +354,17 @@ export function summarizeRecord(seed, record)
  * cases; `data-results/` of the data-only probes). `scope: 'partial'` records only the cells that have a result (a
  * targeted run); a full record lists every nightly cell and counts a missing one as missing.
  */
-export function buildRecord(seed, { work, date, commit, environment, run, dataSpec, machine, sequence = 1, scope = 'full' })
+export function buildRecord(seed, { work, tarballs = join(work, 'tarballs'), date, commit, environment, run, dataSpec, machine, sequence = 1, scope = 'full' })
 {
+    const artifactsFile = join(tarballs, 'artifacts.json');
+    const packed = existsSync(artifactsFile) ? readJson(artifactsFile) : {};
+
+    // Without the packed artifacts a record cannot show which code it ran (`compare` would check nothing).
+    if (!Object.keys(packed).length)
+    {
+        assert.ok(scope !== 'full', `${artifactsFile} is missing or empty: a full record needs the packed artifacts the cells installed (pass --tarballs with the directory the run packed to)`);
+        console.warn(`warning: ${artifactsFile} is missing or empty; this partial record names no artifacts`);
+    }
     const backends = backendNames(seed);
     const { rows, probes } = (() =>
     {
@@ -316,7 +378,9 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
 
     assert.ok(profiles.length <= 1, `the results mix GPU profiles (${profiles.join(', ')}): one record covers one profile`);
     const gpuProfile = profiles[0] ?? seed.adapterMatrix.defaultGpuProfile;
-    const env = environment && Object.keys(environment).length ? environment : collectEnvironment(seed, rows, gpuProfile);
+    // A person's environment (--extra) still gets the browser the runs reported, so a record always names it.
+    const ranIn = browserOfRows(rows);
+    const env = environment && Object.keys(environment).length ? { ...environment, ...(environment.browser || !ranIn ? {} : { browser: ranIn }) } : collectEnvironment(seed, rows, gpuProfile);
 
     assert.ok(['full', 'partial'].includes(scope), `scope ${scope}`);
     assert.ok(Number.isInteger(sequence) && sequence >= 1, `sequence ${sequence}`);
@@ -389,9 +453,7 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
         environment: env,
         run,
         // The packed workspace artifacts every cell installed: content hashes of the files `pnpm pack` produced.
-        artifacts: existsSync(join(work, 'tarballs', 'artifacts.json'))
-            ? Object.fromEntries(Object.entries(readJson(join(work, 'tarballs', 'artifacts.json'))).map(([id, artifact]) => [id, { package: artifact.package, version: artifact.version, contentSha256: artifact.hash, codeSha256: codeHash(artifact.files) }]))
-            : {},
+        artifacts: Object.fromEntries(Object.entries(packed).map(([id, artifact]) => [id, { package: artifact.package, version: artifact.version, contentSha256: artifact.hash, codeSha256: codeHash(artifact.files) }])),
         summary: null,
         cells,
         integrities: Object.fromEntries(Object.entries(integrities).sort(([a], [b]) => a.localeCompare(b))),
@@ -512,6 +574,20 @@ export function validateRecord(seed, record, name = recordId(record))
     else assert.ok(record.machine, `${name}: a hardware record names its machine`);
     assert.ok(['full', 'partial'].includes(record.scope), `${name}: scope`);
     assert.ok(record.environment?.node && record.environment?.chromium && record.environment?.os, `${name}: environment`);
+    if (record.date >= RECORD_REQUIREMENTS_SINCE)
+    {
+        const { range, nvmrc } = nodeRequirement();
+
+        assert.ok(satisfiesNodeRange(record.environment.node, range), `${name}: ran on Node ${record.environment.node}, outside package.json engines.node "${range}" (.nvmrc ${nvmrc}); re-run on the required Node`);
+        if (record.scope === 'full') assert.ok(Object.keys(record.artifacts ?? {}).length > 0, `${name}: a full record from ${RECORD_REQUIREMENTS_SINCE} on names the packed artifacts its cells installed (verification.mjs build --tarballs DIR)`);
+    }
+    if (record.environment.browser)
+    {
+        const known = BROWSERS[record.environment.browser.id];
+
+        assert.ok(known && known.channel === record.environment.browser.channel && known.pinned === record.environment.browser.pinned, `${name}: environment.browser`);
+        assert.ok(known.pinned || profile.expect === 'hardware', `${name}: an installed browser (${known.id}) is allowed only in a hardware record`);
+    }
     const ids = record.cells.map((cell) => cell.id);
 
     assert.equal(new Set(ids).size, ids.length, `${name}: duplicate cell`);
@@ -650,7 +726,7 @@ export function renderRecord(record, seed = loadSeed())
         `| OS | ${env.os}, kernel ${env.kernel}, ${env.arch} |`,
         `| CPU | ${env.cpu} |`,
         `| Node / npm / pnpm | ${env.node} / ${env.npm} / ${env.pnpm} |`,
-        `| Browser | ${env.chromium}, Playwright ${env.playwright} |`,
+        `| Browser | ${describeBrowser(env)} |`,
         `| GPU | ${env.gpu} |`,
         ...backends.map((backend) => `| ${label[backend] ?? backend} | ${env.backends?.[backend] ?? '-'} |`),
         '',
@@ -819,6 +895,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
             const date = option('date');
             const record = buildRecord(seed, {
                 work: resolve(option('work')),
+                tarballs: resolve(option('tarballs') ?? join(option('work'), 'tarballs')),
                 date,
                 commit: option('commit'),
                 machine: option('machine'),

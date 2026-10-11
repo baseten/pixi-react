@@ -18,19 +18,21 @@
 // Common options: --tarballs DIR (default .compat/tarballs, packed on demand), --work DIR (default .compat),
 // --patches latest|all, --renderers webgl,webgpu (override the tier's render backends), --gpu software|hardware (the
 // GPU profile, `adapterMatrix.gpuProfiles`: software rendering by default, as in CI; `hardware` uses the machine's real
-// GPU and fails a run that lands on a software renderer), --headed / --headless (override the profile's browser mode),
-// --no-cache, --keep (keep the isolated project).
+// GPU and fails a run that lands on a software renderer), --browser chromium|chrome|msedge (the Playwright-pinned
+// Chromium by default; `chrome` and `msedge` launch the installed browser through Playwright's channel, hardware profile
+// only), --headed / --headless (override the profile's browser mode), --no-cache, --keep (keep the isolated project).
+// `run`, `probes` and `all` refuse to start on a Node outside package.json `engines.node` (the version in .nvmrc).
 //
 // Runs on Linux, macOS and Windows (Node 22, npm and pnpm on PATH): commands are spawned without a POSIX shell, and on
-// Windows npm and pnpm through their .cmd shims.
+// Windows npm and pnpm through their .cmd shims. Each cell's temp directory is used by its real path (`makeCellDir`:
+// Windows' 8.3 short temp path broke Vitest browser mode).
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { boundaryProbes, cellArtifacts, cellKey, environmentShimsFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, applyTypeAssertions, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
+import { assertRequiredNode, boundaryProbes, browserOf, cellArtifacts, cellKey, environmentShimsFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, makeCellDir, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, applyTypeAssertions, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
 import { packArtifacts, readArtifacts } from './pack.mjs';
 import { runProbe } from './probes.mjs';
 
@@ -71,6 +73,8 @@ const work = resolve(options.work ?? join(root, '.compat'));
 const gpu = gpuProfileOf(seed, options.gpu);
 
 assert.ok(!(options.flags.has('headed') && options.flags.has('headless')), '--headed and --headless contradict each other');
+// The browser: the Playwright-pinned Chromium, or (hardware profile only) an installed Chrome or Edge.
+const browser = browserOf(options.browser, gpu);
 const headless = options.flags.has('headed') ? false : options.flags.has('headless') ? true : gpu.headless;
 const csv = (value) => (value ? value.split(',').map((part) => part.trim()).filter(Boolean) : undefined);
 const tail = (text, lines = 40) => text.split('\n').slice(-lines).join('\n');
@@ -169,6 +173,8 @@ function cellConfig(cell, artifacts)
         // The GPU profile: harness/vitest.config.mts launches the browser headed or headless, and the render check
         // (harness/test/backend.test.tsx) fails a run whose renderer is not what the profile expects (software or a GPU).
         gpuProfile: { id: gpu.id, expect: gpu.expect, headless, softwarePatterns: matrix.softwareRendererPatterns },
+        // The browser harness/vitest.config.mts launches: Playwright's pinned Chromium (no channel) or an installed one.
+        browser: { id: browser.id, channel: browser.channel },
         expectedConformanceFailures: reactAdapter.expectedConformanceFailures ?? {},
         optimizeDeps: [...new Set([...matrix.commonArtifacts.filter((id) => id !== 'conformance').map((id) => artifacts[id].package), spec(reactAdapter), spec(pixiAdapter), 'pixi.js'])],
         tree: { exact: tree.exact, absent: tree.absent, reconciler: tree.reconciler },
@@ -271,7 +277,8 @@ function commandLine(name, cell)
         case 'modules': return { args: ['checks/modules.mjs'] };
         case 'types': return { args: [...bin('node_modules/typescript/bin/tsc'), '-p', 'typecheck/tsconfig.bundler.json'], then: [{ args: [...bin('node_modules/typescript/bin/tsc'), '-p', 'typecheck/tsconfig.nodenext.json'] }] };
         // One run per render backend (cell.renderers); each writes its own report.
-        case 'conformance': return { perRenderer: (renderer) => ({ args: ['node_modules/vitest/vitest.mjs', 'run', '--reporter=default', '--reporter=json', `--outputFile.json=conformance-${renderer}.json`] }) };
+        // The root is the cell's real path (the same as its cwd), so Vite's module ids and Vitest's test files agree.
+        case 'conformance': return { perRenderer: (renderer, dir) => ({ args: ['node_modules/vitest/vitest.mjs', 'run', '--root', dir, '--reporter=default', '--reporter=json', `--outputFile.json=conformance-${renderer}.json`] }) };
         default: throw new Error(`unknown command ${name} in ${cell.id}`);
     }
 }
@@ -292,14 +299,14 @@ function dataExcerpt(output)
     return output.split('\n').filter((line) => wanted.test(line) && !line.startsWith('$ ')).map((line) => line.trim().slice(0, 300)).filter((line, index, all) => all.indexOf(line) === index).slice(0, 25);
 }
 
-/** What harness/test/backend.test.tsx printed about the browser's renderer (`COMPAT_BACKEND {...}`), or null. */
-function backendInfo(output)
+/** The first `<marker> {json}` line of a run's output, parsed, or null. */
+function markedJson(output, marker)
 {
-    const line = output.split('\n').find((text) => text.startsWith('COMPAT_BACKEND '));
+    const line = output.split('\n').find((text) => text.startsWith(`${marker} `));
 
     try
     {
-        return line ? JSON.parse(line.slice('COMPAT_BACKEND '.length)) : null;
+        return line ? JSON.parse(line.slice(marker.length + 1)) : null;
     }
     catch
     {
@@ -307,12 +314,29 @@ function backendInfo(output)
     }
 }
 
+/** What harness/test/backend.test.tsx printed about the browser's renderer (`COMPAT_BACKEND {...}`), or null. */
+const backendInfo = (output) => markedJson(output, 'COMPAT_BACKEND');
+
+/**
+ * The browser a backend run used, as the harness reported it (test/browser-info.ts: name, full version, channel, user
+ * agent), from the render check or, when the run stopped earlier, from the setup files' `COMPAT_BROWSER` line.
+ */
+const browserInfo = (output, info) => info?.browser ?? markedJson(output, 'COMPAT_BROWSER');
+
+/** Why a run stopped before the suite: no WebGPU adapter (test/webgpu-preflight.ts) or a crashed page (vitest.config.mts). */
+function earlyStop(output)
+{
+    const line = output.split('\n').find((text) => /COMPAT_NO_WEBGPU_ADAPTER|COMPAT_PAGE_CRASHED/.test(text));
+
+    return line ? line.slice(line.search(/COMPAT_NO_WEBGPU_ADAPTER|COMPAT_PAGE_CRASHED/)).trim().slice(0, 400) : null;
+}
+
 function runCell(cell, artifacts, { harness, verdicts, out, results })
 {
     const started = Date.now();
     const { key, depsKey } = cellKey(seed, cell, artifacts, harness, environment(), effectiveConfig(cell, artifacts));
     const outDir = join(out, cell.id);
-    const base = { id: cell.id, kind: cell.kind, label: cell.label, adapterLabel: cell.react.adapter.id, reactVersion: cell.react.version, pixiVersion: cell.pixi.version, gpuProfile: gpu.id, key, depsKey, expect: cell.expect, description: cell.description, commands: {} };
+    const base = { id: cell.id, kind: cell.kind, label: cell.label, adapterLabel: cell.react.adapter.id, reactVersion: cell.react.version, pixiVersion: cell.pixi.version, gpuProfile: gpu.id, browser: browser.id, key, depsKey, expect: cell.expect, description: cell.description, commands: {} };
     const verdictFile = join(verdicts, `${key}.json`);
 
     rmSync(outDir, { recursive: true, force: true });
@@ -328,7 +352,8 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
         return row;
     }
 
-    const dir = mkdtempSync(join(tmpdir(), `compat-${cell.id.replace(/[^\w.-]/g, '_')}-`));
+    // The real (long) path: never Windows' 8.3 short temp path, which Vitest browser mode cannot serve.
+    const dir = makeCellDir(`compat-${cell.id.replace(/[^\w.-]/g, '_')}-`);
     const env = { ...process.env, CI: 'true', NO_COLOR: '1', FORCE_COLOR: '0', NODE_ENV: 'development' };
 
     delete env.NODE_PATH;
@@ -354,9 +379,11 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
 
                 for (const renderer of cell.renderers)
                 {
-                    const run = spec.perRenderer(renderer);
+                    const run = spec.perRenderer(renderer, dir);
                     const step = execute(name, run.args, { cwd: dir, log: join(outDir, `${name}-${renderer}.log`), timeoutSeconds: matrix.commands.timeoutSeconds[name], env: { ...env, COMPAT_RENDERER: renderer } }, run.runner);
                     const info = backendInfo(step.output);
+                    const ranIn = browserInfo(step.output, info);
+                    const stopped = earlyStop(step.output);
                     const shims = config.renderers[renderer].environmentShims ?? [];
                     let status = step.status;
                     let note;
@@ -366,6 +393,7 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
                     const split = existsSync(reportFile) ? splitConformanceReport(JSON.parse(readFileSync(reportFile, 'utf8'))) : {};
 
                     // A pass needs the suite itself (at least one scenario, none failed) and the render check, separately.
+                    if (status !== 'pass' && stopped) note = stopped;
                     if (status === 'pass' && !(split.scenarios?.passed >= 1 && split.scenarios.failed === 0 && split.backendCheck === 'pass'))
                     {
                         status = 'fail';
@@ -380,7 +408,7 @@ function runCell(cell, artifacts, { harness, verdicts, out, results })
                         status = 'fail';
                         note = `environment shims: configured [${shims.map((shim) => shim.id).join(', ')}], but the render check reports [${applied.map((shim) => shim.id).join(', ')}]`;
                     }
-                    base.backends[renderer] = { status, ms: step.ms, backend: info, ...(shims.length || applied.length ? { environmentShims: applied.length ? applied : shims.map((shim) => ({ id: shim.id, reported: false })) } : {}), ...(note ? { note } : {}), ...(cell.kind === 'data' && step.status !== 'pass' ? { excerpt: dataExcerpt(step.output) } : {}) };
+                    base.backends[renderer] = { status, ms: step.ms, backend: info, ...(ranIn ? { browser: ranIn } : {}), ...(shims.length || applied.length ? { environmentShims: applied.length ? applied : shims.map((shim) => ({ id: shim.id, reported: false })) } : {}), ...(note ? { note } : {}), ...(cell.kind === 'data' && step.status !== 'pass' ? { excerpt: dataExcerpt(step.output) } : {}) };
                     if (status === 'fail' && !failure) failure = { command: name, renderer, output: note ? `${note}\n${step.output}` : step.output };
                 }
                 base.commands[name] = { status: Object.values(base.backends).every((backend) => backend.status === 'pass') ? 'pass' : 'fail', ms: total };
@@ -502,7 +530,7 @@ function commandRun(cells = selectedCells())
 
     const shimmed = rows.filter((row) => Object.values(row.backends ?? {}).some((backend) => backend.environmentShims?.length)).length;
 
-    process.stdout.write(`${rows.length} cells (GPU profile ${gpu.id}): ${rows.filter((row) => row.status === 'pass').length} passed${shimmed ? ` (${shimmed} with an environment shim on a backend)` : ''}, ${rows.filter((row) => row.status === 'cached-pass').length} cached, ${rows.filter((row) => row.status === 'expected-fail').length} rejected as expected, ${bad.length} failed. Diagnostics: ${context.out}\n`);
+    process.stdout.write(`${rows.length} cells (GPU profile ${gpu.id}, browser ${browser.id}${browser.pinned ? '' : ` (installed, channel ${browser.channel})`}): ${rows.filter((row) => row.status === 'pass').length} passed${shimmed ? ` (${shimmed} with an environment shim on a backend)` : ''}, ${rows.filter((row) => row.status === 'cached-pass').length} cached, ${rows.filter((row) => row.status === 'expected-fail').length} rejected as expected, ${bad.length} failed. Diagnostics: ${context.out}\n`);
     process.exitCode = process.exitCode || (bad.length ? 1 : 0);
 }
 
@@ -689,9 +717,12 @@ switch (options.command)
         process.stdout.write(`${matrix.toolchain[options.name]}\n`);
         break;
     case 'run':
+        // Results feed verification records, which must come from the required Node (package.json engines, .nvmrc).
+        assertRequiredNode();
         commandRun();
         break;
     case 'all':
+        assertRequiredNode();
         // The local equivalent of the required PR check: boundary probes, the tier's cells, then the negative cases.
         // Repack unless tarballs were supplied, so a rebuilt adapter is never tested from stale tarballs.
         rmSync(join(work, 'results'), { recursive: true, force: true });
@@ -703,6 +734,7 @@ switch (options.command)
         commandTable();
         break;
     case 'probes':
+        assertRequiredNode();
         commandProbes();
         break;
     case 'data':

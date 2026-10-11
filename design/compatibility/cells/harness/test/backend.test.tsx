@@ -5,6 +5,8 @@ import * as pixi from 'pixi.js';
 import { commands, page } from '@vitest/browser/context';
 import { expect, test } from 'vitest';
 import cell from '../cell.json';
+import { describeBrowser } from './browser-info';
+import { checkProfile as checkGpuProfile, fallbackOf, type ProfileRule } from './gpu-identity.mts';
 import { rendererAppOptions, rendererName, requestedRenderer } from './renderer';
 
 type AnyRecord = Record<string, any>;
@@ -29,30 +31,25 @@ async function describeBackend(renderer: AnyRecord): Promise<AnyRecord>
     if (adapter)
     {
         const details = adapter.info ?? (typeof adapter.requestAdapterInfo === 'function' ? await adapter.requestAdapterInfo() : {});
+        // adapter.info.isFallbackAdapter in newer Chrome, adapter.isFallbackAdapter in older Chromium; null when neither.
+        const fallback = fallbackOf(adapter, details);
 
-        info.gpuAdapter = { vendor: details.vendor, architecture: details.architecture, device: details.device, description: details.description, isFallbackAdapter: adapter.isFallbackAdapter ?? details.isFallbackAdapter ?? null };
+        info.gpuAdapter = { vendor: details.vendor, architecture: details.architecture, device: details.device, description: details.description, isFallbackAdapter: fallback.isFallbackAdapter, fallbackSource: fallback.source };
     }
 
     return info;
 }
 
 /**
- * What the GPU profile of this run (cell.json `gpuProfile`) expects, against what the browser reports: software
- * rendering (SwiftShader and the like, or a WebGPU fallback adapter) or a real GPU. A hardware run must identify its GPU
- * and must not land on a software renderer.
+ * What the GPU profile of this run (cell.json `gpuProfile`) expects, against what the browser reports (gpu-identity.mts):
+ * software rendering (SwiftShader and the like, or a WebGPU fallback adapter) or a real GPU. A hardware run must identify
+ * its GPU and must not land on a software renderer; an unknown fallback flag is decided by the names, never assumed false.
  */
 function checkProfile(info: AnyRecord): AnyRecord | null
 {
-    const profile = (cell as AnyRecord).gpuProfile as { id: string; expect: 'software' | 'hardware'; softwarePatterns: string[] } | undefined;
+    const profile = (cell as AnyRecord).gpuProfile as ProfileRule | undefined;
 
-    if (!profile) return null;
-    const adapter = info.gpuAdapter as AnyRecord | undefined;
-    const identity = [info.webglRenderer, adapter && [adapter.vendor, adapter.architecture, adapter.device, adapter.description].filter(Boolean).join(' ')].filter(Boolean).join(' | ');
-    const software = adapter?.isFallbackAdapter === true || profile.softwarePatterns.some((pattern) => identity.toLowerCase().includes(pattern.toLowerCase()));
-    const identified = identity.length > 0 || adapter?.isFallbackAdapter === false;
-    const matchesProfile = profile.expect === 'software' ? software : !software && identified;
-
-    return { profile: profile.id, expect: profile.expect, identity, software, matchesProfile };
+    return profile ? checkGpuProfile(info, profile) : null;
 }
 
 test(`render backend: ${requestedRenderer}`, async () =>
@@ -111,7 +108,8 @@ test(`render backend: ${requestedRenderer}`, async () =>
         const gpu = checkProfile(described);
         // The environment shims test/environment-shims.ts applied to this run (none unless the cell lists any).
         const environmentShims = (globalThis as AnyRecord).__COMPAT_ENVIRONMENT_SHIMS__ ?? [];
-        const record = { requested: requestedRenderer, actual, pixi: pixi.VERSION, userAgent: navigator.userAgent, readback, ...described, ...(gpu ? { gpu } : {}), environmentShims };
+        const browser = await describeBrowser();
+        const record = { requested: requestedRenderer, actual, pixi: pixi.VERSION, userAgent: navigator.userAgent, browser, readback, ...described, ...(gpu ? { gpu } : {}), environmentShims };
 
         // eslint-disable-next-line no-console -- the runner reads this line from the conformance log.
         console.log(`COMPAT_BACKEND ${JSON.stringify(record)}`);
@@ -121,7 +119,7 @@ test(`render backend: ${requestedRenderer}`, async () =>
         expect(actual).toBe(requestedRenderer);
         // Fails loudly when a hardware run lands on SwiftShader or a fallback adapter (or a software run on a GPU), so a
         // record never calls one the other.
-        if (gpu) expect(gpu.matchesProfile, `GPU profile ${gpu.profile} expects ${gpu.expect} rendering, but the browser reports: ${gpu.identity || 'no renderer or adapter identity'}${gpu.software ? ' (software)' : ''}`).toBe(true);
+        if (gpu) expect(gpu.matchesProfile, `GPU profile ${gpu.profile} expects ${gpu.expect} rendering, but the browser reports: ${gpu.identity || 'no renderer or adapter identity'}${gpu.software ? ` (software, decided by ${gpu.decidedBy})` : ''}`).toBe(true);
         expect(screenPixel, 'the screenshot of the canvas shows the red rectangle').toEqual(RED);
     }
     finally
