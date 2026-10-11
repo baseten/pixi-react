@@ -8,7 +8,7 @@
     },
     "test:unit": {
       "dependsOn": ["build", "^build"],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/**"]
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/**", "$TURBO_ROOT$/apps/docs/docs/errors/**", "$TURBO_ROOT$/packages/*/src/**"]
     }
   }
 }

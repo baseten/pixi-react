@@ -31,6 +31,7 @@ import {
     type Catalog,
     CompatibilityError,
     type Constructor,
+    errorDocsUrl,
     type PixiTypes,
     type RootRecord,
     type RootTarget,
@@ -252,7 +253,7 @@ export function createBindings<S extends PixiTypes>(runtime: Runtime<S>, config:
                     ? (`${hook} was called inside an application of another renderer runtime. Use the hooks returned by the `
                     + 'same createRenderer call as the <Application> that renders this component.')
                     : '',
-                { code: 'react-18.FOREIGN_RUNTIME', adapterIds: [adapterId] },
+                { code: 'react-18.FOREIGN_RUNTIME', adapterIds: [adapterId], docsUrl: errorDocsUrl('react-18.FOREIGN_RUNTIME') },
             );
         }
 

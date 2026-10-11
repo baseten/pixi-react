@@ -26,6 +26,26 @@ export interface CompatibilityErrorDetails
     readonly expected?: CompatibilityErrorValues;
     readonly actual?: CompatibilityErrorValues;
     readonly cause?: unknown;
+    /**
+     * The docs page of an adapter-namespaced code (`community.shader.UNSUPPORTED_FORMAT`), appended to the message.
+     * Ignored for built-in and `core.` codes: core links those to its own error reference (`errorDocsUrl`).
+     */
+    readonly docsUrl?: string;
+}
+
+/**
+ * The error reference: one docs page per built-in and `core.` code (issue 71). This is the only place the docs
+ * address is written; it changes here if the docs move (the namespace and domain may change with issue 41).
+ */
+export const ERROR_DOCS_URL = 'https://baseten.github.io/pixi-react/errors/';
+
+/**
+ * The docs page of `code`: `<ERROR_DOCS_URL><slug>/`, where the slug is the code with each `.` replaced by `-`
+ * (`ABI_MISMATCH/`, `core-TARGET_LEASED/`), so every slug is one URL-safe path segment.
+ */
+export function errorDocsUrl(code: string): string
+{
+    return `${ERROR_DOCS_URL}${code.replace(/\./g, '-')}/`;
 }
 
 /**
@@ -41,7 +61,8 @@ export const CoreErrorCodes = Object.freeze({
     INVALID_OPTION: 'core.INVALID_OPTION',
 } as const);
 
-const BUILTIN_CODES: ReadonlySet<string> = new Set<BuiltinCompatibilityErrorCode>([
+/** The built-in codes. Internal: not exported from the package entry (the docs coverage test reads it). */
+export const BUILTIN_CODES: ReadonlySet<string> = new Set<BuiltinCompatibilityErrorCode>([
     'ABI_MISMATCH',
     'CAPABILITY_MISSING',
     'UNSUPPORTED_TUPLE',
@@ -51,6 +72,9 @@ const BUILTIN_CODES: ReadonlySet<string> = new Set<BuiltinCompatibilityErrorCode
     'ROOT_DISPOSED',
     'INIT_FAILED',
 ]);
+
+/** Codes core links to its own error reference: the built-in codes and core's own. */
+export const DOCUMENTED_CODES: ReadonlySet<string> = new Set([...BUILTIN_CODES, ...Object.values(CoreErrorCodes)]);
 
 /** A namespaced code has at least two non-empty dot-separated segments. */
 const NAMESPACED_CODE = /^[^.\s]+(\.[^.\s]+)+$/;
@@ -93,15 +117,21 @@ export class CompatibilityError extends Error implements CompatibilityErrorDetai
     readonly capability?: string;
     readonly expected?: CompatibilityErrorValues;
     readonly actual?: CompatibilityErrorValues;
+    /** The docs page the message ends with: core's for built-in and `core.` codes, else the adapter's `docsUrl`, if any. */
+    readonly docsUrl?: string;
     declare readonly cause?: unknown;
 
     /**
      * @param message - The human-readable message. When it is empty, the message is built from `details` (the
-     * production builds of the adapter packages pass an empty message; see `detailsMessage`).
+     * production builds of the adapter packages pass an empty message; see `detailsMessage`). In every build, the
+     * message ends with ` See <docsUrl>` when the code has a docs page (issue 71).
      */
     constructor(message: string, details: CompatibilityErrorDetails)
     {
-        super(message || detailsMessage(details), 'cause' in details ? { cause: details.cause } : undefined);
+        const docsUrl = DOCUMENTED_CODES.has(details.code) ? errorDocsUrl(details.code) : details.docsUrl || undefined;
+        const text = message || detailsMessage(details);
+
+        super(docsUrl ? `${text} See ${docsUrl}` : text, 'cause' in details ? { cause: details.cause } : undefined);
 
         if (!isCompatibilityErrorCode(details.code))
         {
@@ -119,6 +149,11 @@ export class CompatibilityError extends Error implements CompatibilityErrorDetai
         if (details.capability !== undefined)
         {
             this.capability = details.capability;
+        }
+
+        if (docsUrl)
+        {
+            this.docsUrl = docsUrl;
         }
 
         const expected = freezeValues(details.expected);

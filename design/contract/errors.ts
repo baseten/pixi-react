@@ -16,7 +16,9 @@ export const unsupportedTuple = new CompatibilityError('Unsupported installed tu
 export const customError = new CompatibilityError('Unsupported format', {
     code: 'community.shader.UNSUPPORTED_FORMAT', adapterIds: ['community.shader'],
     expected: { format: 'rgba', supported: true }, actual: { format: 'depth', supported: false },
+    docsUrl: 'https://example.com/community-shader/errors/UNSUPPORTED_FORMAT',
 });
+export const customDocs: string | undefined = customError.docsUrl;
 export function describeFailure(error: unknown): string {
     if (!(error instanceof CompatibilityError)) return 'Unrecognized failure';
     const code: CompatibilityErrorCode = error.code;
@@ -39,6 +41,8 @@ export const wrongIds: CompatibilityErrorDetails = { code: 'ABI_MISMATCH', adapt
 export const wrongExpected: CompatibilityErrorDetails = { ...details, expected: 1 };
 // @ts-expect-error Actual diagnostics cannot use adapter-specific nested objects.
 export const wrongActual: CompatibilityErrorDetails = { ...details, actual: { pixi: { version: 1 } } };
+// @ts-expect-error A docs page is a URL string.
+export const wrongDocsUrl: CompatibilityErrorDetails = { ...details, docsUrl: new URL('https://example.com') };
 // @ts-expect-error Capability IDs remain strings.
 export const wrongCapability: CompatibilityErrorDetails = { ...details, capability: 1 };
 // @ts-expect-error A compatibility error must identify its stable code and involved adapters.

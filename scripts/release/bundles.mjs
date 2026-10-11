@@ -25,7 +25,8 @@
  *   `@pixi/react` 8.0.5 from the registry, in its own clean project with the same React, pixi.js and esbuild, and the
  *   facade and explicit fixtures may keep no more pixi.js modules and no more pixi.js bytes than that baseline;
  * - our own code stays within its budget (issue 58): the bytes our packages contribute (`OWN_CODE_BUDGETS`), and no
- *   development-only diagnostic text (`DEVELOPMENT_ONLY_TEXT`) reaches a production bundle.
+ *   development-only diagnostic text (`DEVELOPMENT_ONLY_TEXT`) reaches a production bundle, while the error reference
+ *   URL (`ERROR_DOCS_URL`, issue 71), which error messages end with in every build, does.
  *
  * Bundles are measured for a fixed fixture with pinned versions. They say nothing about resolving peer-version
  * conflicts: tree shaking never makes two React or Pixi versions coexist.
@@ -89,6 +90,20 @@ export const OWN_CODE_BUDGETS = Object.freeze({
  * still contains it means a build resolved or dropped that check.
  */
 export const DEVELOPMENT_ONLY_TEXT = Object.freeze(['has a malformed manifest', 'Event props use PascalCase', 'is a Pixi 8 property']);
+
+/**
+ * The error reference address (issue 71), read from its one definition, `ERROR_DOCS_URL` in core. Every
+ * `CompatibilityError` message ends with a link under it in production too, so it is production text: a production
+ * bundle of our packages must contain it (a build that moved it behind the `NODE_ENV` check would drop it).
+ */
+export function readErrorDocsUrl(root = repoRoot)
+{
+    const match = readFileSync(join(root, 'packages/core/src/errors.ts'), 'utf8').match(/export const ERROR_DOCS_URL = '([^']+)';/);
+
+    if (!match) throw new Error('ERROR_DOCS_URL not found in packages/core/src/errors.ts');
+
+    return match[1];
+}
 
 /** Problems of `ownBytes` against `budget`. */
 export function compareWithBudget(ownBytes, budget)
@@ -166,6 +181,7 @@ export async function checkFixture({ dir, fixture, values, expect })
 
     for (const marker of expect.absentMarkers ?? []) if (text.includes(marker.text)) problems.push(`output contains ${marker.label}`);
     for (const marker of expect.ownPackages && expect.kind !== 'upstream' ? DEVELOPMENT_ONLY_TEXT : []) if (text.includes(marker)) problems.push(`the production bundle contains development-only text "${marker}"`);
+    if (expect.ownPackages && expect.kind !== 'upstream' && !text.includes(readErrorDocsUrl())) problems.push(`the production bundle lacks the error reference URL ${readErrorDocsUrl()} (issue 71: error messages link to it in every build)`);
     const ownBytes = (expect.ownPackages ?? []).reduce((sum, name) => sum + (byPackage[name] ?? 0), 0);
 
     if (expect.ownCodeBudget !== undefined) problems.push(...compareWithBudget(ownBytes, expect.ownCodeBudget));
