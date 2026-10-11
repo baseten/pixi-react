@@ -72,7 +72,8 @@ export const DEVELOPMENT_BUILD = /node_modules\/(?:react|react-dom|react-reconci
  * reduced it to, so growth fails the dry run; raise a budget only deliberately, in the change that needs it.
  */
 export const OWN_CODE_BUDGETS = Object.freeze({
-    // 85911 bytes before issue 58; 65977 after; 66393 with the JSX-order insert fix.
+    // 85911 bytes before issue 58; 65977 after; 66393 with the JSX-order insert fix; 66905 with the error reference links
+    // (issue 71, +298 over main's 66607). The other fixtures grew by 285 to 346 bytes with them (design/release.md).
     facade: 68000,
     // core + renderer + react-19.3 + pixi-8: 72196 before, 56463 after; 56854 with the JSX-order insert fix.
     'explicit:react-19.3': 58300,

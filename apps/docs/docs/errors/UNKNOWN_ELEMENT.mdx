@@ -27,4 +27,4 @@ extend({ Container, Sprite });
 // <pixiContainer><pixiSprite texture={texture} /></pixiContainer>
 ```
 
-Inside a component, `useExtend({ Sprite })` registers the class before the component's children render. See [extend](../extend.mdx).
+Inside a component, `useExtend({ Sprite })` registers the class when the component renders; use the element in that component or below it. See [extend](../extend.mdx).

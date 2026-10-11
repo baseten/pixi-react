@@ -5,13 +5,12 @@ slug: /errors/react-18-FOREIGN_RUNTIME
 
 # `react-18.FOREIGN_RUNTIME`
 
-**A hook was called inside an application of another renderer.** Raised by the React 18 adapters (`@pixi/react-18.0` … `@pixi/react-18.3` which builds in the React 19.3 adapter). Each `createRenderer` call creates its own runtime with its own registry and roots, and its hooks (`useApplication`, `useTick`, `useExtend`) work only inside an `<Application>` (or `createRoot` tree) of the same runtime.
+**A hook was called inside an application of another renderer.** Raised by the React 18 adapters (`@pixi/react-18.0` … `@pixi/react-18.3`). Each `createRenderer` call creates its own runtime with its own registry and roots, and its hooks (`useApplication`, `useTick`, `useExtend`) work only inside an `<Application>` (or `createRoot` tree) of the same runtime.
 
 ## Common causes
 
-- A component imports `useApplication` or `useTick` from `@pixi/react` but is rendered by an `<Application>` from a renderer you composed with `createRenderer` (or the reverse).
+- A component imports `useApplication` or `useTick` from one renderer module but is rendered by an `<Application>` of another, for example two libraries that each compose their own renderer.
 - `createRenderer` is called more than once, for example inside a component or in two modules, so the `<Application>` and the hooks come from different calls.
-- After switching from `@pixi/react` to `createRenderer` (for example when [upgrading React](../upgrading-react-18-to-19.mdx) or [PixiJS](../upgrading-pixi-7-to-8.mdx)), some imports still point to `@pixi/react`.
 
 ## How to fix
 
@@ -23,4 +22,4 @@ export const { Application, extend, useApplication, useTick, useExtend, createRo
     createRenderer({ react: new React18Adapter(), pixi: new Pixi8Adapter() });
 ```
 
-Then search the app for remaining imports from `@pixi/react` and replace them with imports from that module.
+Then replace any hook import that points to another renderer module with an import from that module.
