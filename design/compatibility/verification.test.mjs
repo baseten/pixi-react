@@ -1,11 +1,11 @@
-// Offline tests of the verification records (issue 17): the per-tuple rule that derives verifiedRanges, the
-// expected-blank-render list, and that the checked-in records, their Markdown and seed.json's verifiedRanges agree.
+// Offline tests of the verification records (issue 17): the per-tuple rule that derives verifiedRanges, environment
+// shims (and the retired expected-blank-render list in old records), and that the checked-in records, their Markdown and seed.json's verifiedRanges agree.
 // Run with `node --test design/compatibility/*.test.mjs`.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { classifyExpectedBlank, validateAdapterMatrix, validateExpectedBlankRender } from './cells/matrix.mjs';
-import { checkExpectedBlankAgainstRecords, checkRenderedRecords, currentRecords, deriveVerifiedRanges, loadRecords, recordGate, refreshRecord, renderingOf, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
+import { validateAdapterMatrix } from './cells/matrix.mjs';
+import { checkRenderedRecords, currentRecords, deriveVerifiedRanges, ENVIRONMENT_SHIMS_SINCE, loadRecords, recordGate, refreshRecord, renderingOf, renderRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
 
 const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -32,7 +32,9 @@ const blankRun = (extra = {}) => ({
     readback: { screenshot: [255, 255, 255, 255], canvas: [0, 0, 0, 0], extract: [0, 0, 0, 0], screenshotMatches: false, canvasMatches: false, extractMatches: false },
     ...extra,
 });
-const [blankEntry] = seed.adapterMatrix.expectedBlankRender;
+const [shim] = seed.adapterMatrix.environmentShims;
+const shimmedPass = () => ({ ...pass('webgpu'), environmentShims: [{ id: shim.id, kind: shim.action.kind, parameter: shim.action.parameter, max: shim.action.max, original: 32, clamped: 16 }] });
+const BEFORE_FIX = ['8.2.6', '8.3.4', '8.4.1', '8.5.2', '8.6.6', '8.7.3', '8.8.1', '8.9.2'];
 
 test('each tuple is verified per backend: a failed WebGPU cell does not stop other versions verifying', () =>
 {
@@ -166,81 +168,68 @@ test('a pass verifies only with the suite and the render check counted separatel
     assert.throws(() => validateRecord(seed, hollow), /a passing render check/);
 });
 
-test('an expected blank render passes only when it fails exactly as listed', () =>
+test('a tuple verified with an environment shim stays verified and carries the shim id; a shimmed failure is a failure', () =>
 {
-    assert.equal(classifyExpectedBlank(blankEntry, blankRun()).status, 'expected-fail');
-    // The render check failed but no conformance scenario ran: not an expected blank render.
-    assert.match(classifyExpectedBlank(blankEntry, blankRun({ scenarios: { passed: 0, failed: 0, skipped: 0 } })).message, /no conformance scenario ran/);
-    // It rendered: the list must be pruned, so the run fails.
-    const rendered = classifyExpectedBlank(blankEntry, blankRun({ backendCheck: 'pass', readback: { canvas: [255, 0, 0, 255], extract: [255, 0, 0, 255], screenshotMatches: true } }));
+    const shimmed = record([
+        cell('19.3.0', '8.9.2', { webgl: pass('webgl'), webgpu: shimmedPass() }),
+        cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: pass('webgpu') }),
+    ], { id: '2026-10-11', date: '2026-10-11' });
 
-    assert.equal(rendered.status, 'fail');
-    assert.match(rendered.message, /unexpected render.*Remove/);
-    // A conformance failure is never excused.
-    assert.equal(classifyExpectedBlank(blankEntry, blankRun({ scenarios: { passed: 85, failed: 1, skipped: 5 } })).status, 'fail');
-    // A different failure (another renderer, another read-back, a software check that failed, no result) is not this one.
-    assert.equal(classifyExpectedBlank(blankEntry, blankRun({ renderer: 'webgl' })).status, 'fail');
-    assert.equal(classifyExpectedBlank(blankEntry, blankRun({ readback: { canvas: [0, 0, 0, 255], extract: [0, 0, 0, 0], screenshotMatches: false } })).status, 'fail');
-    assert.equal(classifyExpectedBlank(blankEntry, blankRun({ gpu: { matchesProfile: false } })).status, 'fail');
-    assert.equal(classifyExpectedBlank(blankEntry, { scenarios: undefined, backendCheck: undefined }).status, 'fail');
+    assert.deepEqual(deriveVerifiedRanges([shimmed]), [
+        { reactAdapter: 'react-x', react: '19.3.0', pixiAdapter: 'pixi-8', records: ['2026-10-11'], backends: { webgl: ['8.9.2', '8.22.0'], webgpu: ['8.9.2', '8.22.0'] }, environmentShims: { webgpu: { [shim.id]: ['8.9.2'] } } },
+    ]);
+    // Still blank with the shim: an ordinary failure, nothing verified on WebGPU.
+    const blank = record([cell('19.3.0', '8.9.2', { webgl: pass('webgl'), webgpu: { ...blankRun(), environmentShims: shimmedPass().environmentShims } }, { status: 'fail', commands: { ...commands, conformance: 'fail' } })], { id: '2026-10-11', date: '2026-10-11' });
+
+    assert.deepEqual(deriveVerifiedRanges([blank]).map((entry) => [entry.backends, entry.environmentShims]), [[{ webgl: ['8.9.2'] }, undefined]]);
+    assert.equal(summarizeRecord(seed, blank).backends.webgpu.failed, 1);
+    assert.equal(summarizeRecord(seed, shimmed).backends.webgpu.withEnvironmentShim, 1);
 });
 
-test('refresh turns a listed blank-canvas failure into an expected blank render, and nothing else', () =>
+test('records list exactly the shims the manifest applies (none before 2026-10-11), and no expected blank render from then on', () =>
 {
-    const failed = cell('18.3.1', '8.9.2', { webgl: pass('webgl'), webgpu: blankRun() }, { status: 'fail', commands: { ...commands, conformance: 'fail' }, failure: { command: 'conformance', renderer: 'webgpu', lines: ['x'] } });
-    const unlisted = cell('18.3.1', '8.10.2', { webgl: pass('webgl'), webgpu: blankRun() }, { status: 'fail', commands: { ...commands, conformance: 'fail' }, failure: { command: 'conformance', renderer: 'webgpu', lines: ['x'] } });
-    const refreshed = refreshRecord(seed, { ...record([failed, unlisted]), environment: {} });
-    const [blank, still] = refreshed.cells;
-
-    assert.equal(blank.status, 'pass');
-    assert.equal(blank.backends.webgpu.status, 'expected-fail');
-    assert.equal(blank.backends.webgpu.expectedBlankRender, blankEntry.id);
-    assert.equal(blank.commands.conformance, 'pass');
-    assert.equal(blank.failure, undefined);
-    assert.equal(still.status, 'fail', 'pixi.js 8.10.2 is not on the list');
-    assert.equal(still.backends.webgpu.status, 'fail');
-    assert.equal(refreshed.rendering.note, SOFTWARE_NOTE);
-    assert.equal(refreshed.summary.backends.webgpu.expectedBlank, 1);
-    assert.equal(refreshed.summary.backends.webgpu.failed, 1);
-    // Under the hardware profile the software list does not apply.
-    assert.equal(refreshRecord(seed, { ...record([failed]), gpuProfile: 'hardware', machine: 'x', environment: {} }).cells[0].backends.webgpu.status, 'fail');
-});
-
-test('the expected-blank-render list needs a reason and evidence, and lists only nightly cells', () =>
-{
-    const broken = (mutate) =>
+    const checked = loadRecords().find((item) => item.id === '2026-10-10.2');
+    const withCells = (cells, date) =>
     {
-        const copy = clone(seed);
+        const candidate = { ...clone(checked), id: date, date, cells };
 
-        mutate(copy.adapterMatrix.expectedBlankRender[0]);
+        delete candidate.sequence;
+        delete candidate.machine;
+        candidate.summary = summarizeRecord(seed, candidate);
 
-        return () => validateExpectedBlankRender(copy);
+        return candidate;
     };
+    const shimmed = cell('19.3.0', '8.9.2', { webgl: pass('webgl'), webgpu: shimmedPass() }, { status: 'pass' });
 
-    assert.doesNotThrow(() => validateExpectedBlankRender(seed));
-    assert.throws(broken((entry) => { delete entry.reason; }), /a reason is required/);
-    assert.throws(broken((entry) => { entry.reason = ' '; }), /a reason is required/);
-    assert.throws(broken((entry) => { delete entry.evidence.realGpu; }), /evidence.realGpu/);
-    assert.throws(broken((entry) => { entry.pixi.push('8.9.0'); }), /no nightly webgpu cell runs pixi.js 8.9.0/);
-    assert.throws(broken((entry) => { entry.pixi.push('8.2.6'); }), /listed twice/);
-    assert.throws(broken((entry) => { entry.pixiAdapter = 'pixi7'; }), /has no webgpu renderer/);
-    assert.throws(broken((entry) => { entry.verification = 'verified'; }), /unverified/);
+    assert.equal(ENVIRONMENT_SHIMS_SINCE, '2026-10-11');
+    assert.doesNotThrow(() => validateRecord(seed, withCells([shimmed], '2026-10-11')));
+    // A run in the shim's range that did not apply it, a shim on WebGL or on a fixed pixi.js, an older record with a shim.
+    assert.throws(() => validateRecord(seed, withCells([cell('19.3.0', '8.9.2', { webgl: pass('webgl'), webgpu: pass('webgpu') }, { status: 'pass' })], '2026-10-11')), /environment shims applied differ/);
+    assert.throws(() => validateRecord(seed, withCells([cell('19.3.0', '8.9.2', { webgl: { ...pass('webgl'), environmentShims: shimmedPass().environmentShims }, webgpu: shimmedPass() }, { status: 'pass' })], '2026-10-11')), /environment shims applied differ/);
+    assert.throws(() => validateRecord(seed, withCells([cell('19.3.0', '8.22.0', { webgl: pass('webgl'), webgpu: shimmedPass() }, { status: 'pass' })], '2026-10-11')), /environment shims applied differ/);
+    assert.throws(() => validateRecord(seed, withCells([shimmed], '2026-10-10')), /applied no environment shim/);
+    // The retired expected-blank status is valid only in a record from before the shims, as it recorded it.
+    const blank = cell('19.3.0', '8.9.2', { webgl: pass('webgl'), webgpu: { ...blankRun(), status: 'expected-fail', expectedBlankRender: 'pixi8-webgpu-blank-before-8.10-software' } }, { status: 'pass' });
+
+    assert.doesNotThrow(() => validateRecord(seed, withCells([blank], '2026-10-10')));
+    assert.throws(() => validateRecord(seed, withCells([blank], '2026-10-11')), /expected blank render in a record from 2026-10-11 on/);
 });
 
-test('the list agrees with the records: a listed cell that renders must be pruned', () =>
+test('refresh keeps what a record observed: an old expected blank render stays unverified, never a pass', () =>
 {
     const records = loadRecords();
+    const old = records.find((item) => item.id === '2026-10-10.2');
+    const refreshed = refreshRecord(seed, old);
 
-    assert.deepEqual(checkExpectedBlankAgainstRecords(seed, records), []);
-    const rendered = clone(records);
-    const target = rendered.find((record) => record.gpuProfile === 'software').cells.find((candidate) => candidate.pixi === '8.9.2' && candidate.react === '19.3.0');
+    assert.deepEqual(refreshed.cells, old.cells);
+    assert.equal(refreshed.summary.backends.webgpu.expectedBlank, 88);
+    assert.equal(refreshed.summary.backends.webgpu.verifiedTuples, 143);
+    // A failure is not turned into anything else either.
+    const failed = cell('18.3.1', '8.9.2', { webgl: pass('webgl'), webgpu: blankRun() }, { status: 'fail', commands: { ...commands, conformance: 'fail' }, failure: { command: 'conformance', renderer: 'webgpu', lines: ['x'] } });
+    const again = refreshRecord(seed, { ...record([failed]), environment: {} });
 
-    target.backends.webgpu = pass('webgpu');
-    assert.match(checkExpectedBlankAgainstRecords(seed, rendered).join('\n'), /react-19\.3\.0_pixi-8\.9\.2 webgpu is pass.*prune the list/);
-    const extra = clone(seed);
-
-    extra.adapterMatrix.expectedBlankRender[0].evidence.record = '2026-01-01';
-    assert.match(checkExpectedBlankAgainstRecords(extra, records).join('\n'), /not a checked-in record/);
+    assert.equal(again.cells[0].backends.webgpu.status, 'fail');
+    assert.equal(again.rendering.note, SOFTWARE_NOTE);
 });
 
 test('GPU profiles: a hardware profile may not select a software path', () =>
@@ -269,28 +258,39 @@ test('the checked-in records are valid, rendered, and are what seed.json verifie
     assert.throws(() => validateRecord(seed, stale), /summary is stale/);
 });
 
-test('the software records: WebGL verifies every nightly tuple, WebGPU pixi.js 8.10.2 and later; 8.2 to 8.9 are expected blank there', () =>
+test('the software records: 2026-10-11 verifies every nightly tuple on both backends, with the shim on WebGPU below 8.10; the older ones keep their blank renders', () =>
 {
     const records = loadRecords();
     const first = records.find((item) => item.id === '2026-10-10');
     const second = records.find((item) => item.id === '2026-10-10.2');
+    const third = records.find((item) => item.id === '2026-10-11');
 
-    assert.equal(first.rendering.kind, 'software');
-    assert.equal(first.summary.backends.webgl.verifiedTuples, 184);
-    assert.equal(first.summary.backends.webgpu.verifiedTuples, 104);
     assert.equal(first.summary.backends.webgpu.expectedBlank, 64);
-    assert.equal(second.rendering.kind, 'software');
-    assert.equal(second.summary.backends.webgl.verifiedTuples, 297);
-    assert.equal(second.summary.backends.webgpu.verifiedTuples, 143);
     assert.equal(second.summary.backends.webgpu.expectedBlank, 88);
-    assert.equal(second.summary.backends.webgpu.failed, 0);
-    // The second supersedes the first on this machine and profile.
-    assert.deepEqual(currentRecords([first, second]).map((item) => item.id), ['2026-10-10.2']);
-    // From the software record alone, 8.2 to 8.9 never verify on WebGPU.
-    const softwareOnly = new Set(deriveVerifiedRanges([second]).filter((entry) => entry.pixiAdapter === 'pixi-8').flatMap((entry) => entry.backends.webgpu ?? []));
+    assert.equal(second.summary.backends.webgpu.verifiedTuples, 143);
+    assert.equal(third.rendering.kind, 'software');
+    assert.equal(third.summary.backends.webgl.verifiedTuples, 297);
+    assert.equal(third.summary.backends.webgpu.cells, 231);
+    assert.equal(third.summary.backends.webgpu.verifiedTuples, 231);
+    assert.equal(third.summary.backends.webgpu.expectedBlank, 0);
+    assert.equal(third.summary.backends.webgpu.withEnvironmentShim, 88);
+    assert.equal(third.summary.backends.webgl.withEnvironmentShim, 0);
+    // The newest record of the machine supersedes the two before it.
+    assert.deepEqual(currentRecords([first, third, second]).map((item) => item.id), ['2026-10-11']);
+    // Every WebGPU run below 8.10 applied the shim (32 texture units clamped to 16), and no other run did.
+    for (const item of third.cells)
+    {
+        for (const [backend, entry] of Object.entries(item.backends))
+        {
+            const expected = backend === 'webgpu' && BEFORE_FIX.includes(item.pixi) ? [shim.id] : [];
 
-    for (const version of blankEntry.pixi) assert.ok(!softwareOnly.has(version), `${version} is not verified on WebGPU by a software record`);
-    assert.ok(softwareOnly.has('8.10.2') && softwareOnly.has('8.22.0'));
+            assert.deepEqual((entry.environmentShims ?? []).map((applied) => applied.id), expected, `${item.id} ${backend}`);
+            for (const applied of entry.environmentShims ?? []) assert.deepEqual([applied.original, applied.clamped], [32, 16]);
+        }
+    }
+    const softwareOnly = deriveVerifiedRanges([third]).filter((entry) => entry.pixiAdapter === 'pixi-8');
+
+    for (const entry of softwareOnly) assert.deepEqual(entry.environmentShims, { webgpu: { [shim.id]: BEFORE_FIX } }, `${entry.reactAdapter} ${entry.react}`);
 });
 
 test('a full hardware record verifies what passed on it; a known issue is shown beside covered tuples, not hidden', () =>
@@ -302,8 +302,14 @@ test('a full hardware record verifies what passed on it; a known issue is shown 
     assert.equal(mac.scope, 'full');
     assert.equal(mac.rendering.kind, 'hardware');
     assert.ok(recordGate(mac));
-    for (const version of blankEntry.pixi) assert.ok(webgpu.has(version), `${version} is verified on WebGPU by the hardware record`);
-    assert.match(readFileSync(new URL('./verification/2026-10-10-macos-26-apple-m5-max.md', import.meta.url), 'utf8'), /## Known issues beside verified tuples[\s\S]*pixijs\/pixijs#11389/);
+    for (const version of BEFORE_FIX) assert.ok(webgpu.has(version), `${version} is verified on WebGPU`);
+    // Its tuples below 8.10 carry the same footnote mark, without a shim (it ran before them).
+    const markdown = renderRecord(mac, seed);
+
+    assert.match(markdown, /## Environment shims and known issues\n\n\\\* WebGPU on pixi\.js <8\.10 needs the workaround for \[pixijs\/pixijs#11389\]/);
+    assert.match(markdown, /No environment shim was applied: this record ran before environment shims existed/);
+    assert.match(markdown, /\| react-19\.3\.0_pixi-8\.9\.2 \|[^\n]*\| pass\\\* 83\/8\/0 \|\n/);
+    assert.doesNotMatch(markdown, /\d \(shimmed\)/);
     // knownIssues must name a range and links.
     const broken = clone(seed);
 

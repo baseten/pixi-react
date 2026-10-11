@@ -5,7 +5,7 @@
   "machine": "macos-26-apple-m5-max",
   "issue": 17,
   "statement": "Verification is evidence, not a support guarantee.",
-  "rule": "A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on a render backend when its cell passed on that backend in this record (every command, every conformance scenario and the render check) and every boundary probe and every negative case of this record behaved as expected. A run on the expected-blank-render list (adapterMatrix.expectedBlankRender) that failed exactly as listed is not a failure, but verifies nothing. Each tuple lists every backend it is verified on; backends are never inferred from each other.",
+  "rule": "A tuple (React adapter, exact React, Pixi adapter, exact pixi.js) is verified on a render backend when its cell passed on that backend in this record (every command, every conformance scenario and the render check) and every boundary probe and every negative case of this record behaved as expected. A backend run that applied an environment shim (adapterMatrix.environmentShims, a labelled workaround for an upstream pixi.js bug) is judged like any other: a pass verifies the tuple, which carries the shim id, and a failure is a failure. A run a record before 2026-10-11 lists as an expected blank render (the retired expectedBlankRender list) verifies nothing. Each tuple lists every backend it is verified on; backends are never inferred from each other.",
   "gpuProfile": "hardware",
   "rendering": {
     "profile": "hardware",
@@ -44,6 +44,7 @@
         "cells": 184,
         "passed": 184,
         "expectedBlank": 0,
+        "withEnvironmentShim": 0,
         "failed": 0,
         "notRun": 0,
         "backendCheckFailed": 0,
@@ -59,6 +60,7 @@
         "cells": 168,
         "passed": 168,
         "expectedBlank": 0,
+        "withEnvironmentShim": 0,
         "failed": 0,
         "notRun": 0,
         "backendCheckFailed": 0,
@@ -32587,5 +32589,8 @@
       }
     ],
     "results": []
-  }
+  },
+  "findings": [
+    "Added 2026-10-11 (no re-run): this record ran before environment shims existed, so none was applied. The shim pixi-webgpu-texture-units (adapterMatrix.environmentShims) would be a no-op on this machine: WebGL on Apple/Metal reports MAX_TEXTURE_IMAGE_UNITS 16, equal to WebGPU's default maxSampledTexturesPerShaderStage, which is why pixi.js 8.2.6 to 8.9.2 rendered on WebGPU here without it (pixijs/pixijs#11389 needs a WebGL texture-unit count above the WebGPU per-stage limit). The record stays valid as recorded."
+  ]
 }

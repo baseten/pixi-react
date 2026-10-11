@@ -10,7 +10,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { compareVersions, knownIssueNote, knownIssuesFor } from '../../design/compatibility/cells/matrix.mjs';
+import { compareVersions, knownIssueFootnote, knownIssueMark, knownIssuesFor } from '../../design/compatibility/cells/matrix.mjs';
 import { currentRecords, loadRecords, recordGate, recordId } from '../../design/compatibility/verification.mjs';
 import { committedConfig, loadSeedAt, releaseFacts, UPSTREAM_ROW } from './compat.mjs';
 import { repoRoot } from './config.mjs';
@@ -29,11 +29,38 @@ function versionSpan(versions)
 }
 
 /**
+ * A sorted set of verified pixi.js versions on one backend, split where a known issue (adapterMatrix.knownIssues) starts
+ * or stops covering them: each span covered by an issue carries its footnote mark (`8.2.6 … 8.9.2 (8 versions)\*`), and
+ * the issue is added to `footnotes` so the table prints its footnote once below.
+ */
+function markedSpans(seed, backend, pixiAdapter, versions, footnotes)
+{
+    const segments = [];
+
+    for (const version of versions)
+    {
+        const issues = seed ? knownIssuesFor(seed, { pixiAdapter, renderer: backend, pixi: version }) : [];
+        const key = issues.map((issue) => issue.id).join();
+
+        if (segments.at(-1)?.key === key) segments.at(-1).versions.push(version);
+        else segments.push({ key, issues, versions: [version] });
+    }
+
+    return segments.map(({ issues, versions: span }) =>
+    {
+        for (const issue of issues) footnotes?.set(issue.id, issue);
+
+        return `${versionSpan(span)}${issues.map((issue) => knownIssueMark(seed, issue)).join('')}`;
+    }).join(', ');
+}
+
+/**
  * What the dated verification records verified for a package, per render backend, as exact pairings: per Pixi adapter,
  * the React versions that share the same set of verified pixi.js versions, with that set. Sparse evidence is never
- * widened into a cross product. `not verified` for a backend without a verified tuple.
+ * widened into a cross product. `not verified` for a backend without a verified tuple. A pixi.js span a known issue
+ * covers carries its footnote mark; the issue is added to `footnotes` (a Map) for the table to print below.
  */
-export function verifiedLabel(verified, backends, applicable = backends, seed = null)
+export function verifiedLabel(verified, backends, applicable = backends, seed = null, footnotes = null)
 {
     const parts = backends.map((backend) =>
     {
@@ -54,7 +81,7 @@ export function verifiedLabel(verified, backends, applicable = backends, seed = 
         }
         const statements = [];
 
-        for (const reacts of byAdapter.values())
+        for (const [pixiAdapter, reacts] of byAdapter)
         {
             // React versions with an identical pixi.js set share one statement; every pair it names is verified.
             const groups = new Map();
@@ -70,14 +97,11 @@ export function verifiedLabel(verified, backends, applicable = backends, seed = 
             }
             for (const group of [...groups.values()].sort((a, b) => compareVersions(a.react.sort(compareVersions)[0], b.react.sort(compareVersions)[0])))
             {
-                statements.push(`React ${versionSpan(group.react)} × pixi.js ${versionSpan(group.pixi)}`);
+                statements.push(`React ${versionSpan(group.react)} × pixi.js ${markedSpans(seed, backend, pixiAdapter, group.pixi, footnotes)}`);
             }
         }
 
-        // A known upstream issue (adapterMatrix.knownIssues) that covers a verified tuple is shown right beside it.
-        const issues = seed ? [...new Map(tuples.flatMap((tuple) => knownIssuesFor(seed, { pixiAdapter: tuple.pixiAdapter, renderer: backend, pixi: tuple.pixi })).map((issue) => [issue.id, issue])).values()] : [];
-
-        return `${BACKEND_LABEL[backend] ?? backend}: ${statements.join('; ')}${issues.map((issue) => ` (${knownIssueNote(seed, issue)})`).join('')}`;
+        return `${BACKEND_LABEL[backend] ?? backend}: ${statements.join('; ')}`;
     });
     const records = verified?.records ?? [];
 
@@ -92,12 +116,15 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
     const facts = releaseFacts({ root, config });
     const seed = loadSeedAt(root);
     const backends = Object.keys(seed.adapterMatrix.renderers);
-    // How each record rendered (software here; a real-GPU record adds evidence), and the expected blank renders.
+    // How each record rendered (software here; a real-GPU record adds evidence).
     // Only the current records (the newest per machine and GPU profile) count; a record whose probes and incompatible
     // pairs did not all run (a partial run) verifies nothing and is named as evidence only.
     const records = currentRecords(loadRecords(join(root, 'design/compatibility/verification')));
     const renderingLine = records.map((record) => `Record [${recordId(record)}](compatibility/verification/${recordId(record)}.md)${recordGate(record) ? '' : ` (${record.scope === 'partial' ? 'partial run' : 'incomplete gate'}: evidence only, verifies nothing)`}: ${record.rendering.note}`).join(' ');
-    const blankLines = (seed.adapterMatrix.expectedBlankRender ?? []).map((entry) => `${BACKEND_LABEL[entry.renderer] ?? entry.renderer} with pixi.js ${versionSpan(entry.pixi)} (${seed.adapterMatrix.pixiAdapters[entry.pixiAdapter].id}, ${entry.gpuProfile} rendering) is an **expected blank render, unverified**: ${entry.reason} ${entry.evidence.narrowed} ${entry.evidence.realGpu}`);
+    // Known issues covering a verified span: one footnote each, under the table that marks it.
+    const facadeNotes = new Map();
+    const packageNotes = new Map();
+    const footnoteLines = (notes) => (notes.size ? ['', ...[...notes.values()].map((issue) => knownIssueFootnote(seed, issue))] : []);
     const { facade, pixi } = facts;
     const composed = facade.composedPackages.filter((pkg) => !['packages/core', 'packages/renderer'].includes(pkg.dir));
     const lines = [
@@ -114,13 +141,13 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
         '',
         `**Rendering.** ${renderingLine}`,
         '',
-        ...blankLines.flatMap((line) => [line, '']),
         '## The facade',
         '',
         `| ${code(facade.publicName)} | React peer | React tested | pixi.js peer | pixi.js tested on every PR | pixi.js in the nightly cells | Verified (the adapter packages it builds in) | Builds in |`,
         '| --- | --- | --- | --- | --- | --- | --- | --- |',
-        `| ${versionLabel(facade)} | ${code(facade.peers.react)} | ${facade.reactTested.join(', ')} | ${code(facade.peers['pixi.js'])} | ${pixi.pr.join(', ')} | ${pixi.nightly.length} versions: the newest audited patch of each minor, ${pixi.nightly[0]} … ${pixi.nightly.at(-1)} | ${verifiedLabel(facade.verified, backends, backends, seed)} | ${composed.map((pkg) => `${code(pkg.publicName)} ${pkg.version}`).join(', ')}; react-reconciler ${facade.reconciler}, its-fine ${facade.itsFine} |`,
+        `| ${versionLabel(facade)} | ${code(facade.peers.react)} | ${facade.reactTested.join(', ')} | ${code(facade.peers['pixi.js'])} | ${pixi.pr.join(', ')} | ${pixi.nightly.length} versions: the newest audited patch of each minor, ${pixi.nightly[0]} … ${pixi.nightly.at(-1)} | ${verifiedLabel(facade.verified, backends, backends, seed, facadeNotes)} | ${composed.map((pkg) => `${code(pkg.publicName)} ${pkg.version}`).join(', ')}; react-reconciler ${facade.reconciler}, its-fine ${facade.itsFine} |`,
         `| ${UPSTREAM_ROW.version} (upstream, for comparison) | ${code(UPSTREAM_ROW.react)} | - | ${code(UPSTREAM_ROW.pixi)} | - | - | - | ${UPSTREAM_ROW.composes} |`,
+        ...footnoteLines(facadeNotes),
         '',
         `On a React 19 minor other than ${facade.reactMinor} the facade installs (its peer is a caret range), runs and logs one warning; `
             + `pixi.js ${pixi.excluded.join(', ')} ${pixi.excluded.length === 1 ? 'is' : 'are'} excluded from the range.`,
@@ -142,8 +169,9 @@ export function renderCompatibilityTable({ root = repoRoot } = {})
         else if (pkg.pixiAdapter?.isDefault) cells = 'with every React adapter row above';
         else if (pkg.pixiAdapter) cells = `${pkg.pixiAdapter.prCells.map((cell) => `React ${cell.react} with pixi.js ${cell.pixi}`).join(', ')}; every React adapter nightly`;
 
-        lines.push(`| ${code(pkg.publicName)} | ${versionLabel(pkg)} | ${peers} | ${exact} | ${cells} | ${pkg.verified ? verifiedLabel(pkg.verified, backends, pkg.pixiAdapter?.renderers ?? backends, seed) : 'in every verified tuple above'} |`);
+        lines.push(`| ${code(pkg.publicName)} | ${versionLabel(pkg)} | ${peers} | ${exact} | ${cells} | ${pkg.verified ? verifiedLabel(pkg.verified, backends, pkg.pixiAdapter?.renderers ?? backends, seed, packageNotes) : 'in every verified tuple above'} |`);
     }
+    lines.push(...footnoteLines(packageNotes));
     lines.push('', `Every package releases at the facade's version (${facade.version}), and a dependency between our packages names exactly that version: install all \`${config.names.modulePrefix}*\` packages at the same version (see [release.md](release.md#lockstep-versions)).`);
     for (const pkg of facts.packages.filter((item) => item.pixiAdapter && !item.pixiAdapter.isDefault))
     {

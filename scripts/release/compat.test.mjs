@@ -209,3 +209,21 @@ test('verified labels name exact pairings, never a cross product of sparse evide
 
     assert.equal(verifiedLabel(shared, ['webgpu']), 'WebGPU: React 18.3.1 × pixi.js 8.22.0; React 19.0.0, 19.3.0 × pixi.js 8.10.2, 8.22.0');
 });
+
+test('a verified span a known issue covers carries its footnote mark, and the footnote is collected once', () =>
+{
+    const seed = JSON.parse(readFileSync(join(repoRoot, 'design/compatibility/seed.json'), 'utf8'));
+    const tuple = (react, pixi) => ({ reactAdapter: 'react-x', react, pixiAdapter: 'pixi-8', pixi });
+    const versions = ['8.2.6', '8.3.4', '8.4.1', '8.5.2', '8.9.2', '8.10.2', '8.11.0', '8.12.0', '8.22.0'];
+    const verified = { records: [], backends: { webgl: versions.map((pixi) => tuple('19.3.0', pixi)), webgpu: versions.map((pixi) => tuple('19.3.0', pixi)) } };
+    const footnotes = new Map();
+    const label = verifiedLabel(verified, ['webgl', 'webgpu'], ['webgl', 'webgpu'], seed, footnotes);
+
+    assert.equal(label, 'WebGL: React 19.3.0 × pixi.js 8.2.6 … 8.22.0 (9 versions). WebGPU: React 19.3.0 × pixi.js 8.2.6 … 8.9.2 (5 versions)\\*, 8.10.2 … 8.22.0 (4 versions)');
+    assert.deepEqual([...footnotes.keys()], ['pixi8-webgpu-texture-limit-before-8.10']);
+    // The checked-in table prints the footnote under each table that marks a span, and no separate known-issue note.
+    const table = readFileSync(join(repoRoot, TABLE_FILE), 'utf8');
+
+    assert.match(table, /\n\\\* WebGPU on pixi\.js <8\.10 needs the workaround for \[pixijs\/pixijs#11389\]/);
+    assert.doesNotMatch(table, /\*\*Known issue\*\*|expected blank render/);
+});
