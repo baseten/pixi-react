@@ -20,6 +20,9 @@ function validate(t, mutate)
     mkdirSync(join(root, 'cells'));
     copyFileSync(new URL('cells/matrix.mjs', import.meta.url), join(root, 'cells', 'matrix.mjs'));
     copyFileSync(new URL('validate.mjs', import.meta.url), join(root, 'validate.mjs'));
+    // The required Node (engines.node and .nvmrc), which validateRecord checks records against.
+    copyFileSync(new URL('../../package.json', import.meta.url), join(root, 'package.json'));
+    copyFileSync(new URL('../../.nvmrc', import.meta.url), join(root, '.nvmrc'));
     copyFileSync(new URL('validate-historical.mjs', import.meta.url), join(root, 'validate-historical.mjs'));
     copyFileSync(new URL('resolved-packages.mjs', import.meta.url), join(root, 'resolved-packages.mjs'));
     copyFileSync(new URL('surface-map.mjs', import.meta.url), join(root, 'surface-map.mjs'));

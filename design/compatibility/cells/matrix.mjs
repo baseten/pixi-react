@@ -4,7 +4,7 @@
 // `cells.test.mjs` can exercise all of it offline.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -717,6 +717,58 @@ export function browserOf(name, gpuProfile)
     assert.ok(browser.pinned || gpuProfile?.expect === 'hardware', `--browser ${id} needs --gpu hardware: the ${gpuProfile?.id ?? 'software'} profile (CI) runs only the Chromium pinned by Playwright`);
 
     return browser;
+}
+
+/**
+ * The workspace's required Node range (`engines.node` of the nearest package.json above this file that has one: the
+ * repository root) and the `.nvmrc` version beside it.
+ */
+export function nodeRequirement()
+{
+    for (let dir = new URL('.', import.meta.url); ; dir = new URL('..', dir))
+    {
+        const manifest = new URL('package.json', dir);
+        const engines = existsSync(manifest) ? JSON.parse(readFileSync(manifest, 'utf8')).engines?.node : undefined;
+
+        if (engines) return { range: engines, nvmrc: readFileSync(new URL('.nvmrc', dir), 'utf8').trim().replace(/^v/, '') };
+        assert.ok(dir.pathname !== '/', 'no package.json with engines.node above design/compatibility/cells');
+    }
+}
+
+/**
+ * Whether a Node version satisfies an `engines.node` range. Supports what the workspace uses: alternatives (`||`), and
+ * in each a space-separated conjunction of `^x.y.z`, `~x.y.z`, `>=`, `>`, `<=`, `<`, `=` or an exact version.
+ */
+export function satisfiesNodeRange(version, range)
+{
+    const v = String(version).replace(/^v/, '');
+
+    assert.match(v, /^\d+\.\d+\.\d+$/, `Node version ${version}`);
+    const cmp = (a, b) => compareVersions(a, b);
+    const test = (comparator) =>
+    {
+        const [, op = '', target] = comparator.match(/^(\^|~|>=|<=|>|<|=)?v?(\d+\.\d+\.\d+)$/) ?? assert.fail(`unsupported engines.node comparator ${comparator}`);
+        const [major, minor] = parts(target);
+
+        switch (op)
+        {
+            case '^': return cmp(v, target) >= 0 && (major > 0 ? parts(v)[0] === major : parts(v)[1] === minor);
+            case '~': return cmp(v, target) >= 0 && parts(v)[0] === major && parts(v)[1] === minor;
+            case '>=': return cmp(v, target) >= 0;
+            case '>': return cmp(v, target) > 0;
+            case '<=': return cmp(v, target) <= 0;
+            case '<': return cmp(v, target) < 0;
+            default: return cmp(v, target) === 0;
+        }
+    };
+
+    return range.split('||').some((alternative) => alternative.trim().split(/\s+/).filter(Boolean).every(test));
+}
+
+/** Throws unless this Node satisfies the workspace's `engines.node`: a verification run must use the required Node. */
+export function assertRequiredNode(version = process.versions.node, requirement = nodeRequirement())
+{
+    assert.ok(satisfiesNodeRange(version, requirement.range), `Node ${version} does not satisfy package.json engines.node "${requirement.range}": switch to the version in .nvmrc (${requirement.nvmrc}), for example \`nvm use ${requirement.nvmrc}\` or \`fnm use ${requirement.nvmrc}\`, then run again`);
 }
 
 /** sha256 of the sorted `[path, sha256]` list: the identity of a set of files. */

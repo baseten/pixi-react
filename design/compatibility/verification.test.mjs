@@ -2,10 +2,12 @@
 // shims (and the retired expected-blank-render list in old records), and that the checked-in records, their Markdown and seed.json's verifiedRanges agree.
 // Run with `node --test design/compatibility/*.test.mjs`.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { validateAdapterMatrix } from './cells/matrix.mjs';
-import { browserOfRows, checkRenderedRecords, currentRecords, describeBrowser, deriveVerifiedRanges, ENVIRONMENT_SHIMS_SINCE, loadRecords, recordGate, refreshRecord, renderingOf, renderRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
+import { browserOfRows, buildRecord, checkRenderedRecords, currentRecords, describeBrowser, deriveVerifiedRanges, ENVIRONMENT_SHIMS_SINCE, loadRecords, recordGate, refreshRecord, renderingOf, renderRecord, SOFTWARE_NOTE, summarizeRecord, validateRecord } from './verification.mjs';
 
 const seed = JSON.parse(readFileSync(new URL('./seed.json', import.meta.url), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -366,4 +368,48 @@ test('a software record cannot name an installed browser', () =>
     assert.throws(() => validateRecord(seed, bad), /installed browser \(chrome\) is allowed only in a hardware record/);
     bad.environment.browser = { id: 'chromium', channel: null, pinned: true, name: 'Chromium', version: '133.0.6943.16' };
     validateRecord(seed, bad);
+});
+
+test('records from 2026-10-11 on need the required Node and, when full, their packed artifacts; older ones are kept as recorded', () =>
+{
+    const [current] = loadRecords().filter((candidate) => candidate.id === '2026-10-11');
+    const wrongNode = clone(current);
+
+    wrongNode.environment.node = '24.18.0';
+    assert.throws(() => validateRecord(seed, wrongNode), /ran on Node 24\.18\.0, outside package\.json engines\.node "\^22\.22\.0"/);
+    const noArtifacts = clone(current);
+
+    noArtifacts.artifacts = {};
+    assert.throws(() => validateRecord(seed, noArtifacts), /names the packed artifacts its cells installed/);
+    // A partial record may name none; an older record keeps what it recorded.
+    validateRecord(seed, { ...noArtifacts, scope: 'partial', summary: summarizeRecord(seed, { ...noArtifacts, scope: 'partial' }) });
+    const [oldMac] = loadRecords().filter((candidate) => candidate.id === '2026-10-10-macos-26-apple-m5-max');
+
+    assert.deepEqual(oldMac.artifacts, {});
+    validateRecord(seed, oldMac);
+    assert.ok(oldMac.findings.some((finding) => finding.includes('artifacts map is empty')));
+});
+
+test('build reads the packed artifacts from --tarballs and refuses a full record without them', () =>
+{
+    const work = mkdtempSync(join(tmpdir(), 'verification-build-test-'));
+    const options = { work, date: '2026-10-12', commit: '0'.repeat(40), environment: { node: '22.22.0', chromium: 'x', os: 'y' }, run: { commands: [], notes: [] } };
+
+    try
+    {
+        assert.throws(() => buildRecord(seed, options), /artifacts\.json is missing or empty: a full record needs the packed artifacts/);
+        assert.deepEqual(buildRecord(seed, { ...options, scope: 'partial' }).artifacts, {});
+        const tarballs = join(work, 'elsewhere');
+
+        mkdirSync(tarballs);
+        writeFileSync(join(tarballs, 'artifacts.json'), JSON.stringify({ core: { package: '@x/core', version: '1.0.0', hash: 'abc', files: { 'index.js': 'h1', 'README.md': 'h2' } } }));
+        const record = buildRecord(seed, { ...options, tarballs });
+
+        assert.deepEqual(Object.keys(record.artifacts), ['core']);
+        assert.equal(record.artifacts.core.contentSha256, 'abc');
+    }
+    finally
+    {
+        rmSync(work, { recursive: true, force: true });
+    }
 });

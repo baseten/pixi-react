@@ -24,6 +24,7 @@
  *
  * Usage:
  *   node design/compatibility/verification.mjs build --work DIR --date YYYY-MM-DD --commit SHA [--machine SLUG] [--sequence N]
+ *       [--tarballs DIR]   # the packed artifacts the cells installed (default DIR/tarballs); a full record needs them
  *       [--scope full|partial] [--extra FILE]   # a record from a run's work directory (partial: only the cells it ran)
  *   node design/compatibility/verification.mjs refresh [--record ID] [--extra FILE]   # re-apply the manifest's lists and the rule
  *   node design/compatibility/verification.mjs render [--check]   # the .md files from the .json records
@@ -37,7 +38,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { arch, cpus, release, totalmem, type, version } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { boundaryProbes, BROWSERS, compareVersions, environmentShimsFor, fileSetHash, gpuProfileOf, knownIssueFootnote, knownIssueMark, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
+import { boundaryProbes, BROWSERS, compareVersions, nodeRequirement, satisfiesNodeRange, environmentShimsFor, fileSetHash, gpuProfileOf, knownIssueFootnote, knownIssueMark, knownIssuesFor, loadSeed, negativeCells, platformCommand, selectCells, splitConformanceReport } from './cells/matrix.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -56,6 +57,12 @@ export const VERIFICATION_RULE = 'A tuple (React adapter, exact React, Pixi adap
  * record lists no shim and may keep the expected blank renders it recorded (they verify nothing).
  */
 export const ENVIRONMENT_SHIMS_SINCE = '2026-10-11';
+/**
+ * From this day on a record must come from the required Node (package.json `engines.node`, the version in .nvmrc), and
+ * a full record must name the packed artifacts its cells installed (so `compare` can check its code). Older records are
+ * kept as recorded (2026-10-10-macos-26-apple-m5-max has no artifacts; a finding says so).
+ */
+export const RECORD_REQUIREMENTS_SINCE = '2026-10-11';
 /** What a record says about how it rendered, by GPU profile: software verification counts, with this note. */
 export const SOFTWARE_NOTE = 'Software rendering: no GPU took part. WebGL ran on ANGLE over SwiftShader and WebGPU on Dawn over SwiftShader\'s '
     + 'Vulkan device, a fallback adapter (isFallbackAdapter true). It counts as verification; a run on a real GPU '
@@ -347,8 +354,17 @@ export function summarizeRecord(seed, record)
  * cases; `data-results/` of the data-only probes). `scope: 'partial'` records only the cells that have a result (a
  * targeted run); a full record lists every nightly cell and counts a missing one as missing.
  */
-export function buildRecord(seed, { work, date, commit, environment, run, dataSpec, machine, sequence = 1, scope = 'full' })
+export function buildRecord(seed, { work, tarballs = join(work, 'tarballs'), date, commit, environment, run, dataSpec, machine, sequence = 1, scope = 'full' })
 {
+    const artifactsFile = join(tarballs, 'artifacts.json');
+    const packed = existsSync(artifactsFile) ? readJson(artifactsFile) : {};
+
+    // Without the packed artifacts a record cannot show which code it ran (`compare` would check nothing).
+    if (!Object.keys(packed).length)
+    {
+        assert.ok(scope !== 'full', `${artifactsFile} is missing or empty: a full record needs the packed artifacts the cells installed (pass --tarballs with the directory the run packed to)`);
+        console.warn(`warning: ${artifactsFile} is missing or empty; this partial record names no artifacts`);
+    }
     const backends = backendNames(seed);
     const { rows, probes } = (() =>
     {
@@ -437,9 +453,7 @@ export function buildRecord(seed, { work, date, commit, environment, run, dataSp
         environment: env,
         run,
         // The packed workspace artifacts every cell installed: content hashes of the files `pnpm pack` produced.
-        artifacts: existsSync(join(work, 'tarballs', 'artifacts.json'))
-            ? Object.fromEntries(Object.entries(readJson(join(work, 'tarballs', 'artifacts.json'))).map(([id, artifact]) => [id, { package: artifact.package, version: artifact.version, contentSha256: artifact.hash, codeSha256: codeHash(artifact.files) }]))
-            : {},
+        artifacts: Object.fromEntries(Object.entries(packed).map(([id, artifact]) => [id, { package: artifact.package, version: artifact.version, contentSha256: artifact.hash, codeSha256: codeHash(artifact.files) }])),
         summary: null,
         cells,
         integrities: Object.fromEntries(Object.entries(integrities).sort(([a], [b]) => a.localeCompare(b))),
@@ -560,6 +574,13 @@ export function validateRecord(seed, record, name = recordId(record))
     else assert.ok(record.machine, `${name}: a hardware record names its machine`);
     assert.ok(['full', 'partial'].includes(record.scope), `${name}: scope`);
     assert.ok(record.environment?.node && record.environment?.chromium && record.environment?.os, `${name}: environment`);
+    if (record.date >= RECORD_REQUIREMENTS_SINCE)
+    {
+        const { range, nvmrc } = nodeRequirement();
+
+        assert.ok(satisfiesNodeRange(record.environment.node, range), `${name}: ran on Node ${record.environment.node}, outside package.json engines.node "${range}" (.nvmrc ${nvmrc}); re-run on the required Node`);
+        if (record.scope === 'full') assert.ok(Object.keys(record.artifacts ?? {}).length > 0, `${name}: a full record from ${RECORD_REQUIREMENTS_SINCE} on names the packed artifacts its cells installed (verification.mjs build --tarballs DIR)`);
+    }
     if (record.environment.browser)
     {
         const known = BROWSERS[record.environment.browser.id];
@@ -874,6 +895,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
             const date = option('date');
             const record = buildRecord(seed, {
                 work: resolve(option('work')),
+                tarballs: resolve(option('tarballs') ?? join(option('work'), 'tarballs')),
                 date,
                 commit: option('commit'),
                 machine: option('machine'),

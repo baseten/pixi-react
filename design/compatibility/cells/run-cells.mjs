@@ -21,6 +21,7 @@
 // GPU and fails a run that lands on a software renderer), --browser chromium|chrome|msedge (the Playwright-pinned
 // Chromium by default; `chrome` and `msedge` launch the installed browser through Playwright's channel, hardware profile
 // only), --headed / --headless (override the profile's browser mode), --no-cache, --keep (keep the isolated project).
+// `run`, `probes` and `all` refuse to start on a Node outside package.json `engines.node` (the version in .nvmrc).
 //
 // Runs on Linux, macOS and Windows (Node 22, npm and pnpm on PATH): commands are spawned without a POSIX shell, and on
 // Windows npm and pnpm through their .cmd shims. Each cell's temp directory is used by its real path (`makeCellDir`:
@@ -31,7 +32,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, write
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { boundaryProbes, browserOf, cellArtifacts, cellKey, environmentShimsFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, makeCellDir, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, applyTypeAssertions, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
+import { assertRequiredNode, boundaryProbes, browserOf, cellArtifacts, cellKey, environmentShimsFor, expectedPixiProvides, expectedTree, gpuProfileOf, loadSeed, makeCell, makeCellDir, negativeCells, plannedRows, platformCommand, renderCompatibilityDoc, renderTable, selectCells, splitConformanceReport, applyTypeAssertions, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
 import { packArtifacts, readArtifacts } from './pack.mjs';
 import { runProbe } from './probes.mjs';
 
@@ -716,9 +717,12 @@ switch (options.command)
         process.stdout.write(`${matrix.toolchain[options.name]}\n`);
         break;
     case 'run':
+        // Results feed verification records, which must come from the required Node (package.json engines, .nvmrc).
+        assertRequiredNode();
         commandRun();
         break;
     case 'all':
+        assertRequiredNode();
         // The local equivalent of the required PR check: boundary probes, the tier's cells, then the negative cases.
         // Repack unless tarballs were supplied, so a rebuilt adapter is never tested from stale tarballs.
         rmSync(join(work, 'results'), { recursive: true, force: true });
@@ -730,6 +734,7 @@ switch (options.command)
         commandTable();
         break;
     case 'probes':
+        assertRequiredNode();
         commandProbes();
         break;
     case 'data':

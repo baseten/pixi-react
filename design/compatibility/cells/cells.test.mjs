@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { applyTypeAssertions, browserOf, BROWSERS, cellKey, environmentShimsFor, gpuProfileOf, knownIssueFootnote, loadSeed, makeCellDir, negativeCells, platformCommand, renderCompatibilityDoc, renderTable, selectCells, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
+import { applyTypeAssertions, assertRequiredNode, browserOf, BROWSERS, cellKey, environmentShimsFor, gpuProfileOf, knownIssueFootnote, loadSeed, makeCellDir, negativeCells, nodeRequirement, platformCommand, renderCompatibilityDoc, renderTable, satisfiesNodeRange, selectCells, typeAssertionsFor, validateAdapterMatrix } from './matrix.mjs';
 import { entryClosure, extractTarball } from './pack.mjs';
 import { compareWithEvidence } from './probes.mjs';
 import { checkProfile, fallbackOf } from './harness/test/gpu-identity.mts';
@@ -513,4 +513,26 @@ test('a WebGPU run asks for an adapter before Pixi initializes and fails at once
     assert.match(preflight, /requestAdapter\(\)/);
     assert.match(preflight, /no WebGPU adapter in this browser/);
     assert.match(preflight, /on Windows try --browser chrome/);
+});
+
+test('Node version: run, probes and all refuse a Node outside package.json engines.node (the .nvmrc version)', () =>
+{
+    const requirement = nodeRequirement();
+
+    assert.equal(requirement.nvmrc, '22.22.0');
+    assert.ok(satisfiesNodeRange(requirement.nvmrc, requirement.range));
+    for (const [version, ok] of [['22.22.0', true], ['22.23.1', true], ['v22.22.0', true], ['22.21.9', false], ['23.0.0', false], ['24.18.0', false], ['20.19.0', false]])
+    {
+        assert.equal(satisfiesNodeRange(version, '^22.22.0'), ok, version);
+    }
+    assert.ok(satisfiesNodeRange('18.20.0', '>=18.0.0 <19.0.0 || ^22.22.0'));
+    assert.ok(!satisfiesNodeRange('19.0.0', '>=18.0.0 <19.0.0 || ^22.22.0'));
+    assert.throws(() => assertRequiredNode('24.18.0', requirement), /Node 24\.18\.0 does not satisfy package\.json engines\.node "\^22\.22\.0": switch to the version in \.nvmrc \(22\.22\.0\)/);
+    assertRequiredNode('22.22.0', requirement);
+    const text = readFileSync(join(here, 'run-cells.mjs'), 'utf8');
+
+    for (const command of ['run', 'all', 'probes'])
+    {
+        assert.match(text, new RegExp(`case '${command}':\\n(?:\\s*//.*\\n)*\\s*assertRequiredNode\\(\\);`), `${command} checks the Node version first`);
+    }
 });
