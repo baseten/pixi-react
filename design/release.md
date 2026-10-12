@@ -225,10 +225,10 @@ compatibility, not pixi.js's own bugs). pixi.js before 8.10 has an upstream bug
 renders): Pixi sizes the WebGPU texture batch from WebGL's `MAX_TEXTURE_IMAGE_UNITS` (32 on SwiftShader) while the
 WebGPU device allows 16 sampled textures per stage, so the pipeline is invalid and the canvas stays blank although
 every conformance scenario passes. It is not specific to software rendering: real devices with that mismatch are
-affected, while an Apple M5 Max is not: its WebGL reports 16 units (recorded: the shim log of hardware record
-2026-10-11-macos-26-apple-m5-max shows the original value 16). The owner's Windows PC
-(NVIDIA RTX 4070, ANGLE over Direct3D 11) also reported 16 in a standalone probe (not yet a record). The adapters do not work around it. The
-harness does, as a labelled shim: on WebGPU runs of the Pixi 8 adapter with pixi.js `>=8.2.6 <8.10.0`, under every GPU
+affected, while an Apple M5 Max and an NVIDIA RTX 4070 (Windows, ANGLE over Direct3D 11) are not: their WebGL reports
+16 units (recorded: the shim logs of hardware records 2026-10-11-macos-26-apple-m5-max and
+2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome show the original value 16). The adapters do not work around
+it. The harness does, as a labelled shim: on WebGPU runs of the Pixi 8 adapter with pixi.js `>=8.2.6 <8.10.0`, under every GPU
 profile, `harness/test/environment-shims.ts` clamps `getParameter(MAX_TEXTURE_IMAGE_UNITS)` of both WebGL contexts to
 16 before the first Pixi application initializes. It never applies to WebGL runs or to pixi.js 8.10+. Each backend
 run records the shims it applied (with the original and clamped value: 32 and 16 on SwiftShader), a shimmed run that
@@ -249,8 +249,15 @@ and with 7.2.0 … 7.4.3 on WebGL. The shim ran on its 88 WebGPU runs of 8.2.6 t
 reports 16 texture units (its shim log records 16 → 16). It supersedes that machine's
 [2026-10-10-macos-26-apple-m5-max](compatibility/verification/2026-10-10-macos-26-apple-m5-max.md) record (184 cells at
 main d0071c1, before the React 18 split, the Pixi 7.2 widening and environment shims; pixi.js 8.2–8.9 rendered on
-WebGPU there without the shim), which no longer contributes to `verifiedRanges`. The Windows hardware run (NVIDIA RTX
-4070, `--browser chrome`) is not a record yet.
+WebGPU there without the shim), which no longer contributes to `verifiedRanges`. The full
+[2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome](compatibility/verification/2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome.md)
+record (Windows 11 build 26200, NVIDIA GeForce RTX 4070, WebGL on ANGLE over Direct3D 11, WebGPU on the `nvidia` /
+`lovelace` adapter; the installed Google Chrome 154 with `--browser chrome`, since Playwright's Chromium has no hardware
+WebGPU adapter on Windows; Node 22.22.0, the same main 899b799) passed every cell on both backends (WebGL 297 of 297,
+WebGPU 231 of 231), all 51 boundary probes and all 7 incompatible pairs, so it verifies the same tuples again. Its
+shim log records 16 → 16 on all 88 shimmed runs: a no-op there too. It is the first Windows hardware record and the
+first record on the `chrome` channel. Three records count today: the software 2026-10-11 record and the two hardware
+records.
 
 **Known issues** (`adapterMatrix.knownIssues`, owner rulings 2026-10-10, "verified + known issue", and 2026-10-11). A
 tuple a record verified stays verified, and the generated tables (the release table, COMPATIBILITY.md, the record
