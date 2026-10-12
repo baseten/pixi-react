@@ -16,7 +16,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -35,7 +36,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -106,7 +108,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -125,7 +128,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -196,7 +200,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -215,7 +220,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -286,7 +292,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -305,7 +312,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -376,7 +384,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -395,7 +404,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -466,7 +476,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -485,7 +496,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -556,7 +568,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -575,7 +588,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -646,7 +660,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -665,7 +680,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -736,7 +752,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -755,7 +772,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -826,7 +844,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -845,7 +864,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -916,7 +936,8 @@
       "pixiAdapter": "pixi-7",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -935,7 +956,8 @@
       "pixiAdapter": "pixi-8",
       "records": [
         "2026-10-11",
-        "2026-10-11-macos-26-apple-m5-max"
+        "2026-10-11-macos-26-apple-m5-max",
+        "2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome"
       ],
       "backends": {
         "webgl": [
@@ -3516,7 +3538,7 @@
         },
         "does": "Before the first Pixi application initializes, wraps WebGLRenderingContext.prototype.getParameter and WebGL2RenderingContext.prototype.getParameter so that MAX_TEXTURE_IMAGE_UNITS (0x8872) returns Math.min(value, 16), 16 being WebGPU's default maxSampledTexturesPerShaderStage. Pixi then sizes its WebGPU texture batch within the device limit. Nothing else changes: the adapters, the scene and every check run as written.",
         "reason": "An upstream pixi.js bug before 8.10, not an adapter defect (pixijs/pixijs#11389, fixed by #11417, first released in 8.10.0): pixi.js 8.2-8.9 size the WebGPU texture batch (Batcher.defaultOptions.maxTextures, GpuGraphicsAdaptor, SdfShader) from WebGL's MAX_TEXTURE_IMAGE_UNITS while requesting the WebGPU device without requiredLimits, so on a device whose WebGL texture-unit count exceeds its WebGPU per-stage limit (32 against 16 on ANGLE/SwiftShader; upstream reports a Pixel 9 and Chrome on Ubuntu) the bind group layout and the batch pipeline are invalid and the canvas stays blank. The matrix measures this project's adapters, not that bug (owner ruling 2026-10-11), so WebGPU runs in this range apply the workaround under every GPU profile; WebGL runs and pixi.js 8.10+ never do.",
-        "evidence": "Bisected on Dawn over SwiftShader (isFallbackAdapter true): 8.2.6, 8.9.0, 8.9.2 and 8.9.2-dev.f4f8fb2 render a blank canvas with the validation error 'The number of sampled textures (32) in the Fragment stage exceeds the maximum per-stage limit (16)'; 8.9.2-dev.89285a6 (the merge of #11417), 8.10.0, 8.10.1 and 8.10.2 render. With this clamp, 8.2.6 and 8.9.2 render a rectangle, a sprite, text and an unbatchable 2000-point Graphics. The 2026-10-10.2 record (run without it) shows the blank canvas on all 88 WebGPU cells of 8.2.6-8.9.2; on the Apple M5 Max hardware record WebGL reports 16 units, so the clamp is a no-op there.",
+        "evidence": "Bisected on Dawn over SwiftShader (isFallbackAdapter true): 8.2.6, 8.9.0, 8.9.2 and 8.9.2-dev.f4f8fb2 render a blank canvas with the validation error 'The number of sampled textures (32) in the Fragment stage exceeds the maximum per-stage limit (16)'; 8.9.2-dev.89285a6 (the merge of #11417), 8.10.0, 8.10.1 and 8.10.2 render. With this clamp, 8.2.6 and 8.9.2 render a rectangle, a sprite, text and an unbatchable 2000-point Graphics. The 2026-10-10.2 record (run without it) shows the blank canvas on all 88 WebGPU cells of 8.2.6-8.9.2; on the Apple M5 Max and NVIDIA RTX 4070 hardware records WebGL reports 16 units, so the clamp is a no-op there.",
         "links": [
           {
             "label": "pixijs/pixijs#11389",
