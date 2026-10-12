@@ -113,6 +113,33 @@ This file records the outcome of the handover audit: the open branches, PRs #21�
 
 Merge order: #21 first, then the owner enables GitHub Actions, then #22 → #23 → #25. Use merge commits so the stacked ancestry is preserved.
 
+### Wave 3 (2026-10-10 to 2026-10-12)
+
+- **Merged.**
+  - #67: the Pixi 7 adapter (#16, `pixi-7`), JSX-order inserts and reparenting fixes.
+  - #68: per-backend (WebGL and WebGPU) verification records (#17).
+  - #69: one package per React 18 minor (`react-18.0` … `react-18.3`). Pixi 7 is widened to `>=7.2.0 <7.4.0 || >=7.4.2 <7.5.0`. The nightly matrix now runs weekly (cron `37 2 * * 1`).
+  - #70: environment shims. `pixi-webgpu-texture-units` works around pixijs/pixijs#11389 on pixi.js 8.2–8.9 WebGPU. It also adds the software record 2026-10-11.
+  - #73: Windows hardware-run fixes (real temp path, `--browser chrome`, fallback detection, WebGPU preflight, page-crash watch, Node check, artifact hashes) and `pnpm compat:gpu`.
+  - #74: error reference pages, each `CompatibilityError` linking to its page (#71), plus the React 18→19 and Pixi 7→8 upgrade guides.
+  - #75: the Pixi 8 adapter destroys the WebGPU device that pixi.js before 8.21 leaks. That leak caused the D3D12 `E_OUTOFMEMORY`. The PR also makes conformance `mountApp` reject on `onInitError`.
+  - #76: a React 19 `startTransition` conformance scenario, and the Activity bridge chosen by feature.
+  - #79: hardware record 2026-10-11-macos-26-apple-m5-max.
+  - #80: hardware record 2026-10-11-windows-26200-nvidia-geforce-rtx-4070-chrome.
+- **Verification today.** Three records count: software, Apple M5 Max (Metal) and NVIDIA RTX 4070 (Windows, Chrome 154). Each passed 297/297 WebGL and 231/231 WebGPU cells, 51/51 probes and 7/7 incompatible pairs.
+- **Owner rulings.**
+  - The term is "verified". Software rendering counts as verified, and WebGPU is verified per version.
+  - The matrix stays green through labelled environment shims, with footnotes on the affected tuples. It measures this project's compatibility, not the underlying library's.
+  - Keep one package per React minor for both React 18 and React 19. Keep pixi.js 7.2.4; 7.0 and 7.1 are not supported.
+  - #72 (doctor) is dropped.
+  - D8 amended: Claude may merge once the gate passes (owner permission, 2026-10-11).
+- **Open.**
+  - #77: kill the process tree when a cell step times out.
+  - #78 (owner decision): should the facade refuse React 19.0–19.2 rather than warn?
+  - #41: the namespace, pending the PixiJS team.
+  - Owner action: require `Compatibility (required)`, `Examples E2E (required)` and `Release dry run` in branch protection.
+  - The write-up for the PixiJS team is a shared doc; nothing is published.
+
 ## Historical prototype: findings
 
 The prototype confirms the core design: a neutral wiring function plus a thin facade that does the default composition. Its reconciler was bundled into the React package, and D2 adopts that.
